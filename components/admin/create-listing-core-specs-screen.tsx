@@ -153,7 +153,7 @@ export function CreateListingCoreSpecsScreen() {
       </ScrollView>
 
       <View style={styles.ctaRow}>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/agent/create-listing-location')}>
+        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-location')}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>

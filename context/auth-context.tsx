@@ -2,11 +2,15 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { supabase } from '@/lib/supabase';
 import { signOutUserAccount } from '@/services/authService';
 
+export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
+
 export type AuthProfile = {
   id: string;
   full_name: string | null;
   is_student: boolean | null;
-  is_agent: boolean | null;
+  is_admin: boolean | null;
+  admin_role: AdminRole | null;
+  assigned_region_id: string | null;
   city: string | null;
   school: string | null;
   onboarded: boolean | null;
@@ -27,7 +31,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = async (userId: string) => {
-    const { data, error } = await supabase
+    const { data: profileData, error } = await supabase
       .from('profiles')
       .select('*')
       .eq('id', userId)
@@ -39,7 +43,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    setProfile(data);
+    const { data: adminData } = await supabase
+      .from('admin_profiles')
+      .select('role, assigned_region_id')
+      .eq('id', userId)
+      .maybeSingle();
+
+    setProfile({
+      ...profileData,
+      admin_role: adminData?.role ?? null,
+      assigned_region_id: adminData?.assigned_region_id ?? null,
+    });
   };
 
   useEffect(() => {

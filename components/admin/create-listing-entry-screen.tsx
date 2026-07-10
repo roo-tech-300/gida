@@ -79,7 +79,7 @@ export function CreateListingEntryScreen() {
           </Text>
         </View>
 
-        <Pressable style={styles.cta} onPress={() => router.push('/agent/create-listing-core-specs')}>
+        <Pressable style={styles.cta} onPress={() => router.push('/admin/create-listing-core-specs')}>
           <Text style={styles.ctaText}>Get Started</Text>
           <Ionicons name="arrow-forward" size={20} color={DesignColors.onSurface} />
         </Pressable>

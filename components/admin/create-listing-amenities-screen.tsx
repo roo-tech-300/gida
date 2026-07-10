@@ -168,7 +168,7 @@ export function CreateListingAmenitiesScreen() {
         <Pressable style={styles.ctaBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/agent/create-listing-media')}>
+        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-media')}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>

@@ -53,8 +53,8 @@ export default function RootLayout() {
                   <Stack.Screen name="(auth)" />
                   <Stack.Screen name="(onboarding)" />
                   <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="agent/portfolio" />
-                  <Stack.Screen name="agent/apply" />
+                  <Stack.Screen name="admin/dashboard" />
+                  <Stack.Screen name="admin/super-dashboard" />
                   <Stack.Screen name="property/[id]" />
                   <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
                   <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />

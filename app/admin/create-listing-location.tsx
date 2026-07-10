@@ -1,4 +1,4 @@
-import { CreateListingLocationScreen } from '@/components/agent/create-listing-location-screen';
+import { CreateListingLocationScreen } from '@/components/admin/create-listing-location-screen';
 
 export default function CreateListingLocationRoute() {
   return <CreateListingLocationScreen />;

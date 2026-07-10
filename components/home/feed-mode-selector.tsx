@@ -138,7 +138,7 @@ export function FeedModeSelector({ currentMode, onSelectMode, onDismiss }: Props
 
 const styles = StyleSheet.create({
   wrapper: { ...StyleSheet.absoluteFillObject, zIndex: 200 },
-  triggerArea: { position: 'absolute', left: 0, right: 0, height: 170, zIndex: 101, alignItems: 'center', paddingTop: 6, gap: 4 },
+  triggerArea: { position: 'absolute', left: 0, right: 0, height: 60, zIndex: 101, alignItems: 'center', paddingTop: 6, gap: 4 },
   triggerPill: { width: 50, height: 3, borderRadius: 1.5, backgroundColor: 'rgb(255, 255, 255)' },
   triggerLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1.5, color: 'rgba(255,255,255,0.7)', fontFamily, textTransform: 'uppercase' },
   overlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 200, overflow: 'hidden', backgroundColor: '#000000' },

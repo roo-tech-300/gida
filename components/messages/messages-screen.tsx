@@ -9,7 +9,7 @@ import { MessageThreadList } from '@/components/messages/message-thread-list';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { conversations, matches } from '@/dummy/messages-mock';
 
-type FilterTab = 'all' | 'roommate' | 'agents';
+type FilterTab = 'all' | 'roommate' | 'admins';
 
 function MatchAvatar({
   initials,
@@ -97,9 +97,9 @@ export function MessagesScreen() {
             style={styles.filterBar}
             contentContainerStyle={styles.filterBarContent}
           >
-            {(['all', 'roommate', 'agents'] as const).map((tab) => {
+            {(['all', 'roommate', 'admins'] as const).map((tab) => {
               const active = tab === activeFilter;
-              const label = tab === 'all' ? 'All' : tab === 'roommate' ? 'Roommate Matches' : 'House Agents';
+              const label = tab === 'all' ? 'All' : tab === 'roommate' ? 'Roommate Matches' : 'House Admins';
               return (
                 <Pressable
                   key={tab}

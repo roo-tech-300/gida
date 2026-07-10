@@ -9,7 +9,7 @@ export function ManagementToolsGrid() {
   return (
     <View style={styles.grid}>
       <View style={styles.row}>
-        <Pressable style={[styles.card, styles.cardTall, styles.indigoCard]} onPress={() => router.push('/agent/create-listing')}>
+        <Pressable style={[styles.card, styles.cardTall, styles.indigoCard]} onPress={() => router.push('/admin/create-listing')}>
           <BlurView intensity={30} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <View style={styles.primaryIconWrap}>

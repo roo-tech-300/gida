@@ -4,10 +4,10 @@ import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type AgentListing } from '@/services/agentService';
+import { type AdminListing } from '@/services/adminService';
 
 type Props = {
-  listing: AgentListing | null;
+  listing: AdminListing | null;
 };
 
 function formatPrice(amount: number): string {

@@ -6,24 +6,23 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
-import { fetchAgentProfile, fetchAgentListings, type AgentListing, type AgentProfile } from '@/services/agentService';
+import { fetchAdminListings, type AdminListing } from '@/services/adminService';
 import { FeaturedListingCard } from './featured-listing-card';
 import { ManagementToolsGrid } from './management-tools-grid';
-import { MetricsRunway } from './metrics-runway';
 
-export function AgentPortfolioScreen() {
+export function AdminDashboardScreen() {
   const { profile } = useAuth();
-  const [agent, setAgent] = useState<AgentProfile | null>(null);
-  const [listings, setListings] = useState<AgentListing[]>([]);
+  const [businessName, setBusinessName] = useState<string | null>(null);
+  const [operatingCity, setOperatingCity] = useState<string | null>(null);
+  const [createdAt, setCreatedAt] = useState<string | null>(null);
+  const [listings, setListings] = useState<AdminListing[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!profile?.id) return;
-    Promise.all([
-      fetchAgentProfile(profile.id),
-      fetchAgentListings(profile.id),
-    ]).then(([agentData, listingsData]) => {
-      setAgent(agentData);
+    fetchAdminListings(profile.id).then((listingsData) => {
+      setBusinessName(profile.full_name);
+      setOperatingCity(profile.city);
       setListings(listingsData);
       setLoading(false);
     });
@@ -43,10 +42,6 @@ export function AgentPortfolioScreen() {
     );
   }
 
-  const joinedDate = agent?.created_at
-    ? new Date(agent.created_at).toLocaleDateString('en-US', { month: 'long', year: 'numeric' })
-    : null;
-
   const featuredListing = listings.find((l) => l.featured) ?? null;
 
   return (
@@ -56,21 +51,19 @@ export function AgentPortfolioScreen() {
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrap}>
               <BlurView intensity={20} tint="dark" style={styles.avatarBlur} />
-              <Text style={styles.avatarText}>{agent ? initials(agent.business_name) : '?'}</Text>
+              <Text style={styles.avatarText}>{businessName ? initials(businessName) : '?'}</Text>
             </View>
             <View style={styles.backBtnWrap}>
               <BackButton hasBackground={false} />
             </View>
           </View>
           <View style={styles.headerText}>
-            <Text style={styles.headerTitle}>{agent?.business_name || 'My Agent Portfolio'}</Text>
+            <Text style={styles.headerTitle}>{businessName || 'Admin Dashboard'}</Text>
             <Text style={styles.headerSub}>
-              {agent?.operating_city || 'City'} <Text style={styles.dot}>{'  \u2022  '}</Text> Agent since {joinedDate || 'Unknown'}
+              {operatingCity || 'City'} <Text style={styles.dot}>{'  \u2022  '}</Text> Admin
             </Text>
           </View>
         </View>
-
-        <MetricsRunway showVerificationPrompt={!!agent && !agent.verified_at} />
 
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>Management Tools</Text>

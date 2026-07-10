@@ -7,7 +7,6 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
-import { fetchAgentProfile } from '@/services/agentService';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
@@ -20,11 +19,8 @@ export function CreateListingLocationScreen() {
   const [landmark, setLandmark] = useState('');
 
   useEffect(() => {
-    if (!profile?.id) return;
-    fetchAgentProfile(profile.id).then((data) => {
-      if (data?.operating_city) setOperatingCity(data.operating_city);
-    });
-  }, [profile?.id]);
+    if (profile?.city) setOperatingCity(profile.city);
+  }, [profile?.city]);
 
   const schools = getSchoolsForCity(operatingCity);
   const campuses = selectedSchool ? getCampusesForSchool(selectedSchool) : [];
@@ -184,7 +180,7 @@ export function CreateListingLocationScreen() {
         <Pressable style={styles.ctaBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/agent/create-listing-amenities')}>
+        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-amenities')}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>

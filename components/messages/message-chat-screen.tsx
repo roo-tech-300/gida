@@ -17,7 +17,7 @@ import { useAuth } from '@/context/auth-context';
 export function MessageChatScreen({ conversation }: { conversation: Conversation }) {
   const router = useRouter();
   const { profile } = useAuth();
-  const isAgent = profile?.is_agent ?? false;
+  const isAdmin = profile?.is_admin ?? false;
   const [draft, setDraft] = useState('');
   const [attachmentSheetVisible, setAttachmentSheetVisible] = useState(false);
   const [selectedAttachment, setSelectedAttachment] = useState<string>();
@@ -96,7 +96,7 @@ export function MessageChatScreen({ conversation }: { conversation: Conversation
         </View>
       </KeyboardAvoidingView>
       <MessageAttachmentSheet
-        isAgent={isAgent}
+        isAdmin={isAdmin}
         visible={attachmentSheetVisible}
         onClose={() => setAttachmentSheetVisible(false)}
         onSelectSource={handleSelectAttachmentSource}

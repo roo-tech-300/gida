@@ -1,4 +1,4 @@
-export type TourAgent = {
+export type TourAdmin = {
   name: string;
   initials: string;
   rating: number;
@@ -6,7 +6,7 @@ export type TourAgent = {
   image: number;
 };
 
-export const TOUR_AGENT: TourAgent = {
+export const TOUR_ADMIN: TourAdmin = {
   name: 'Sarah Jenkins',
   initials: 'SJ',
   rating: 4.9,

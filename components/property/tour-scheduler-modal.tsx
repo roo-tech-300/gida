@@ -5,7 +5,7 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { getDatePills, TOUR_AGENT } from '@/dummy/tour-scheduler-mock';
+import { getDatePills, TOUR_ADMIN } from '@/dummy/tour-scheduler-mock';
 import { TourDatePicker } from './tour-date-picker';
 import { TourSlotGrid } from './tour-slot-grid';
 
@@ -53,14 +53,14 @@ export function TourSchedulerModal({ propertyId, propertyTitle, propertyLocation
         </View>
 
         <View style={styles.agentCard}>
-          <Image source={TOUR_AGENT.image} style={styles.agentAvatar} />
+          <Image source={TOUR_ADMIN.image} style={styles.agentAvatar} />
           <View style={styles.agentInfo}>
-            <Text style={styles.agentLabel}>house agent</Text>
-            <Text style={styles.agentName}>{TOUR_AGENT.name}</Text>
+            <Text style={styles.agentLabel}>house admin</Text>
+            <Text style={styles.agentName}>{TOUR_ADMIN.name}</Text>
           </View>
           <View style={styles.agentRating}>
             <Ionicons name="star" size={16} color="#fbbf24" />
-            <Text style={styles.ratingText}>{TOUR_AGENT.rating}</Text>
+            <Text style={styles.ratingText}>{TOUR_ADMIN.rating}</Text>
           </View>
         </View>
 
@@ -78,7 +78,7 @@ export function TourSchedulerModal({ propertyId, propertyTitle, propertyLocation
         <View style={styles.loadingOverlay}>
           <Ionicons name="checkmark-done" size={48} color={DesignColors.primary} />
           <Text style={styles.loadingTitle}>Securing your slot...</Text>
-          <Text style={styles.loadingSub}>with {TOUR_AGENT.name}</Text>
+          <Text style={styles.loadingSub}>with {TOUR_ADMIN.name}</Text>
         </View>
       )}
     </SafeAreaView>
@@ -86,7 +86,7 @@ export function TourSchedulerModal({ propertyId, propertyTitle, propertyLocation
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surface },
+  safe: { flex: 1, backgroundColor: DesignColors.surface }, 
   handleArea: { height: 32, alignItems: 'center', justifyContent: 'center' },
   handle: { width: 44, height: 5, borderRadius: DesignRadius.full, backgroundColor: DesignColors.outlineVariant },
   content: { padding: DesignSpacing.marginMobile, paddingBottom: DesignSpacing.xl * 2, gap: DesignSpacing.lg },

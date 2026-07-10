@@ -1,13 +1,13 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { useAuth } from '@/context/auth-context';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { studentProfile } from '@/dummy/profile-mock';
 import { ProfileRow } from './profile-row';
-import { ActiveAgentCard } from './active-agent-card';
-import { AgentApplyCard } from './agent-apply-card';
+import { ActiveAdminCard } from './active-admin-card';
 
 export function StudentProfileScreen() {
   const { signOut, profile } = useAuth();
@@ -59,9 +59,20 @@ export function StudentProfileScreen() {
             <ProfileRow icon="headset-outline" label="Help & Support" />
           </View>
 
+          {profile?.admin_role ? (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>
+                {profile.admin_role === 'super_admin' ? 'Super Admin Access' : profile.admin_role === 'regional_admin' ? 'Regional Admin Access' : 'Field Admin Access'}
+              </Text>
+              <ActiveAdminCard role={profile.admin_role} />
+            </View>
+          ) : null}
+
           <View style={styles.section}>
-            <Text style={styles.sectionTitle}>Agent Workspace</Text>
-            {profile?.is_agent ? <ActiveAgentCard /> : <AgentApplyCard />}
+              <Pressable style={styles.devButton} onPress={() => router.push('/admin/dev-views')}>
+              <Ionicons name="build-outline" size={20} color={DesignColors.primary} />
+              <Text style={styles.devButtonText}>Dev: Admin Dashboard</Text>
+            </Pressable>
           </View>
 
           <View style={styles.logoutSection}>
@@ -97,6 +108,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: DesignSpacing.lg },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: DesignSpacing.lg, paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
   completionBadge: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '700', paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
+  devButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, backgroundColor: 'rgba(124, 58, 237, 0.1)', borderWidth: 1, borderColor: 'rgba(124, 58, 237, 0.2)' },
+  devButtonText: { ...DesignTypography.bodyMd, color: DesignColors.primary, fontFamily, fontWeight: '600' },
   logoutSection: { marginHorizontal: DesignSpacing.marginMobile },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: 'rgba(255, 180, 171, 0.12)', borderWidth: 1, borderColor: 'rgba(255, 180, 171, 0.2)' },
   logoutText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, fontWeight: '600' },

@@ -12,7 +12,7 @@ type AttachmentOption = {
   icon: keyof typeof Ionicons.glyphMap;
 };
 
-const agentOptions: AttachmentOption[] = [
+const adminOptions: AttachmentOption[] = [
   { key: 'listings', title: 'My listings', subtitle: 'Share one of your active listings', icon: 'business-outline' },
 ];
 
@@ -21,8 +21,8 @@ const sharedOptions: AttachmentOption[] = [
   { key: 'photos', title: 'Photos', subtitle: 'Attach from your gallery', icon: 'image-outline' },
 ];
 
-export function MessageAttachmentSheet({ visible, onClose, onSelectSource, isAgent }: { visible: boolean; onClose: () => void; onSelectSource: (source: AttachmentSource) => void; isAgent: boolean }) {
-  const options = isAgent ? [...agentOptions, ...sharedOptions] : sharedOptions;
+export function MessageAttachmentSheet({ visible, onClose, onSelectSource, isAdmin }: { visible: boolean; onClose: () => void; onSelectSource: (source: AttachmentSource) => void; isAdmin: boolean }) {
+  const options = isAdmin ? [...adminOptions, ...sharedOptions] : sharedOptions;
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>

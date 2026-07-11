@@ -1,7 +1,8 @@
 import { useCallback, useMemo, useState } from 'react';
-import { FlatList, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { SearchBar } from '@/components/ui/search-bar';
 import { roommateProfiles } from '@/dummy/roommates-mock';
 import { type RoommateProfile } from '@/types/roommates';
 
@@ -74,13 +75,7 @@ export function RoommateFeed() {
   return (
     <View style={styles.container}>
       <View style={styles.stickyBar}>
-        <TextInput
-          style={styles.searchInput}
-          placeholder="Search by name, uni, or keyword..."
-          placeholderTextColor={DesignColors.onSurfaceVariant}
-          value={query}
-          onChangeText={setQuery}
-        />
+        <SearchBar value={query} onChangeText={setQuery} placeholder="Search by name, uni, or keyword..." />
 
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.tagRow}>
           {TAGS.map((tag) => {
@@ -133,17 +128,7 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.sm,
     backgroundColor: DesignColors.surfaceContainerLowest,
   },
-  searchInput: {
-    backgroundColor: 'rgba(255,255,255,0.06)',
-    borderRadius: DesignRadius.full,
-    paddingHorizontal: DesignSpacing.md,
-    paddingVertical: 12,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
-  },
+
   tagRow: {
     gap: DesignSpacing.sm,
     paddingHorizontal: 2,

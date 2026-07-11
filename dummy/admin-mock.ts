@@ -1,12 +1,16 @@
-export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
+export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin' | 'independent_field_admin';
 
 export type AdminMember = {
   id: string;
   full_name: string;
+  email: string;
   role: AdminRole;
   assigned_region_id: string | null;
   region_name: string | null;
+  jurisdiction: string;
   avatar_initials: string;
+  stat_label: string;
+  stat_value: string;
 };
 
 export type Region = {
@@ -77,14 +81,14 @@ export const REGIONS: Region[] = [
 ];
 
 export const ADMIN_MEMBERS: AdminMember[] = [
-  { id: 'admin-1', full_name: 'Fatima Bello', role: 'regional_admin', assigned_region_id: 'region_minna', region_name: 'Minna', avatar_initials: 'FB' },
-  { id: 'admin-2', full_name: 'Chinedu Obi', role: 'field_admin', assigned_region_id: 'region_bosso', region_name: 'Bosso', avatar_initials: 'CO' },
-  { id: 'admin-3', full_name: 'Amara Okafor', role: 'regional_admin', assigned_region_id: 'region_abuja_north', region_name: 'Abuja North', avatar_initials: 'AO' },
-  { id: 'admin-4', full_name: 'Tunde Bakare', role: 'field_admin', assigned_region_id: 'region_lagos_mainland', region_name: 'Lagos Mainland', avatar_initials: 'TB' },
-  { id: 'admin-5', full_name: 'Ngozi Eze', role: 'regional_admin', assigned_region_id: 'region_lagos_island', region_name: 'Lagos Island', avatar_initials: 'NE' },
-  { id: 'admin-6', full_name: 'Segun Adeyemi', role: 'field_admin', assigned_region_id: 'region_ibadan', region_name: 'Ibadan', avatar_initials: 'SA' },
-  { id: 'admin-7', full_name: 'Hauwa Mohammed', role: 'regional_admin', assigned_region_id: 'region_ph', region_name: 'Port Harcourt', avatar_initials: 'HM' },
-  { id: 'admin-8', full_name: 'Daniel John', role: 'field_admin', assigned_region_id: 'region_abuja_south', region_name: 'Abuja South', avatar_initials: 'DJ' },
+  { id: 'admin-1', full_name: 'Fatima Bello', email: 'fatima@gida.app', role: 'regional_admin', assigned_region_id: 'region_minna', region_name: 'Minna', jurisdiction: 'Niger State', avatar_initials: 'FB', stat_label: 'Hubs', stat_value: '14' },
+  { id: 'admin-2', full_name: 'Chinedu Obi', email: 'chinedu@gida.app', role: 'regional_admin', assigned_region_id: 'region_bosso', region_name: 'Bosso', jurisdiction: 'Minna Metro', avatar_initials: 'CO', stat_label: 'Zones', stat_value: '4' },
+  { id: 'admin-3', full_name: 'Amara Okafor', email: 'amara@gida.app', role: 'regional_admin', assigned_region_id: 'region_abuja_north', region_name: 'Abuja North', jurisdiction: 'FCT', avatar_initials: 'AO', stat_label: 'Hubs', stat_value: '9' },
+  { id: 'admin-4', full_name: 'Tunde Bakare', email: 'tunde@gida.app', role: 'field_admin', assigned_region_id: 'region_lagos_mainland', region_name: 'Lagos Mainland', jurisdiction: 'Lagos Mainland', avatar_initials: 'TB', stat_label: 'Tasks', stat_value: '28' },
+  { id: 'admin-5', full_name: 'Ngozi Eze', email: 'ngozi@gida.app', role: 'regional_admin', assigned_region_id: 'region_lagos_island', region_name: 'Lagos Island', jurisdiction: 'Lagos State', avatar_initials: 'NE', stat_label: 'Hubs', stat_value: '11' },
+  { id: 'admin-6', full_name: 'Segun Adeyemi', email: 'segun@gida.app', role: 'field_admin', assigned_region_id: 'region_ibadan', region_name: 'Ibadan', jurisdiction: 'Ibadan North', avatar_initials: 'SA', stat_label: 'Tasks', stat_value: '19' },
+  { id: 'admin-7', full_name: 'Hauwa Mohammed', email: 'hauwa@gida.app', role: 'regional_admin', assigned_region_id: 'region_ph', region_name: 'Port Harcourt', jurisdiction: 'Rivers State', avatar_initials: 'HM', stat_label: 'Hubs', stat_value: '7' },
+  { id: 'admin-8', full_name: 'Daniel John', email: 'daniel@gida.app', role: 'field_admin', assigned_region_id: 'region_abuja_south', region_name: 'Abuja South', jurisdiction: 'Abuja South', avatar_initials: 'DJ', stat_label: 'Tasks', stat_value: '22' },
 ];
 
 export const RECENT_ACTIONS: RecentAction[] = [

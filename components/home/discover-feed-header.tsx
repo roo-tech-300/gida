@@ -1,8 +1,7 @@
-import { BlurView } from 'expo-blur';
-import { Ionicons } from '@expo/vector-icons';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { SearchBar } from '@/components/ui/search-bar';
 export function DiscoverFeedHeader({
   query,
   onQueryChange,
@@ -25,20 +24,7 @@ export function DiscoverFeedHeader({
   return (
     <View style={styles.wrap}>
       <View style={styles.header}>
-        <View style={styles.searchBar}>
-          <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
-          <TextInput
-            placeholder={searchPlaceholder}
-            placeholderTextColor={DesignColors.onSurfaceVariant}
-            returnKeyType="search"
-            style={styles.input}
-            value={query}
-            onChangeText={onQueryChange}
-          />
-          <Pressable accessibilityRole="button" onPress={onToggleFilters} style={styles.filterButton}>
-            <Ionicons name="options-outline" size={20} color={DesignColors.onSurfaceVariant} />
-          </Pressable>
-        </View>
+        <SearchBar value={query} onChangeText={onQueryChange} placeholder={searchPlaceholder} hasFilter onFilterPress={onToggleFilters} />
 
         {filtersOpen && categories ? (
           <ScrollView horizontal bounces={false} showsHorizontalScrollIndicator={false}>
@@ -93,32 +79,6 @@ const styles = StyleSheet.create({
     paddingTop: DesignSpacing.md,
     paddingBottom: DesignSpacing.sm,
   },
-  searchBar: {
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    paddingHorizontal: DesignSpacing.md,
-    borderRadius: 32,
-    backgroundColor: 'rgba(26, 26, 30, 0.45)',
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  input: {
-    flex: 1,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    paddingVertical: 0,
-  },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
-  },
   pillsRow: {
     flexDirection: 'row',
     gap: DesignSpacing.sm,
@@ -132,7 +92,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
   },
   pillActive: {
-    backgroundColor: 'rgba(124, 58, 237, 0.2)',
+    backgroundColor: DesignColors.primary,
   },
   pillText: {
     ...DesignTypography.bodyMd,
@@ -140,7 +100,7 @@ const styles = StyleSheet.create({
     fontFamily,
   },
   pillTextActive: {
-    color: DesignColors.onSurface,
+    color: DesignColors.onPrimary,
     fontWeight: '600',
   },
 });

@@ -5,9 +5,9 @@ import { useRouter } from 'expo-router';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
-import { DiscoverFeedHeader } from '@/components/home/discover-feed-header';
 import { DiscoverListingFeed } from '@/components/home/discover-listing-feed';
-import { FeedModeSelector } from '@/components/home/feed-mode-selector';
+import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/feed-mode-selector';
+import { HomeSearchBar } from '@/components/home/home-search-bar';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
 import { discoverFilters, discoverListings, type PropertyCategory, type PropertyListing } from '@/dummy/listings-mock';
@@ -26,6 +26,11 @@ export function DiscoverHomeScreen() {
   const [currentIndex, setCurrentIndex] = useState(0);
   const [roommateQuery, setRoommateQuery] = useState('');
   const listRef = useRef<FlatList<PropertyListing>>(null);
+  const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
+
+  const openModeSelector = useCallback(() => {
+    modeSelectorRef.current?.open();
+  }, []);
 
   useEffect(() => {
     const sub = BackHandler.addEventListener('hardwareBackPress', () => {
@@ -112,22 +117,25 @@ export function DiscoverHomeScreen() {
           </View>
 
           {mode === 'listings' ? (
-            <DiscoverFeedHeader
-              query={query}
-              onQueryChange={setQuery}
+            <HomeSearchBar
+              value={query}
+              onChangeText={setQuery}
+              hasFilter
+              onFilterPress={() => setFiltersOpen((open) => !open)}
+              currentMode={mode}
+              onSwipeDown={openModeSelector}
               filtersOpen={filtersOpen}
-              onToggleFilters={() => setFiltersOpen((open) => !open)}
               categories={discoverFilters}
               activeCategory={activeCategory}
               onCategoryChange={(value: string) => setActiveCategory(value as PropertyCategory | 'All')}
             />
           ) : (
-            <DiscoverFeedHeader
-              query={roommateQuery}
-              onQueryChange={setRoommateQuery}
-              filtersOpen={false}
-              onToggleFilters={() => {}}
-              searchPlaceholder="Search by name, uni, or keyword..."
+            <HomeSearchBar
+              value={roommateQuery}
+              onChangeText={setRoommateQuery}
+              placeholder="Search by name, uni, or keyword..."
+              currentMode={mode}
+              onSwipeDown={openModeSelector}
             />
           )}
 
@@ -135,6 +143,7 @@ export function DiscoverHomeScreen() {
         </View>
 
         <FeedModeSelector
+          ref={modeSelectorRef}
           currentMode={mode}
           onSelectMode={handleSelectMode}
           onDismiss={() => {}}

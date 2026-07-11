@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -6,6 +6,10 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type Mode = 'listings' | 'roommates';
+
+export type FeedModeSelectorRef = {
+  open: () => void;
+};
 
 type Props = {
   currentMode: Mode;
@@ -15,7 +19,7 @@ type Props = {
 
 const CARD_ITEMS: Record<Mode, { icon: keyof typeof Ionicons.glyphMap; title: string; sub: string }> = {
   listings: { icon: 'business-outline', title: 'Find a Space', sub: 'Explore rooms & hostels' },
-  roommates: { icon: 'people-outline', title: 'Find a Peer', sub: 'Match with compatible roommates' },
+  roommates: { icon: 'people-outline', title: 'Find a Peer', sub: 'Find compatible roommates' },
 };
 
 function SwitcherCard({ mode, isActive, onPress }: { mode: Mode; isActive: boolean; onPress: () => void }) {
@@ -36,7 +40,10 @@ function SwitcherCard({ mode, isActive, onPress }: { mode: Mode; isActive: boole
   );
 }
 
-export function FeedModeSelector({ currentMode, onSelectMode, onDismiss }: Props) {
+export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function FeedModeSelector(
+  { currentMode, onSelectMode, onDismiss },
+  ref,
+) {
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
   const isOpenRef = useRef(false);
@@ -57,21 +64,9 @@ export function FeedModeSelector({ currentMode, onSelectMode, onDismiss }: Props
     [anim, onDismiss],
   );
 
-  const triggerPan = useRef(
-    PanResponder.create({
-      onStartShouldSetPanResponder: () => true,
-      onPanResponderMove: (_, g) => {
-        if (isOpenRef.current) return;
-        const next = g.dy / 400;
-        anim.setValue(Math.max(0, Math.min(1, next)));
-      },
-      onPanResponderRelease: (_, g) => {
-        if (isOpenRef.current) return;
-        if (g.dy > 60 || g.vy > 0.5) animateTo(true);
-        else animateTo(false);
-      },
-    }),
-  ).current;
+  useImperativeHandle(ref, () => ({
+    open: () => animateTo(true),
+  }), [animateTo]);
 
   const overlayPan = useRef(
     PanResponder.create({
@@ -105,11 +100,6 @@ export function FeedModeSelector({ currentMode, onSelectMode, onDismiss }: Props
 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
-      <View style={[styles.triggerArea, { top: Math.max(insets.top - 4, 0) + 125 }]} {...triggerPan.panHandlers}>
-        {/* <View style={styles.triggerPill} />
-        <Text style={styles.triggerLabel}>Swipe down to switch</Text> */}
-      </View>
-
       <Animated.View
         style={[styles.overlay, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
         pointerEvents={isOpen ? 'auto' : 'none'}
@@ -134,13 +124,10 @@ export function FeedModeSelector({ currentMode, onSelectMode, onDismiss }: Props
       </Animated.View>
     </View>
   );
-} 
+});
 
 const styles = StyleSheet.create({
   wrapper: { ...StyleSheet.absoluteFillObject, zIndex: 200 },
-  triggerArea: { position: 'absolute', left: 0, right: 0, height: 60, zIndex: 101, alignItems: 'center', paddingTop: 6, gap: 4 },
-  triggerPill: { width: 50, height: 3, borderRadius: 1.5, backgroundColor: 'rgb(255, 255, 255)' },
-  triggerLabel: { fontSize: 12, fontWeight: '600', letterSpacing: 1.5, color: 'rgba(255,255,255,0.7)', fontFamily, textTransform: 'uppercase' },
   overlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 200, overflow: 'hidden', backgroundColor: '#000000' },
   overlayContent: { flex: 1, paddingHorizontal: DesignSpacing.marginMobile, justifyContent: 'center', gap: 32 },
   headerSection: { gap: 8 },

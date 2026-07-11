@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
-import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useCallback, useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FloatingBadge } from '@/components/ui/floating-badge';
+import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 interface NoResultsFoundScreenProps {
@@ -72,19 +72,8 @@ export function NoResultsFoundScreen({
         }
       >
         {showSearchBar ? (
-          <View style={styles.searchBar}>
-            <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
-            <TextInput
-              placeholder="Locations and property type"
-              placeholderTextColor={DesignColors.onSurfaceVariant}
-              returnKeyType="search"
-              style={styles.input}
-              value={query}
-              onChangeText={onQueryChange}
-            />
-            <Pressable onPress={onAdjustFilters} style={styles.filterButton}>
-              <Ionicons name="options-outline" size={20} color={DesignColors.onSurfaceVariant} />
-            </Pressable>
+          <View style={styles.searchWrap}>
+            <SearchBar value={query} onChangeText={onQueryChange} placeholder="Locations and property type" hasFilter onFilterPress={onAdjustFilters} />
           </View>
         ) : null}
 
@@ -145,33 +134,9 @@ const styles = StyleSheet.create({
   scroll: {
     flexGrow: 1,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    paddingHorizontal: DesignSpacing.md,
-    minHeight: 56,
+  searchWrap: {
     marginHorizontal: DesignSpacing.marginMobile,
     marginTop: DesignSpacing.md,
-    borderRadius: 32,
-    backgroundColor: 'rgba(26, 26, 30, 0.45)',
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  input: {
-    flex: 1,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    paddingVertical: 0,
-  },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
   },
   center: {
     flex: 1,

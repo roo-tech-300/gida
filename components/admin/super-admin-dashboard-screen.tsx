@@ -1,11 +1,11 @@
-import { useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { DASHBOARD_STATS, RECENT_ACTIONS, ADMIN_MEMBERS, SUPER_ADMIN_MOCK, type AdminMember, type AdminRole } from '@/dummy/admin-mock';
+import { DASHBOARD_STATS, RECENT_ACTIONS, SUPER_ADMIN_MOCK } from '@/dummy/admin-mock';
 
 const ADMIN_COLORS = {
   primaryContainer: '#4f46e5',
@@ -58,8 +58,6 @@ function IconPill({ name, size = 20, color }: { name: keyof typeof Ionicons.glyp
 }
 
 export function SuperAdminDashboardScreen() {
-  const [showManageTeams, setShowManageTeams] = useState(false);
-
   const stats = DASHBOARD_STATS;
 
   return (
@@ -84,7 +82,7 @@ export function SuperAdminDashboardScreen() {
                 key={action.key}
                 style={[styles.actionCard, action.key === 'teams' && styles.actionCardPrimary]}
                 onPress={() => {
-                  if (action.key === 'teams') setShowManageTeams(true);
+                  if (action.key === 'teams') router.push('/admin/manage-teams');
                 }}
               >
                 <View style={[styles.actionIconWrap, action.key === 'teams' && styles.actionIconWrapPrimary]}>
@@ -149,12 +147,6 @@ export function SuperAdminDashboardScreen() {
         </ScrollView>
       </SafeAreaView>
 
-      {showManageTeams && (
-        <ManageTeamsSheet
-          members={ADMIN_MEMBERS}
-          onClose={() => setShowManageTeams(false)}
-        />
-      )}
     </View>
   );
 }
@@ -176,109 +168,6 @@ function RegionStat({ label, value, color, icon }: { label: string; value: strin
         <Text style={[styles.regionStatValue, color ? { color } : undefined]}>{value}</Text>
         {icon && <Ionicons name={icon} size={14} color={color} />}
       </View>
-    </View>
-  );
-}
-
-function ManageTeamsSheet({ members, onClose }: { members: AdminMember[]; onClose: () => void }) {
-  const [localMembers, setLocalMembers] = useState(members);
-
-  const promote = (id: string) => {
-    setLocalMembers((prev) =>
-      prev.map((m) => {
-        if (m.id !== id) return m;
-        const nextRole: Record<AdminRole, AdminRole | null> = {
-          field_admin: 'regional_admin',
-          regional_admin: null,
-          super_admin: null,
-        };
-        return { ...m, role: nextRole[m.role] ?? m.role };
-      })
-    );
-  };
-
-  const demote = (id: string) => {
-    setLocalMembers((prev) =>
-      prev.map((m) => {
-        if (m.id !== id) return m;
-        const nextRole: Record<AdminRole, AdminRole> = {
-          super_admin: 'regional_admin',
-          regional_admin: 'field_admin',
-          field_admin: 'field_admin',
-        };
-        return { ...m, role: nextRole[m.role] };
-      })
-    );
-  };
-
-  const remove = (id: string) => {
-    setLocalMembers((prev) => prev.filter((m) => m.id !== id));
-  };
-
-  return (
-    <View style={styles.sheetOverlay}>
-      <Pressable style={styles.sheetBackdrop} onPress={onClose} />
-      <View style={styles.sheet}>
-        <View style={styles.sheetHandle} />
-        <Text style={styles.sheetTitle}>Manage Teams</Text>
-        <Text style={styles.sheetSubtitle}>
-          {localMembers.length} admin{localMembers.length !== 1 ? 's' : ''} across all regions
-        </Text>
-        <ScrollView style={styles.sheetList} showsVerticalScrollIndicator={false}>
-          {localMembers.map((member) => (
-            <View key={member.id} style={styles.memberRow}>
-              <View style={styles.memberAvatar}>
-                <Text style={styles.memberAvatarText}>{member.avatar_initials}</Text>
-              </View>
-              <View style={styles.memberInfo}>
-                <Text style={styles.memberName}>{member.full_name}</Text>
-                <View style={styles.memberMeta}>
-                  <RoleBadge role={member.role} />
-                  {member.region_name && (
-                    <Text style={styles.memberRegion}>{member.region_name}</Text>
-                  )}
-                </View>
-              </View>
-              <View style={styles.memberActions}>
-                {member.role === 'field_admin' && (
-                  <Pressable style={styles.memberActionBtn} onPress={() => promote(member.id)}>
-                    <Ionicons name="arrow-up-circle-outline" size={20} color={ADMIN_COLORS.secondary} />
-                  </Pressable>
-                )}
-                {member.role === 'regional_admin' && (
-                  <>
-                    <Pressable style={styles.memberActionBtn} onPress={() => demote(member.id)}>
-                      <Ionicons name="arrow-down-circle-outline" size={20} color={ADMIN_COLORS.tertiary} />
-                    </Pressable>
-                    <Pressable style={styles.memberActionBtn} onPress={() => remove(member.id)}>
-                      <Ionicons name="close-circle-outline" size={20} color={ADMIN_COLORS.tertiary} />
-                    </Pressable>
-                  </>
-                )}
-              </View>
-            </View>
-          ))}
-        </ScrollView>
-      </View>
-    </View>
-  );
-}
-
-function RoleBadge({ role }: { role: AdminRole }) {
-  const roleColors: Record<AdminRole, { bg: string; text: string }> = {
-    super_admin: { bg: 'rgba(195, 192, 255, 0.12)', text: ADMIN_COLORS.primary },
-    regional_admin: { bg: 'rgba(78, 222, 163, 0.12)', text: ADMIN_COLORS.secondary },
-    field_admin: { bg: 'rgba(255, 182, 149, 0.12)', text: ADMIN_COLORS.tertiary },
-  };
-  const colors = roleColors[role];
-  const labels: Record<AdminRole, string> = {
-    super_admin: 'Super Admin',
-    regional_admin: 'Regional',
-    field_admin: 'Field',
-  };
-  return (
-    <View style={[styles.rolePill, { backgroundColor: colors.bg, borderColor: colors.text + '33' }]}>
-      <Text style={[styles.rolePillText, { color: colors.text }]}>{labels[role]}</Text>
     </View>
   );
 }
@@ -381,35 +270,4 @@ const styles = StyleSheet.create({
   activityTitleText: { fontSize: 14, fontWeight: '600', color: ADMIN_COLORS.onSurface, fontFamily },
   activitySub: { fontSize: 10, color: ADMIN_COLORS.onSurfaceVariant, fontFamily },
 
-  sheetOverlay: { ...StyleSheet.absoluteFillObject, zIndex: 300, justifyContent: 'flex-end' },
-  sheetBackdrop: { ...StyleSheet.absoluteFillObject, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sheet: {
-    backgroundColor: ADMIN_COLORS.glassBg,
-    borderTopLeftRadius: 24, borderTopRightRadius: 24,
-    padding: 16, paddingBottom: 40,
-    maxHeight: '70%',
-    gap: 8,
-    borderTopWidth: 1, borderTopColor: ADMIN_COLORS.glassBorder,
-  },
-  sheetHandle: { width: 36, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.2)', alignSelf: 'center', marginBottom: 8 },
-  sheetTitle: { fontSize: 20, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily },
-  sheetSubtitle: { fontSize: 13, color: ADMIN_COLORS.onSurfaceVariant, fontFamily, marginBottom: 8 },
-  sheetList: { gap: 12 },
-
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  memberAvatar: { width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(255,255,255,0.06)', alignItems: 'center', justifyContent: 'center' },
-  memberAvatarText: { fontSize: 13, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily },
-  memberInfo: { flex: 1, gap: 4 },
-  memberName: { fontSize: 14, fontWeight: '600', color: ADMIN_COLORS.onSurface, fontFamily },
-  memberMeta: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  memberRegion: { fontSize: 11, color: ADMIN_COLORS.onSurfaceVariant, fontFamily },
-  memberActions: { flexDirection: 'row', gap: 4 },
-  memberActionBtn: { padding: 4 },
-
-  rolePill: {
-    paddingHorizontal: 6, paddingVertical: 2,
-    borderRadius: 9999,
-    borderWidth: 1,
-  },
-  rolePillText: { fontSize: 9, fontWeight: '700', fontFamily, letterSpacing: 0.5, textTransform: 'uppercase' },
 });

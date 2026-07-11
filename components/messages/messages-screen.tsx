@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SearchBar } from '@/components/ui/search-bar';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
@@ -58,16 +59,7 @@ export function MessagesScreen() {
           keyboardShouldPersistTaps="handled"
         >
           <View style={styles.searchWrap}>
-            <View style={styles.searchBar}>
-              <Ionicons name="search" size={20} color={DesignColors.onSurfaceVariant} />
-              <TextInput
-                placeholder="Search conversations..."
-                placeholderTextColor={DesignColors.onSurfaceVariant}
-                style={styles.input}
-                value={search}
-                onChangeText={setSearch}
-              />
-            </View>
+            <SearchBar value={search} onChangeText={setSearch} placeholder="Search conversations..." />
           </View>
 
           <View style={styles.matchesSection}>
@@ -142,24 +134,8 @@ const styles = StyleSheet.create({
     paddingTop: DesignSpacing.md,
     paddingBottom: DesignSpacing.xl,
   },
-  searchBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    height: 56,
-    paddingHorizontal: DesignSpacing.md,
-    borderRadius: DesignRadius.xl,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: 'rgba(74, 68, 85, 0.2)',
-  },
-  input: {
-    flex: 1,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    paddingVertical: 0,
-  },
+
+
   matchesSection: {
     paddingLeft: DesignSpacing.marginMobile,
     marginBottom: DesignSpacing.xl,

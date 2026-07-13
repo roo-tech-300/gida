@@ -6,19 +6,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { DASHBOARD_STATS, RECENT_ACTIONS, SUPER_ADMIN_MOCK } from '@/dummy/admin-mock';
-
-const ADMIN_COLORS = {
-  primaryContainer: '#4f46e5',
-  primary: '#c3c0ff',
-  onPrimaryContainer: '#ffffff',
-  secondary: '#4edea3',
-  tertiary: '#ffb695',
-  onSurface: '#e5e1e4',
-  onSurfaceVariant: '#c7c4d8',
-  surface: '#131315',
-  glassBg: 'rgba(24, 24, 28, 0.7)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-};
+import { ADMIN_COLORS, MetricCard, RegionStat } from '@/components/admin/super-admin-helpers';
 
 type ActionItem = {
   key: string;
@@ -53,10 +41,6 @@ const ACTION_COLOR_MAP: Record<string, string> = {
   tertiary: ADMIN_COLORS.tertiary,
 };
 
-function IconPill({ name, size = 20, color }: { name: keyof typeof Ionicons.glyphMap; size?: number; color: string }) {
-  return <Ionicons name={name} size={size} color={color} />;
-}
-
 export function SuperAdminDashboardScreen() {
   const stats = DASHBOARD_STATS;
 
@@ -83,6 +67,8 @@ export function SuperAdminDashboardScreen() {
                 style={[styles.actionCard, action.key === 'teams' && styles.actionCardPrimary]}
                 onPress={() => {
                   if (action.key === 'teams') router.push('/admin/manage-teams');
+                  if (action.key === 'inventory') router.push('/admin/total-inventory');
+                  if (action.key === 'contracts') router.push('/admin/landlord-contracts');
                 }}
               >
                 <View style={[styles.actionIconWrap, action.key === 'teams' && styles.actionIconWrapPrimary]}>
@@ -146,28 +132,6 @@ export function SuperAdminDashboardScreen() {
           </View>
         </ScrollView>
       </SafeAreaView>
-
-    </View>
-  );
-}
-
-function MetricCard({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.metricCard}>
-      <Text style={styles.metricLabel}>{label}</Text>
-      <Text style={styles.metricValue}>{value}</Text>
-    </View>
-  );
-}
-
-function RegionStat({ label, value, color, icon }: { label: string; value: string; color?: string; icon?: keyof typeof Ionicons.glyphMap }) {
-  return (
-    <View style={styles.regionStatItem}>
-      <Text style={styles.regionStatLabel}>{label}</Text>
-      <View style={styles.regionStatValueRow}>
-        <Text style={[styles.regionStatValue, color ? { color } : undefined]}>{value}</Text>
-        {icon && <Ionicons name={icon} size={14} color={color} />}
-      </View>
     </View>
   );
 }
@@ -177,18 +141,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 24 },
-
   metricsRow: { flexDirection: 'row', gap: 12 },
-  metricCard: {
-    flex: 1,
-    backgroundColor: ADMIN_COLORS.glassBg,
-    borderRadius: 16,
-    borderWidth: 1, borderColor: ADMIN_COLORS.glassBorder,
-    padding: 16,
-    gap: 4,
-  },
-  metricLabel: { fontSize: 10, fontWeight: '700', color: ADMIN_COLORS.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.6 },
-  metricValue: { fontSize: 24, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily },
 
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: {
@@ -248,12 +201,7 @@ const styles = StyleSheet.create({
   },
   liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ADMIN_COLORS.secondary },
   liveText: { fontSize: 10, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily, letterSpacing: 0.8, textTransform: 'uppercase' },
-
   regionStats: { flexDirection: 'row', gap: 16 },
-  regionStatItem: { flex: 1, gap: 4 },
-  regionStatLabel: { fontSize: 10, fontWeight: '700', color: ADMIN_COLORS.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.6 },
-  regionStatValueRow: { flexDirection: 'row', alignItems: 'center', gap: 4 },
-  regionStatValue: { fontSize: 18, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily },
 
   activitySection: {
     backgroundColor: ADMIN_COLORS.glassBg,
@@ -269,5 +217,4 @@ const styles = StyleSheet.create({
   activityText: { flex: 1, gap: 2 },
   activityTitleText: { fontSize: 14, fontWeight: '600', color: ADMIN_COLORS.onSurface, fontFamily },
   activitySub: { fontSize: 10, color: ADMIN_COLORS.onSurfaceVariant, fontFamily },
-
 });

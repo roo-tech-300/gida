@@ -91,6 +91,47 @@ export const ADMIN_MEMBERS: AdminMember[] = [
   { id: 'admin-8', full_name: 'Daniel John', email: 'daniel@gida.app', role: 'field_admin', assigned_region_id: 'region_abuja_south', region_name: 'Abuja South', jurisdiction: 'Abuja South', avatar_initials: 'DJ', stat_label: 'Tasks', stat_value: '22' },
 ];
 
+export type InventoryProperty = {
+  id: string;
+  name: string;
+  location: string;
+  region: string;
+  layout: string;
+  manager: string;
+  managerLabel: string;
+  bedsFilled: number;
+  totalBeds: number;
+  status: 'active' | 'fully_booked' | 'inactive';
+};
+
+export const INVENTORY: InventoryProperty[] = [
+  { id: 'inv-1', name: 'Apex Heights Plaza', location: 'Bosso Metro', region: 'Bosso', layout: '4-Bed Shared Layout', manager: 'Chidi Okafor', managerLabel: 'Field Admin', bedsFilled: 12, totalBeds: 16, status: 'active' },
+  { id: 'inv-2', name: 'Main Campus Lodge 2', location: 'GK Area', region: 'Minna', layout: 'Single Self-Contain', manager: 'Musa Ibrahim', managerLabel: 'Regional Admin', bedsFilled: 16, totalBeds: 16, status: 'fully_booked' },
+  { id: 'inv-3', name: 'Block B, Bosso Villa', location: 'Bosso Campus', region: 'Bosso', layout: 'Studio Rooms', manager: 'Unassigned', managerLabel: 'Under Inspection Queue', bedsFilled: 0, totalBeds: 8, status: 'inactive' },
+  { id: 'inv-4', name: 'Emerald Residence', location: 'Uptown', region: 'Lagos Island', layout: 'Luxury Studios', manager: 'Aisha Yusuf', managerLabel: 'Field Admin', bedsFilled: 4, totalBeds: 4, status: 'fully_booked' },
+  { id: 'inv-5', name: 'Heritage Lodge', location: 'Gidan Kwano', region: 'Minna', layout: '2-Bed Executive', manager: 'Fatima Bello', managerLabel: 'Regional Admin', bedsFilled: 3, totalBeds: 6, status: 'active' },
+  { id: 'inv-6', name: 'Silver Crest Hostel', location: 'Bosso Town', region: 'Bosso', layout: '3-Bed Standard', manager: 'Tunde Bakare', managerLabel: 'Field Admin', bedsFilled: 2, totalBeds: 10, status: 'active' },
+];
+
+export type Landlord = {
+  id: string;
+  initials: string;
+  full_name: string;
+  email: string;
+  properties_onboarded: number;
+  active_leases: number;
+  pending_review: number;
+};
+
+export const LANDLORDS: Landlord[] = [
+  { id: 'll-1', initials: 'AO', full_name: 'Alaric Oakheart', email: 'alaric.o@royalestates.co', properties_onboarded: 14, active_leases: 3, pending_review: 0 },
+  { id: 'll-2', initials: 'VK', full_name: 'Valerie Knight', email: 'v.knight@vanguardholdings.com', properties_onboarded: 8, active_leases: 1, pending_review: 0 },
+  { id: 'll-3', initials: 'ES', full_name: 'Elias Sterling', email: 'e.sterling@metroliving.io', properties_onboarded: 32, active_leases: 0, pending_review: 5 },
+  { id: 'll-4', initials: 'MC', full_name: 'Morgan Chen', email: 'mchen@pacificrentals.net', properties_onboarded: 21, active_leases: 12, pending_review: 0 },
+  { id: 'll-5', initials: 'DN', full_name: 'Diana Nwachukwu', email: 'diana@greenleafproperty.com', properties_onboarded: 7, active_leases: 2, pending_review: 1 },
+  { id: 'll-6', initials: 'RO', full_name: 'Rashid Ogunlade', email: 'rashid@primehomes.ng', properties_onboarded: 19, active_leases: 8, pending_review: 2 },
+];
+
 export const RECENT_ACTIONS: RecentAction[] = [
   { id: 'act-1', title: 'Abuja North Provisioned', subtitle: '2 mins ago • State Admin', icon: 'check_circle', color: 'secondary' },
   { id: 'act-2', title: 'Lagos Mainland Inventory', subtitle: '1 hour ago • Updated', icon: 'upload_file', color: 'primary' },

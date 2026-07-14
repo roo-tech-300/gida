@@ -102,16 +102,29 @@ export type InventoryProperty = {
   bedsFilled: number;
   totalBeds: number;
   status: 'active' | 'fully_booked' | 'inactive';
+  image: number;
 };
 
 export const INVENTORY: InventoryProperty[] = [
-  { id: 'inv-1', name: 'Apex Heights Plaza', location: 'Bosso Metro', region: 'Bosso', layout: '4-Bed Shared Layout', manager: 'Chidi Okafor', managerLabel: 'Field Admin', bedsFilled: 12, totalBeds: 16, status: 'active' },
-  { id: 'inv-2', name: 'Main Campus Lodge 2', location: 'GK Area', region: 'Minna', layout: 'Single Self-Contain', manager: 'Musa Ibrahim', managerLabel: 'Regional Admin', bedsFilled: 16, totalBeds: 16, status: 'fully_booked' },
-  { id: 'inv-3', name: 'Block B, Bosso Villa', location: 'Bosso Campus', region: 'Bosso', layout: 'Studio Rooms', manager: 'Unassigned', managerLabel: 'Under Inspection Queue', bedsFilled: 0, totalBeds: 8, status: 'inactive' },
-  { id: 'inv-4', name: 'Emerald Residence', location: 'Uptown', region: 'Lagos Island', layout: 'Luxury Studios', manager: 'Aisha Yusuf', managerLabel: 'Field Admin', bedsFilled: 4, totalBeds: 4, status: 'fully_booked' },
-  { id: 'inv-5', name: 'Heritage Lodge', location: 'Gidan Kwano', region: 'Minna', layout: '2-Bed Executive', manager: 'Fatima Bello', managerLabel: 'Regional Admin', bedsFilled: 3, totalBeds: 6, status: 'active' },
-  { id: 'inv-6', name: 'Silver Crest Hostel', location: 'Bosso Town', region: 'Bosso', layout: '3-Bed Standard', manager: 'Tunde Bakare', managerLabel: 'Field Admin', bedsFilled: 2, totalBeds: 10, status: 'active' },
+  { id: 'inv-1', name: 'Apex Heights Plaza', location: 'Bosso Metro', region: 'Bosso', layout: '4-Bed Shared Layout', manager: 'Chidi Okafor', managerLabel: 'Field Admin', bedsFilled: 12, totalBeds: 16, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+  { id: 'inv-2', name: 'Main Campus Lodge 2', location: 'GK Area', region: 'Minna', layout: 'Single Self-Contain', manager: 'Musa Ibrahim', managerLabel: 'Regional Admin', bedsFilled: 16, totalBeds: 16, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
+  { id: 'inv-3', name: 'Block B, Bosso Villa', location: 'Bosso Campus', region: 'Bosso', layout: 'Studio Rooms', manager: 'Unassigned', managerLabel: 'Under Inspection Queue', bedsFilled: 0, totalBeds: 8, status: 'inactive', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
+  { id: 'inv-4', name: 'Emerald Residence', location: 'Uptown', region: 'Lagos Island', layout: 'Luxury Studios', manager: 'Aisha Yusuf', managerLabel: 'Field Admin', bedsFilled: 4, totalBeds: 4, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
+  { id: 'inv-5', name: 'Heritage Lodge', location: 'Gidan Kwano', region: 'Minna', layout: '2-Bed Executive', manager: 'Fatima Bello', managerLabel: 'Regional Admin', bedsFilled: 3, totalBeds: 6, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
+  { id: 'inv-6', name: 'Silver Crest Hostel', location: 'Bosso Town', region: 'Bosso', layout: '3-Bed Standard', manager: 'Tunde Bakare', managerLabel: 'Field Admin', bedsFilled: 2, totalBeds: 10, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
 ];
+
+export type LandlordProperty = {
+  id: string;
+  title: string;
+  location: string;
+  price: string;
+  beds: string;
+  baths: string;
+  size: string;
+  status: string;
+  image: number;
+};
 
 export type Landlord = {
   id: string;
@@ -121,15 +134,82 @@ export type Landlord = {
   properties_onboarded: number;
   active_leases: number;
   pending_review: number;
+  properties: LandlordProperty[];
 };
 
 export const LANDLORDS: Landlord[] = [
-  { id: 'll-1', initials: 'AO', full_name: 'Alaric Oakheart', email: 'alaric.o@royalestates.co', properties_onboarded: 14, active_leases: 3, pending_review: 0 },
-  { id: 'll-2', initials: 'VK', full_name: 'Valerie Knight', email: 'v.knight@vanguardholdings.com', properties_onboarded: 8, active_leases: 1, pending_review: 0 },
-  { id: 'll-3', initials: 'ES', full_name: 'Elias Sterling', email: 'e.sterling@metroliving.io', properties_onboarded: 32, active_leases: 0, pending_review: 5 },
-  { id: 'll-4', initials: 'MC', full_name: 'Morgan Chen', email: 'mchen@pacificrentals.net', properties_onboarded: 21, active_leases: 12, pending_review: 0 },
-  { id: 'll-5', initials: 'DN', full_name: 'Diana Nwachukwu', email: 'diana@greenleafproperty.com', properties_onboarded: 7, active_leases: 2, pending_review: 1 },
-  { id: 'll-6', initials: 'RO', full_name: 'Rashid Ogunlade', email: 'rashid@primehomes.ng', properties_onboarded: 19, active_leases: 8, pending_review: 2 },
+  {
+    id: 'll-1', initials: 'AO', full_name: 'Alaric Oakheart', email: 'alaric.o@royalestates.co',
+    properties_onboarded: 14, active_leases: 3, pending_review: 0,
+    properties: [
+      { id: 'lp-ao-1', title: 'Royal Oak Manor', location: 'Victoria Island, Lagos', price: 'N65m/year', beds: '5 Beds', baths: '5 Baths', size: '4,500 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+      { id: 'lp-ao-2', title: 'Oakheart Executive Suite', location: 'Ikoyi, Lagos', price: 'N38m/year', beds: '3 Beds', baths: '3.5 Baths', size: '2,800 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
+      { id: 'lp-ao-3', title: 'Alaric Garden Villa', location: 'Lekki Phase 1, Lagos', price: 'N22m/year', beds: '4 Beds', baths: '3 Baths', size: '3,100 sqft', status: 'Under Review', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
+    ],
+  },
+  {
+    id: 'll-2', initials: 'VK', full_name: 'Valerie Knight', email: 'v.knight@vanguardholdings.com',
+    properties_onboarded: 8, active_leases: 1, pending_review: 0,
+    properties: [
+      { id: 'lp-vk-1', title: 'Knight’s Vanguard Tower', location: 'Marina, Lagos', price: 'N52m/year', beds: '4 Beds', baths: '4 Baths', size: '3,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
+    ],
+  },
+  {
+    id: 'll-3', initials: 'ES', full_name: 'Elias Sterling', email: 'e.sterling@metroliving.io',
+    properties_onboarded: 32, active_leases: 0, pending_review: 5,
+    properties: [
+      { id: 'lp-es-1', title: 'Sterling Metro Heights', location: 'Garki, Abuja', price: 'N41m/year', beds: '3 Beds', baths: '3 Baths', size: '2,400 sqft', status: 'Pending', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
+      { id: 'lp-es-2', title: 'Elias Luxury Condo', location: 'Maitama, Abuja', price: 'N78m/year', beds: '5 Beds', baths: '5.5 Baths', size: '5,200 sqft', status: 'Inspection', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+    ],
+  },
+  {
+    id: 'll-4', initials: 'MC', full_name: 'Morgan Chen', email: 'mchen@pacificrentals.net',
+    properties_onboarded: 21, active_leases: 12, pending_review: 0,
+    properties: [
+      { id: 'lp-mc-1', title: 'Pacific Blue Residency', location: 'Port Harcourt, Rivers', price: 'N18m/year', beds: '2 Beds', baths: '2 Baths', size: '1,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
+      { id: 'lp-mc-2', title: 'Chen’s Harbour Lodge', location: 'Bonny Island, Rivers', price: 'N25m/year', beds: '3 Beds', baths: '2.5 Baths', size: '2,100 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
+    ],
+  },
+  {
+    id: 'll-5', initials: 'DN', full_name: 'Diana Nwachukwu', email: 'diana@greenleafproperty.com',
+    properties_onboarded: 7, active_leases: 2, pending_review: 1,
+    properties: [
+      { id: 'lp-dn-1', title: 'Greenleaf Cottage', location: 'Enugu, Enugu State', price: 'N9m/year', beds: '2 Beds', baths: '1.5 Baths', size: '1,200 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
+    ],
+  },
+  {
+    id: 'll-6', initials: 'RO', full_name: 'Rashid Ogunlade', email: 'rashid@primehomes.ng',
+    properties_onboarded: 19, active_leases: 8, pending_review: 2,
+    properties: [
+      { id: 'lp-ro-1', title: 'Prime Executive Duplex', location: 'Ibadan, Oyo State', price: 'N15m/year', beds: '4 Beds', baths: '3 Baths', size: '2,800 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
+      { id: 'lp-ro-2', title: 'Ogunlade Smart Flat', location: 'Bodija, Ibadan', price: 'N7m/year', beds: '1 Bed', baths: '1 Bath', size: '850 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+    ],
+  },
+];
+
+export type Contract = {
+  id: string;
+  tenant_name: string;
+  property_id: string;
+  start_date: string;
+  end_date: string;
+  rent_amount: string;
+  status: 'active' | 'expired' | 'pending_renewal' | 'terminated';
+  type: 'Lease Agreement' | 'Rental Contract' | 'Service Tenancy';
+};
+
+export const CONTRACTS: Contract[] = [
+  { id: 'ct-ao-1', tenant_name: 'Emeka Okonkwo', property_id: 'lp-ao-1', start_date: 'Jan 15, 2026', end_date: 'Jan 14, 2027', rent_amount: 'N65m/year', status: 'active', type: 'Lease Agreement' },
+  { id: 'ct-ao-2', tenant_name: 'Sarah Adewale', property_id: 'lp-ao-2', start_date: 'Mar 1, 2026', end_date: 'Feb 28, 2027', rent_amount: 'N38m/year', status: 'active', type: 'Rental Contract' },
+  { id: 'ct-ao-3', tenant_name: 'Tunde Balogun', property_id: 'lp-ao-3', start_date: 'Jun 10, 2026', end_date: 'Jun 9, 2027', rent_amount: 'N22m/year', status: 'pending_renewal', type: 'Lease Agreement' },
+  { id: 'ct-vk-1', tenant_name: 'Amara Nwosu', property_id: 'lp-vk-1', start_date: 'Feb 1, 2025', end_date: 'Jan 31, 2026', rent_amount: 'N52m/year', status: 'active', type: 'Service Tenancy' },
+  { id: 'ct-es-1', tenant_name: 'Fatima Usman', property_id: 'lp-es-1', start_date: 'Sep 1, 2025', end_date: 'Aug 31, 2026', rent_amount: 'N41m/year', status: 'expired', type: 'Rental Contract' },
+  { id: 'ct-es-2', tenant_name: 'Ibrahim Danjuma', property_id: 'lp-es-2', start_date: 'Apr 15, 2026', end_date: 'Apr 14, 2027', rent_amount: 'N78m/year', status: 'pending_renewal', type: 'Lease Agreement' },
+  { id: 'ct-mc-1', tenant_name: 'Blessing George', property_id: 'lp-mc-1', start_date: 'Oct 1, 2025', end_date: 'Sep 30, 2026', rent_amount: 'N18m/year', status: 'active', type: 'Service Tenancy' },
+  { id: 'ct-mc-2', tenant_name: 'Kehinde Olasope', property_id: 'lp-mc-2', start_date: 'Dec 1, 2025', end_date: 'Nov 30, 2026', rent_amount: 'N25m/year', status: 'active', type: 'Rental Contract' },
+  { id: 'ct-dn-1', tenant_name: 'Ngozi Ebere', property_id: 'lp-dn-1', start_date: 'Jul 1, 2026', end_date: 'Jun 30, 2027', rent_amount: 'N9m/year', status: 'active', type: 'Lease Agreement' },
+  { id: 'ct-ro-1', tenant_name: 'Segun Ojo', property_id: 'lp-ro-1', start_date: 'Aug 15, 2025', end_date: 'Aug 14, 2026', rent_amount: 'N15m/year', status: 'active', type: 'Rental Contract' },
+  { id: 'ct-ro-2', tenant_name: 'Yemi Akinlade', property_id: 'lp-ro-2', start_date: 'Jan 5, 2026', end_date: 'Jan 4, 2027', rent_amount: 'N7m/year', status: 'active', type: 'Lease Agreement' },
 ];
 
 export const RECENT_ACTIONS: RecentAction[] = [

@@ -6,17 +6,8 @@ import { useRouter } from 'expo-router';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SearchBar } from '@/components/ui/search-bar';
-import { fontFamily } from '@/constants/design';
+import { DesignColors, fontFamily } from '@/constants/design';
 import { ADMIN_MEMBERS, type AdminMember } from '@/dummy/admin-mock';
-
-const C = {
-  primary: '#c3c0ff',
-  primaryContainer: '#4f46e5',
-  onSurface: '#e5e1e4',
-  onSurfaceVariant: '#c7c4d8',
-  avatarBg: 'rgba(195, 192, 255, 0.1)',
-  avatarTextColor: '#c3c0ff',
-};
 
 const TABS = ['All Members', 'Regional Admins', 'Field Admins'];
 
@@ -81,8 +72,8 @@ function MemberCard({ member }: { member: AdminMember }) {
   const isRegional = member.role === 'regional_admin';
   return (
     <Pressable style={styles.memberCard}>
-      <View style={[styles.memberAvatar, { backgroundColor: C.avatarBg }]}>
-        <Text style={[styles.memberAvatarText, { color: C.avatarTextColor }]}>{member.avatar_initials}</Text>
+      <View style={[styles.memberAvatar, { backgroundColor: 'rgba(195,192,255,0.1)' }]}>
+        <Text style={[styles.memberAvatarText, { color: DesignColors.primary }]}>{member.avatar_initials}</Text>
       </View>
       <View style={styles.memberInfo}>
         <Text style={styles.memberName}>{member.full_name}</Text>
@@ -93,7 +84,7 @@ function MemberCard({ member }: { member: AdminMember }) {
           {isRegional ? 'Jurisdiction' : 'Allocation Queue'}: {member.jurisdiction}
         </Text>
       </View>
-      <Ionicons name="chevron-forward" size={18} color={C.onSurfaceVariant} />
+      <Ionicons name="chevron-forward" size={18} color={DesignColors.onSurfaceVariant} />
     </Pressable>
   );
 }
@@ -111,7 +102,7 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     alignItems: 'center',
     justifyContent: 'center',
     elevation: 6,
@@ -134,10 +125,10 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.08)',
   },
   pillActive: {
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
   },
   pillText: {
-    fontSize: 14, color: C.onSurfaceVariant, fontFamily,
+    fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily,
   },
   pillTextActive: {
     color: '#ffffff', fontWeight: '600',
@@ -151,6 +142,6 @@ const styles = StyleSheet.create({
   memberAvatarText: { fontSize: 18, fontWeight: '700', fontFamily },
   memberInfo: { flex: 1, gap: 1 },
   memberName: { fontSize: 16, fontWeight: '700', color: '#ffffff', fontFamily },
-  memberEmail: { fontSize: 12, color: C.onSurfaceVariant, fontFamily, marginBottom: 2 },
-  memberJurisdiction: { fontSize: 12, fontWeight: '600', color: C.primary, fontFamily },
+  memberEmail: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 2 },
+  memberJurisdiction: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily },
 });

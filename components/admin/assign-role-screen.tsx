@@ -6,17 +6,9 @@ import { useRouter } from 'expo-router';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { BackButton } from '@/components/ui/back-button';
-import { fontFamily } from '@/constants/design';
+import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminCreation } from '@/context/admin-creation-context';
 import { REGIONS, ADMIN_MEMBERS } from '@/dummy/admin-mock';
-
-const C = {
-  primary: '#c3c0ff',
-  primaryContainer: '#4f46e5',
-  onSurface: '#e5e1e4',
-  onSurfaceVariant: '#c7c4d8',
-  surface: '#131315',
-};
 
 type RoleOption = 'super_admin' | 'regional_admin' | 'field_admin' | 'independent_field_admin';
 
@@ -156,7 +148,7 @@ export function AssignRoleScreen() {
                         style={styles.pickerRow}
                         onPress={() => { setRegionOpen(!regionOpen); setRegionSearch(''); }}
                       >
-                        <Ionicons name="location-outline" size={18} color={C.primary} />
+                        <Ionicons name="location-outline" size={18} color={DesignColors.primary} />
                         <Text style={[styles.pickerText, !selectedRegion && styles.pickerPlaceholder]}>
                           {selectedRegion
                             ? REGIONS.find((r) => r.id === selectedRegion)?.name ?? 'Select Target Region'
@@ -165,14 +157,14 @@ export function AssignRoleScreen() {
                         <Ionicons
                           name={regionOpen ? 'chevron-up' : 'chevron-down'}
                           size={18}
-                          color={C.onSurfaceVariant}
+                          color={DesignColors.onSurfaceVariant}
                         />
                       </Pressable>
                       {regionOpen && (
                         <View style={styles.dropdown}>
                           <TextInput
                             placeholder="Search regions..."
-                            placeholderTextColor={C.onSurfaceVariant}
+                            placeholderTextColor={DesignColors.onSurfaceVariant}
                             style={styles.dropdownSearch}
                             value={regionSearch}
                             onChangeText={setRegionSearch}
@@ -191,7 +183,7 @@ export function AssignRoleScreen() {
                                 selectedRegion === region.id && styles.dropdownTextSelected,
                               ]}>{region.name}</Text>
                               {selectedRegion === region.id && (
-                                <Ionicons name="checkmark" size={18} color={C.primary} />
+                                <Ionicons name="checkmark" size={18} color={DesignColors.primary} />
                               )}
                             </Pressable>
                           )) : (
@@ -208,7 +200,7 @@ export function AssignRoleScreen() {
                         style={styles.pickerRow}
                         onPress={() => { setSupervisorOpen(!supervisorOpen); setSupervisorSearch(''); }}
                       >
-                        <Ionicons name="person-outline" size={18} color={C.primary} />
+                        <Ionicons name="person-outline" size={18} color={DesignColors.primary} />
                         <Text style={[styles.pickerText, !selectedSupervisor && styles.pickerPlaceholder]}>
                           {selectedSupervisor
                             ? regionalSupervisors.find((s) => s.id === selectedSupervisor)?.full_name ?? 'Assign Reporting Supervisor'
@@ -217,14 +209,14 @@ export function AssignRoleScreen() {
                         <Ionicons
                           name={supervisorOpen ? 'chevron-up' : 'chevron-down'}
                           size={18}
-                          color={C.onSurfaceVariant}
+                          color={DesignColors.onSurfaceVariant}
                         />
                       </Pressable>
                       {supervisorOpen && (
                         <View style={styles.dropdown}>
                           <TextInput
                             placeholder="Search supervisors..."
-                            placeholderTextColor={C.onSurfaceVariant}
+                            placeholderTextColor={DesignColors.onSurfaceVariant}
                             style={styles.dropdownSearch}
                             value={supervisorSearch}
                             onChangeText={setSupervisorSearch}
@@ -246,7 +238,7 @@ export function AssignRoleScreen() {
                                 <Text style={styles.dropdownMeta}>{sup.region_name}</Text>
                               </View>
                               {selectedSupervisor === sup.id && (
-                                <Ionicons name="checkmark" size={18} color={C.primary} />
+                                <Ionicons name="checkmark" size={18} color={DesignColors.primary} />
                               )}
                             </Pressable>
                           )) : (
@@ -269,7 +261,7 @@ export function AssignRoleScreen() {
             disabled={!isValid}
           >
             <Text style={[styles.continueText, !isValid && styles.continueTextDisabled]}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color={isValid ? '#ffffff' : C.onSurfaceVariant} />
+            <Ionicons name="arrow-forward" size={20} color={isValid ? '#ffffff' : DesignColors.onSurfaceVariant} />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -287,23 +279,23 @@ const styles = StyleSheet.create({
   },
   backAbs: { position: 'absolute', left: 0 },
   headerCenter: { alignItems: 'center', gap: 6 },
-  headerTitle: { fontSize: 17, fontWeight: '700', color: C.onSurface, fontFamily },
+  headerTitle: { fontSize: 17, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   stepBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   stepDot: {
     width: 6, height: 6, borderRadius: 3,
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   stepDotActive: {
-    backgroundColor: C.primary,
+    backgroundColor: DesignColors.primary,
     width: 8, height: 8, borderRadius: 4,
   },
   stepLabel: {
-    fontSize: 11, fontWeight: '600', color: C.onSurfaceVariant, fontFamily,
+    fontSize: 11, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
     marginLeft: 2,
   },
 
   subtitle: {
-    fontSize: 14, fontWeight: '600', color: C.onSurfaceVariant, fontFamily,
+    fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
     lineHeight: 20, paddingBottom: 24, opacity: 0.8,
   },
 
@@ -318,7 +310,7 @@ const styles = StyleSheet.create({
 
   optionCard: {
     borderRadius: 20, padding: 18,
-    backgroundColor: C.surface,
+    backgroundColor: DesignColors.surface,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
   },
   optionCardSelected: {
@@ -337,22 +329,22 @@ const styles = StyleSheet.create({
     marginTop: 2,
   },
   radioOuterSelected: {
-    borderColor: C.primary,
+    borderColor: DesignColors.primary,
   },
   radioInner: {
     width: 12, height: 12, borderRadius: 6,
-    backgroundColor: C.primary,
+    backgroundColor: DesignColors.primary,
   },
   optionContent: { flex: 1, gap: 6 },
-  optionTitle: { fontSize: 16, fontWeight: '700', color: C.onSurface, fontFamily },
+  optionTitle: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   optionDesc: {
-    fontSize: 13, fontWeight: '500', color: C.onSurfaceVariant, fontFamily,
+    fontSize: 13, fontWeight: '500', color: DesignColors.onSurfaceVariant, fontFamily,
     lineHeight: 18, opacity: 0.7,
   },
 
   expandSection: {
     paddingHorizontal: 18, paddingBottom: 20,
-    backgroundColor: C.surface,
+    backgroundColor: DesignColors.surface,
     borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1,
     borderColor: 'rgba(79,70,229,0.5)',
     borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
@@ -365,8 +357,8 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.04)',
     marginTop: 2,
   },
-  pickerText: { flex: 1, fontSize: 14, fontWeight: '600', color: C.onSurface, fontFamily },
-  pickerPlaceholder: { color: C.onSurfaceVariant, opacity: 0.6 },
+  pickerText: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
+  pickerPlaceholder: { color: DesignColors.onSurfaceVariant, opacity: 0.6 },
 
   dropdown: {
     marginTop: 6, borderRadius: 12, overflow: 'hidden',
@@ -377,17 +369,17 @@ const styles = StyleSheet.create({
     paddingVertical: 14, paddingHorizontal: 14,
   },
   dropdownItemSelected: { backgroundColor: 'rgba(79,70,229,0.12)' },
-  dropdownText: { fontSize: 14, fontWeight: '600', color: C.onSurface, fontFamily },
-  dropdownTextSelected: { color: C.primary },
-  dropdownMeta: { fontSize: 11, fontWeight: '500', color: C.onSurfaceVariant, fontFamily, marginTop: 2, opacity: 0.6 },
+  dropdownText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
+  dropdownTextSelected: { color: DesignColors.primary },
+  dropdownMeta: { fontSize: 11, fontWeight: '500', color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 2, opacity: 0.6 },
   dropdownSearch: {
-    fontSize: 13, fontWeight: '600', color: C.onSurface, fontFamily,
+    fontSize: 13, fontWeight: '600', color: DesignColors.onSurface, fontFamily,
     paddingVertical: 10, paddingHorizontal: 14,
     borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
   },
   dropdownEmpty: {
     paddingVertical: 16, textAlign: 'center',
-    fontSize: 13, fontWeight: '600', color: C.onSurfaceVariant, fontFamily, opacity: 0.5,
+    fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, opacity: 0.5,
   },
 
   footer: {
@@ -397,10 +389,10 @@ const styles = StyleSheet.create({
   continueBtn: {
     height: 52,
     borderRadius: 9999,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   continueBtnDisabled: { backgroundColor: '#6b64b0' },
   continueText: { fontSize: 17, fontWeight: '700', color: '#ffffff', fontFamily },
-  continueTextDisabled: { color: C.onSurfaceVariant },
+  continueTextDisabled: { color: DesignColors.onSurfaceVariant },
 });

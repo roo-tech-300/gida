@@ -3,24 +3,22 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { fontFamily } from '@/constants/design';
+import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { DASHBOARD_STATS, RECENT_ACTIONS, SUPER_ADMIN_MOCK } from '@/dummy/admin-mock';
-import { ADMIN_COLORS, MetricCard, RegionStat } from '@/components/admin/super-admin-helpers';
+import { RECENT_ACTIONS, SUPER_ADMIN_MOCK } from '@/dummy/admin-mock';
+import { MetricCard } from '@/components/admin/super-admin-helpers';
 
 type ActionItem = {
   key: string;
   title: string;
   icon: keyof typeof Ionicons.glyphMap;
-  color: string;
-  bgColor: string;
 };
 
 const ACTIONS: ActionItem[] = [
-  { key: 'teams', title: 'Manage Teams', icon: 'people-outline', color: ADMIN_COLORS.onPrimaryContainer, bgColor: ADMIN_COLORS.primaryContainer },
-  { key: 'inventory', title: 'Total Inventory', icon: 'map-outline', color: ADMIN_COLORS.onSurface, bgColor: 'transparent' },
-  { key: 'contracts', title: 'Landlord Contracts', icon: 'document-text-outline', color: ADMIN_COLORS.onSurface, bgColor: 'transparent' },
-  { key: 'tasks', title: 'Field Tasks', icon: 'checkmark-done-outline', color: ADMIN_COLORS.onSurface, bgColor: 'transparent' },
+  { key: 'teams', title: 'Teams', icon: 'people-outline' },
+  { key: 'inventory', title: 'Inventory', icon: 'map-outline' },
+  { key: 'contracts', title: 'Contracts', icon: 'document-text-outline' },
+  { key: 'regions', title: 'Regions', icon: 'globe-outline' },
 ];
 
 const ACTION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -36,14 +34,12 @@ const ACTION_BG_MAP: Record<string, string> = {
 };
 
 const ACTION_COLOR_MAP: Record<string, string> = {
-  secondary: ADMIN_COLORS.secondary,
-  primary: ADMIN_COLORS.primary,
-  tertiary: ADMIN_COLORS.tertiary,
+  secondary: DesignColors.secondary,
+  primary: DesignColors.primary,
+  tertiary: DesignColors.tertiary,
 };
 
 export function SuperAdminDashboardScreen() {
-  const stats = DASHBOARD_STATS;
-
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -55,60 +51,28 @@ export function SuperAdminDashboardScreen() {
           <AdminHeader initials="EA" name={SUPER_ADMIN_MOCK.full_name} roleLabel="Super Admin" subtitle="GLOBAL ACCESS" />
 
           <View style={styles.metricsRow}>
-            <MetricCard label="Total Regions" value={String(stats.total_regions)} />
-            <MetricCard label="State Admins" value={String(stats.state_admins)} />
-            <MetricCard label="Field Tasks" value={String(stats.field_tasks)} />
+            <MetricCard label="Total Regions" value="14" />
+            <MetricCard label="Regional Admins" value="42" />
+            <MetricCard label="Field Admins" value="512" />
           </View>
 
           <View style={styles.actionGrid}>
             {ACTIONS.map((action) => (
               <Pressable
                 key={action.key}
-                style={[styles.actionCard, action.key === 'teams' && styles.actionCardPrimary]}
+                style={styles.actionCard}
                 onPress={() => {
                   if (action.key === 'teams') router.push('/admin/manage-teams');
                   if (action.key === 'inventory') router.push('/admin/total-inventory');
                   if (action.key === 'contracts') router.push('/admin/landlord-contracts');
                 }}
               >
-                <View style={[styles.actionIconWrap, action.key === 'teams' && styles.actionIconWrapPrimary]}>
-                  <Ionicons
-                    name={action.icon}
-                    size={22}
-                    color={action.key === 'teams' ? ADMIN_COLORS.onPrimaryContainer : ADMIN_COLORS.onSurfaceVariant}
-                  />
+                <View style={styles.actionIconWrap}>
+                  <Ionicons name={action.icon} size={22} color={DesignColors.onSurfaceVariant} />
                 </View>
-                <Text style={[styles.actionLabel, action.key === 'teams' && styles.actionLabelPrimary]}>
-                  {action.title}
-                </Text>
+                <Text style={styles.actionLabel}>{action.title}</Text>
               </Pressable>
             ))}
-          </View>
-
-          <View style={styles.regionSection}>
-            <View style={styles.regionHeader}>
-              <Text style={styles.regionTitle}>Manage Regions</Text>
-              <Pressable>
-                <Text style={styles.viewAll}>View All</Text>
-              </Pressable>
-            </View>
-
-            <View style={styles.regionCard}>
-              <View style={styles.mapPlaceholder}>
-                <View style={styles.mapGlow} />
-                <Ionicons name="map-outline" size={48} color="rgba(195, 192, 255, 0.3)" />
-                <View style={styles.liveBadge}>
-                  <View style={styles.liveDot} />
-                  <Text style={styles.liveText}>Live Density Map</Text>
-                </View>
-              </View>
-
-              <View style={styles.regionStats}>
-                <RegionStat label="Active Hubs" value={String(stats.active_hubs)} />
-                <RegionStat label="Critical" value={String(stats.critical)} color={ADMIN_COLORS.tertiary} icon="alert-circle" />
-                <RegionStat label="Growth" value={stats.growth} color={ADMIN_COLORS.secondary} icon="trending-up" />
-              </View>
-            </View>
           </View>
 
           <View style={styles.activitySection}>
@@ -126,7 +90,7 @@ export function SuperAdminDashboardScreen() {
                   <Text style={styles.activityTitleText}>{act.title}</Text>
                   <Text style={styles.activitySub}>{act.subtitle}</Text>
                 </View>
-                <Ionicons name="chevron-forward" size={16} color={ADMIN_COLORS.onSurfaceVariant} />
+                <Ionicons name="chevron-forward" size={16} color={DesignColors.onSurfaceVariant} />
               </View>
             ))}
           </View>
@@ -147,74 +111,30 @@ const styles = StyleSheet.create({
   actionCard: {
     width: '47%', height: 128,
     borderRadius: 16,
-    backgroundColor: ADMIN_COLORS.glassBg,
-    borderWidth: 1, borderColor: ADMIN_COLORS.glassBorder,
+    backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     padding: 20,
     justifyContent: 'space-between',
-  },
-  actionCardPrimary: {
-    backgroundColor: ADMIN_COLORS.primaryContainer,
-    borderColor: 'transparent',
   },
   actionIconWrap: {
     width: 40, height: 40, borderRadius: 12,
     backgroundColor: 'rgba(255,255,255,0.05)',
     alignItems: 'center', justifyContent: 'center',
   },
-  actionIconWrapPrimary: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-  },
-  actionLabel: { fontSize: 12, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily, letterSpacing: 0.3 },
-  actionLabelPrimary: { color: ADMIN_COLORS.onPrimaryContainer },
-
-  regionSection: { gap: 16 },
-  regionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  regionTitle: { fontSize: 22, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily, letterSpacing: -0.24 },
-  viewAll: { fontSize: 12, fontWeight: '600', color: ADMIN_COLORS.primaryContainer, fontFamily, letterSpacing: 0.5 },
-  regionCard: {
-    backgroundColor: ADMIN_COLORS.glassBg,
-    borderRadius: 16,
-    borderWidth: 1, borderColor: ADMIN_COLORS.glassBorder,
-    padding: 20,
-    gap: 24,
-  },
-  mapPlaceholder: {
-    height: 140,
-    borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
-    alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden',
-    position: 'relative',
-  },
-  mapGlow: {
-    position: 'absolute', top: '30%', left: '30%', width: 160, height: 160,
-    borderRadius: 80,
-    backgroundColor: 'rgba(79, 70, 229, 0.08)',
-  },
-  liveBadge: {
-    position: 'absolute', bottom: 12, left: 12,
-    flexDirection: 'row', alignItems: 'center', gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    paddingHorizontal: 10, paddingVertical: 5,
-    borderRadius: 9999,
-    borderWidth: 1, borderColor: ADMIN_COLORS.glassBorder,
-  },
-  liveDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: ADMIN_COLORS.secondary },
-  liveText: { fontSize: 10, fontWeight: '700', color: ADMIN_COLORS.onSurface, fontFamily, letterSpacing: 0.8, textTransform: 'uppercase' },
-  regionStats: { flexDirection: 'row', gap: 16 },
+  actionLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },
 
   activitySection: {
-    backgroundColor: ADMIN_COLORS.glassBg,
+    backgroundColor: DesignColors.glassBg,
     borderRadius: 16,
-    borderWidth: 1, borderColor: ADMIN_COLORS.glassBorder,
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     padding: 16,
     gap: 12,
   },
-  activityTitle: { fontSize: 12, fontWeight: '700', color: ADMIN_COLORS.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
+  activityTitle: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
   activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   activityRowBordered: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
   activityIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   activityText: { flex: 1, gap: 2 },
-  activityTitleText: { fontSize: 14, fontWeight: '600', color: ADMIN_COLORS.onSurface, fontFamily },
-  activitySub: { fontSize: 10, color: ADMIN_COLORS.onSurfaceVariant, fontFamily },
+  activityTitleText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
+  activitySub: { fontSize: 10, color: DesignColors.onSurfaceVariant, fontFamily },
 });

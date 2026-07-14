@@ -2,20 +2,9 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { fontFamily } from '@/constants/design';
+import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { REGIONAL_ADMIN_MOCK } from '@/dummy/admin-mock';
-
-const C = {
-  primaryContainer: '#4f46e5',
-  primary: '#c3c0ff',
-  secondary: '#4edea3',
-  tertiary: '#ffb695',
-  onSurface: '#e5e1e4',
-  onSurfaceVariant: '#c7c4d8',
-  glassBg: 'rgba(24, 24, 28, 0.7)',
-  glassBorder: 'rgba(255, 255, 255, 0.1)',
-};
 
 const ACTIONS = [
   { key: 'sub_admins', title: 'Appoint\nSub Admins', icon: 'git-network-outline', primary: true },
@@ -44,7 +33,7 @@ export function RegionalDashboardScreen() {
               style={[styles.actionCard, a.primary && styles.actionCardPrimary]}
             >
               <View style={[styles.actionIcon, a.primary && styles.actionIconPrimary]}>
-                <Ionicons name={a.icon} size={22} color={a.primary ? '#ffffff' : C.onSurfaceVariant} />
+                <Ionicons name={a.icon} size={22} color={a.primary ? '#ffffff' : DesignColors.onSurfaceVariant} />
               </View>
               <Text style={[styles.actionLabel, a.primary && styles.actionLabelPrimary]}>{a.title}</Text>
             </Pressable>
@@ -60,8 +49,8 @@ export function RegionalDashboardScreen() {
             <View style={styles.mapImage}>
               <View style={styles.mapGradient} />
               <View style={styles.zoomControls}>
-                <Pressable style={styles.zoomBtn}><Ionicons name="add" size={18} color={C.onSurface} /></Pressable>
-                <Pressable style={styles.zoomBtn}><Ionicons name="remove" size={18} color={C.onSurface} /></Pressable>
+                <Pressable style={styles.zoomBtn}><Ionicons name="add" size={18} color={DesignColors.onSurface} /></Pressable>
+                <Pressable style={styles.zoomBtn}><Ionicons name="remove" size={18} color={DesignColors.onSurface} /></Pressable>
               </View>
               <View style={styles.mapPill}>
                 <View style={styles.mapDot} />
@@ -74,9 +63,9 @@ export function RegionalDashboardScreen() {
         <View style={styles.activitySection}>
           <Text style={styles.activityTitle}>Recent Actions</Text>
           {[
-            { icon: 'checkmark-circle', color: C.secondary, bg: 'rgba(78,222,163,0.15)', title: 'Bosso Zone Updated', sub: '2 mins ago • State Admin' },
-            { icon: 'person-add', color: C.primary, bg: 'rgba(79,70,229,0.15)', title: 'New Lead Assigned', sub: '1 hour ago • Minna Metro' },
-            { icon: 'warning-outline', color: C.tertiary, bg: 'rgba(255,182,149,0.15)', title: 'Pending Field Report', sub: '3 hours ago • Zone 4' },
+            { icon: 'checkmark-circle', color: DesignColors.secondary, bg: 'rgba(78,222,163,0.15)', title: 'Bosso Zone Updated', sub: '2 mins ago • State Admin' },
+            { icon: 'person-add', color: DesignColors.primary, bg: 'rgba(79,70,229,0.15)', title: 'New Lead Assigned', sub: '1 hour ago • Minna Metro' },
+            { icon: 'warning-outline', color: DesignColors.tertiary, bg: 'rgba(255,182,149,0.15)', title: 'Pending Field Report', sub: '3 hours ago • Zone 4' },
           ].map((act, i) => (
             <View key={i} style={[styles.activityRow, i < 2 && styles.activityBordered]}>
               <View style={[styles.activityIcon, { backgroundColor: act.bg }]}>
@@ -86,7 +75,7 @@ export function RegionalDashboardScreen() {
                 <Text style={styles.activityTitleText}>{act.title}</Text>
                 <Text style={styles.activitySub}>{act.sub}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={C.onSurfaceVariant} />
+              <Ionicons name="chevron-forward" size={16} color={DesignColors.onSurfaceVariant} />
             </View>
           ))}
         </View>
@@ -109,34 +98,34 @@ const styles = StyleSheet.create({
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 24 },
   metricsRow: { flexDirection: 'row', gap: 12 },
-  metricCard: { flex: 1, backgroundColor: C.glassBg, borderRadius: 16, borderWidth: 1, borderColor: C.glassBorder, padding: 16, gap: 4 },
-  metricLabel: { fontSize: 10, fontWeight: '700', color: C.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.6 },
-  metricValue: { fontSize: 24, fontWeight: '700', color: C.onSurface, fontFamily },
+  metricCard: { flex: 1, backgroundColor: DesignColors.glassBg, borderRadius: 16, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 16, gap: 4 },
+  metricLabel: { fontSize: 10, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.6 },
+  metricValue: { fontSize: 24, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
-  actionCard: { width: '47%', height: 128, borderRadius: 16, backgroundColor: C.glassBg, borderWidth: 1, borderColor: C.glassBorder, padding: 20, justifyContent: 'space-between' },
-  actionCardPrimary: { backgroundColor: C.primaryContainer, borderColor: 'transparent' },
+  actionCard: { width: '47%', height: 128, borderRadius: 16, backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 20, justifyContent: 'space-between' },
+  actionCardPrimary: { backgroundColor: DesignColors.primaryContainer, borderColor: 'transparent' },
   actionIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: 'rgba(255,255,255,0.05)', alignItems: 'center', justifyContent: 'center' },
   actionIconPrimary: { backgroundColor: 'rgba(255,255,255,0.2)' },
-  actionLabel: { fontSize: 12, fontWeight: '700', color: C.onSurface, fontFamily, letterSpacing: 0.3 },
+  actionLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },
   actionLabelPrimary: { color: '#ffffff' },
   regionSection: { gap: 16 },
   regionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  regionTitle: { fontSize: 20, fontWeight: '700', color: C.onSurface, fontFamily, letterSpacing: -0.24 },
-  viewAll: { fontSize: 12, fontWeight: '600', color: C.primaryContainer, fontFamily },
-  mapCard: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: C.glassBorder },
+  regionTitle: { fontSize: 20, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.24 },
+  viewAll: { fontSize: 12, fontWeight: '600', color: DesignColors.primaryContainer, fontFamily },
+  mapCard: { borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: DesignColors.glassBorder },
   mapImage: { height: 200, backgroundColor: 'rgba(255, 255, 255, 0.04)', position: 'relative' },
   mapGradient: { position: 'absolute', bottom: 0, left: 0, right: 0, height: '60%', backgroundColor: 'rgba(0,0,0,0.5)' },
   zoomControls: { position: 'absolute', top: 12, right: 12, gap: 8 },
-  zoomBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: C.glassBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: C.glassBorder },
-  mapPill: { position: 'absolute', bottom: 16, left: 16, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: C.glassBg, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 9999, borderWidth: 1, borderColor: C.glassBorder },
-  mapDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: C.secondary },
-  mapPillText: { fontSize: 11, fontWeight: '700', color: C.onSurface, fontFamily },
-  activitySection: { backgroundColor: C.glassBg, borderRadius: 16, borderWidth: 1, borderColor: C.glassBorder, padding: 16, gap: 12 },
-  activityTitle: { fontSize: 12, fontWeight: '700', color: C.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
+  zoomBtn: { width: 36, height: 36, borderRadius: 18, backgroundColor: DesignColors.glassBg, alignItems: 'center', justifyContent: 'center', borderWidth: 1, borderColor: DesignColors.glassBorder },
+  mapPill: { position: 'absolute', bottom: 16, left: 16, flexDirection: 'row', alignItems: 'center', gap: 8, backgroundColor: DesignColors.glassBg, paddingHorizontal: 14, paddingVertical: 8, borderRadius: 9999, borderWidth: 1, borderColor: DesignColors.glassBorder },
+  mapDot: { width: 6, height: 6, borderRadius: 3, backgroundColor: DesignColors.secondary },
+  mapPillText: { fontSize: 11, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
+  activitySection: { backgroundColor: DesignColors.glassBg, borderRadius: 16, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 16, gap: 12 },
+  activityTitle: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
   activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
   activityBordered: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
   activityIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   activityText: { flex: 1, gap: 2 },
-  activityTitleText: { fontSize: 14, fontWeight: '600', color: C.onSurface, fontFamily },
-  activitySub: { fontSize: 10, color: C.onSurfaceVariant, fontFamily },
+  activityTitleText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
+  activitySub: { fontSize: 10, color: DesignColors.onSurfaceVariant, fontFamily },
 });

@@ -28,7 +28,7 @@ export function ManagementToolsGrid() {
                 <Text style={styles.badgeText}>3 Active</Text>
               </View>
             </View>
-            <Text style={styles.cardTitle}>Manage Active{'\n'}Lodges</Text>
+            <Text style={styles.cardTitle}>Manage Active{'\n'}Listings</Text>
           </View>
         </Pressable>
       </View>

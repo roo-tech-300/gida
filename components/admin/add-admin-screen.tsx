@@ -6,20 +6,10 @@ import { useRouter } from 'expo-router';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { BackButton } from '@/components/ui/back-button';
-import { fontFamily } from '@/constants/design';
+import { DesignColors, fontFamily } from '@/constants/design';
 import { roommateProfiles } from '@/dummy/roommates-mock';
 import { useAdminCreation } from '@/context/admin-creation-context';
 import type { RoommateProfile } from '@/types/roommates';
-
-const C = {
-  primary: '#c3c0ff',
-  primaryContainer: '#4f46e5',
-  secondary: '#4edea3',
-  onSurface: '#e5e1e4',
-  onSurfaceVariant: '#c7c4d8',
-  surface: '#131315',
-  surfaceLowest: '#0e0e10',
-};
 
 export function AddAdminScreen() {
   const router = useRouter();
@@ -74,7 +64,7 @@ export function AddAdminScreen() {
                 <View style={styles.searchInputWrap}>
                   <TextInput
                     placeholder="Type username or email..."
-                    placeholderTextColor={C.onSurfaceVariant}
+                    placeholderTextColor={DesignColors.onSurfaceVariant}
                     style={styles.searchInput}
                     value={query}
                     onChangeText={(t) => { setQuery(t); setSelected(null); setSearched(false); }}
@@ -101,13 +91,13 @@ export function AddAdminScreen() {
                     <View style={styles.resultInfo}>
                       <View style={styles.nameRow}>
                         <Text style={styles.resultName}>{selected.name}</Text>
-                        <Ionicons name="checkmark-circle" size={18} color={C.primary} />
+                        <Ionicons name="checkmark-circle" size={18} color={DesignColors.primary} />
                       </View>
                       <Text style={styles.resultEmail}>{selected.department} • {selected.university}</Text>
                     </View>
                   </View>
                   <View style={styles.statusBadge}>
-                    <Ionicons name="checkmark" size={14} color={C.secondary} />
+                    <Ionicons name="checkmark" size={14} color={DesignColors.secondary} />
                     <Text style={styles.statusText}>Found</Text>
                   </View>
                 </View>
@@ -135,7 +125,7 @@ export function AddAdminScreen() {
                         <Text style={styles.resultRowMeta}>{item.department} • {item.university}</Text>
                       </View>
                     </View>
-                    <Ionicons name="add-circle-outline" size={22} color={C.primary} />
+                    <Ionicons name="add-circle-outline" size={22} color={DesignColors.primary} />
                   </Pressable>
                 ))}
               </View>
@@ -152,7 +142,7 @@ export function AddAdminScreen() {
             disabled={!selected}
           >
             <Text style={[styles.confirmText, !selected && styles.confirmTextDisabled]}>Confirm & Next</Text>
-            <Ionicons name="arrow-forward" size={20} color={selected ? '#ffffff' : C.onSurfaceVariant} />
+            <Ionicons name="arrow-forward" size={20} color={selected ? '#ffffff' : DesignColors.onSurfaceVariant} />
           </Pressable>
         </View>
       </SafeAreaView>
@@ -177,7 +167,7 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   headerTitle: {
-    fontSize: 17, fontWeight: '700', color: C.onSurface, fontFamily,
+    fontSize: 17, fontWeight: '700', color: DesignColors.onSurface, fontFamily,
   },
   stepBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 5,
@@ -187,11 +177,11 @@ const styles = StyleSheet.create({
     backgroundColor: 'rgba(255,255,255,0.15)',
   },
   stepDotActive: {
-    backgroundColor: C.primary,
+    backgroundColor: DesignColors.primary,
     width: 8, height: 8, borderRadius: 4,
   },
   stepLabel: {
-    fontSize: 11, fontWeight: '600', color: C.onSurfaceVariant, fontFamily,
+    fontSize: 11, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
     marginLeft: 2,
   },
 
@@ -217,10 +207,10 @@ const styles = StyleSheet.create({
     height: 48,
     justifyContent: 'center',
   },
-  searchInput: { fontSize: 15, color: C.onSurface, fontFamily, paddingVertical: 0 },
+  searchInput: { fontSize: 15, color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
   findBtn: {
     width: 48, height: 48, borderRadius: 24,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     alignItems: 'center', justifyContent: 'center',
   },
 
@@ -229,21 +219,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 16,
     borderRadius: 16,
-    backgroundColor: C.surface,
+    backgroundColor: DesignColors.surface,
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
   resultRowLeft: { flexDirection: 'row', alignItems: 'center', gap: 14 },
   avatarSmall: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarSmallText: { fontSize: 16, fontWeight: '700', color: '#ffffff', fontFamily },
-  resultRowName: { fontSize: 15, fontWeight: '700', color: C.onSurface, fontFamily },
-  resultRowMeta: { fontSize: 12, fontWeight: '600', color: C.onSurfaceVariant, fontFamily, marginTop: 2 },
+  resultRowName: { fontSize: 15, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
+  resultRowMeta: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 2 },
   noResult: {
     textAlign: 'center', paddingTop: 40,
-    fontSize: 14, fontWeight: '600', color: C.onSurfaceVariant, fontFamily,
+    fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
   },
 
   resultSection: { gap: 20, paddingTop: 32 },
@@ -256,25 +246,25 @@ const styles = StyleSheet.create({
   resultLeft: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   avatarWrap: {
     width: 64, height: 64, borderRadius: 32,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     alignItems: 'center', justifyContent: 'center',
     borderWidth: 2, borderColor: 'rgba(255,255,255,0.1)',
   },
   avatarText: { fontSize: 24, fontWeight: '700', color: '#ffffff', fontFamily },
   resultInfo: { gap: 4 },
   nameRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
-  resultName: { fontSize: 20, fontWeight: '700', color: C.onSurface, fontFamily },
-  resultEmail: { fontSize: 14, fontWeight: '600', color: C.onSurfaceVariant, fontFamily, marginTop: 2 },
+  resultName: { fontSize: 20, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
+  resultEmail: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 2 },
   statusBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
     paddingHorizontal: 14, paddingVertical: 6,
     borderRadius: 999, backgroundColor: 'rgba(0, 165, 114, 0.1)',
     borderWidth: 1, borderColor: 'rgba(0, 165, 114, 0.3)',
   },
-  statusText: { fontSize: 12, fontWeight: '700', color: C.secondary, fontFamily, letterSpacing: -0.3 },
+  statusText: { fontSize: 12, fontWeight: '700', color: DesignColors.secondary, fontFamily, letterSpacing: -0.3 },
 
   infoTextWrap: { paddingHorizontal: 8 },
-  infoText: { fontSize: 14, fontWeight: '600', color: C.onSurfaceVariant, fontFamily, lineHeight: 22, opacity: 0.8 },
+  infoText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 22, opacity: 0.8 },
 
   footer: {
     position: 'absolute', bottom: 0, left: 0, right: 0,
@@ -283,10 +273,10 @@ const styles = StyleSheet.create({
   confirmBtn: {
     height: 52,
     borderRadius: 9999,
-    backgroundColor: C.primaryContainer,
+    backgroundColor: DesignColors.primaryContainer,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
   confirmBtnDisabled: { backgroundColor: '#6b64b0' },
   confirmText: { fontSize: 17, fontWeight: '700', color: '#ffffff', fontFamily },
-  confirmTextDisabled: { color: C.onSurfaceVariant },
+  confirmTextDisabled: { color: DesignColors.onSurfaceVariant },
 });

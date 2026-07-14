@@ -1,29 +1,47 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BlurView } from 'expo-blur';
+import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
+import { useCreateListingForm } from '@/context/create-listing-context';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
   const { profile } = useAuth();
+  const { data, setStep2 } = useCreateListingForm();
+  const { step2 } = data;
+  const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
-  const [catersToStudents, setCatersToStudents] = useState(false);
   const [schoolOpen, setSchoolOpen] = useState(false);
-  const [selectedSchool, setSelectedSchool] = useState<string | null>(null);
-  const [selectedCampus, setSelectedCampus] = useState<string | null>(null);
-  const [landmark, setLandmark] = useState('');
 
   useEffect(() => {
     if (profile?.city) setOperatingCity(profile.city);
   }, [profile?.city]);
 
   const schools = getSchoolsForCity(operatingCity);
-  const campuses = selectedSchool ? getCampusesForSchool(selectedSchool) : [];
+  const campuses = step2.selectedSchool ? getCampusesForSchool(step2.selectedSchool) : [];
+
+  const lockLocation = async () => {
+    setLockLoading(true);
+    try {
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== 'granted') {
+        Alert.alert('Permission Denied', 'Location permission is required to lock your property coordinates.');
+        return;
+      }
+      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
+      setStep2({ coords: { latitude: loc.coords.latitude, longitude: loc.coords.longitude } });
+    } catch {
+      Alert.alert('Error', 'Could not fetch your location. Make sure GPS is enabled.');
+    } finally {
+      setLockLoading(false);
+    }
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -33,7 +51,7 @@ export function CreateListingLocationScreen() {
       >
         <View style={styles.topBar}>
           <View />
-          <Text style={styles.stepIndicator}>Step 2 of 4</Text>
+          <Text style={styles.stepIndicator}>Step 2 of 5</Text>
         </View>
 
         <ScrollView
@@ -43,93 +61,79 @@ export function CreateListingLocationScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Lodge Locations</Text>
+          <Text style={styles.heroTitle}>Listing Location</Text>
           <Text style={styles.heroSub}>Set the exact location so students can find you easily</Text>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Pressable style={styles.checkRow} onPress={() => setCatersToStudents(!catersToStudents)}>
-            <View style={[styles.checkbox, catersToStudents && styles.checkboxActive]}>
-              {catersToStudents && <Ionicons name="checkmark" size={16} color={DesignColors.onPrimary} />}
+          <Text style={styles.label}>School Name</Text>
+          <Pressable style={styles.glassInput} onPress={() => setSchoolOpen(!schoolOpen)}>
+            <View style={styles.selectRow}>
+              <Text style={[styles.selectValue, !step2.selectedSchool && styles.selectPlaceholder]}>
+                {step2.selectedSchool || 'Select a school'}
+              </Text>
+              <Ionicons name={schoolOpen ? 'chevron-up' : 'chevron-down'} size={20} color={DesignColors.onSurfaceVariant} />
             </View>
-            <Text style={styles.checkLabel}>This property caters to students</Text>
           </Pressable>
-        </View>
-
-        {catersToStudents && (
-          <>
-            <View style={styles.fieldGroup}>
-              <Text style={styles.label}>School Name</Text>
-              <Pressable style={styles.glassInput} onPress={() => setSchoolOpen(!schoolOpen)}>
-                <View style={styles.selectRow}>
-                  <Text style={[styles.selectValue, !selectedSchool && styles.selectPlaceholder]}>
-                    {selectedSchool || 'Select a school'}
-                  </Text>
-                  <Ionicons name={schoolOpen ? 'chevron-up' : 'chevron-down'} size={20} color={DesignColors.onSurfaceVariant} />
-                </View>
-              </Pressable>
-              {schoolOpen && (
-                <View style={styles.dropdownList}>
-                  {schools.length === 0 ? (
-                    <Text style={styles.dropdownEmpty}>No schools found for {operatingCity}</Text>
-                  ) : (
-                    schools.map((school) => (
-                      <Pressable
-                        key={school}
-                        style={[styles.dropdownOption, selectedSchool === school && styles.dropdownOptionActive]}
-                        onPress={() => {
-                          setSelectedSchool(school);
-                          setSelectedCampus(null);
-                          setSchoolOpen(false);
-                        }}
-                      >
-                        <Text style={[styles.dropdownOptionText, selectedSchool === school && styles.dropdownOptionTextActive]}>
-                          {school}
-                        </Text>
-                      </Pressable>
-                    ))
-                  )}
-                </View>
+          {schoolOpen && (
+            <View style={styles.dropdownList}>
+              {schools.length === 0 ? (
+                <Text style={styles.dropdownEmpty}>No schools found for {operatingCity}</Text>
+              ) : (
+                schools.map((school) => (
+                  <Pressable
+                    key={school}
+                    style={[styles.dropdownOption, step2.selectedSchool === school && styles.dropdownOptionActive]}
+                    onPress={() => {
+                      setStep2({ selectedSchool: school, selectedCampus: null });
+                      setSchoolOpen(false);
+                    }}
+                  >
+                    <Text style={[styles.dropdownOptionText, step2.selectedSchool === school && styles.dropdownOptionTextActive]}>
+                      {school}
+                    </Text>
+                  </Pressable>
+                ))
               )}
             </View>
+          )}
+        </View>
 
-            {selectedSchool && campuses.length > 0 && (
-              <View style={styles.fieldGroup}>
-                <Text style={styles.label}>Select Campus</Text>
-                <View style={styles.campusList}>
-                  {campuses.map((c) => {
-                    const active = selectedCampus === c.id;
-                    return (
-                      <Pressable
-                        key={c.id}
-                        style={[styles.campusCard, active && styles.campusCardActive]}
-                        onPress={() => setSelectedCampus(c.id)}
-                      >
-                        <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
-                        <View style={styles.campusLeft}>
-                          <View style={[styles.schoolIconWrap, active && styles.schoolIconWrapActive]}>
-                            <Ionicons
-                              name="school-outline"
-                              size={20}
-                              color={active ? DesignColors.primary : DesignColors.onSurfaceVariant}
-                            />
-                          </View>
-                          <Text style={[styles.campusLabel, active && styles.campusLabelActive]}>
-                            {c.label}
-                          </Text>
-                        </View>
+        {step2.selectedSchool && campuses.length > 0 && (
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Select Campus</Text>
+            <View style={styles.campusList}>
+              {campuses.map((c) => {
+                const active = step2.selectedCampus === c.id;
+                return (
+                  <Pressable
+                    key={c.id}
+                    style={[styles.campusCard, active && styles.campusCardActive]}
+                    onPress={() => setStep2({ selectedCampus: c.id })}
+                  >
+                    <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                    <View style={styles.campusLeft}>
+                      <View style={[styles.schoolIconWrap, active && styles.schoolIconWrapActive]}>
                         <Ionicons
-                          name="checkmark-circle"
-                          size={22}
-                          color={active ? DesignColors.primary : 'transparent'}
+                          name="school-outline"
+                          size={20}
+                          color={active ? DesignColors.primary : DesignColors.onSurfaceVariant}
                         />
-                      </Pressable>
-                    );
-                  })}
-                </View>
-              </View>
-            )}
-          </>
+                      </View>
+                      <Text style={[styles.campusLabel, active && styles.campusLabelActive]}>
+                        {c.label}
+                      </Text>
+                    </View>
+                    <Ionicons
+                      name="checkmark-circle"
+                      size={22}
+                      color={active ? DesignColors.primary : 'transparent'}
+                    />
+                  </Pressable>
+                );
+              })}
+            </View>
+          </View>
         )}
 
         <View style={styles.fieldGroup}>
@@ -140,8 +144,8 @@ export function CreateListingLocationScreen() {
               style={styles.textInput}
               placeholder="e.g. Behind GK Main Gate, near Chapel of Grace"
               placeholderTextColor="rgba(199,196,216,0.4)"
-              value={landmark}
-              onChangeText={setLandmark}
+              value={step2.landmark}
+              onChangeText={(v) => setStep2({ landmark: v })}
             />
           </View>
         </View>
@@ -157,13 +161,19 @@ export function CreateListingLocationScreen() {
                 <Text style={styles.gpsTitle}>Precise Layout Mapping</Text>
                 <Text style={styles.gpsDesc}>
                   Stand physically inside the property to lock down precise layout mapping.{'\n'}
-                  This lets students navigate directly to the lodge door.
+                  This lets students navigate directly to the listing door.
                 </Text>
               </View>
             </View>
-            <Pressable style={styles.lockBtn}>
-              <Ionicons name="locate-outline" size={20} color={DesignColors.secondary} />
-              <Text style={styles.lockBtnText}>Lock Live Location</Text>
+            <Pressable style={[styles.lockBtn, step2.coords && styles.lockBtnActive]} onPress={lockLocation} disabled={lockLoading}>
+              <Ionicons
+                name={lockLoading ? 'hourglass-outline' : step2.coords ? 'checkmark-circle-outline' : 'locate-outline'}
+                size={20}
+                color={step2.coords ? '#0e0e10' : DesignColors.secondary}
+              />
+              <Text style={[styles.lockBtnText, step2.coords && styles.lockBtnTextActive]}>
+                {lockLoading ? 'Locking...' : step2.coords ? `${step2.coords.latitude.toFixed(4)}, ${step2.coords.longitude.toFixed(4)}` : 'Lock Live Location'}
+              </Text>
             </Pressable>
             <View style={styles.mapDeco}>
               <View style={styles.mapPin}>
@@ -203,10 +213,7 @@ const styles = StyleSheet.create({
   glassInput: { borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
   glassBlur: { ...StyleSheet.absoluteFillObject },
   textInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, color: DesignColors.onSurface, fontSize: 16, fontFamily },
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  checkbox: { width: 24, height: 24, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
-  checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },
-  checkLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, flex: 1 },
+
   selectRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },
   selectValue: { fontSize: 16, color: DesignColors.onSurface, fontFamily, flex: 1 },
   selectPlaceholder: { color: 'rgba(199,196,216,0.4)' },
@@ -231,6 +238,8 @@ const styles = StyleSheet.create({
   gpsTitle: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   gpsDesc: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 18 },
   lockBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: 12, paddingVertical: 12, borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  lockBtnActive: { backgroundColor: DesignColors.secondary, borderColor: DesignColors.secondary },
+  lockBtnTextActive: { color: '#0e0e10' },
   lockBtnText: { fontSize: 15, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
   mapDeco: { height: 96, borderRadius: 12, backgroundColor: '#0e0e10', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)', overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   mapPin: { alignItems: 'center', justifyContent: 'center' },

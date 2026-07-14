@@ -40,6 +40,7 @@ export function CreateListingEntryScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <BackButton hasBackground={false} />
+        <Text style={styles.stepIndicator}>New Listing</Text>
       </View>
 
       <View style={styles.bgGlows}>
@@ -47,41 +48,44 @@ export function CreateListingEntryScreen() {
         <View style={styles.glowBottomLeft} />
       </View>
 
-      <View style={styles.body}>
-        <Animated.View
-          style={[
-            styles.anchor,
-            { transform: [{ translateY: floatTranslate }, { rotate: floatRotate }] },
-          ]}
-        >
-          <View style={styles.mainCard}>
-            <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
-            <Ionicons name="business-outline" size={64} color={DesignColors.primary} style={styles.mainIcon} />
-          </View>
+      <View style={styles.center}>
+        <View style={styles.hero}>
+          <Animated.View
+            style={[
+              styles.anchor,
+              { transform: [{ translateY: floatTranslate }, { rotate: floatRotate }] },
+            ]}
+          >
+            <View style={styles.mainCard}>
+              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <Ionicons name="business-outline" size={64} color={DesignColors.primary} style={styles.mainIcon} />
+            </View>
 
-          <View style={styles.accentTopRight}>
-            <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
-            <Ionicons name="location-outline" size={28} color={DesignColors.secondary} />
-          </View>
+            <View style={styles.accentTopRight}>
+              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <Ionicons name="location-outline" size={28} color={DesignColors.secondary} />
+            </View>
 
-          <View style={styles.accentBottomLeft}>
-            <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
-            <Ionicons name="camera-outline" size={24} color={DesignColors.tertiary} />
-          </View>
-        </Animated.View>
+            <View style={styles.accentBottomLeft}>
+              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <Ionicons name="camera-outline" size={24} color={DesignColors.tertiary} />
+            </View>
+          </Animated.View>
 
-        <View style={styles.textSection}>
-          <Text style={styles.title}>Create Your Gida Listing</Text>
-          <Text style={styles.description}>
-            Onboard your lodge, apartment, or studio space into Gida's premium network.
-            Provide core utilities, pinpoint precise satellite GPS coordinates on-site,
-            and upload rich media galleries directly to Minna campus students.
-          </Text>
+          <View style={styles.textSection}>
+            <Text style={styles.title}>Create Your Gida Listing</Text>
+            <Text style={styles.description}>
+              Onboard your listing, apartment, or studio space into Gida's premium network.
+              Provide core utilities, pinpoint precise satellite GPS coordinates on-site,
+              and upload rich media galleries directly to Minna campus students.
+            </Text>
+          </View>
         </View>
+      </View>
 
-        <Pressable style={styles.cta} onPress={() => router.push('/admin/create-listing-core-specs')}>
-          <Text style={styles.ctaText}>Get Started</Text>
-          <Ionicons name="arrow-forward" size={20} color={DesignColors.onSurface} />
+      <View style={styles.ctaRow}>
+        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-core-specs')}>
+          <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>
     </SafeAreaView>
@@ -90,7 +94,11 @@ export function CreateListingEntryScreen() {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: '#0e0e10' },
-  topBar: { paddingHorizontal: 20, paddingVertical: 8, zIndex: 20 },
+  topBar: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
+    paddingHorizontal: 20, paddingVertical: 8, zIndex: 20,
+  },
+  stepIndicator: { fontSize: 11, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2, textTransform: 'uppercase' },
   bgGlows: { ...StyleSheet.absoluteFillObject, overflow: 'hidden', pointerEvents: 'none' },
   glowTopRight: {
     position: 'absolute', top: '25%', right: -80, width: 256, height: 256,
@@ -100,12 +108,10 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: '25%', left: -80, width: 256, height: 256,
     borderRadius: 128, backgroundColor: 'rgba(0,165,114,0.04)',
   },
-  body: {
-    flex: 1, alignItems: 'center', justifyContent: 'center',
-    paddingHorizontal: 20, paddingBottom: 60,
-  },
+  center: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
+  hero: { alignItems: 'center' },
   anchor: {
-    position: 'relative', alignItems: 'center', justifyContent: 'center', marginBottom: 32,
+    position: 'relative', alignItems: 'center', justifyContent: 'center', marginBottom: 24,
   },
   mainCard: {
     width: 192, height: 192, borderRadius: 40, overflow: 'hidden',
@@ -133,17 +139,17 @@ const styles = StyleSheet.create({
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
-  textSection: { alignItems: 'center', gap: 12, maxWidth: 320, zIndex: 10 },
+  textSection: { alignItems: 'center', gap: 12, maxWidth: 320 },
   title: { ...DesignTypography.headlineMd, fontSize: 24, color: DesignColors.onSurface, fontFamily, textAlign: 'center' },
   description: {
     ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily,
     textAlign: 'center', lineHeight: 22,
   },
-  cta: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
-    marginTop: 48, width: '100%', maxWidth: 320, zIndex: 10,
-    backgroundColor: DesignColors.primaryContainer, paddingVertical: 16,
-    borderRadius: 9999,
+  ctaRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, paddingBottom: 34 },
+  ctaBtn: {
+    width: 56, height: 56, borderRadius: 28,
+    backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center',
+    shadowColor: DesignColors.primaryContainer,
+    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
   },
-  ctaText: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
 });

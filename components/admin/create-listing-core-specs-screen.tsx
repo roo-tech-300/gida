@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
@@ -6,24 +5,25 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
+import { LandlordSearch } from '@/components/admin/landlord-search';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { useCreateListingForm } from '@/context/create-listing-context';
 
-type LayoutType = 'self_contain' | 'single_room' | 'flat';
-type TermType = 'per_semester' | 'per_annum';
-
-const layoutOptions: { key: LayoutType; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
+const layoutOptions: { key: 'self_contain' | 'single_room' | 'flat'; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'self_contain', label: 'Self-Contain', icon: 'bed-outline' },
   { key: 'single_room', label: 'Single Room', icon: 'albums-outline' },
   { key: 'flat', label: 'Flat', icon: 'business-outline' },
 ];
 
+function formatPrice(raw: string) {
+  const digits = raw.replace(/\D/g, '');
+  if (!digits) return '';
+  return Number(digits).toLocaleString('en-US');
+}
+
 export function CreateListingCoreSpecsScreen() {
-  const [title, setTitle] = useState('');
-  const [description, setDescription] = useState('');
-  const [layoutType, setLayoutType] = useState<LayoutType | null>(null);
-  const [price, setPrice] = useState('');
-  const [term, setTerm] = useState<TermType>('per_annum');
-  const [units, setUnits] = useState(1);
+  const { data, setStep1 } = useCreateListingForm();
+  const { step1 } = data;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -33,7 +33,7 @@ export function CreateListingCoreSpecsScreen() {
       >
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
-          <Text style={styles.stepIndicator}>Step 1 of 4</Text>
+          <Text style={styles.stepIndicator}>Step 1 of 5</Text>
         </View>
 
         <ScrollView
@@ -43,20 +43,20 @@ export function CreateListingCoreSpecsScreen() {
         keyboardShouldPersistTaps="handled"
       >
         <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Lodge Specifications</Text>
+          <Text style={styles.heroTitle}>Listing Specifications</Text>
           <Text style={styles.heroSub}>Details about your property listing</Text>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Lodge Title Name</Text>
+          <Text style={styles.label}>Listing Title Name</Text>
           <View style={[styles.glassInput, styles.inputRounded]}>
             <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Royal Heights Apartments"
               placeholderTextColor="rgba(199,196,216,0.4)"
-              value={title}
-              onChangeText={setTitle}
+              value={step1.title}
+              onChangeText={(v) => setStep1({ title: v })}
             />
           </View>
         </View>
@@ -69,23 +69,28 @@ export function CreateListingCoreSpecsScreen() {
               style={[styles.textInput, { minHeight: 100, textAlignVertical: 'top' }]}
               placeholder="Describe the proximity to campus, water availability, and security features..."
               placeholderTextColor="rgba(199,196,216,0.4)"
-              value={description}
-              onChangeText={setDescription}
+              value={step1.description}
+              onChangeText={(v) => setStep1({ description: v })}
               multiline
             />
           </View>
         </View>
 
         <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Select Landlord</Text>
+          <LandlordSearch selectedId={step1.landlordId} onSelect={(v) => setStep1({ landlordId: v })} />
+        </View>
+
+        <View style={styles.fieldGroup}>
           <Text style={styles.label}>Layout Type</Text>
           <View style={styles.layoutRow}>
             {layoutOptions.map((opt) => {
-              const active = layoutType === opt.key;
+              const active = step1.layoutType === opt.key;
               return (
                 <Pressable
                   key={opt.key}
                   style={[styles.layoutCard, active && styles.layoutCardActive]}
-                  onPress={() => setLayoutType(opt.key)}
+                  onPress={() => setStep1({ layoutType: opt.key })}
                 >
                   <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
                   <Ionicons name={opt.icon} size={24} color={active ? DesignColors.primary : DesignColors.onSurfaceVariant} />
@@ -106,23 +111,23 @@ export function CreateListingCoreSpecsScreen() {
                 style={styles.textInput}
                 placeholder="250,000"
                 placeholderTextColor="rgba(199,196,216,0.4)"
-                value={price}
-                onChangeText={setPrice}
+                value={step1.price}
+                onChangeText={(text) => setStep1({ price: formatPrice(text) })}
                 keyboardType="numeric"
               />
             </View>
             <View style={styles.termPill}>
               <Pressable
-                style={[styles.termOption, term === 'per_semester' && styles.termActive]}
-                onPress={() => setTerm('per_semester')}
+                style={[styles.termOption, step1.term === 'per_semester' && styles.termActive]}
+                onPress={() => setStep1({ term: 'per_semester' })}
               >
-                <Text style={[styles.termText, term === 'per_semester' && styles.termTextActive]}>Per Semester</Text>
+                <Text style={[styles.termText, step1.term === 'per_semester' && styles.termTextActive]}>Per Semester</Text>
               </Pressable>
               <Pressable
-                style={[styles.termOption, term === 'per_annum' && styles.termActive]}
-                onPress={() => setTerm('per_annum')}
+                style={[styles.termOption, step1.term === 'per_annum' && styles.termActive]}
+                onPress={() => setStep1({ term: 'per_annum' })}
               >
-                <Text style={[styles.termText, term === 'per_annum' && styles.termTextActive]}>Per Annum</Text>
+                <Text style={[styles.termText, step1.term === 'per_annum' && styles.termTextActive]}>Per Annum</Text>
               </Pressable>
             </View>
           </View>
@@ -138,12 +143,12 @@ export function CreateListingCoreSpecsScreen() {
             <View style={styles.stepper}>
               <Pressable
                 style={styles.stepperBtn}
-                onPress={() => setUnits(Math.max(0, units - 1))}
+                onPress={() => setStep1({ units: Math.max(0, step1.units - 1) })}
               >
                 <Ionicons name="remove" size={20} color={DesignColors.primary} />
               </Pressable>
-              <Text style={styles.unitCount}>{String(units).padStart(2, '0')}</Text>
-              <Pressable style={styles.stepperBtn} onPress={() => setUnits(units + 1)}>
+              <Text style={styles.unitCount}>{String(step1.units).padStart(2, '0')}</Text>
+              <Pressable style={styles.stepperBtn} onPress={() => setStep1({ units: step1.units + 1 })}>
                 <Ionicons name="add" size={20} color={DesignColors.primary} />
               </Pressable>
             </View>
@@ -193,8 +198,8 @@ const styles = StyleSheet.create({
     padding: 16, alignItems: 'center', gap: 8,
   },
   layoutCardActive: {
-    borderColor: DesignColors.primary, shadowColor: DesignColors.primary,
-    shadowOffset: { width: 0, height: 0 }, shadowOpacity: 0.3, shadowRadius: 6, elevation: 4,
+    borderColor: DesignColors.primary,
+    backgroundColor: 'rgba(79,70,229,0.1)',
   },
   layoutLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   layoutLabelActive: { color: DesignColors.onSurface },

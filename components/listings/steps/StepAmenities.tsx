@@ -76,7 +76,7 @@ export function StepAmenities() {
           showsVerticalScrollIndicator={false}
           keyboardShouldPersistTaps="handled"
         >
-          <Text style={styles.heroTitle}>Lodge Amenities</Text>
+          <Text style={styles.heroTitle}>Listing Amenities</Text>
           <Text style={styles.heroSub}>Tap to toggle features available at the property.</Text>
 
           <View style={styles.sectionWrap}>

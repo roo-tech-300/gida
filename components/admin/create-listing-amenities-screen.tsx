@@ -1,10 +1,11 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { useCreateListingForm } from '@/context/create-listing-context';
 
 type Amenity = {
   key: string;
@@ -26,16 +27,19 @@ const amenities: Amenity[] = [
 ];
 
 export function CreateListingAmenitiesScreen() {
-  const [selected, setSelected] = useState<Set<string>>(new Set());
+  const { data, setStep3 } = useCreateListingForm();
+  const { step3 } = data;
+  const selectedSet = new Set(step3.selectedAmenities);
   const [inputValue, setInputValue] = useState('');
-  const [featuresList, setFeaturesList] = useState<string[]>([]);
 
   const toggle = (key: string) => {
-    setSelected((prev) => {
-      const next = new Set(prev);
-      if (next.has(key)) next.delete(key); else next.add(key);
-      return next;
-    });
+    const next = new Set(selectedSet);
+    if (next.has(key)) {
+      next.delete(key);
+    } else {
+      next.add(key);
+    }
+    setStep3({ selectedAmenities: Array.from(next) });
   };
 
   const handleChange = (val: string) => {
@@ -46,13 +50,13 @@ export function CreateListingAmenitiesScreen() {
     const parts = val.split(',');
     const newToken = parts[0].trim();
     if (newToken.length > 0) {
-      setFeaturesList((prev) => [...prev, newToken]);
+      setStep3({ featuresList: [...step3.featuresList, newToken] });
     }
     setInputValue(parts.slice(1).join(',').trimStart());
   };
 
   const handlePillPress = (pill: string) => {
-    setFeaturesList((prev) => prev.filter((p) => p !== pill));
+    setStep3({ featuresList: step3.featuresList.filter((p) => p !== pill) });
     setInputValue(pill + ' ');
   };
 
@@ -67,7 +71,7 @@ export function CreateListingAmenitiesScreen() {
       >
         <View style={styles.topBar}>
           <View />
-          <Text style={styles.stepIndicator}>Step 3 of 4</Text>
+          <Text style={styles.stepIndicator}>Step 3 of 5</Text>
         </View>
 
         <ScrollView
@@ -77,7 +81,7 @@ export function CreateListingAmenitiesScreen() {
           keyboardShouldPersistTaps="handled"
         >
         <View style={styles.hero}>
-          <Text style={styles.heroTitle}>Lodge Amenities</Text>
+          <Text style={styles.heroTitle}>Listing Amenities</Text>
           <Text style={styles.heroSub}>Tap to toggle features available at the property.</Text>
         </View>
 
@@ -85,7 +89,7 @@ export function CreateListingAmenitiesScreen() {
           <Text style={styles.sectionTitle}>Property Utilities</Text>
           <View style={styles.grid}>
             {utilities.map((a) => {
-              const active = selected.has(a.key);
+              const active = selectedSet.has(a.key);
               return (
                 <Pressable
                   key={a.key}
@@ -110,7 +114,7 @@ export function CreateListingAmenitiesScreen() {
           <Text style={styles.sectionTitle}>Layout Disclosures</Text>
           <View style={styles.grid}>
             {disclosures.map((a) => {
-              const active = selected.has(a.key);
+              const active = selectedSet.has(a.key);
               return (
                 <Pressable
                   key={a.key}
@@ -142,7 +146,7 @@ export function CreateListingAmenitiesScreen() {
             onSubmitEditing={() => {
               const trimmed = inputValue.trim();
               if (trimmed.length > 0) {
-                setFeaturesList((prev) => [...prev, trimmed]);
+                setStep3({ featuresList: [...step3.featuresList, trimmed] });
                 setInputValue('');
               }
             }}
@@ -150,9 +154,9 @@ export function CreateListingAmenitiesScreen() {
           />
           <Text style={styles.fieldHint}>Comma-separated list</Text>
 
-          {featuresList.length > 0 && (
+          {step3.featuresList.length > 0 && (
             <View style={styles.pillWrap}>
-              {featuresList.map((pill, i) => (
+              {step3.featuresList.map((pill, i) => (
                 <Pressable key={`${pill}-${i}`} style={styles.pill} onPress={() => handlePillPress(pill)}>
                   <Text style={styles.pillText}>{pill}</Text>
                   <Text style={styles.pillIcon}>✎</Text>
@@ -168,7 +172,7 @@ export function CreateListingAmenitiesScreen() {
         <Pressable style={styles.ctaBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-media')}>
+        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-rules')}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>

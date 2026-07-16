@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { Ionicons } from '@expo/vector-icons';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -184,7 +185,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 32,
     paddingVertical: 16,
     borderRadius: 999,
-    backgroundColor: DesignColors.primary,
+    backgroundColor: DesignColors.primaryContainer,
     marginTop: DesignSpacing.sm,
   },
   buttonText: {

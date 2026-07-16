@@ -1,6 +1,7 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
+import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -10,6 +11,7 @@ import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-pi
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useCreateListing } from '@/hooks/use-create-listing';
+import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 
@@ -20,6 +22,30 @@ export function CreateListingMediaScreen() {
   const { showToast } = useAppToast();
   const { profile } = useAuth();
   const [pickerOpen, setPickerOpen] = useState(false);
+  const [isPublishing, setIsPublishing] = useState(false);
+  const [heroLoading, setHeroLoading] = useState(false);
+
+  const pickHero = async () => {
+    setHeroLoading(true);
+    try {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      Alert.alert('Permission required', 'Please allow photo access to pick an image.');
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      allowsEditing: false,
+      quality: 0.9,
+    });
+    if (!result.canceled) {
+      const uri = result.assets[0].uri;
+      setStep5({ heroImage: uri, galleryImages: [uri, ...step5.galleryImages] });
+    }
+    } finally {
+      setHeroLoading(false);
+    }
+  };
 
   const handlePublish = async () => {
     if (!step1.title.trim()) {
@@ -46,9 +72,15 @@ export function CreateListingMediaScreen() {
       showToast({ message: 'Please select a school in step 2.', type: 'error' });
       return;
     }
+    if (!step5.heroImage && step5.galleryImages.length === 0) {
+      showToast({ message: 'Please add at least one photo.', type: 'error' });
+      return;
+    }
+
+    setIsPublishing(true);
 
     try {
-      const { id } = await mutateAsync({
+      const listingInput = {
         admin_id: profile?.id || '',
         title: step1.title.trim(),
         description: step1.description.trim() || null,
@@ -58,6 +90,8 @@ export function CreateListingMediaScreen() {
         price_amount: parseFloat(step1.price.replace(/,/g, '')),
         lease_term: step1.term,
         units_available: step1.units,
+        number_of_bedrooms: step1.bedrooms,
+        number_of_bathrooms: step1.bathrooms,
         max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
         rules: step4.rulesList,
         location_landmark: step2.landmark.trim(),
@@ -75,16 +109,52 @@ export function CreateListingMediaScreen() {
         has_cabinet: step3.selectedAmenities.includes('has_cabinet'),
         has_wardrobe: step3.selectedAmenities.includes('has_wardrobe'),
         custom_features: step3.featuresList,
-        primary_image: step5.heroImage,
-      });
+        size_sqft: (() => {
+          const num = parseFloat(step1.sizeValue.replace(/,/g, ''));
+          if (isNaN(num)) return null;
+          return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
+        })(),
+        total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
+      };
+
+      const { id } = await mutateAsync(listingInput);
+
+      let primaryUrl = null;
+      if (step5.heroImage) {
+        primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
+        await updateListingPrimaryImage(id, primaryUrl);
+      }
+
+      if (step5.galleryImages.length > 0) {
+        const uploads = step5.galleryImages.map((uri, i) =>
+          uploadListingImage(id, uri, `gallery/${i}.jpg`)
+        );
+        const galleryUrls = await Promise.all(uploads);
+
+        const photos = galleryUrls.map((url, i) => ({
+          listing_id: id,
+          image_url: url,
+          display_order: i + 1,
+        }));
+        await insertListingPhotos(photos);
+      }
 
       showToast({ message: 'Listing published successfully!', type: 'success' });
       reset();
-      router.back();
+      router.replace('/admin/total-inventory');
     } catch (error: any) {
       const msg = error?.message || String(error);
-      console.log('Publish error:', msg);
+      console.log('=== PUBLISH ERROR ===');
+      console.log('message:', msg);
+      console.log('stack:', error?.stack);
+      console.log('name:', error?.name);
+      console.log('code:', error?.code);
+      console.log('details:', error?.details);
+      console.log('hint:', error?.hint);
+      try { console.log('fullError:', JSON.stringify(error, Object.getOwnPropertyNames(error))); } catch (_) {}
       showToast({ message: msg || 'Failed to publish listing.', type: 'error' });
+    } finally {
+      setIsPublishing(false);
     }
   };
 
@@ -118,12 +188,18 @@ export function CreateListingMediaScreen() {
                 </Pressable>
               </View>
             ) : (
-              <Pressable style={styles.heroUpload} onPress={() => setPickerOpen(true)}>
+              <Pressable style={styles.heroUpload} onPress={pickHero} disabled={heroLoading}>
                 <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
-                <View style={styles.heroIconWrap}>
-                  <Ionicons name="camera-outline" size={28} color={DesignColors.primary} />
-                </View>
-                <Text style={styles.heroUploadText}>Upload Primary Hero Image</Text>
+                {heroLoading ? (
+                  <ActivityIndicator size="large" color={DesignColors.primary} />
+                ) : (
+                  <>
+                    <View style={styles.heroIconWrap}>
+                      <Ionicons name="camera-outline" size={28} color={DesignColors.primary} />
+                    </View>
+                    <Text style={styles.heroUploadText}>Upload Primary Hero Image</Text>
+                  </>
+                )}
               </Pressable>
             )}
             <Text style={styles.heroHint}>
@@ -168,16 +244,15 @@ export function CreateListingMediaScreen() {
           <Pressable style={styles.ctaBtn} onPress={() => router.back()}>
             <Ionicons name="arrow-back" size={24} color={DesignColors.onPrimaryContainer} />
           </Pressable>
-          <Pressable style={styles.publishBtn} onPress={handlePublish} disabled={isPending}>
-            {isPending ? (
-              <ActivityIndicator color={DesignColors.onPrimaryContainer} style={{ paddingHorizontal: 24 }} />
-            ) : (
-              <>
-                <Text style={styles.publishText}>Publish Listing</Text>
-                <View style={styles.publishIconWrap}>
-                  <Ionicons name="cloud-upload-outline" size={22} color={DesignColors.onPrimaryContainer} />
-                </View>
-              </>
+          <Pressable style={styles.publishBtn} onPress={handlePublish} disabled={isPublishing}>
+            <View style={{ opacity: isPublishing ? 0 : 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
+              <Text style={styles.publishText}>Publish Listing</Text>
+              <View style={styles.publishIconWrap}>
+                <Ionicons name="cloud-upload-outline" size={22} color={DesignColors.onPrimaryContainer} />
+              </View>
+            </View>
+            {isPublishing && (
+              <ActivityIndicator color={DesignColors.onPrimaryContainer} style={StyleSheet.absoluteFill} />
             )}
           </Pressable>
         </View>
@@ -190,7 +265,6 @@ export function CreateListingMediaScreen() {
           setStep5({ galleryImages: images });
           setPickerOpen(false);
         }}
-        onPickHero={(uri) => setStep5({ heroImage: uri })}
       />
     </SafeAreaView>
   );

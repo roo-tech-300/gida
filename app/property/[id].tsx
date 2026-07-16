@@ -1,29 +1,35 @@
-import { useCallback, useState } from 'react';
+import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 import { PropertyDetailsScreen } from '@/components/property/property-details-screen';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
-import { discoverListings } from '@/dummy/listings-mock';
+import { useListing } from '@/hooks/use-listing';
+import { DesignColors } from '@/constants/design';
 
 export default function PropertyRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const [retryCount, setRetryCount] = useState(0);
+  const { data, isLoading, isError, refetch } = useListing(id);
 
-  const property = discoverListings.find((p) => p.id === id);
+  if (isLoading) {
+    return (
+      <View style={styles.centered}>
+        <ActivityIndicator size="large" color={DesignColors.primary} />
+      </View>
+    );
+  }
 
-  const handleRetry = useCallback(() => {
-    setRetryCount((c) => c + 1);
-  }, []);
-
-  if (!property) {
+  if (isError || !data) {
     return (
       <NetworkErrorScreen
-        key={retryCount}
-        onRetry={handleRetry}
+        onRetry={() => refetch()}
         subtitle="We couldn't load this property right now. It may have been removed or there's a network issue. Please try again."
       />
     );
   }
 
-  return <PropertyDetailsScreen property={property} />;
+  return <PropertyDetailsScreen property={data.listing} photos={data.photos} />;
 }
+
+const styles = StyleSheet.create({
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', backgroundColor: DesignColors.surfaceContainerLowest },
+});

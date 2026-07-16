@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
   },
   pillActive: {
-    backgroundColor: DesignColors.primary,
+    backgroundColor: DesignColors.primaryContainer,
   },
   pillText: {
     ...DesignTypography.bodyMd,

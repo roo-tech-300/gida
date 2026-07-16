@@ -1,11 +1,11 @@
 import { useRouter } from 'expo-router';
-import { useCallback, useMemo, useState } from 'react';
-import { ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { savedProperties } from '@/dummy/saved-properties-mock';
+import { useSavedListings, useToggleSave } from '@/hooks/use-saved-listings';
 
 import { SavedPropertyCard } from './saved-property-card';
 import { SavedSpacesEmptyState } from './saved-spaces-empty-state';
@@ -13,31 +13,41 @@ import { SavedSpacesEmptyState } from './saved-spaces-empty-state';
 export function SavedPropertiesScreen() {
   const router = useRouter();
   const { width } = useWindowDimensions();
-  const [removedIds, setRemovedIds] = useState<Set<string>>(new Set());
-
-  const visibleProperties = useMemo(
-    () => savedProperties.filter((property) => !removedIds.has(property.id)),
-    [removedIds],
-  );
-
-  if (visibleProperties.length === 0) {
-    return <SavedSpacesEmptyState />;
-  }
+  const { data: listings = [], isLoading, isRefetching, refetch } = useSavedListings();
+  const { mutate: toggleSave } = useToggleSave();
+  const [removingId, setRemovingId] = useState<string | null>(null);
 
   const isWide = width >= 960;
 
-  const removeProperty = (id: string) => {
-    setRemovedIds((current) => {
-      const next = new Set(current);
-      next.add(id);
-      return next;
-    });
-  };
+  const onRemove = useCallback(
+    (id: string) => {
+      setRemovingId(id);
+      toggleSave(id, {
+        onSettled: () => setRemovingId(null),
+      });
+    },
+    [toggleSave],
+  );
 
   const onViewProperty = useCallback(
     (id: string) => router.push(`/property/${id}`),
     [router],
   );
+
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.safe}>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={DesignColors.primary} />
+        </View>
+        <DiscoverBottomNav activeTab="saved" />
+      </SafeAreaView>
+    );
+  }
+
+  if (listings.length === 0) {
+    return <SavedSpacesEmptyState />;
+  }
 
   return (
     <SafeAreaView style={styles.safe}>
@@ -46,16 +56,23 @@ export function SavedPropertiesScreen() {
           bounces={false}
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}>
+          showsVerticalScrollIndicator={false}
+          refreshControl={
+            <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={DesignColors.primary} />
+          }>
           <View style={styles.header}>
             <Text style={styles.title}>Saved Properties</Text>
             <Text style={styles.subtitle}>Your collection of residences</Text>
           </View>
 
           <View style={[styles.list, isWide && styles.listWide]}>
-            {visibleProperties.map((property) => (
-              <View key={property.id} style={[styles.cardWrap, isWide && styles.cardWrapWide]}>
-                <SavedPropertyCard property={property} onRemove={removeProperty} onView={onViewProperty} />
+            {listings.map((listing) => (
+              <View key={listing.id} style={[styles.cardWrap, isWide && styles.cardWrapWide]}>
+                <SavedPropertyCard
+                  listing={listing}
+                  onRemove={onRemove}
+                  onView={onViewProperty}
+                />
               </View>
             ))}
           </View>
@@ -73,6 +90,11 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
+  },
+  center: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   content: {
     paddingTop: DesignSpacing.xl + 40,

@@ -2,10 +2,10 @@ import { forwardRef, useCallback, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet } from 'react-native';
 
 import { DiscoverListingCard } from '@/components/home/discover-listing-card';
-import { type PropertyListing } from '@/dummy/listings-mock';
+import { type FeedListing } from '@/types/feed-listing';
 
 type Props = {
-  listings: readonly PropertyListing[];
+  listings: readonly FeedListing[];
   likedIds: ReadonlySet<string>;
   onToggleLike: (id: string) => void;
   onViewListing: (id: string) => void;
@@ -15,14 +15,14 @@ type Props = {
   onIndexChange?: (index: number) => void;
 };
 
-export const DiscoverListingFeed = forwardRef<FlatList<PropertyListing>, Props>(function DiscoverListingFeed(
+export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(function DiscoverListingFeed(
   { listings, likedIds, onToggleLike, onViewListing, itemHeight, refreshing, onRefresh, onIndexChange },
   ref,
 ) {
-  const listRef = useRef<FlatList<PropertyListing> | null>(null);
+  const listRef = useRef<FlatList<FeedListing> | null>(null);
 
   const setRef = useCallback(
-    (node: FlatList<PropertyListing> | null) => {
+    (node: FlatList<FeedListing> | null) => {
       listRef.current = node;
       if (typeof ref === 'function') ref(node);
       else if (ref) ref.current = node;

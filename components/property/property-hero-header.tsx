@@ -1,4 +1,5 @@
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
@@ -6,16 +7,29 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type PropertyListing } from '@/dummy/listings-mock';
+import type { FeedListing } from '@/types/feed-listing';
 
-export function PropertyHeroHeader({ property }: { property: PropertyListing }) {
+export function PropertyHeroHeader({ property, onHeroPress }: { property: FeedListing; onHeroPress?: () => void }) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
     <>
-      <View style={styles.heroWrap}>
-        <Image source={property.image} style={styles.heroImage} contentFit="cover" />
+      <Pressable style={styles.heroWrap} onPress={onHeroPress}>
+        <Image
+          source={{ uri: property.image }}
+          style={[styles.heroImage, { opacity: imageLoaded ? 1 : 0 }]}
+          contentFit="cover"
+          cachePolicy="disk"
+          transition={400}
+          onLoad={() => setImageLoaded(true)}
+        />
+        {!imageLoaded && (
+          <View style={styles.heroLoader}>
+            <ActivityIndicator size="large" color={DesignColors.primary} />
+          </View>
+        )}
         <View style={styles.heroOverlay} />
         <View style={styles.heroBadges}>
           <View style={styles.heroBadge}>
@@ -29,7 +43,7 @@ export function PropertyHeroHeader({ property }: { property: PropertyListing }) 
             </View>
           )}
         </View>
-      </View>
+      </Pressable>
 
       <View style={[styles.header, { top: insets.top }]}>
         <BackButton />
@@ -53,6 +67,12 @@ const styles = StyleSheet.create({
   heroImage: {
     width: '100%',
     height: '100%',
+  },
+  heroLoader: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: DesignColors.surfaceContainerLowest,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,

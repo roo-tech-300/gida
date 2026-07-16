@@ -9,15 +9,24 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { useAppToast } from '@/components/ui/toast-card';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
   const { profile } = useAuth();
   const { data, setStep2 } = useCreateListingForm();
   const { step2 } = data;
+  const { showToast } = useAppToast();
   const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
+
+  const canProceed = step2.selectedSchool && step2.selectedCampus;
+  const handleForward = () => {
+    if (!step2.selectedSchool) { showToast({ message: 'Please select a school.', type: 'error' }); return; }
+    if (!step2.selectedCampus) { showToast({ message: 'Please select a campus.', type: 'error' }); return; }
+    router.push('/admin/create-listing-amenities');
+  };
 
   useEffect(() => {
     if (profile?.city) setOperatingCity(profile.city);
@@ -190,7 +199,7 @@ export function CreateListingLocationScreen() {
         <Pressable style={styles.ctaBtn} onPress={() => router.back()}>
           <Ionicons name="arrow-back" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-amenities')}>
+        <Pressable style={[styles.ctaBtn, !canProceed && styles.ctaBtnDisabled]} onPress={handleForward}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>
@@ -246,4 +255,5 @@ const styles = StyleSheet.create({
   mapPinGlow: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: 'rgba(79,70,229,0.15)' },
   ctaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },
   ctaBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center', shadowColor: DesignColors.primaryContainer, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8 },
+  ctaBtnDisabled: { opacity: 0.4 },
 });

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { BackHandler, FlatList, LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 
@@ -10,23 +11,37 @@ import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/fe
 import { HomeSearchBar } from '@/components/home/home-search-bar';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
-import { discoverFilters, discoverListings, type PropertyCategory, type PropertyListing } from '@/dummy/listings-mock';
+import { useListings } from '@/hooks/use-listings';
+import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
+import type { FeedListing } from '@/types/feed-listing';
 
 type FeedMode = 'listings' | 'roommates';
 
 export function DiscoverHomeScreen() {
   const router = useRouter();
+  const { data: listings = [], isRefetching, refetch } = useListings();
+  const { data: savedIds = [] } = useSavedIds();
+  const { mutate: toggleSave } = useToggleSave();
   const [query, setQuery] = useState('');
-  const [activeCategory, setActiveCategory] = useState<PropertyCategory | 'All'>('All');
-  const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [activeCategory, setActiveCategory] = useState<string>('All');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [feedHeight, setFeedHeight] = useState(0);
   const [mode, setMode] = useState<FeedMode>('listings');
-  const [refreshing, setRefreshing] = useState(false);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [roommateQuery, setRoommateQuery] = useState('');
-  const listRef = useRef<FlatList<PropertyListing>>(null);
+  const listRef = useRef<FlatList<FeedListing>>(null);
   const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
+
+  const categories = useMemo(() => {
+    const set = new Set(listings.map((l) => l.category).filter(Boolean));
+    return Array.from(set);
+  }, [listings]);
+
+  useEffect(() => {
+    listings.forEach((l) => {
+      if (l.image) Image.prefetch(l.image);
+    });
+  }, [listings]);
 
   const openModeSelector = useCallback(() => {
     modeSelectorRef.current?.open();
@@ -44,9 +59,8 @@ export function DiscoverHomeScreen() {
   }, [currentIndex]);
 
   const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1300);
-  }, []);
+    refetch();
+  }, [refetch]);
 
   const onViewListing = useCallback(
     (id: string) => router.push(`/property/${id}`),
@@ -55,23 +69,16 @@ export function DiscoverHomeScreen() {
 
   const filteredListings = useMemo(() => {
     const normalizedQuery = query.trim().toLowerCase();
-    return discoverListings.filter((listing) => {
+    return listings.filter((listing) => {
       const matchesQuery =
         normalizedQuery.length === 0 ||
         `${listing.title} ${listing.location} ${listing.category}`.toLowerCase().includes(normalizedQuery);
       const matchesCategory = activeCategory === 'All' || listing.category === activeCategory;
       return matchesQuery && matchesCategory;
     });
-  }, [query, activeCategory]);
+  }, [query, activeCategory, listings]);
 
-  const toggleLike = useCallback((id: string) => {
-    setLikedIds((current) => {
-      const next = new Set(current);
-      if (next.has(id)) next.delete(id);
-      else next.add(id);
-      return next;
-    });
-  }, []);
+  const likedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
   const onFeedLayout = useCallback((e: LayoutChangeEvent) => {
     const h = e.nativeEvent.layout.height;
@@ -92,11 +99,11 @@ export function DiscoverHomeScreen() {
               <DiscoverListingFeed
                 ref={listRef}
                 listings={filteredListings}
-                likedIds={likedIds}
-                onToggleLike={toggleLike}
+                likedIds={likedSet}
+                onToggleLike={toggleSave}
                 onViewListing={onViewListing}
                 itemHeight={feedHeight}
-                refreshing={refreshing}
+                refreshing={isRefetching}
                 onRefresh={onRefresh}
                 onIndexChange={setCurrentIndex}
               />
@@ -107,7 +114,7 @@ export function DiscoverHomeScreen() {
                 onQueryChange={setQuery}
                 onAdjustFilters={() => setFiltersOpen((open) => !open)}
                 onRefresh={onRefresh}
-                refreshing={refreshing}
+                refreshing={isRefetching}
                 showSearchBar={false}
               />
             )}
@@ -125,9 +132,9 @@ export function DiscoverHomeScreen() {
               currentMode={mode}
               onSwipeDown={openModeSelector}
               filtersOpen={filtersOpen}
-              categories={discoverFilters}
+              categories={categories}
               activeCategory={activeCategory}
-              onCategoryChange={(value: string) => setActiveCategory(value as PropertyCategory | 'All')}
+              onCategoryChange={setActiveCategory}
             />
           ) : (
             <HomeSearchBar

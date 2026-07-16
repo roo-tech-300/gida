@@ -3,20 +3,26 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
-import { type InventoryProperty } from '@/dummy/admin-mock';
+import type { FeedListing } from '@/types/feed-listing';
 
-const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  active: { bg: 'rgba(74,225,115,0.12)', color: '#4ae176', label: 'Active' },
-  fully_booked: { bg: 'rgba(124,58,237,0.12)', color: '#7c3aed', label: 'Full' },
-  inactive: { bg: 'rgba(255,255,255,0.06)', color: DesignColors.onSurfaceVariant, label: 'Inactive' },
+const layoutLabels: Record<string, string> = {
+  single_room: 'Single Room',
+  self_contain: 'Self-Contain',
+  flat: 'Flat',
 };
 
-export function InventoryCard({ item }: { item: InventoryProperty }) {
-  const s = STATUS_STYLE[item.status];
+const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
+  available: { bg: 'rgba(74,225,115,0.12)', color: '#4ae176', label: 'Available' },
+  booked: { bg: 'rgba(124,58,237,0.12)', color: '#7c3aed', label: 'Booked' },
+  maintenance: { bg: 'rgba(255,182,149,0.12)', color: '#ffb695', label: 'Maintenance' },
+};
+
+export function InventoryCard({ listing }: { listing: FeedListing }) {
+  const s = STATUS_STYLE[listing.status.toLowerCase()] || STATUS_STYLE.available;
   return (
     <View style={styles.card}>
       <View style={styles.imageWrap}>
-        <Image source={item.image} style={styles.image} contentFit="cover" />
+        <Image source={{ uri: listing.image || undefined }} style={styles.image} contentFit="cover" />
         <View style={styles.overlay} />
         <View style={[styles.badge, { backgroundColor: s.bg }]}>
           <Text style={[styles.badgeText, { color: s.color }]}>{s.label}</Text>
@@ -24,24 +30,22 @@ export function InventoryCard({ item }: { item: InventoryProperty }) {
       </View>
       <View style={styles.body}>
         <View style={styles.titleBlock}>
-          <Text style={styles.title}>{item.name}</Text>
+          <Text style={styles.title}>{listing.title}</Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.location}>{item.location} • {item.region}</Text>
+            <Text style={styles.location}>{listing.location}</Text>
           </View>
         </View>
 
         <View style={styles.metaRow}>
-          <MetaPill icon="bed-outline" label={`${item.bedsFilled}/${item.totalBeds} Beds`} />
-          <MetaPill icon="grid-outline" label={item.layout} />
+          <MetaPill icon="bed-outline" label={listing.beds || layoutLabels[listing.layoutType] || listing.layoutType} />
+          <MetaPill icon="water-outline" label={listing.baths || 'N/A'} />
         </View>
 
         <View style={styles.bottomRow}>
           <View style={styles.managerInfo}>
-            <Ionicons name="person-outline" size={13} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.managerText} numberOfLines={1}>
-              {item.status === 'inactive' ? 'Unassigned' : `${item.manager} (${item.managerLabel})`}
-            </Text>
+            <Ionicons name="pricetag-outline" size={13} color={DesignColors.onSurfaceVariant} />
+            <Text style={styles.managerText} numberOfLines={1}>{listing.price}</Text>
           </View>
           <Pressable style={styles.viewButton}>
             <Text style={styles.viewButtonText}>View</Text>

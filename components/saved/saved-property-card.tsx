@@ -3,55 +3,55 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type SavedProperty } from '@/dummy/saved-properties-mock';
+import type { FeedListing } from '@/types/feed-listing';
 
 export function SavedPropertyCard({
-  property,
+  listing,
   onRemove,
   onView,
 }: {
-  property: SavedProperty;
+  listing: FeedListing;
   onRemove: (id: string) => void;
   onView: (id: string) => void;
 }) {
   return (
     <View style={styles.card}>
       <View style={styles.imageWrap}>
-        <Image source={property.image} style={styles.image} contentFit="cover" />
+        <Image source={{ uri: listing.image }} style={styles.image} contentFit="cover" />
         <View style={styles.overlay} />
 
-        <Pressable accessibilityRole="button" onPress={() => onRemove(property.id)} style={styles.saveButton}>
+        <Pressable accessibilityRole="button" onPress={() => onRemove(listing.id)} style={styles.saveButton}>
           <Ionicons name="heart" size={18} color={DesignColors.primaryContainer} />
         </Pressable>
 
         <View style={styles.badge}>
-          <Text style={styles.badgeText}>{property.status.toUpperCase()}</Text>
+          <Text style={styles.badgeText}>{listing.status.toUpperCase()}</Text>
         </View>
       </View>
 
       <View style={styles.body}>
         <View style={styles.topRow}>
           <View style={styles.titleBlock}>
-            <Text style={styles.title}>{property.title}</Text>
+            <Text style={styles.title}>{listing.title}</Text>
             <View style={styles.locationRow}>
               <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.location}>{property.location}</Text>
+              <Text style={styles.location}>{listing.location}</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.metaRow}>
-          <MetaPill icon="bed-outline" label={property.beds} />
-          <MetaPill icon="water-outline" label={property.baths} />
-          <MetaPill icon="square-outline" label={property.size} />
+          <MetaPill icon="bed-outline" label={listing.beds || 'Studio'} />
+          <MetaPill icon="water-outline" label={listing.baths || 'N/A'} />
+          <MetaPill icon="square-outline" label={listing.size || '-'} />
         </View>
 
         <View style={styles.priceRow}>
           <View>
             <Text style={styles.priceLabel}>Per Academic Year</Text>
-            <Text style={styles.price}>{property.price}</Text>
+            <Text style={styles.price}>{listing.price}</Text>
           </View>
-          <Pressable onPress={() => onView(property.id)} style={styles.viewButton}>
+          <Pressable onPress={() => onView(listing.id)} style={styles.viewButton}>
             <Text style={styles.viewButtonText}>View</Text>
           </Pressable>
         </View>

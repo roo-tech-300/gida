@@ -1,14 +1,15 @@
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type PropertyListing } from '@/dummy/listings-mock';
+import { type FeedListing } from '@/types/feed-listing';
 
 type Props = {
-  listing: PropertyListing;
+  listing: FeedListing;
   liked: boolean;
   onToggleLike: (id: string) => void;
   onViewListing: (id: string) => void;
@@ -25,11 +26,24 @@ function MetaItem({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label
 }
 
 export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height }: Props) {
+  const [imageLoaded, setImageLoaded] = useState(false);
   const [priceAmount] = listing.price.split('/');
 
   return (
     <View style={[styles.card, { height }]}>
-      <Image source={listing.image} style={styles.image} contentFit="cover" />
+      <Image
+        source={{ uri: listing.image }}
+        style={[styles.image, { opacity: imageLoaded ? 1 : 0 }]}
+        contentFit="cover"
+        cachePolicy="disk"
+        transition={400}
+        onLoad={() => setImageLoaded(true)}
+      />
+      {!imageLoaded && (
+        <View style={styles.loaderOverlay}>
+          <ActivityIndicator size="large" color={DesignColors.primary} />
+        </View>
+      )}
 
       <View style={styles.gradientOverlay}>
         <Svg height="100%" width="100%">
@@ -68,9 +82,9 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
 
         <View style={styles.metaDivider}>
           <View style={styles.metaRow}>
-            <MetaItem icon="bed-outline" label={listing.beds} />
-            <MetaItem icon="water-outline" label={listing.baths} />
-            <MetaItem icon="square-outline" label={listing.size} />
+            {listing.beds ? <MetaItem icon="bed-outline" label={listing.beds} /> : null}
+            {listing.baths ? <MetaItem icon="water-outline" label={listing.baths} /> : null}
+            {listing.size ? <MetaItem icon="square-outline" label={listing.size} /> : null}
           </View>
         </View>
 
@@ -103,6 +117,12 @@ const styles = StyleSheet.create({
   },
   image: {
     ...StyleSheet.absoluteFillObject,
+  },
+  loaderOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: DesignColors.surfaceContainerLowest,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,

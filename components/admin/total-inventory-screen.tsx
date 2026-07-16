@@ -1,46 +1,47 @@
 import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, fontFamily } from '@/constants/design';
-import { INVENTORY } from '@/dummy/admin-mock';
+import { useListings } from '@/hooks/use-listings';
 import { InventoryCard } from '@/components/admin/inventory-card';
+import type { FeedListing } from '@/types/feed-listing';
 
 type Tab = 'all' | 'available' | 'booked';
 
 const TABS: { key: Tab; label: string }[] = [
   { key: 'all', label: 'All Listings' },
-  { key: 'available', label: 'Available Beds' },
-  { key: 'booked', label: 'Fully Booked' },
+  { key: 'available', label: 'Available' },
+  { key: 'booked', label: 'Booked' },
 ];
 
 export function TotalInventoryScreen() {
   const insets = useSafeAreaInsets();
+  const { data: listings, isLoading } = useListings();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
   const filtered = useMemo(() => {
-    let items = INVENTORY;
-    if (activeTab === 'available') items = items.filter((i) => i.bedsFilled < i.totalBeds);
-    if (activeTab === 'booked') items = items.filter((i) => i.status === 'fully_booked');
+    if (!listings) return [];
+    let items = listings;
+    if (activeTab === 'available') items = items.filter((i) => i.status.toLowerCase() === 'available');
+    if (activeTab === 'booked') items = items.filter((i) => i.status.toLowerCase() === 'booked');
     if (query.trim()) {
       const q = query.toLowerCase();
       items = items.filter(
-        (i) => i.name.toLowerCase().includes(q)
-          || i.location.toLowerCase().includes(q)
-          || i.region.toLowerCase().includes(q)
-          || i.manager.toLowerCase().includes(q),
+        (i) => i.title.toLowerCase().includes(q)
+          || i.location.toLowerCase().includes(q),
       );
     }
     return items;
-  }, [activeTab, query]);
+  }, [activeTab, listings, query]);
 
-  const totalBeds = INVENTORY.reduce((s, i) => s + i.totalBeds, 0);
-  const filledBeds = INVENTORY.reduce((s, i) => s + i.bedsFilled, 0);
-  const occupancy = ((filledBeds / totalBeds) * 100).toFixed(1);
+  const totalCount = listings?.length || 0;
+  const availableCount = listings?.filter((i) => i.status.toLowerCase() === 'available').length || 0;
+  const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
 
   return (
     <View style={styles.root}>
@@ -53,23 +54,23 @@ export function TotalInventoryScreen() {
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.metricsRow}>
             <View style={styles.metricCard}>
-              <Text style={styles.metricValue}>1,240</Text>
-              <Text style={styles.metricLabel}>Total Spaces</Text>
+              <Text style={styles.metricValue}>{totalCount.toLocaleString()}</Text>
+              <Text style={styles.metricLabel}>Total Listings</Text>
             </View>
             <View style={styles.metricCard}>
               <Text style={styles.metricValue}>{occupancy}%</Text>
               <Text style={styles.metricLabel}>Occupancy</Text>
             </View>
             <View style={styles.metricCard}>
-              <Text style={styles.metricValue}>196</Text>
-              <Text style={styles.metricLabel}>Live Vacant</Text>
+              <Text style={styles.metricValue}>{availableCount}</Text>
+              <Text style={styles.metricLabel}>Available</Text>
             </View>
           </View>
 
           <View style={styles.searchRow}>
             <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} style={{ opacity: 0.5 }} />
             <TextInput
-              placeholder="Search by property, region, or admin..."
+              placeholder="Search by property or location..."
               placeholderTextColor={DesignColors.onSurfaceVariant}
               style={styles.searchInput}
               value={query}
@@ -89,11 +90,21 @@ export function TotalInventoryScreen() {
             ))}
           </ScrollView>
 
-          <View style={styles.list}>
-            {filtered.map((item) => (
-              <InventoryCard key={item.id} item={item} />
-            ))}
-          </View>
+          {isLoading ? (
+            <View style={styles.center}>
+              <ActivityIndicator size="large" color={DesignColors.primary} />
+            </View>
+          ) : filtered.length === 0 ? (
+            <View style={styles.center}>
+              <Text style={styles.emptyText}>No listings found</Text>
+            </View>
+          ) : (
+            <View style={styles.list}>
+              {filtered.map((item) => (
+                <InventoryCard key={item.id} listing={item} />
+              ))}
+            </View>
+          )}
         </ScrollView>
 
         <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => router.push('/admin/create-listing')}>
@@ -147,6 +158,9 @@ const styles = StyleSheet.create({
   tabTextActive: { color: '#ffffff' },
 
   list: { gap: 16 },
+
+  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 64 },
+  emptyText: { fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily },
 
   fab: {
     position: 'absolute', bottom: 32, right: 24,

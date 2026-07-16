@@ -1,10 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Alert, Image, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 
-import { photoGallery } from '@/dummy/photo-gallery-mock';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 type Props = {
@@ -12,18 +11,22 @@ type Props = {
   selectedImages: string[];
   onClose: () => void;
   onDone: (images: string[]) => void;
-  onPickHero: (uri: string) => void;
 };
 
-export function ListingGalleryPickerModal({ visible, selectedImages, onClose, onDone, onPickHero }: Props) {
+export function ListingGalleryPickerModal({ visible, selectedImages, onClose, onDone }: Props) {
   const [draftImages, setDraftImages] = useState<string[]>(selectedImages);
+  const [loading, setLoading] = useState(false);
 
   useEffect(() => {
     if (visible) setDraftImages(selectedImages);
   }, [selectedImages, visible]);
 
-  const addImage = (uri: string) => {
-    setDraftImages((prev) => (prev.includes(uri) ? prev : [...prev, uri]));
+  const addImages = (uris: string[]) => {
+    setDraftImages((prev) => {
+      const existing = new Set(prev);
+      const newOnes = uris.filter((u) => !existing.has(u));
+      return [...prev, ...newOnes];
+    });
   };
 
   const removeImage = (uri: string) => {
@@ -43,22 +46,25 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
   };
 
   const pickFromDevice = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      Alert.alert('Permission required', 'Please allow photo access to pick images from your device.');
-      return;
-    }
+    setLoading(true);
+    try {
+      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!permission.granted) {
+        Alert.alert('Permission required', 'Please allow photo access to pick images from your device.');
+        return;
+      }
 
-    const result = await ImagePicker.launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: false,
-      quality: 0.9,
-    });
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ['images'],
+        allowsMultipleSelection: true,
+        quality: 0.9,
+      });
 
-    if (!result.canceled) {
-      const uri = result.assets[0].uri;
-      onPickHero(uri);
-      addImage(uri);
+      if (!result.canceled) {
+        addImages(result.assets.map((a) => a.uri));
+      }
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -74,14 +80,14 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
           <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={styles.handle} />
           <View style={styles.header}>
-            <Text style={styles.title}>Pick Gallery Photos</Text>
+            <Text style={styles.title}>Gallery Photos</Text>
             <Pressable onPress={close}>
               <Ionicons name="close" size={24} color={DesignColors.onSurface} />
             </Pressable>
           </View>
 
           <View style={styles.actions}>
-            <Pressable style={styles.actionBtn} onPress={pickFromDevice}>
+            <Pressable style={styles.actionBtn} onPress={pickFromDevice} disabled={loading}>
               <Ionicons name="cloud-upload-outline" size={18} color={DesignColors.onPrimaryContainer} />
               <Text style={styles.actionText}>Pick from device</Text>
             </Pressable>
@@ -91,44 +97,47 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
             </Pressable>
           </View>
 
-          <Text style={styles.sectionLabel}>Sample gallery</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.sampleRow}>
-            {photoGallery.map((photo, index) => {
-              const uri = Image.resolveAssetSource(photo)?.uri ?? '';
-              const active = draftImages.includes(uri);
-              return (
-                <Pressable key={`${uri}-${index}`} style={styles.sampleCard} onPress={() => (active ? removeImage(uri) : addImage(uri))}>
-                  <Image source={photo} style={styles.sampleImage} />
-                  <View style={styles.sampleTag}>
-                    <Text style={styles.sampleTagText}>{active ? 'Selected' : 'Tap to add'}</Text>
-                  </View>
-                </Pressable>
-              );
-            })}
-          </ScrollView>
+          {loading && (
+            <View style={styles.loadingOverlay}>
+              <ActivityIndicator size="large" color={DesignColors.primary} />
+              <Text style={styles.loadingText}>Loading photos...</Text>
+            </View>
+          )}
 
-          <Text style={styles.sectionLabel}>Selected order</Text>
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.selectedRow}>
-            {draftImages.map((uri, index) => (
-              <View key={`${uri}-${index}`} style={styles.selectedCard}>
-                <Image source={{ uri }} style={styles.selectedImage} />
-                <View style={styles.orderPill}>
-                  <Text style={styles.orderText}>#{index + 1}</Text>
-                </View>
-                <View style={styles.reorderRow}>
-                  <Pressable style={styles.reorderBtn} onPress={() => moveImage(index, -1)}>
-                    <Ionicons name="arrow-back" size={14} color={DesignColors.onSurface} />
-                  </Pressable>
-                  <Pressable style={styles.reorderBtn} onPress={() => moveImage(index, 1)}>
-                    <Ionicons name="arrow-forward" size={14} color={DesignColors.onSurface} />
-                  </Pressable>
-                  <Pressable style={styles.reorderBtnDanger} onPress={() => removeImage(uri)}>
-                    <Ionicons name="trash-outline" size={14} color={DesignColors.error} />
-                  </Pressable>
-                </View>
+          {!loading && draftImages.length > 0 && (
+            <>
+              <Text style={styles.sectionLabel}>Reorder & manage ({draftImages.length} selected)</Text>
+              <View style={styles.grid}>
+                {draftImages.map((uri, index) => (
+                  <View key={`${uri}-${index}`} style={styles.gridCard}>
+                    <Image source={{ uri }} style={styles.gridImage} />
+                    <View style={styles.orderBadge}>
+                      <Text style={styles.orderBadgeText}>#{index + 1}</Text>
+                    </View>
+                    <View style={styles.gridActions}>
+                      <Pressable style={styles.gridBtn} onPress={() => moveImage(index, -1)}>
+                        <Ionicons name="chevron-back" size={12} color={DesignColors.onSurface} />
+                      </Pressable>
+                      <Pressable style={styles.gridBtn} onPress={() => moveImage(index, 1)}>
+                        <Ionicons name="chevron-forward" size={12} color={DesignColors.onSurface} />
+                      </Pressable>
+                      <Pressable style={styles.gridBtnDanger} onPress={() => removeImage(uri)}>
+                        <Ionicons name="trash-outline" size={12} color={DesignColors.error} />
+                      </Pressable>
+                    </View>
+                  </View>
+                ))}
               </View>
-            ))}
-          </ScrollView>
+            </>
+          )}
+
+          {!loading && draftImages.length === 0 && (
+            <View style={styles.emptyState}>
+              <Ionicons name="images-outline" size={48} color={DesignColors.onSurfaceVariant} />
+              <Text style={styles.emptyText}>No photos selected yet</Text>
+              <Text style={styles.emptySub}>Tap "Pick from device" to add images</Text>
+            </View>
+          )}
         </View>
       </View>
     </Modal>
@@ -154,17 +163,38 @@ const styles = StyleSheet.create({
   actionText: { color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
   actionTextSoft: { color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   sectionLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
-  sampleRow: { gap: 12, paddingBottom: 16 },
-  sampleCard: { width: 132, height: 132, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)' },
-  sampleImage: { width: '100%', height: '100%' },
-  sampleTag: { position: 'absolute', left: 8, bottom: 8, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.5)' },
-  sampleTagText: { color: DesignColors.onSurface, fontSize: 11, fontWeight: '600', fontFamily },
-  selectedRow: { gap: 12, paddingBottom: 12 },
-  selectedCard: { width: 112, borderRadius: 16, overflow: 'hidden', borderWidth: 1, borderColor: 'rgba(195,192,255,0.16)', backgroundColor: 'rgba(255,255,255,0.03)' },
-  selectedImage: { width: '100%', height: 112 },
-  orderPill: { position: 'absolute', top: 8, left: 8, paddingHorizontal: 8, paddingVertical: 4, borderRadius: 999, backgroundColor: 'rgba(0,0,0,0.5)' },
-  orderText: { color: DesignColors.primary, fontSize: 11, fontWeight: '700', fontFamily },
-  reorderRow: { flexDirection: 'row', gap: 6, padding: 8, justifyContent: 'space-between' },
-  reorderBtn: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' },
-  reorderBtnDanger: { width: 28, height: 28, borderRadius: 14, alignItems: 'center', justifyContent: 'center', backgroundColor: 'rgba(239,68,68,0.12)' },
+
+  loadingOverlay: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 60 },
+  loadingText: { fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily },
+
+  grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 12 },
+  gridCard: {
+    width: '31%', borderRadius: 12, overflow: 'hidden',
+    borderWidth: 1, borderColor: 'rgba(195,192,255,0.16)',
+    backgroundColor: 'rgba(255,255,255,0.03)',
+  },
+  gridImage: { width: '100%', height: 96 },
+  orderBadge: {
+    position: 'absolute', top: 6, left: 6,
+    paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+  },
+  orderBadgeText: { color: DesignColors.primary, fontSize: 10, fontWeight: '700', fontFamily },
+  gridActions: {
+    flexDirection: 'row', gap: 4, padding: 6, justifyContent: 'center',
+  },
+  gridBtn: {
+    width: 26, height: 26, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.06)',
+  },
+  gridBtnDanger: {
+    width: 26, height: 26, borderRadius: 13,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(239,68,68,0.12)',
+  },
+
+  emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 8 },
+  emptyText: { fontSize: 16, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
+  emptySub: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, opacity: 0.6, textAlign: 'center' },
 });

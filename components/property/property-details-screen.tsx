@@ -1,10 +1,12 @@
+import { useMemo, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type PropertyListing } from '@/dummy/listings-mock';
+import type { FeedListing } from '@/types/feed-listing';
+import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
 import { PropertyBottomBar } from './property-bottom-bar';
@@ -12,10 +14,24 @@ import { PropertyPhotos } from './property-photos';
 
 const HERO_HEIGHT = 340;
 
-export function PropertyDetailsScreen({ property }: { property: PropertyListing }) {
+export function PropertyDetailsScreen({ property, photos }: { property: FeedListing; photos?: string[] }) {
+  const [galleryOpen, setGalleryOpen] = useState(false);
+  const [galleryIndex, setGalleryIndex] = useState(0);
+
+  const allPhotos = useMemo(() => {
+    if (photos && photos.length > 0) return photos;
+    if (property.image) return [property.image];
+    return [];
+  }, [property.image, photos]);
+
+  const openGallery = (index: number) => {
+    setGalleryIndex(index);
+    setGalleryOpen(true);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
-      <PropertyHeroHeader property={property} />
+      <PropertyHeroHeader property={property} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
         <View style={styles.statusBadge}>
@@ -35,10 +51,10 @@ export function PropertyDetailsScreen({ property }: { property: PropertyListing 
         </View>
 
         <View style={styles.statsRow}>
-          <StatItem label="BEDROOMS" value={property.beds} />
-          <StatItem label="BATHROOMS" value={property.baths} />
-          <StatItem label="INTERIOR" value={property.size} />
-          <StatItem label="FLOOR" value={property.floor} />
+          {property.beds ? <StatItem label="BEDROOMS" value={property.beds} /> : null}
+          {property.baths ? <StatItem label="BATHROOMS" value={property.baths} /> : null}
+          {property.size ? <StatItem label="INTERIOR" value={property.size} /> : null}
+          {property.floor ? <StatItem label="FLOOR" value={property.floor} /> : null}
         </View>
 
         <View style={styles.overviewSection}>
@@ -58,10 +74,17 @@ export function PropertyDetailsScreen({ property }: { property: PropertyListing 
           </View>
         </View>
 
-        <PropertyPhotos />
+        <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
       </PropertyBottomSheet>
 
       <PropertyBottomBar onBookTour={() => router.push(`/property/tour-scheduler?id=${property.id}`)} />
+
+      <ImageGalleryModal
+        photos={allPhotos}
+        initialIndex={galleryIndex}
+        visible={galleryOpen}
+        onClose={() => setGalleryOpen(false)}
+      />
     </SafeAreaView>
   );
 }

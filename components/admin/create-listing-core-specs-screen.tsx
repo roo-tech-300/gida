@@ -8,10 +8,11 @@ import { BackButton } from '@/components/ui/back-button';
 import { LandlordSearch } from '@/components/admin/landlord-search';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { useAppToast } from '@/components/ui/toast-card';
 
 const layoutOptions: { key: 'self_contain' | 'single_room' | 'flat'; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { key: 'self_contain', label: 'Self-Contain', icon: 'bed-outline' },
   { key: 'single_room', label: 'Single Room', icon: 'albums-outline' },
+  { key: 'self_contain', label: 'Self-Contain', icon: 'bed-outline' },
   { key: 'flat', label: 'Flat', icon: 'business-outline' },
 ];
 
@@ -24,6 +25,16 @@ function formatPrice(raw: string) {
 export function CreateListingCoreSpecsScreen() {
   const { data, setStep1 } = useCreateListingForm();
   const { step1 } = data;
+  const { showToast } = useAppToast();
+
+  const canProceed = step1.title.trim() && step1.landlordId && step1.layoutType && step1.price;
+  const handleForward = () => {
+    if (!step1.title.trim()) { showToast({ message: 'Listing title is required.', type: 'error' }); return; }
+    if (!step1.landlordId) { showToast({ message: 'Please select a landlord.', type: 'error' }); return; }
+    if (!step1.layoutType) { showToast({ message: 'Please select a layout type.', type: 'error' }); return; }
+    if (!step1.price) { showToast({ message: 'Please set a price.', type: 'error' }); return; }
+    router.push('/admin/create-listing-location');
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -37,11 +48,11 @@ export function CreateListingCoreSpecsScreen() {
         </View>
 
         <ScrollView
-        style={styles.scroll}
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        keyboardShouldPersistTaps="handled"
-      >
+          style={styles.scroll}
+          contentContainerStyle={styles.content}
+          showsVerticalScrollIndicator={false}
+          keyboardShouldPersistTaps="handled"
+        >
         <View style={styles.hero}>
           <Text style={styles.heroTitle}>Listing Specifications</Text>
           <Text style={styles.heroSub}>Details about your property listing</Text>
@@ -90,7 +101,12 @@ export function CreateListingCoreSpecsScreen() {
                 <Pressable
                   key={opt.key}
                   style={[styles.layoutCard, active && styles.layoutCardActive]}
-                  onPress={() => setStep1({ layoutType: opt.key })}
+                  onPress={() => {
+                    const updates: any = { layoutType: opt.key };
+                    if (opt.key === 'single_room') { updates.bedrooms = 0; updates.bathrooms = 0; }
+                    else if (opt.key === 'self_contain') { updates.bedrooms = 0; updates.bathrooms = 1; }
+                    setStep1(updates);
+                  }}
                 >
                   <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
                   <Ionicons name={opt.icon} size={24} color={active ? DesignColors.primary : DesignColors.onSurfaceVariant} />
@@ -100,6 +116,49 @@ export function CreateListingCoreSpecsScreen() {
             })}
           </View>
         </View>
+
+        {step1.layoutType === 'flat' && (
+          <View style={styles.roomRow}>
+            <View style={[styles.roomCard, { flex: 1 }]}>
+              <BlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
+              <Text style={styles.roomLabel}>Bedrooms</Text>
+              <View style={styles.roomStepper}>
+                <Pressable
+                  style={styles.roomBtn}
+                  onPress={() => setStep1({ bedrooms: Math.max(1, step1.bedrooms - 1) })}
+                >
+                  <Ionicons name="remove" size={18} color={DesignColors.primary} />
+                </Pressable>
+                <Text style={styles.roomCount}>{String(step1.bedrooms).padStart(2, '0')}</Text>
+                <Pressable
+                  style={styles.roomBtn}
+                  onPress={() => setStep1({ bedrooms: step1.bedrooms + 1 })}
+                >
+                  <Ionicons name="add" size={18} color={DesignColors.primary} />
+                </Pressable>
+              </View>
+            </View>
+            <View style={[styles.roomCard, { flex: 1 }]}>
+              <BlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
+              <Text style={styles.roomLabel}>Bathrooms</Text>
+              <View style={styles.roomStepper}>
+                <Pressable
+                  style={styles.roomBtn}
+                  onPress={() => setStep1({ bathrooms: Math.max(1, step1.bathrooms - 1) })}
+                >
+                  <Ionicons name="remove" size={18} color={DesignColors.primary} />
+                </Pressable>
+                <Text style={styles.roomCount}>{String(step1.bathrooms).padStart(2, '0')}</Text>
+                <Pressable
+                  style={styles.roomBtn}
+                  onPress={() => setStep1({ bathrooms: step1.bathrooms + 1 })}
+                >
+                  <Ionicons name="add" size={18} color={DesignColors.primary} />
+                </Pressable>
+              </View>
+            </View>
+          </View>
+        )}
 
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Pricing & Terms</Text>
@@ -134,6 +193,46 @@ export function CreateListingCoreSpecsScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Size</Text>
+          <View style={styles.sizeRow}>
+            <View style={styles.sizePills}>
+              <Pressable
+                style={[styles.sizePill, step1.sizeUnit === 'sqft' && styles.sizePillActive]}
+                onPress={() => setStep1({ sizeUnit: 'sqft' })}
+              >
+                <Text style={[styles.sizePillText, step1.sizeUnit === 'sqft' && styles.sizePillTextActive]}>sq ft</Text>
+              </Pressable>
+              <Pressable
+                style={[styles.sizePill, step1.sizeUnit === 'sqm' && styles.sizePillActive]}
+                onPress={() => setStep1({ sizeUnit: 'sqm' })}
+              >
+                <Text style={[styles.sizePillText, step1.sizeUnit === 'sqm' && styles.sizePillTextActive]}>m²</Text>
+              </Pressable>
+            </View>
+            <View style={[styles.glassInput, { flex: 1 }]}>
+              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <TextInput
+                style={styles.textInput}
+                placeholder={step1.sizeUnit === 'sqft' ? 'e.g. 1,200' : 'e.g. 112'}
+                placeholderTextColor="rgba(199,196,216,0.4)"
+                value={step1.sizeValue}
+                onChangeText={(v) => {
+                  const digits = v.replace(/\D/g, '');
+                  if (!digits) { setStep1({ sizeValue: '' }); return; }
+                  setStep1({ sizeValue: Number(digits).toLocaleString('en-US') });
+                }}
+                keyboardType="numeric"
+              />
+            </View>
+          </View>
+          <Text style={styles.fieldHint}>
+            {step1.sizeUnit === 'sqm'
+              ? 'Will be converted and stored as sq ft'
+              : 'Stored as square feet'}
+          </Text>
+        </View>
+
+        <View style={styles.fieldGroup}>
           <View style={[styles.glassInput, styles.unitCard, styles.inputRounded]}>
             <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <View style={styles.unitLeft}>
@@ -155,10 +254,40 @@ export function CreateListingCoreSpecsScreen() {
           </View>
         </View>
 
+        <View style={styles.fieldGroup}>
+          <Pressable style={styles.checkRow} onPress={() => setStep1({ isStoreyBuilding: !step1.isStoreyBuilding })}>
+            <View style={[styles.checkbox, step1.isStoreyBuilding && styles.checkboxActive]}>
+              {step1.isStoreyBuilding && <Ionicons name="checkmark" size={14} color={DesignColors.onPrimary} />}
+            </View>
+            <Text style={styles.checkLabel}>Is this a storey building?</Text>
+          </Pressable>
+          {step1.isStoreyBuilding && (
+            <View style={[styles.glassInput, styles.unitCard, { padding: 16 }]}>
+              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <Text style={styles.roomLabel}>Total Floors</Text>
+              <View style={styles.stepper}>
+                <Pressable
+                  style={styles.stepperBtn}
+                  onPress={() => setStep1({ totalFloors: Math.max(2, step1.totalFloors - 1) })}
+                >
+                  <Ionicons name="remove" size={20} color={DesignColors.primary} />
+                </Pressable>
+                <Text style={styles.unitCount}>{String(step1.totalFloors).padStart(2, '0')}</Text>
+                <Pressable
+                  style={styles.stepperBtn}
+                  onPress={() => setStep1({ totalFloors: Math.min(20, step1.totalFloors + 1) })}
+                >
+                  <Ionicons name="add" size={20} color={DesignColors.primary} />
+                </Pressable>
+              </View>
+            </View>
+          )}
+        </View>
+
       </ScrollView>
 
       <View style={styles.ctaRow}>
-        <Pressable style={styles.ctaBtn} onPress={() => router.push('/admin/create-listing-location')}>
+        <Pressable style={[styles.ctaBtn, !canProceed && styles.ctaBtnDisabled]} onPress={handleForward}>
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>
@@ -186,7 +315,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
   },
   inputRounded: { borderRadius: 20 },
-  glassBlur: { ...StyleSheet.absoluteFillObject },
+  glassBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
   textInput: {
     flex: 1, paddingHorizontal: 16, paddingVertical: 14,
     color: DesignColors.onSurface, fontSize: 16, fontFamily,
@@ -231,4 +360,37 @@ const styles = StyleSheet.create({
     shadowColor: DesignColors.primaryContainer,
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
   },
+  ctaBtnDisabled: { opacity: 0.4 },
+
+  roomRow: { flexDirection: 'row', gap: 12 },
+  roomCard: {
+    borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', padding: 16, gap: 12, alignItems: 'center',
+  },
+  roomCardBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
+  roomLabel: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
+  roomStepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  roomBtn: {
+    width: 36, height: 36, borderRadius: 18,
+    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    alignItems: 'center', justifyContent: 'center',
+  },
+  roomCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 28, textAlign: 'center' },
+
+  sizeRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
+  sizePills: {
+    flexDirection: 'row', borderRadius: 9999, overflow: 'hidden',
+    backgroundColor: 'rgba(24,24,28,0.65)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    padding: 4,
+  },
+  sizePill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 9999 },
+  sizePillActive: { backgroundColor: DesignColors.primaryContainer },
+  sizePillText: { fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
+  sizePillTextActive: { color: DesignColors.onSurface },
+  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily, paddingLeft: 4, opacity: 0.6 },
+
+  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
+  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
+  checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },
+  checkLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flex: 1 },
 });

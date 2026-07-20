@@ -153,7 +153,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   optionActive: {
-    backgroundColor: 'rgba(124, 58, 237, 0.12)',
+    backgroundColor: 'rgba(54, 71, 54, 0.12)',
     borderColor: DesignColors.primary,
   },
   optionPressed: {

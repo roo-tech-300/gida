@@ -175,7 +175,7 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    backgroundColor: 'rgba(54, 71, 54, 0.1)',
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -223,7 +223,7 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerHigh,
   },
   schoolOptionActive: {
-    backgroundColor: 'rgba(124, 58, 237, 0.15)',
+    backgroundColor: 'rgba(54, 71, 54, 0.15)',
   },
   schoolOptionPressed: {
     opacity: 0.9,

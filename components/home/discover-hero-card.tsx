@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
   heroImage: {
     minHeight: 610,
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(124, 58, 237, 0.1)',
+    backgroundColor: 'rgba(54, 71, 54, 0.12)',
   },
   imageFill: {
     ...StyleSheet.absoluteFillObject,

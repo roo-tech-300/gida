@@ -136,7 +136,7 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255, 255, 255, 0.05)',
   },
   chipActive: {
-    backgroundColor: 'rgba(124, 58, 237, 0.2)',
+    backgroundColor: 'rgba(54, 71, 54, 0.2)',
     borderColor: DesignColors.primary,
   },
   chipPressed: {

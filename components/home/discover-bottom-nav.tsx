@@ -48,7 +48,7 @@ function NavItem({
 }) {
   return (
     <Pressable onPress={onPress} style={styles.item}>
-      <Ionicons name={icon} size={22} color={active ? DesignColors.primaryBright : DesignColors.onSurfaceVariant} />
+      <Ionicons name={icon} size={22} color={active ? DesignColors.primaryBright : DesignColors.primaryFixed} />
       <Text style={[styles.label, active && styles.labelActive]}>{label}</Text>
     </Pressable>
   );
@@ -72,11 +72,11 @@ const styles = StyleSheet.create({
   },
   label: {
     ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
+    color: DesignColors.primaryFixed,
     fontFamily,
   },
   labelActive: {
-    color: DesignColors.onSurface,
+    color: DesignColors.primaryBright,
     fontWeight: '700',
   },
 });

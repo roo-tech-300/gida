@@ -107,13 +107,13 @@ const styles = StyleSheet.create({
   },
   title: {
     ...DesignTypography.headlineLg,
-    color: DesignColors.onSurface,
+    color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '800',
   },
   subtitle: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
+    color: DesignColors.primaryBright,
     fontFamily,
   },
   list: {

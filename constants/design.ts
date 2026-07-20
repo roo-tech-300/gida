@@ -13,12 +13,15 @@ export const DesignColors = {
   onSurfaceVariant: '#c7c4d8',
   outline: '#958da1',
   outlineVariant: '#4a4455',
-  primary: '#c3c0ff',
-  primaryContainer: '#4f46e5',
-  primaryFixed: '#eaddff',
-  primaryBright: '#d2bbff',
-  onPrimary: '#ffffff',
-  onPrimaryContainer: '#ffffff',
+  
+  // Updated Primary Theme
+  primary: '#364736', 
+  primaryContainer: '#1e2b1e', // Darkened for better contrast
+  primaryFixed: '#a3baa3',      // Lighter tone for accents
+  primaryBright: '#5e7c5e',     // Brighter version for active states
+  onPrimary: '#e8f5e9',         // Light off-white for text on dark primary
+  onPrimaryContainer: '#d0e6d0',
+  
   secondary: '#4edea3',
   secondaryContainer: '#00b954',
   tertiary: '#ffb695',

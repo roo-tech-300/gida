@@ -61,7 +61,7 @@ const styles = StyleSheet.create({
   },
   cardSelected: {
     borderColor: DesignColors.primary,
-    backgroundColor: 'rgba(124, 58, 237, 0.05)',
+    backgroundColor: 'rgba(54, 71, 54, 0.08)',
     shadowColor: DesignColors.primary,
     shadowOpacity: 0.15,
     shadowRadius: 20,

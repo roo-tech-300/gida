@@ -54,16 +54,16 @@ export function ActiveAdminCard({ role }: Props) {
 const styles = StyleSheet.create({
   card: { padding: DesignSpacing.lg, paddingTop: DesignSpacing.sm },
   row: { flexDirection: 'row', gap: DesignSpacing.md },
-  iconWrap: { width: 48, height: 48, borderRadius: DesignRadius.lg, backgroundColor: 'rgba(124, 58, 237, 0.1)', alignItems: 'center', justifyContent: 'center' },
+  iconWrap: { width: 48, height: 48, borderRadius: DesignRadius.lg, backgroundColor: 'rgba(54, 71, 54, 0.12)', alignItems: 'center', justifyContent: 'center' },
   textWrap: { flex: 1, gap: 4 },
-  title: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  desc: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20 },
+  title: { ...DesignTypography.bodyLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
+  desc: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontFamily, lineHeight: 20 },
   button: {
     marginTop: DesignSpacing.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm,
     paddingVertical: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md,
-    borderRadius: DesignRadius.lg, backgroundColor: 'rgba(124, 58, 237, 0.1)',
-    borderWidth: 1, borderColor: 'rgba(124, 58, 237, 0.2)',
+    borderRadius: DesignRadius.lg, backgroundColor: 'rgba(54, 71, 54, 0.12)',
+    borderWidth: 1, borderColor: 'rgba(54, 71, 54, 0.2)',
   },
   buttonText: { ...DesignTypography.bodyMd, color: DesignColors.primary, fontFamily, fontWeight: '600' },
 });

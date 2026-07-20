@@ -35,7 +35,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
   },
   chipActive: {
-    backgroundColor: 'rgba(124, 58, 237, 0.2)',
+    backgroundColor: 'rgba(54, 71, 54, 0.2)',
   },
   label: {
     ...DesignTypography.bodyMd,

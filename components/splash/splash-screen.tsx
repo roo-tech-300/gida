@@ -81,7 +81,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(124, 58, 237, 0.12)',
+    backgroundColor: 'rgba(54, 71, 54, 0.15)',
     filter: 'blur(120px)',
     zIndex: 0,
   },

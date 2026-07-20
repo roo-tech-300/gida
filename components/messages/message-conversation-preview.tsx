@@ -105,7 +105,7 @@ const styles = StyleSheet.create({
   },
   bubbleMe: {
     alignSelf: 'flex-end',
-    backgroundColor: 'rgba(124, 58, 237, 0.24)',
+    backgroundColor: 'rgba(54, 71, 54, 0.3)',
   },
   bubbleText: {
     ...DesignTypography.bodyMd,

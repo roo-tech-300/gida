@@ -45,6 +45,8 @@ type CreateListingContextType = {
   setStep4: (partial: Partial<CreateListingData['step4']>) => void;
   setStep5: (partial: Partial<CreateListingData['step5']>) => void;
   reset: () => void;
+  editListingId: string | null;
+  prefillForEdit: (data: CreateListingData, listingId: string) => void;
 };
 
 const defaultValue: CreateListingData = {
@@ -63,10 +65,13 @@ const CreateListingContext = createContext<CreateListingContextType>({
   setStep4: () => {},
   setStep5: () => {},
   reset: () => {},
+  editListingId: null,
+  prefillForEdit: () => {},
 });
 
 export function CreateListingProvider({ children }: { children: ReactNode }) {
   const [data, setData] = useState<CreateListingData>(defaultValue);
+  const [editListingId, setEditListingId] = useState<string | null>(null);
 
   const setStep1 = (partial: Partial<CreateListingData['step1']>) =>
     setData((prev) => ({ ...prev, step1: { ...prev.step1, ...partial } }));
@@ -79,10 +84,18 @@ export function CreateListingProvider({ children }: { children: ReactNode }) {
   const setStep5 = (partial: Partial<CreateListingData['step5']>) =>
     setData((prev) => ({ ...prev, step5: { ...prev.step5, ...partial } }));
 
-  const reset = () => setData(defaultValue);
+  const reset = () => {
+    setData(defaultValue);
+    setEditListingId(null);
+  };
+
+  const prefillForEdit = (editData: CreateListingData, listingId: string) => {
+    setData(editData);
+    setEditListingId(listingId);
+  };
 
   return (
-    <CreateListingContext.Provider value={{ data, setStep1, setStep2, setStep3, setStep4, setStep5, reset }}>
+    <CreateListingContext.Provider value={{ data, setStep1, setStep2, setStep3, setStep4, setStep5, reset, editListingId, prefillForEdit }}>
       {children}
     </CreateListingContext.Provider>
   );

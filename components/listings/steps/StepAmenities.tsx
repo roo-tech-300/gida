@@ -205,7 +205,7 @@ const styles = StyleSheet.create({
   tileInner: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   tileActive: {
     borderColor: DesignColors.primary,
-    backgroundColor: 'rgba(79,70,229,0.1)',
+    backgroundColor: 'rgba(54,71,54,0.1)',
   },
   tileLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },
   tileLabelActive: { color: DesignColors.onSurface },
@@ -216,8 +216,8 @@ const styles = StyleSheet.create({
   fieldHint: { fontSize: 11, color: '#64748b', marginTop: 4, paddingLeft: 4, fontFamily },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   pill: {
-    backgroundColor: 'rgba(79,70,229,0.1)',
-    borderWidth: 1, borderColor: 'rgba(79,70,229,0.2)',
+    backgroundColor: 'rgba(54,71,54,0.1)',
+    borderWidth: 1, borderColor: 'rgba(54,71,54,0.2)',
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6,
     flexDirection: 'row', alignItems: 'center', gap: 6,
   },

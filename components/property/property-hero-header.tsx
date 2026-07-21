@@ -9,7 +9,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
 
-export function PropertyHeroHeader({ property, onHeroPress }: { property: FeedListing; onHeroPress?: () => void }) {
+export function PropertyHeroHeader({ property, photoCount, onHeroPress }: { property: FeedListing; photoCount?: number; onHeroPress?: () => void }) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const router = useRouter();
   const insets = useSafeAreaInsets();
@@ -34,7 +34,7 @@ export function PropertyHeroHeader({ property, onHeroPress }: { property: FeedLi
         <View style={styles.heroBadges}>
           <View style={styles.heroBadge}>
             <Ionicons name="camera-outline" size={14} color={DesignColors.onSurface} />
-            <Text style={styles.heroBadgeText}>{property.photoCount} PHOTOS</Text>
+            <Text style={styles.heroBadgeText}>{photoCount ?? property.photoCount} PHOTOS</Text>
           </View>
           {property.hasVirtualTour && (
             <View style={styles.heroBadge}>

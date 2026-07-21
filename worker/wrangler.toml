@@ -1,0 +1,11 @@
+name = "gida-claim-expiration"
+main = "src/index.ts"
+compatibility_date = "2024-07-01"
+
+# Runs every hour
+[triggers]
+crons = ["0 * * * *"]
+
+# Set these as secrets via `npx wrangler secret put SUPABASE_URL`
+# and `npx wrangler secret put SUPABASE_SERVICE_ROLE_KEY`
+# The service_role key bypasses RLS — required for backend cron operations.

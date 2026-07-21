@@ -5,7 +5,13 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
-export function PropertyBottomBar({ onBookTour }: { onBookTour?: () => void }) {
+type Props = {
+  onBookTour?: () => void;
+  onApplyListing?: () => void;
+  hasActiveClaim?: boolean;
+};
+
+export function PropertyBottomBar({ onBookTour, onApplyListing, hasActiveClaim }: Props) {
   const insets = useSafeAreaInsets();
   const [liked, setLiked] = useState(false);
 
@@ -14,13 +20,19 @@ export function PropertyBottomBar({ onBookTour }: { onBookTour?: () => void }) {
       <Pressable onPress={() => setLiked((v) => !v)} style={styles.favButton}>
         <Ionicons
           name={liked ? 'heart' : 'heart-outline'}
-          size={22}
+          size={20}
           color={liked ? DesignColors.secondary : DesignColors.onSurface}
         />
       </Pressable>
-      <Pressable onPress={onBookTour} style={styles.ctaButton}>
-        <Text style={styles.ctaText}>Book Instant Tour</Text>
-        <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimary} />
+
+      <Pressable onPress={onBookTour} style={styles.secondaryCtaButton}>
+        <Ionicons name="calendar-outline" size={18} color={DesignColors.onSurface} />
+        <Text style={styles.secondaryCtaText}>Book Tour</Text>
+      </Pressable>
+
+      <Pressable onPress={onApplyListing} style={styles.primaryCtaButton}>
+        <Ionicons name={hasActiveClaim ? 'eye-outline' : 'enter-outline'} size={18} color={DesignColors.onPrimaryContainer} />
+        <Text style={styles.primaryCtaText}>{hasActiveClaim ? 'View Claim' : 'Claim Room'}</Text>
       </Pressable>
     </View>
   );
@@ -34,16 +46,16 @@ const styles = StyleSheet.create({
     right: 0,
     flexDirection: 'row',
     alignItems: 'center',
-    gap: DesignSpacing.sm,
+    gap: 8,
     paddingHorizontal: DesignSpacing.marginMobile,
-    paddingVertical: DesignSpacing.md,
+    paddingVertical: DesignSpacing.sm + 4,
     backgroundColor: DesignColors.surface,
     borderTopWidth: 1,
     borderTopColor: DesignColors.cardBorder,
   },
   favButton: {
-    width: 56,
-    height: 56,
+    width: 48,
+    height: 48,
     borderRadius: DesignRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
@@ -51,18 +63,36 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
     backgroundColor: DesignColors.surfaceContainerLow,
   },
-  ctaButton: {
+  secondaryCtaButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: DesignSpacing.sm,
+    gap: 6,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderRadius: DesignRadius.xl,
+    paddingVertical: 14,
+  },
+  secondaryCtaText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '700',
+  },
+  primaryCtaButton: {
+    flex: 1,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 6,
     backgroundColor: DesignColors.primaryContainer,
     borderRadius: DesignRadius.xl,
-    paddingVertical: 16,
+    paddingVertical: 14,
   },
-  ctaText: {
-    ...DesignTypography.bodyLg,
+  primaryCtaText: {
+    ...DesignTypography.bodyMd,
     color: DesignColors.onPrimaryContainer,
     fontFamily,
     fontWeight: '700',

@@ -15,9 +15,9 @@ type Props = {
   onClose: () => void;
 };
 
-type SlideProps = { uri: string; onZoomChange: (zoomed: boolean) => void };
+type SlideProps = { uri: string; isZoomed: boolean; onZoomChange: (zoomed: boolean) => void };
 
-function GallerySlide({ uri, onZoomChange }: SlideProps) {
+function GallerySlide({ uri, isZoomed, onZoomChange }: SlideProps) {
   const [loaded, setLoaded] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
   const scale = useSharedValue(1);
@@ -57,7 +57,7 @@ function GallerySlide({ uri, onZoomChange }: SlideProps) {
   const panGesture = useMemo(
     () =>
       Gesture.Pan()
-        .enabled(true)
+        .enabled(isZoomed)
         .activeOffsetX([-12, 12])
         .activeOffsetY([-12, 12])
         .onBegin(() => {
@@ -74,10 +74,10 @@ function GallerySlide({ uri, onZoomChange }: SlideProps) {
           translateX.value = withSpring(0);
           translateY.value = withSpring(0);
         }),
-    [scale, startTranslateX, startTranslateY, translateX, translateY],
+    [isZoomed, scale, startTranslateX, startTranslateY, translateX, translateY],
   );
 
-  const gesture = useMemo(() => Gesture.Simultaneous(pinchGesture, panGesture), [panGesture, pinchGesture]);
+  const gesture = useMemo(() => (isZoomed ? Gesture.Simultaneous(pinchGesture, panGesture) : pinchGesture), [isZoomed, panGesture, pinchGesture]);
 
   const animatedStyle = useAnimatedStyle(() => ({
     transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
@@ -164,7 +164,7 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
             onScrollToIndexFailed={handleScrollToIndexFailed}
             renderItem={({ item }) => (
               <View style={[styles.item, { width: screenWidth }]}>
-                <GallerySlide uri={item} onZoomChange={setIsZoomed} />
+                <GallerySlide uri={item} isZoomed={isZoomed} onZoomChange={setIsZoomed} />
               </View>
             )}
           />

@@ -64,7 +64,7 @@ export function RegionalDashboardScreen() {
           <Text style={styles.activityTitle}>Recent Actions</Text>
           {[
             { icon: 'checkmark-circle', color: DesignColors.secondary, bg: 'rgba(78,222,163,0.15)', title: 'Bosso Zone Updated', sub: '2 mins ago • State Admin' },
-            { icon: 'person-add', color: DesignColors.primary, bg: 'rgba(79,70,229,0.15)', title: 'New Lead Assigned', sub: '1 hour ago • Minna Metro' },
+            { icon: 'person-add', color: DesignColors.primary, bg: 'rgba(54,71,54,0.15)', title: 'New Lead Assigned', sub: '1 hour ago • Minna Metro' },
             { icon: 'warning-outline', color: DesignColors.tertiary, bg: 'rgba(255,182,149,0.15)', title: 'Pending Field Report', sub: '3 hours ago • Zone 4' },
           ].map((act, i) => (
             <View key={i} style={[styles.activityRow, i < 2 && styles.activityBordered]}>

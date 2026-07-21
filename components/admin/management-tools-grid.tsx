@@ -73,8 +73,8 @@ const styles = StyleSheet.create({
     borderColor: 'rgba(255,255,255,0.05)',
   },
   indigoCard: {
-    backgroundColor: 'rgba(79,70,229,0.15)',
-    borderColor: 'rgba(195,192,255,0.2)',
+    backgroundColor: 'rgba(54,71,54,0.15)',
+    borderColor: 'rgba(94,124,94,0.2)',
   },
   glassBlur: {
     ...StyleSheet.absoluteFillObject,
@@ -110,7 +110,7 @@ const styles = StyleSheet.create({
     alignItems: 'flex-start',
   },
   badge: {
-    backgroundColor: 'rgba(79,70,229,0.25)',
+    backgroundColor: 'rgba(54,71,54,0.25)',
     borderRadius: DesignRadius.full,
     paddingHorizontal: 8,
     paddingVertical: 2,

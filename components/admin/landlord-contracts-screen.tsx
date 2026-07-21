@@ -155,7 +155,7 @@ const styles = StyleSheet.create({
   cardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(124,58,237,0.12)',
+    backgroundColor: 'rgba(54,71,54,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 14, fontWeight: '700', color: DesignColors.primary, fontFamily },

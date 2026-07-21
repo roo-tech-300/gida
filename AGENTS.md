@@ -38,3 +38,11 @@ You are an expert frontend developer working with TypeScript, React, and TanStac
 * **Pull-to-Refresh (Drag to Refresh):** Every primary scrollable feed or list view (e.g., housing listings, roommate feeds, messages, saved properties) must implement a native pull-to-refresh interaction:
   * **Production Mode:** Tie the `refreshing` and `onRefresh` props directly to the TanStack Query `isRefetching` state and its corresponding `refetch` function.
   * **Development/Dummy Mode:** If the feed is currently utilizing mock datasets from your `/dummy` folder, simulate network latency by controlling a local refreshing state with an explicit `setTimeout` of exactly `1.3 seconds` before stopping the loading spinner. This guarantees that layout transitions and animation parameters can be fully validated during active UI construction.
+  9. Explicit Error Handling & Observability
+  * **TanStack Query Error States:** Never ignore isError or error objects from custom hooks. Every data-fetching screen or UI block must explicitly handle error states with a fallback UI or toast notification.
+
+* **Granular Try/Catch:** Async functions, state mutations, and API calls must be wrapped in try/catch blocks. Never catch errors silently (catch (e) {}); always log meaningful context (e.g., console.error('[FeatureName] Failed to perform action:', error)).
+
+* **UI Crash Resilience (Error Boundaries):** Wrap critical app sub-trees in React Error Boundaries to prevent a single component crash from breaking the whole application.
+
+* **Form & API Validation:** Parse incoming or outgoing payload errors strictly (e.g., Zod validation) so form field errors are immediately surfaced to the user rather than failing silently on submit.

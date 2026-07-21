@@ -19,7 +19,7 @@ type Props = {
 function MetaItem({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
   return (
     <View style={styles.metaItem}>
-      <Ionicons name={icon} size={18} color={DesignColors.primary} />
+      <Ionicons name={icon} size={18} color={DesignColors.textPrimary} />
       <Text style={styles.metaText}>{label}</Text>
     </View>
   );
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
   price: {
     fontSize: 32,
     fontWeight: '800',
-    color: DesignColors.primary,
+    color: DesignColors.primaryBright,
     fontFamily,
     lineHeight: 38,
     letterSpacing: -0.02,
@@ -214,7 +214,7 @@ const styles = StyleSheet.create({
   },
   metaText: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
+    color: DesignColors.textPrimary,
     fontFamily,
   },
   actionsRow: {

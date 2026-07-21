@@ -101,7 +101,7 @@ export function TotalInventoryScreen() {
           ) : (
             <View style={styles.list}>
               {filtered.map((item) => (
-                <InventoryCard key={item.id} listing={item} />
+                <InventoryCard key={item.id} listing={item} onPress={() => router.push(`/admin/listing/${item.id}` as any)} />
               ))}
             </View>
           )}

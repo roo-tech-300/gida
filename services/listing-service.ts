@@ -153,3 +153,39 @@ export async function insertListingPhotos(photos: CreateListingPhoto[]): Promise
 
   if (error) throw error;
 }
+
+export type UpdateListingInput = {
+  title?: string;
+  description?: string | null;
+  price_amount?: number;
+  status?: string;
+};
+
+export async function updateListing(listingId: string, input: UpdateListingInput): Promise<void> {
+  const { error } = await supabase
+    .from('listings')
+    .update(input)
+    .eq('id', listingId);
+
+  if (error) throw error;
+}
+
+export async function deleteListing(listingId: string): Promise<void> {
+  const { data: photoRows } = await supabase
+    .from('listing_photos')
+    .select('image_url')
+    .eq('listing_id', listingId);
+
+  const imageUrls = (photoRows || []).map((p) => p.image_url).filter(Boolean);
+
+  for (const url of imageUrls) {
+    const path = url.split('/listing-images/')[1];
+    if (path) {
+      await supabase.storage.from('listing-images').remove([path]).catch(() => {});
+    }
+  }
+
+  const { error } = await supabase.from('listings').delete().eq('id', listingId);
+
+  if (error) throw error;
+}

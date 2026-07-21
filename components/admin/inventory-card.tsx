@@ -13,11 +13,11 @@ const layoutLabels: Record<string, string> = {
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   available: { bg: 'rgba(74,225,115,0.12)', color: '#4ae176', label: 'Available' },
-  booked: { bg: 'rgba(124,58,237,0.12)', color: '#7c3aed', label: 'Booked' },
+  booked: { bg: 'rgba(54,71,54,0.12)', color: '#364736', label: 'Booked' },
   maintenance: { bg: 'rgba(255,182,149,0.12)', color: '#ffb695', label: 'Maintenance' },
 };
 
-export function InventoryCard({ listing }: { listing: FeedListing }) {
+export function InventoryCard({ listing, onPress }: { listing: FeedListing; onPress?: () => void }) {
   const s = STATUS_STYLE[listing.status.toLowerCase()] || STATUS_STYLE.available;
   return (
     <View style={styles.card}>
@@ -47,7 +47,7 @@ export function InventoryCard({ listing }: { listing: FeedListing }) {
             <Ionicons name="pricetag-outline" size={13} color={DesignColors.onSurfaceVariant} />
             <Text style={styles.managerText} numberOfLines={1}>{listing.price}</Text>
           </View>
-          <Pressable style={styles.viewButton}>
+          <Pressable style={styles.viewButton} onPress={onPress}>
             <Text style={styles.viewButtonText}>View</Text>
           </Pressable>
         </View>
@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: 'DesignColors.cardBorder',
   },
   imageWrap: { height: 200, position: 'relative' },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },

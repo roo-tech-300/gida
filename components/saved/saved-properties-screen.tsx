@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    paddingTop: DesignSpacing.xl + 40,
+    paddingTop: DesignSpacing.xl,
     paddingHorizontal: DesignSpacing.marginMobile,
     paddingBottom: DesignSpacing.xl * 5,
     gap: DesignSpacing.lg,
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
   },
   subtitle: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.primaryBright,
+    color: DesignColors.textPrimary,
     fontFamily,
   },
   list: {

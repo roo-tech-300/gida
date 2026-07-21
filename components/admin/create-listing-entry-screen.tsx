@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
   bgGlows: { ...StyleSheet.absoluteFillObject, overflow: 'hidden', pointerEvents: 'none' },
   glowTopRight: {
     position: 'absolute', top: '25%', right: -80, width: 256, height: 256,
-    borderRadius: 128, backgroundColor: 'rgba(79,70,229,0.08)',
+    borderRadius: 128, backgroundColor: DesignColors.primaryContainer,
   },
   glowBottomLeft: {
     position: 'absolute', bottom: '25%', left: -80, width: 256, height: 256,
@@ -115,8 +115,8 @@ const styles = StyleSheet.create({
   },
   mainCard: {
     width: 192, height: 192, borderRadius: 40, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.05)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: DesignColors.cardBorder,
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
     shadowColor: DesignColors.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2, shadowRadius: 40, elevation: 10,
@@ -126,7 +126,7 @@ const styles = StyleSheet.create({
   accentTopRight: {
     position: 'absolute', top: -16, right: -16, zIndex: 20,
     width: 64, height: 64, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.cardBorder,
     borderWidth: 1, borderColor: 'rgba(78,222,163,0.2)',
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
@@ -134,7 +134,7 @@ const styles = StyleSheet.create({
   accentBottomLeft: {
     position: 'absolute', bottom: -24, left: -24, zIndex: 20,
     width: 56, height: 56, borderRadius: 28, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.cardBorder,
     borderWidth: 1, borderColor: 'rgba(255,182,149,0.2)',
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,

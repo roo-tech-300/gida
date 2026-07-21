@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(195,192,255,0.1)',
+    backgroundColor: 'rgba(94,124,94,0.1)',
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 12, fontWeight: '700', color: DesignColors.primary, fontFamily },

@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   tenantInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   tenantAvatar: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(124,58,237,0.12)',
+    backgroundColor: 'rgba(54,71,54,0.12)',
     alignItems: 'center', justifyContent: 'center',
   },
   tenantInitials: { fontSize: 13, fontWeight: '700', color: DesignColors.primary, fontFamily },

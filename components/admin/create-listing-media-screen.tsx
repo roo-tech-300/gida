@@ -5,25 +5,34 @@ import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { BackButton } from '@/components/ui/back-button';
 import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-picker-modal';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useCreateListing } from '@/hooks/use-create-listing';
-import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos } from '@/services/listing-service';
+import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, deleteListing } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
+import { supabase } from '@/lib/supabase';
+
+function isRemoteUrl(str: string) {
+  return str.startsWith('https://') || str.startsWith('http://');
+}
 
 export function CreateListingMediaScreen() {
-  const { data, setStep5, reset } = useCreateListingForm();
+  const { data, setStep5, reset, editListingId } = useCreateListingForm();
   const { step5, step1, step2, step3, step4 } = data;
-  const { mutateAsync, isPending } = useCreateListing();
+  const { mutateAsync: createMutate, isPending } = useCreateListing();
   const { showToast } = useAppToast();
+  const queryClient = useQueryClient();
   const { profile } = useAuth();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [heroLoading, setHeroLoading] = useState(false);
+
+  const isEditing = editListingId !== null;
 
   const pickHero = async () => {
     setHeroLoading(true);
@@ -45,6 +54,148 @@ export function CreateListingMediaScreen() {
     } finally {
       setHeroLoading(false);
     }
+  };
+
+  const buildListingInput = () => {
+    const coords = step2.coords!;
+    return {
+      admin_id: profile?.id || '',
+      title: step1.title.trim(),
+      description: step1.description.trim() || null,
+      landlord_id: step1.landlordId,
+      category: 'student_housing',
+      layout_type: step1.layoutType,
+      price_amount: parseFloat(step1.price.replace(/,/g, '')),
+      lease_term: step1.term,
+      units_available: step1.units,
+      number_of_bedrooms: step1.bedrooms,
+      number_of_bathrooms: step1.bathrooms,
+      max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
+      rules: step4.rulesList,
+      location_landmark: step2.landmark.trim(),
+      city: profile?.city || 'Minna',
+      campus: step2.selectedCampus || step2.selectedSchool,
+      latitude: coords.latitude,
+      longitude: coords.longitude,
+      is_shared_bathroom: step3.selectedAmenities.includes('is_shared_bathroom'),
+      is_shared_kitchen: step3.selectedAmenities.includes('is_shared_kitchen'),
+      has_borehole: step3.selectedAmenities.includes('has_borehole'),
+      has_generator: step3.selectedAmenities.includes('has_generator'),
+      has_fenced_gate: step3.selectedAmenities.includes('has_fenced_gate'),
+      has_internet: step3.selectedAmenities.includes('has_internet'),
+      has_burglary: step3.selectedAmenities.includes('has_burglary'),
+      has_cabinet: step3.selectedAmenities.includes('has_cabinet'),
+      has_wardrobe: step3.selectedAmenities.includes('has_wardrobe'),
+      custom_features: step3.featuresList,
+      size_sqft: (() => {
+        const num = parseFloat(step1.sizeValue.replace(/,/g, ''));
+        if (isNaN(num)) return null;
+        return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
+      })(),
+      total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
+    };
+  };
+
+  const handleCreate = async () => {
+    const listingInput = buildListingInput();
+    const { id } = await createMutate(listingInput as any);
+
+    let primaryUrl = null;
+    if (step5.heroImage) {
+      primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
+      await updateListingPrimaryImage(id, primaryUrl);
+    }
+
+    if (step5.galleryImages.length > 0) {
+      const galleryLocal = step5.galleryImages.filter((u) => !isRemoteUrl(u));
+      const uploads = galleryLocal.map((uri, i) =>
+        uploadListingImage(id, uri, `gallery/${i}.jpg`)
+      );
+      const galleryUrls = await Promise.all(uploads);
+
+      const photos = galleryUrls.map((url, i) => ({
+        listing_id: id,
+        image_url: url,
+        display_order: i + 1,
+      }));
+      await insertListingPhotos(photos);
+    }
+
+    showToast({ message: 'Listing published successfully!', type: 'success' });
+    reset();
+    router.replace('/admin/total-inventory');
+  };
+
+  const handleUpdate = async () => {
+    const id = editListingId!;
+
+    const updatePayload: any = { ...buildListingInput() };
+    delete updatePayload.admin_id;
+    delete updatePayload.category;
+    await updateListing(id, updatePayload);
+
+    const { data: existingRows } = await supabase
+      .from('listing_photos')
+      .select('image_url')
+      .eq('listing_id', id);
+
+    const existingUrls = (existingRows || []).map((r) => r.image_url).filter(Boolean);
+
+    let newHeroUrl: string | null = null;
+    if (step5.heroImage) {
+      if (isRemoteUrl(step5.heroImage)) {
+        newHeroUrl = step5.heroImage;
+      } else {
+        newHeroUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
+      }
+      await updateListingPrimaryImage(id, newHeroUrl);
+    } else {
+      await updateListingPrimaryImage(id, null as any);
+    }
+
+    const finalUrls: string[] = [];
+    const newLocalUris: string[] = [];
+
+    for (const item of step5.galleryImages) {
+      if (isRemoteUrl(item)) {
+        finalUrls.push(item);
+      } else {
+        newLocalUris.push(item);
+      }
+    }
+
+    const uploadedNew = await Promise.all(
+      newLocalUris.map((uri, i) => uploadListingImage(id, uri, `gallery/edit-${Date.now()}-${i}.jpg`))
+    );
+    finalUrls.push(...uploadedNew);
+
+    const removedUrls = existingUrls.filter((url) => !finalUrls.includes(url));
+
+    for (const url of removedUrls) {
+      const path = url.split('/listing-images/')[1];
+      if (path) {
+        await supabase.storage.from('listing-images').remove([path]).catch(() => {});
+      }
+    }
+
+    if (existingUrls.length > 0 || finalUrls.length > 0) {
+      await supabase.from('listing_photos').delete().eq('listing_id', id);
+    }
+
+    if (finalUrls.length > 0) {
+      const photos = finalUrls.map((url, i) => ({
+        listing_id: id,
+        image_url: url,
+        display_order: i + 1,
+      }));
+      await insertListingPhotos(photos);
+    }
+
+    queryClient.invalidateQueries({ queryKey: ['listing', id] });
+    queryClient.invalidateQueries({ queryKey: ['listings'] });
+    showToast({ message: 'Listing updated successfully!', type: 'success' });
+    reset();
+    router.replace(`/admin/listing/${id}` as any);
   };
 
   const handlePublish = async () => {
@@ -78,81 +229,15 @@ export function CreateListingMediaScreen() {
     }
 
     setIsPublishing(true);
-
     try {
-      const listingInput = {
-        admin_id: profile?.id || '',
-        title: step1.title.trim(),
-        description: step1.description.trim() || null,
-        landlord_id: step1.landlordId,
-        category: 'student_housing',
-        layout_type: step1.layoutType,
-        price_amount: parseFloat(step1.price.replace(/,/g, '')),
-        lease_term: step1.term,
-        units_available: step1.units,
-        number_of_bedrooms: step1.bedrooms,
-        number_of_bathrooms: step1.bathrooms,
-        max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
-        rules: step4.rulesList,
-        location_landmark: step2.landmark.trim(),
-        city: profile?.city || 'Minna',
-        campus: step2.selectedCampus || step2.selectedSchool,
-        latitude: step2.coords.latitude,
-        longitude: step2.coords.longitude,
-        is_shared_bathroom: step3.selectedAmenities.includes('is_shared_bathroom'),
-        is_shared_kitchen: step3.selectedAmenities.includes('is_shared_kitchen'),
-        has_borehole: step3.selectedAmenities.includes('has_borehole'),
-        has_generator: step3.selectedAmenities.includes('has_generator'),
-        has_fenced_gate: step3.selectedAmenities.includes('has_fenced_gate'),
-        has_internet: step3.selectedAmenities.includes('has_internet'),
-        has_burglary: step3.selectedAmenities.includes('has_burglary'),
-        has_cabinet: step3.selectedAmenities.includes('has_cabinet'),
-        has_wardrobe: step3.selectedAmenities.includes('has_wardrobe'),
-        custom_features: step3.featuresList,
-        size_sqft: (() => {
-          const num = parseFloat(step1.sizeValue.replace(/,/g, ''));
-          if (isNaN(num)) return null;
-          return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
-        })(),
-        total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
-      };
-
-      const { id } = await mutateAsync(listingInput);
-
-      let primaryUrl = null;
-      if (step5.heroImage) {
-        primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
-        await updateListingPrimaryImage(id, primaryUrl);
+      if (isEditing) {
+        await handleUpdate();
+      } else {
+        await handleCreate();
       }
-
-      if (step5.galleryImages.length > 0) {
-        const uploads = step5.galleryImages.map((uri, i) =>
-          uploadListingImage(id, uri, `gallery/${i}.jpg`)
-        );
-        const galleryUrls = await Promise.all(uploads);
-
-        const photos = galleryUrls.map((url, i) => ({
-          listing_id: id,
-          image_url: url,
-          display_order: i + 1,
-        }));
-        await insertListingPhotos(photos);
-      }
-
-      showToast({ message: 'Listing published successfully!', type: 'success' });
-      reset();
-      router.replace('/admin/total-inventory');
     } catch (error: any) {
       const msg = error?.message || String(error);
-      console.log('=== PUBLISH ERROR ===');
-      console.log('message:', msg);
-      console.log('stack:', error?.stack);
-      console.log('name:', error?.name);
-      console.log('code:', error?.code);
-      console.log('details:', error?.details);
-      console.log('hint:', error?.hint);
-      try { console.log('fullError:', JSON.stringify(error, Object.getOwnPropertyNames(error))); } catch (_) {}
-      showToast({ message: msg || 'Failed to publish listing.', type: 'error' });
+      showToast({ message: msg || 'Failed to save listing.', type: 'error' });
     } finally {
       setIsPublishing(false);
     }
@@ -246,9 +331,9 @@ export function CreateListingMediaScreen() {
           </Pressable>
           <Pressable style={styles.publishBtn} onPress={handlePublish} disabled={isPublishing}>
             <View style={{ opacity: isPublishing ? 0 : 1, flexDirection: 'row', alignItems: 'center', gap: 12 }}>
-              <Text style={styles.publishText}>Publish Listing</Text>
+              <Text style={styles.publishText}>{isEditing ? 'Save Changes' : 'Publish Listing'}</Text>
               <View style={styles.publishIconWrap}>
-                <Ionicons name="cloud-upload-outline" size={22} color={DesignColors.onPrimaryContainer} />
+                <Ionicons name={isEditing ? 'checkmark-outline' : 'cloud-upload-outline'} size={22} color={DesignColors.onPrimaryContainer} />
               </View>
             </View>
             {isPublishing && (
@@ -286,29 +371,29 @@ const styles = StyleSheet.create({
   heroSection: { gap: 12 },
   heroUpload: {
     height: 192, borderRadius: 16, overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 2, borderStyle: 'dashed', borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: DesignColors.glassBg,
+    borderWidth: 2, borderStyle: 'dashed', borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center', gap: 12,
   },
-  heroImageWrap: { height: 192, borderRadius: 16, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)' },
+  heroImageWrap: { height: 192, borderRadius: 16, overflow: 'hidden', position: 'relative', borderWidth: 1, borderColor: DesignColors.glassBorder },
   heroFilledImage: { width: '100%', height: '100%' },
   heroRemove: { position: 'absolute', top: 8, right: 8 },
-  heroIconWrap: { width: 56, height: 56, borderRadius: 28, backgroundColor: 'rgba(195,192,255,0.1)', alignItems: 'center', justifyContent: 'center' },
+  heroIconWrap: { width: 56, height: 56, borderRadius: 28, backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center' },
   heroUploadText: { fontSize: 16, fontWeight: '500', color: DesignColors.onSurface, fontFamily },
   heroHint: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20, paddingHorizontal: 4 },
   gallerySection: { gap: 16 },
   galleryHeader: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   galleryTitle: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 0.5, textTransform: 'uppercase' },
-  galleryLine: { height: 1, flex: 1, backgroundColor: 'rgba(255,255,255,0.05)' },
+  galleryLine: { height: 1, flex: 1, backgroundColor: DesignColors.cardBorder },
   galleryGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 10 },
   galleryAddSlot: {
     width: '31%', aspectRatio: 1, borderRadius: 12, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(195,192,255,0.2)', position: 'relative',
-    backgroundColor: 'rgba(24,24,28,0.85)',
+    borderWidth: 1, borderColor: DesignColors.primaryContainer, position: 'relative',
+    backgroundColor: DesignColors.glassFill,
   },
   gallerySlot: {
     width: '31%', aspectRatio: 1, borderRadius: 12, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)', position: 'relative',
+    borderWidth: 1, borderColor: DesignColors.glassBorder, position: 'relative',
   },
   galleryImage: { width: '100%', height: '100%' },
   placeholderBody: {
@@ -324,7 +409,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(195,192,255,0.1)',
+    backgroundColor: DesignColors.primaryContainer,
   },
   placeholderLabel: {
     fontSize: 11,
@@ -333,7 +418,7 @@ const styles = StyleSheet.create({
     fontFamily,
     textAlign: 'center',
   },
-  badge: { position: 'absolute', top: 6, left: 6, backgroundColor: 'rgba(53,52,55,0.8)', paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
+  badge: { position: 'absolute', top: 6, left: 6, backgroundColor: DesignColors.surfaceContainerHighest, paddingHorizontal: 6, paddingVertical: 2, borderRadius: 4 },
   badgeText: { fontSize: 10, fontWeight: '700', color: DesignColors.primary, fontFamily },
   removeOverlay: { position: 'absolute', top: 4, right: 4 },
 
@@ -352,5 +437,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
   },
   publishText: { fontSize: 16, fontWeight: '700', color: DesignColors.onPrimaryContainer, fontFamily },
-  publishIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: 'rgba(0,0,0,0.1)', alignItems: 'center', justifyContent: 'center' },
+  publishIconWrap: { width: 44, height: 44, borderRadius: 22, backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center' },
 });

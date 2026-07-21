@@ -1,8 +1,9 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { BackHandler, FlatList, LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, BackHandler, FlatList, LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { DesignColors } from '@/constants/design';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
@@ -19,7 +20,7 @@ type FeedMode = 'listings' | 'roommates';
 
 export function DiscoverHomeScreen() {
   const router = useRouter();
-  const { data: listings = [], isRefetching, refetch } = useListings();
+  const { data: listings = [], isLoading, isRefetching, refetch } = useListings();
   const { data: savedIds = [] } = useSavedIds();
   const { mutate: toggleSave } = useToggleSave();
   const [query, setQuery] = useState('');
@@ -108,7 +109,12 @@ export function DiscoverHomeScreen() {
                 onIndexChange={setCurrentIndex}
               />
             )}
-            {mode === 'listings' && filteredListings.length === 0 && (
+            {isLoading && mode === 'listings' && (
+              <View style={styles.loadingWrap}>
+                <ActivityIndicator size="large" color={DesignColors.primary} />
+              </View>
+            )}
+            {mode === 'listings' && filteredListings.length === 0 && !isLoading && (
               <NoResultsFoundScreen
                 query={query}
                 onQueryChange={setQuery}
@@ -174,5 +180,10 @@ const styles = StyleSheet.create({
   },
   feedContainer: {
     flex: 1,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

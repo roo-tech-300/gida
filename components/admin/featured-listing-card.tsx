@@ -214,11 +214,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(79,70,229,0.15)',
+    backgroundColor: 'rgba(54,71,54,0.15)',
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(195,192,255,0.2)',
+    borderColor: 'rgba(94,124,94,0.2)',
   },
   promptTitle: {
     ...DesignTypography.headlineMd,

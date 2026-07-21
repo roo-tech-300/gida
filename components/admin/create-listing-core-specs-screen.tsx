@@ -65,7 +65,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Royal Heights Apartments"
-              placeholderTextColor="rgba(199,196,216,0.4)"
+              placeholderTextColor="DesignColors.onSurfaceVariant"
               value={step1.title}
               onChangeText={(v) => setStep1({ title: v })}
             />
@@ -79,7 +79,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={[styles.textInput, { minHeight: 100, textAlignVertical: 'top' }]}
               placeholder="Describe the proximity to campus, water availability, and security features..."
-              placeholderTextColor="rgba(199,196,216,0.4)"
+              placeholderTextColor="DesignColors.onSurfaceVariant"
               value={step1.description}
               onChangeText={(v) => setStep1({ description: v })}
               multiline
@@ -169,7 +169,7 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="250,000"
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor="DesignColors.onSurfaceVariant"
                 value={step1.price}
                 onChangeText={(text) => setStep1({ price: formatPrice(text) })}
                 keyboardType="numeric"
@@ -214,7 +214,7 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder={step1.sizeUnit === 'sqft' ? 'e.g. 1,200' : 'e.g. 112'}
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor="DesignColors.onSurfaceVariant"
                 value={step1.sizeValue}
                 onChangeText={(v) => {
                   const digits = v.replace(/\D/g, '');
@@ -311,8 +311,8 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: 8 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   inputRounded: { borderRadius: 20 },
   glassBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
@@ -322,13 +322,13 @@ const styles = StyleSheet.create({
   },
   layoutRow: { flexDirection: 'row', gap: 12 },
   layoutCard: {
-    flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
     padding: 16, alignItems: 'center', gap: 8,
   },
   layoutCardActive: {
     borderColor: DesignColors.primary,
-    backgroundColor: 'rgba(79,70,229,0.1)',
+    backgroundColor: DesignColors.primaryContainer,
   },
   layoutLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   layoutLabelActive: { color: DesignColors.onSurface },
@@ -336,7 +336,7 @@ const styles = StyleSheet.create({
   currencySign: { fontSize: 20, fontWeight: '700', color: DesignColors.primary, fontFamily, paddingLeft: 16 },
   termPill: {
     flexDirection: 'row', borderRadius: 9999, overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.65)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder,
     padding: 4,
   },
   termOption: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 9999 },
@@ -349,7 +349,7 @@ const styles = StyleSheet.create({
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   stepperBtn: {
     width: 40, height: 40, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
   unitCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 32, textAlign: 'center' },
@@ -364,15 +364,15 @@ const styles = StyleSheet.create({
 
   roomRow: { flexDirection: 'row', gap: 12 },
   roomCard: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', padding: 16, gap: 12, alignItems: 'center',
+    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.cardBorder, padding: 16, gap: 12, alignItems: 'center',
   },
   roomCardBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
   roomLabel: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
   roomStepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   roomBtn: {
     width: 36, height: 36, borderRadius: 18,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
   roomCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 28, textAlign: 'center' },
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
   sizeRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
   sizePills: {
     flexDirection: 'row', borderRadius: 9999, overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.65)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder,
     padding: 4,
   },
   sizePill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 9999 },

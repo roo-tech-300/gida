@@ -60,7 +60,7 @@ export function CreateListingRulesScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. No pets allowed, Quiet hours after 10pm"
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor={DesignColors.onSurfaceVariant}
                 value={inputValue}
                 onChangeText={handleChange}
                 onSubmitEditing={() => {
@@ -101,7 +101,7 @@ export function CreateListingRulesScreen() {
                   onPress={() => setStep4({ maxRoommates: Math.max(1, step4.maxRoommates - 1) })}
                   disabled={step4.noLimit}
                 >
-                  <Ionicons name="remove" size={20} color={step4.noLimit ? 'rgba(199,196,216,0.2)' : DesignColors.primary} />
+                  <Ionicons name="remove" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
                 </Pressable>
                 <Text style={[styles.roommateCount, step4.noLimit && styles.roommateCountDimmed]}>
                   {step4.noLimit ? '--' : String(step4.maxRoommates).padStart(2, '0')}
@@ -111,7 +111,7 @@ export function CreateListingRulesScreen() {
                   onPress={() => setStep4({ maxRoommates: step4.maxRoommates + 1 })}
                   disabled={step4.noLimit}
                 >
-                  <Ionicons name="add" size={20} color={step4.noLimit ? 'rgba(199,196,216,0.2)' : DesignColors.primary} />
+                  <Ionicons name="add" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
                 </Pressable>
               </View>
             </View>
@@ -148,9 +148,9 @@ const styles = StyleSheet.create({
   },
   fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4, paddingLeft: 4, opacity: 0.6 },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  pill: { backgroundColor: 'rgba(79,70,229,0.1)', borderWidth: 1, borderColor: 'rgba(79,70,229,0.2)', borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pillText: { fontSize: 12, fontWeight: '600', color: '#818CF8', fontFamily, letterSpacing: 0.3 },
-  pillIcon: { opacity: 0.4, fontSize: 10, color: '#818CF8' },
+  pill: { backgroundColor: DesignColors.primaryContainer, borderWidth: 1, borderColor: DesignColors.primaryContainer, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
+  pillText: { fontSize: 12, fontWeight: '600', color: DesignColors.onPrimaryContainer, fontFamily, letterSpacing: 0.3 },
+  pillIcon: { opacity: 0.6, fontSize: 10, color: DesignColors.onPrimaryContainer },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 24, gap: 24, paddingBottom: 24 },
   hero: { paddingTop: 8 },
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: 8 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
 
   roommateCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
@@ -171,11 +171,11 @@ const styles = StyleSheet.create({
   stepperDimmed: { opacity: 0.4 },
   stepperBtn: {
     width: 40, height: 40, borderRadius: 20,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
   roommateCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 32, textAlign: 'center' },
-  roommateCountDimmed: { color: 'rgba(199,196,216,0.3)' },
+  roommateCountDimmed: { color: DesignColors.onSurfaceVariant },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 4 },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
   checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },

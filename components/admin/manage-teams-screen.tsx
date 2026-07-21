@@ -72,7 +72,7 @@ function MemberCard({ member }: { member: AdminMember }) {
   const isRegional = member.role === 'regional_admin';
   return (
     <Pressable style={styles.memberCard}>
-      <View style={[styles.memberAvatar, { backgroundColor: 'rgba(195,192,255,0.1)' }]}>
+      <View style={[styles.memberAvatar, { backgroundColor: 'rgba(94,124,94,0.1)' }]}>
         <Text style={[styles.memberAvatarText, { color: DesignColors.primary }]}>{member.avatar_initials}</Text>
       </View>
       <View style={styles.memberInfo}>

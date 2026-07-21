@@ -159,7 +159,7 @@ const styles = StyleSheet.create({
   title: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
   actions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   actionBtn: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: DesignColors.primaryContainer },
-  actionBtnSoft: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: 'rgba(195,192,255,0.12)', borderWidth: 1, borderColor: 'rgba(195,192,255,0.18)' },
+  actionBtnSoft: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: 'rgba(94,124,94,0.12)', borderWidth: 1, borderColor: 'rgba(94,124,94,0.18)' },
   actionText: { color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
   actionTextSoft: { color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   sectionLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
@@ -170,7 +170,7 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 12 },
   gridCard: {
     width: '31%', borderRadius: 12, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(195,192,255,0.16)',
+    borderWidth: 1, borderColor: 'rgba(94,124,94,0.16)',
     backgroundColor: 'rgba(255,255,255,0.03)',
   },
   gridImage: { width: '100%', height: 96 },

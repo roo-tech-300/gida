@@ -15,12 +15,11 @@ export const DesignColors = {
   outlineVariant: '#4a4455',
   
   // Updated Primary Theme
-  primary: '#364736', 
-  primaryContainer: '#1e2b1e', // Darkened for better contrast
+  primary: '#4edea3',
+  primaryContainer: '#1d8f5e', // Darkened for better contrast
   primaryFixed: '#a3baa3',      // Lighter tone for accents
-  primaryBright: '#5e7c5e',     // Brighter version for active states
-  onPrimary: '#e8f5e9',         // Light off-white for text on dark primary
-  onPrimaryContainer: '#d0e6d0',
+  primaryBright: '#22c55e', // Brighter version for active states
+  onPrimary: '#0e0e10',
   
   secondary: '#4edea3',
   secondaryContainer: '#00b954',

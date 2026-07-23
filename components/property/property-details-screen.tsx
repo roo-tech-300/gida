@@ -5,22 +5,28 @@ import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import type { FeedListing } from '@/types/feed-listing';
+import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { useAuth } from '@/context/auth-context';
-import { useActiveClaimForListing } from '@/hooks/use-claim';
+import { useActiveClaimForListing, useHasActiveClaim } from '@/hooks/use-claim';
+import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
+import { MOCK_REVIEWS } from '@/dummy/reviews-mock';
 import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
 import { PropertyBottomBar } from './property-bottom-bar';
 import { PropertyPhotos } from './property-photos';
 import { PropertyLocationCard } from './property-location-card';
+import { PropertyRulesCard } from './property-rules-card';
+import { PropertyReviewsSection } from './property-reviews-section';
 import { LocationPaymentModal } from './location-payment-modal';
 
 const HERO_HEIGHT = 340;
 
-export function PropertyDetailsScreen({ property, photos }: { property: FeedListing; photos?: string[] }) {
+export function PropertyDetailsScreen({ property, photos, dbListing }: { property: FeedListing; photos?: string[]; dbListing?: DbListing }) {
   const { profile } = useAuth();
-  const { data: activeClaim } = useActiveClaimForListing(property.id);
+  const { data: activeClaim, isLoading: isCheckingClaim } = useActiveClaimForListing(property.id);
+  const { data: anyActiveClaim } = useHasActiveClaim();
+  const { visible: alertVisible, title: alertTitle, message: alertMessage, buttons: alertButtons, showAlert, hideAlert } = useCustomAlert();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [paymentModalOpen, setPaymentModalOpen] = useState(false);
@@ -32,12 +38,40 @@ export function PropertyDetailsScreen({ property, photos }: { property: FeedList
     return [];
   }, [property.image, photos]);
 
+  const rules = dbListing?.rules ?? [];
+  const reviews = MOCK_REVIEWS;
+  const avgRating = useMemo(() => {
+    if (reviews.length === 0) return 0;
+    return reviews.reduce((sum, r) => sum + r.rating, 0) / reviews.length;
+  }, [reviews]);
+
   const openGallery = (index: number) => {
     setGalleryIndex(index);
     setGalleryOpen(true);
   };
 
   const handleClaimRoom = () => {
+    if (activeClaim) {
+      router.push(`/property/claim-receipt?id=${property.id}`);
+      return;
+    }
+
+    if (anyActiveClaim) {
+      showAlert({
+        title: 'Active Claim Exists',
+        message: 'You already have an active claim on another property. Would you like to cancel it first?',
+        buttons: [
+          { label: 'Nevermind', style: 'cancel' },
+          {
+            label: 'Cancel Existing',
+            style: 'primary',
+            onPress: () => router.push(`/property/claim-receipt?id=${anyActiveClaim.listing_id}`),
+          },
+        ],
+      });
+      return;
+    }
+
     router.push(`/property/claim-room?id=${property.id}`);
   };
 
@@ -95,12 +129,17 @@ export function PropertyDetailsScreen({ property, photos }: { property: FeedList
         </View>
 
         <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
+
+        {rules.length > 0 && <PropertyRulesCard rules={rules} />}
+
+        <PropertyReviewsSection reviews={reviews} avgRating={avgRating} />
       </PropertyBottomSheet>
 
       <PropertyBottomBar
         onBookTour={() => router.push(`/property/tour-scheduler?id=${property.id}`)}
         onClaimRoom={handleClaimRoom}
         hasActiveClaim={!!activeClaim}
+        isCheckingClaim={isCheckingClaim}
       />
 
       <ImageGalleryModal
@@ -120,6 +159,14 @@ export function PropertyDetailsScreen({ property, photos }: { property: FeedList
           setPaymentModalOpen(false);
         }}
       />
+
+      <CustomAlert
+        visible={alertVisible}
+        title={alertTitle}
+        message={alertMessage}
+        buttons={alertButtons}
+        onDismiss={hideAlert}
+      />
     </SafeAreaView>
   );
 }
@@ -134,10 +181,7 @@ function StatItem({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: DesignColors.surface,
-  },
+  safe: { flex: 1, backgroundColor: DesignColors.surface },
   statusBadge: {
     alignSelf: 'flex-start',
     backgroundColor: 'rgba(74, 225, 118, 0.12)',
@@ -166,27 +210,10 @@ const styles = StyleSheet.create({
     gap: 4,
     marginBottom: DesignSpacing.lg,
   },
-  location: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  priceSection: {
-    marginBottom: DesignSpacing.lg,
-  },
-  priceLabel: {
-    ...DesignTypography.labelCaps,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    marginBottom: 4,
-  },
-  price: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: DesignColors.primaryBright,
-    fontFamily,
-    letterSpacing: -0.5,
-  },
+  location: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
+  priceSection: { marginBottom: DesignSpacing.lg },
+  priceLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 4 },
+  price: { fontSize: 32, fontWeight: '800', color: DesignColors.primaryBright, fontFamily, letterSpacing: -0.5 },
   statsRow: {
     flexDirection: 'row',
     borderTopWidth: 1,
@@ -195,45 +222,14 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.md,
     marginBottom: DesignSpacing.lg,
   },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statValue: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  statLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  overviewSection: {
-    marginBottom: DesignSpacing.lg,
-  },
-  sectionTitle: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    marginBottom: DesignSpacing.sm,
-  },
-  description: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 24,
-  },
-  amenitiesSection: {
-    marginBottom: DesignSpacing.xl,
-  },
-  amenitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: DesignSpacing.sm,
-  },
+  statItem: { flex: 1, alignItems: 'center', gap: 2 },
+  statValue: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  statLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
+  overviewSection: { marginBottom: DesignSpacing.lg },
+  sectionTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, marginBottom: DesignSpacing.sm },
+  description: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 24 },
+  amenitiesSection: { marginBottom: DesignSpacing.xl },
+  amenitiesGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: DesignSpacing.sm },
   amenityCard: {
     flexDirection: 'row',
     alignItems: 'center',
@@ -246,9 +242,5 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
-  amenityText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-  },
+  amenityText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
 });

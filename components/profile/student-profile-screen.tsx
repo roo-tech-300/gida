@@ -123,8 +123,8 @@ const styles = StyleSheet.create({
   avatarBorder: { width: 96, height: 96, borderRadius: 48, padding: 4, backgroundColor: DesignColors.primary },
   avatarInner: { borderRadius: 44, overflow: 'hidden', borderWidth: 4, borderColor: DesignColors.surfaceContainerLowest },
   verifiedBadge: { position: 'absolute', bottom: 0, right: 0, backgroundColor: DesignColors.primary, borderRadius: 14, padding: 3, borderWidth: 2, borderColor: DesignColors.surfaceContainerLowest },
-  name: { ...DesignTypography.headlineLg, color: DesignColors.primaryBright, fontFamily },
-  university: { ...DesignTypography.labelCaps, color: DesignColors.primaryBright, fontFamily, letterSpacing: 1.2 },
+  name: { ...DesignTypography.headlineLg, color: DesignColors.onSurface, fontFamily },
+  university: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
   section: { marginHorizontal: DesignSpacing.marginMobile, backgroundColor: DesignColors.glassFill, borderRadius: DesignRadius.xl, borderWidth: 1, borderColor: 'rgba(255, 255, 255, 0.08)', overflow: 'hidden' },
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: DesignSpacing.lg },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: DesignSpacing.lg, paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
@@ -134,5 +134,5 @@ const styles = StyleSheet.create({
   logoutSection: { marginHorizontal: DesignSpacing.marginMobile },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: 'rgba(255, 180, 171, 0.12)', borderWidth: 1, borderColor: 'rgba(255, 180, 171, 0.2)' },
   logoutText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, fontWeight: '600' },
-  version: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, textAlign: 'center', opacity: 0.6, paddingTop: DesignSpacing.md },
+  version: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center', opacity: 0.6, paddingTop: DesignSpacing.md },
 });

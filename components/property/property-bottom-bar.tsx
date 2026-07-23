@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -9,11 +9,14 @@ type Props = {
   onBookTour?: () => void;
   onClaimRoom?: () => void;
   hasActiveClaim?: boolean;
+  isCheckingClaim?: boolean;
 };
 
-export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim }: Props) {
+export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim, isCheckingClaim }: Props) {
   const insets = useSafeAreaInsets();
   const [liked, setLiked] = useState(false);
+
+  const showSpinner = isCheckingClaim && !hasActiveClaim;
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
@@ -30,8 +33,16 @@ export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim }: P
         <Text style={styles.secondaryCtaText}>Book Tour</Text>
       </Pressable>
 
-      <Pressable onPress={onClaimRoom} style={styles.primaryCtaButton}>
-        <Ionicons name={hasActiveClaim ? 'eye-outline' : 'enter-outline'} size={18} color={DesignColors.onPrimaryContainer} />
+      <Pressable
+        onPress={showSpinner ? undefined : onClaimRoom}
+        style={[styles.primaryCtaButton, showSpinner && { opacity: 0.7 }]}
+        disabled={showSpinner}
+      >
+        {showSpinner ? (
+          <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
+        ) : (
+          <Ionicons name={hasActiveClaim ? 'eye-outline' : 'enter-outline'} size={18} color={DesignColors.onPrimaryContainer} />
+        )}
         <Text style={styles.primaryCtaText}>{hasActiveClaim ? 'View Claim' : 'Claim Room'}</Text>
       </Pressable>
     </View>

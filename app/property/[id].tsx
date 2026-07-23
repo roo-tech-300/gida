@@ -27,7 +27,7 @@ export default function PropertyRoute() {
     );
   }
 
-  return <PropertyDetailsScreen property={data.listing} photos={data.photos} />;
+  return <PropertyDetailsScreen property={data.listing} photos={data.photos} dbListing={data.dbListing} />;
 }
 
 const styles = StyleSheet.create({

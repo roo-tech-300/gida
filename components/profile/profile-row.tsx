@@ -16,14 +16,14 @@ export function ProfileRow({
     <Pressable style={styles.row}>
       <View style={styles.left}>
         <View style={styles.iconBox}>
-          <Ionicons name={icon} size={24} color={DesignColors.primaryBright} />
+          <Ionicons name={icon} size={24} color={DesignColors.onSurfaceVariant} />
         </View>
         <View style={styles.textWrap}>
           <Text style={styles.label}>{label}</Text>
           {value ? <Text style={styles.value}>{value}</Text> : null}
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={DesignColors.primaryBright} />
+      <Ionicons name="chevron-forward" size={20} color={DesignColors.onSurfaceVariant} />
     </Pressable>
   );
 }
@@ -59,12 +59,12 @@ const styles = StyleSheet.create({
   },
   label: {
     ...DesignTypography.bodyLg,
-    color: DesignColors.primaryBright,
+    color: DesignColors.onSurface,
     fontFamily,
   },
   value: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.primaryBright,
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
   },
 });

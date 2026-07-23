@@ -7,8 +7,11 @@ import {
   acceptInvite,
   declineInvite,
   markPaid,
+  cancelClaim,
   getActiveClaimForListing,
-  getClaimWithRoommates,
+  getActiveClaimAnyListing,
+  getClaimByApplicationId,
+  getClaimByListingId,
   getStudentClaims,
   searchProfiles,
 } from '@/services/claim-service';
@@ -21,11 +24,30 @@ export function useActiveClaimForListing(listingId: string | null) {
   });
 }
 
-export function useClaimDetails(applicationId: string | null) {
+export function useHasActiveClaim() {
+  const { profile } = useAuth();
+  const userId = profile?.id;
+
+  return useQuery({
+    queryKey: ['active-claim-any'],
+    queryFn: () => getActiveClaimAnyListing(),
+    enabled: !!userId,
+  });
+}
+
+export function useClaimByApplicationId(applicationId: string | null) {
   return useQuery({
     queryKey: ['claim-details', applicationId],
-    queryFn: () => getClaimWithRoommates(applicationId!),
+    queryFn: () => getClaimByApplicationId(applicationId!),
     enabled: !!applicationId,
+  });
+}
+
+export function useClaimByListingId(listingId: string | null) {
+  return useQuery({
+    queryKey: ['claim-details', listingId],
+    queryFn: () => getClaimByListingId(listingId!),
+    enabled: !!listingId,
   });
 }
 
@@ -51,7 +73,9 @@ export function useCreateClaim() {
       return createClaim(listingId, userId, splitAmount);
     },
     onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['active-claim', variables.listingId] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim-any'] });
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
       queryClient.invalidateQueries({ queryKey: ['claim-history', userId] });
     },
   });
@@ -70,8 +94,9 @@ export function useAddRoommate() {
       studentId: string;
       splitAmount: number;
     }) => addRoommate(applicationId, studentId, splitAmount),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['claim-details', variables.applicationId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
     },
   });
 }
@@ -82,8 +107,9 @@ export function useRemoveRoommate() {
   return useMutation({
     mutationFn: ({ applicationId, studentId }: { applicationId: string; studentId: string }) =>
       removeRoommate(applicationId, studentId),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['claim-details', variables.applicationId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
     },
   });
 }
@@ -94,8 +120,9 @@ export function useAcceptInvite() {
   return useMutation({
     mutationFn: ({ applicationId, studentId }: { applicationId: string; studentId: string }) =>
       acceptInvite(applicationId, studentId),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['claim-details', variables.applicationId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
     },
   });
 }
@@ -106,8 +133,9 @@ export function useDeclineInvite() {
   return useMutation({
     mutationFn: ({ applicationId, studentId }: { applicationId: string; studentId: string }) =>
       declineInvite(applicationId, studentId),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['claim-details', variables.applicationId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
     },
   });
 }
@@ -120,8 +148,9 @@ export function useMarkPaid() {
   return useMutation({
     mutationFn: ({ applicationId }: { applicationId: string }) =>
       markPaid(applicationId, userId!),
-    onSuccess: (_data, variables) => {
-      queryClient.invalidateQueries({ queryKey: ['claim-details', variables.applicationId] });
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
       queryClient.invalidateQueries({ queryKey: ['claim-history', userId] });
     },
   });
@@ -133,5 +162,22 @@ export function useSearchProfiles(query: string) {
     queryFn: () => searchProfiles(query),
     enabled: query.trim().length >= 2,
     staleTime: 30_000,
+  });
+}
+
+export function useCancelClaim() {
+  const queryClient = useQueryClient();
+  const { profile } = useAuth();
+  const userId = profile?.id;
+
+  return useMutation({
+    mutationFn: ({ applicationId }: { applicationId: string }) =>
+      cancelClaim(applicationId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['active-claim'] });
+      queryClient.invalidateQueries({ queryKey: ['active-claim-any'] });
+      queryClient.invalidateQueries({ queryKey: ['claim-details'] });
+      queryClient.invalidateQueries({ queryKey: ['claim-history', userId] });
+    },
   });
 }

@@ -2,15 +2,58 @@ import { supabase } from '@/lib/supabase';
 import type { Application, ApplicationRoommate, ClaimWithRoommates } from '@/types/claim';
 
 export async function getActiveClaimForListing(listingId: string): Promise<Application | null> {
-  const { data, error } = await supabase
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: rmRows, error: rmError } = await supabase
+    .from('application_roommates')
+    .select('application_id')
+    .eq('student_id', user.id);
+
+  if (rmError) throw rmError;
+  if (!rmRows?.length) return null;
+
+  const appIds = rmRows.map((r) => r.application_id);
+
+  const { data: app, error: appError } = await supabase
     .from('applications')
     .select('*')
+    .in('id', appIds)
     .eq('listing_id', listingId)
     .in('status', ['locked_pending_roommate', 'locked_pending_payment', 'partially_paid'])
     .maybeSingle();
 
-  if (error) throw error;
-  return data;
+  if (appError) throw appError;
+  return app;
+}
+
+export async function getActiveClaimAnyListing(): Promise<Application | null> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return null;
+
+  const { data: rmRows, error: rmError } = await supabase
+    .from('application_roommates')
+    .select('application_id')
+    .eq('student_id', user.id);
+
+  if (rmError) throw rmError;
+  if (!rmRows?.length) return null;
+
+  const appIds = rmRows.map((r) => r.application_id);
+
+  const { data: app, error: appError } = await supabase
+    .from('applications')
+    .select('*')
+    .in('id', appIds)
+    .in('status', ['locked_pending_roommate', 'locked_pending_payment', 'partially_paid'])
+    .maybeSingle();
+
+  if (appError) throw appError;
+  return app;
 }
 
 export async function createClaim(
@@ -21,6 +64,11 @@ export async function createClaim(
   const existing = await getActiveClaimForListing(listingId);
   if (existing) {
     throw new Error('This listing already has an active claim.');
+  }
+
+  const anyActive = await getActiveClaimAnyListing();
+  if (anyActive) {
+    throw new Error('You already have an active claim on another property.');
   }
 
   const { data: application, error: appError } = await supabase
@@ -149,7 +197,7 @@ export async function markPaid(applicationId: string, studentId: string): Promis
   }
 }
 
-export async function getClaimWithRoommates(applicationId: string): Promise<ClaimWithRoommates> {
+export async function getClaimByApplicationId(applicationId: string): Promise<ClaimWithRoommates> {
   const { data, error } = await supabase
     .from('applications')
     .select(`
@@ -161,7 +209,56 @@ export async function getClaimWithRoommates(applicationId: string): Promise<Clai
     .single();
 
   if (error) throw error;
-  return data as ClaimWithRoommates;
+  return await enrichWithProfiles(data as ClaimWithRoommates);
+}
+
+export async function getClaimByListingId(listingId: string): Promise<ClaimWithRoommates> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) throw new Error('Not authenticated');
+
+  const { data: rmRows, error: rmError } = await supabase
+    .from('application_roommates')
+    .select('application_id')
+    .eq('student_id', user.id);
+
+  if (rmError) throw rmError;
+  if (!rmRows?.length) throw new Error('No claim found for this listing');
+
+  const appIds = rmRows.map((r) => r.application_id);
+
+  const { data: app, error: appError } = await supabase
+    .from('applications')
+    .select('id')
+    .in('id', appIds)
+    .eq('listing_id', listingId)
+    .maybeSingle();
+
+  if (appError) throw appError;
+  if (!app) throw new Error('No claim found for this listing');
+
+  return getClaimByApplicationId(app.id);
+}
+
+async function enrichWithProfiles(data: ClaimWithRoommates): Promise<ClaimWithRoommates> {
+  const roommates = data.application_roommates;
+  const studentIds = roommates.map((r) => r.student_id);
+
+  const { data: profiles } = await supabase
+    .from('profiles')
+    .select('id, full_name')
+    .in('id', studentIds);
+
+  const profileMap = new Map(profiles?.map((p) => [p.id, p.full_name]) ?? []);
+
+  return {
+    ...data,
+    application_roommates: roommates.map((r) => ({
+      ...r,
+      full_name: profileMap.get(r.student_id) ?? null,
+    })),
+  };
 }
 
 export async function getStudentClaims(studentId: string): Promise<Application[]> {
@@ -173,6 +270,15 @@ export async function getStudentClaims(studentId: string): Promise<Application[]
 
   if (error) throw error;
   return data || [];
+}
+
+export async function cancelClaim(applicationId: string): Promise<void> {
+  const { error } = await supabase
+    .from('applications')
+    .update({ status: 'expired' })
+    .eq('id', applicationId);
+
+  if (error) throw error;
 }
 
 export async function searchProfiles(query: string): Promise<{ id: string; full_name: string | null }[]> {

@@ -1,10 +1,12 @@
 import { loginUserAccount, registerUserAccount, UserProfileInput } from "@/services/authService";
 import { useAppToast } from "@/components/ui/toast-card";
+import { useAuth } from "@/context/auth-context";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 
 export function useAuthForm() {
     const { showToast } = useAppToast();
+    const { refreshProfile } = useAuth();
     const router = useRouter();
     const [loading, setLoading] = useState(false);
     const [email, setEmail] = useState('');
@@ -36,6 +38,7 @@ export function useAuthForm() {
     setLoading(true);
     try {
       await loginUserAccount(email, password);
+      await refreshProfile();
       router.replace('/(tabs)');
     } catch (err: any) {
       setLoading(false);

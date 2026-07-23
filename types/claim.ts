@@ -25,6 +25,7 @@ export type ApplicationRoommate = {
   split_amount: number;
   has_paid: boolean;
   created_at: string;
+  full_name?: string | null;
 };
 
 export type ClaimWithRoommates = Application & {

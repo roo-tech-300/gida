@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Alert, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,6 +8,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { BackButton } from '@/components/ui/back-button';
+import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-picker-modal';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
@@ -31,6 +32,7 @@ export function CreateListingMediaScreen() {
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [heroLoading, setHeroLoading] = useState(false);
+  const permissionAlert = useCustomAlert();
 
   const isEditing = editListingId !== null;
 
@@ -39,7 +41,11 @@ export function CreateListingMediaScreen() {
     try {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      Alert.alert('Permission required', 'Please allow photo access to pick an image.');
+      permissionAlert.showAlert({
+        title: 'Permission required',
+        message: 'Please allow photo access to pick an image.',
+        buttons: [{ label: 'OK', style: 'primary' }],
+      });
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -351,6 +357,7 @@ export function CreateListingMediaScreen() {
           setPickerOpen(false);
         }}
       />
+      <CustomAlert visible={permissionAlert.visible} title={permissionAlert.title} message={permissionAlert.message} buttons={permissionAlert.buttons} onDismiss={permissionAlert.hideAlert} />
     </SafeAreaView>
   );
 }

@@ -62,12 +62,14 @@ export default function RootLayout() {
             <ToastProvider>
               <AuthGate>
                 <ThemeProvider value={customTheme}>
-                  <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
+                  <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
                     <Stack.Screen name="index" />
                     <Stack.Screen name="(auth)" />
                     <Stack.Screen name="(onboarding)" />
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="property/[id]" />
+                    <Stack.Screen name="property/claim-room" />
+                    <Stack.Screen name="property/claim-receipt" />
                     <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="messages/[id]" />

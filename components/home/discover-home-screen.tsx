@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, BackHandler, FlatList, LayoutChangeEvent, StyleSheet, View } from 'react-native';
+import { ActivityIndicator, FlatList, LayoutChangeEvent, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
+import { useRouter, useFocusEffect } from 'expo-router';
 import { DesignColors } from '@/constants/design';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
@@ -48,16 +48,15 @@ export function DiscoverHomeScreen() {
     modeSelectorRef.current?.open();
   }, []);
 
-  useEffect(() => {
-    const sub = BackHandler.addEventListener('hardwareBackPress', () => {
-      if (currentIndex > 0) {
-        listRef.current?.scrollToIndex({ index: 0, animated: true });
-        return true;
+  const scrollOffsetRef = useRef(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      if (scrollOffsetRef.current > 0 && listRef.current) {
+        listRef.current.scrollToOffset({ offset: scrollOffsetRef.current, animated: false });
       }
-      return false;
-    });
-    return () => sub.remove();
-  }, [currentIndex]);
+    }, []),
+  );
 
   const onRefresh = useCallback(() => {
     refetch();
@@ -107,6 +106,7 @@ export function DiscoverHomeScreen() {
                 refreshing={isRefetching}
                 onRefresh={onRefresh}
                 onIndexChange={setCurrentIndex}
+                onScrollOffsetChange={(offset) => { scrollOffsetRef.current = offset; }}
               />
             )}
             {isLoading && mode === 'listings' && (

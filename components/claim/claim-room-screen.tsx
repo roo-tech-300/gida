@@ -1,13 +1,14 @@
 import { useCallback, useMemo, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import { BackButton } from '@/components/ui/back-button';
+import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
-import { useClaimDetails, useCreateClaim, useAddRoommate } from '@/hooks/use-claim';
+import { useClaimByApplicationId, useCreateClaim, useAddRoommate } from '@/hooks/use-claim';
 import { useListing } from '@/hooks/use-listing';
 import { ClaimRulesCard } from './claim-rules-card';
 import { ClaimSplitSummary } from './claim-split-summary';
@@ -30,12 +31,14 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const [showStatus, setShowStatus] = useState(false);
   const [createdClaimId, setCreatedClaimId] = useState<string | null>(null);
 
+  const { showToast } = useAppToast();
+
   const priceAmount = dbListing?.price_amount ?? 0;
   const maxRoommates = dbListing?.max_roommates ?? 1;
   const rules = dbListing?.rules ?? [];
   const numberOfPeople = hasRoommate && selectedRoommate ? 2 : 1;
 
-  const { data: claimDetails } = useClaimDetails(createdClaimId);
+  const { data: claimDetails } = useClaimByApplicationId(createdClaimId);
 
   const handleLockSpace = useCallback(async () => {
     if (!userId || !listingId) return;
@@ -56,12 +59,12 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
       setCreatedClaimId(claim.id);
       setShowStatus(true);
     } catch (error: any) {
-      Alert.alert('Error', error.message || 'Failed to lock space.');
+      showToast({ message: error.message || 'Failed to lock space.', type: 'error' });
     }
   }, [userId, listingId, hasRoommate, selectedRoommate, priceAmount, createClaim, addRoommate]);
 
   const handlePayNow = useCallback(() => {
-    Alert.alert('Payment', 'Payment integration coming soon.');
+    showToast({ message: 'Payment integration coming soon.', type: 'info' });
   }, []);
 
   if (listingLoading) {

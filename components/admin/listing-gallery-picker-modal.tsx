@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Alert, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import * as ImagePicker from 'expo-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { BlurView } from 'expo-blur';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 
 type Props = {
   visible: boolean;
@@ -16,6 +17,7 @@ type Props = {
 export function ListingGalleryPickerModal({ visible, selectedImages, onClose, onDone }: Props) {
   const [draftImages, setDraftImages] = useState<string[]>(selectedImages);
   const [loading, setLoading] = useState(false);
+  const permissionAlert = useCustomAlert();
 
   useEffect(() => {
     if (visible) setDraftImages(selectedImages);
@@ -50,7 +52,11 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permission required', 'Please allow photo access to pick images from your device.');
+        permissionAlert.showAlert({
+          title: 'Permission required',
+          message: 'Please allow photo access to pick images from your device.',
+          buttons: [{ label: 'OK', style: 'primary' }],
+        });
         return;
       }
 
@@ -140,6 +146,7 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
           )}
         </View>
       </View>
+      <CustomAlert visible={permissionAlert.visible} title={permissionAlert.title} message={permissionAlert.message} buttons={permissionAlert.buttons} onDismiss={permissionAlert.hideAlert} />
     </Modal>
   );
 }

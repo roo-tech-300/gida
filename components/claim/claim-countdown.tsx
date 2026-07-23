@@ -2,11 +2,18 @@ import { useEffect, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import {
+  DesignColors,
+  DesignRadius,
+  DesignSpacing,
+  DesignTypography,
+  fontFamily,
+} from '@/constants/design';
 
 type Props = {
   expiresAt: string;
   onExpired?: () => void;
+  variant?: 'card' | 'inline';
 };
 
 function getRemaining(expiresAt: string) {
@@ -21,7 +28,40 @@ function getRemaining(expiresAt: string) {
   };
 }
 
-export function ClaimCountdown({ expiresAt, onExpired }: Props) {
+function Digit({ value, unit }: { value: string; unit: string }) {
+  return (
+    <View style={styles.digitWrap}>
+      <Text style={styles.digitValue}>{value}</Text>
+      <Text style={styles.digitUnit}>{unit}</Text>
+    </View>
+  );
+}
+
+function Digits({ expiresAt }: { expiresAt: string }) {
+  const [remaining, setRemaining] = useState(() => getRemaining(expiresAt));
+
+  useEffect(() => {
+    if (remaining.expired) return;
+    const interval = setInterval(() => setRemaining(getRemaining(expiresAt)), 1000);
+    return () => clearInterval(interval);
+  }, [expiresAt, remaining.expired]);
+
+  const pad = (n: number) => String(n).padStart(2, '0');
+
+  if (remaining.expired) return null;
+
+  return (
+    <View style={styles.digits}>
+      <Digit value={pad(remaining.hours)} unit="hrs" />
+      <Text style={styles.separator}>:</Text>
+      <Digit value={pad(remaining.minutes)} unit="min" />
+      <Text style={styles.separator}>:</Text>
+      <Digit value={pad(remaining.seconds)} unit="sec" />
+    </View>
+  );
+}
+
+export function ClaimCountdown({ expiresAt, onExpired, variant = 'card' }: Props) {
   const [remaining, setRemaining] = useState(() => getRemaining(expiresAt));
 
   useEffect(() => {
@@ -34,7 +74,14 @@ export function ClaimCountdown({ expiresAt, onExpired }: Props) {
     return () => clearInterval(interval);
   }, [expiresAt, onExpired, remaining.expired]);
 
-  const pad = (n: number) => String(n).padStart(2, '0');
+  if (variant === 'inline') {
+    if (remaining.expired) {
+      return (
+        <Text style={styles.inlineExpired}>Lock expired</Text>
+      );
+    }
+    return <Digits expiresAt={expiresAt} />;
+  }
 
   if (remaining.expired) {
     return (
@@ -49,22 +96,7 @@ export function ClaimCountdown({ expiresAt, onExpired }: Props) {
     <View style={styles.container}>
       <Ionicons name="time-outline" size={18} color={DesignColors.secondary} />
       <Text style={styles.label}>Expires in</Text>
-      <View style={styles.digits}>
-        <Digit value={pad(remaining.hours)} unit="hrs" />
-        <Text style={styles.separator}>:</Text>
-        <Digit value={pad(remaining.minutes)} unit="min" />
-        <Text style={styles.separator}>:</Text>
-        <Digit value={pad(remaining.seconds)} unit="sec" />
-      </View>
-    </View>
-  );
-}
-
-function Digit({ value, unit }: { value: string; unit: string }) {
-  return (
-    <View style={styles.digitWrap}>
-      <Text style={styles.digitValue}>{value}</Text>
-      <Text style={styles.digitUnit}>{unit}</Text>
+      <Digits expiresAt={expiresAt} />
     </View>
   );
 }
@@ -119,5 +151,11 @@ const styles = StyleSheet.create({
     color: DesignColors.error,
     fontFamily,
     fontWeight: '600',
+  },
+  inlineExpired: {
+    ...DesignTypography.bodyLg,
+    color: DesignColors.error,
+    fontFamily,
+    fontWeight: '700',
   },
 });

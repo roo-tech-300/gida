@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { BlurView } from 'expo-blur';
 import * as Location from 'expo-location';
 import { Ionicons } from '@expo/vector-icons';
@@ -10,6 +10,7 @@ import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
+import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
@@ -17,6 +18,7 @@ export function CreateListingLocationScreen() {
   const { data, setStep2 } = useCreateListingForm();
   const { step2 } = data;
   const { showToast } = useAppToast();
+  const alert = useCustomAlert();
   const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
@@ -40,13 +42,21 @@ export function CreateListingLocationScreen() {
     try {
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-        Alert.alert('Permission Denied', 'Location permission is required to lock your property coordinates.');
+        alert.showAlert({
+          title: 'Permission Denied',
+          message: 'Location permission is required to lock your property coordinates.',
+          buttons: [{ label: 'OK', style: 'primary' }],
+        });
         return;
       }
       const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
       setStep2({ coords: { latitude: loc.coords.latitude, longitude: loc.coords.longitude } });
     } catch {
-      Alert.alert('Error', 'Could not fetch your location. Make sure GPS is enabled.');
+      alert.showAlert({
+        title: 'Error',
+        message: 'Could not fetch your location. Make sure GPS is enabled.',
+        buttons: [{ label: 'OK', style: 'primary' }],
+      });
     } finally {
       setLockLoading(false);
     }
@@ -204,6 +214,7 @@ export function CreateListingLocationScreen() {
         </Pressable>
       </View>
       </KeyboardAvoidingView>
+      <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} buttons={alert.buttons} onDismiss={alert.hideAlert} />
     </SafeAreaView>
   );
 }

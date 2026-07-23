@@ -1,5 +1,6 @@
-import { Alert, Pressable, StyleSheet, Text } from 'react-native';
+import { Pressable, StyleSheet, Text } from 'react-native';
 import { signOutUserAccount } from '@/services/authService';
+import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import {
   DesignColors,
   DesignLayout,
@@ -9,14 +10,16 @@ import {
 } from '@/constants/design';
 
 export function LogoutButton() {
+  const alert = useCustomAlert();
+
   const handleLogout = () => {
-    Alert.alert(
-      'Log out',
-      'Are you sure you want to log out?',
-      [
-        { text: 'Cancel', style: 'cancel' },
+    alert.showAlert({
+      title: 'Log out',
+      message: 'Are you sure you want to log out?',
+      buttons: [
+        { label: 'Cancel', style: 'cancel' },
         {
-          text: 'Log out',
+          label: 'Log out',
           style: 'destructive',
           onPress: async () => {
             try {
@@ -24,20 +27,29 @@ export function LogoutButton() {
             } catch (error) {}
           },
         },
-      ]
-    );
+      ],
+    });
   };
 
   return (
-    <Pressable
-      accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.base,
-        pressed && styles.pressed,
-      ]}
-      onPress={handleLogout}>
-      <Text style={styles.label}>Log out</Text>
-    </Pressable>
+    <>
+      <Pressable
+        accessibilityRole="button"
+        style={({ pressed }) => [
+          styles.base,
+          pressed && styles.pressed,
+        ]}
+        onPress={handleLogout}>
+        <Text style={styles.label}>Log out</Text>
+      </Pressable>
+      <CustomAlert
+        visible={alert.visible}
+        title={alert.title}
+        message={alert.message}
+        buttons={alert.buttons}
+        onDismiss={alert.hideAlert}
+      />
+    </>
   );
 }
 

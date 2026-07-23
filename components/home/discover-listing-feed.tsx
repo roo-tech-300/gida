@@ -13,10 +13,11 @@ type Props = {
   refreshing: boolean;
   onRefresh: () => void;
   onIndexChange?: (index: number) => void;
+  onScrollOffsetChange?: (offset: number) => void;
 };
 
 export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(function DiscoverListingFeed(
-  { listings, likedIds, onToggleLike, onViewListing, itemHeight, refreshing, onRefresh, onIndexChange },
+  { listings, likedIds, onToggleLike, onViewListing, itemHeight, refreshing, onRefresh, onIndexChange, onScrollOffsetChange },
   ref,
 ) {
   const listRef = useRef<FlatList<FeedListing> | null>(null);
@@ -68,6 +69,7 @@ export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(func
       showsVerticalScrollIndicator={false}
       bounces={currentIndex === 0}
       onMomentumScrollEnd={handleMomentumEnd}
+      onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

@@ -1,4 +1,5 @@
-import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -11,7 +12,17 @@ import { ActiveAdminCard } from './active-admin-card';
 
 export function StudentProfileScreen() {
   const { signOut, profile } = useAuth();
+  const [signingOut, setSigningOut] = useState(false);
   const p = studentProfile;
+
+  const handleLogout = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+    } catch (error) {
+      setSigningOut(false);
+    }
+  };
   return (
     <SafeAreaView style={styles.safe}>
       <View style={{ flex: 1 }}>
@@ -31,7 +42,7 @@ export function StudentProfileScreen() {
                 <Ionicons name="checkmark-circle" size={16} color="#ffffff" />
               </View>
             </View>
-            <Text style={styles.name}>{p.name}</Text>
+            <Text style={styles.name}>{profile?.full_name ?? 'Student'}</Text>
             <Text style={styles.university}>
               {p.university} • {p.department} • {p.level}
             </Text>
@@ -39,7 +50,7 @@ export function StudentProfileScreen() {
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
-            <ProfileRow icon="person-outline" label="Full Name" value={p.name} />
+            <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} />
             <ProfileRow icon="mail-outline" label="Email Address" value={p.email} />
           </View>
 
@@ -76,9 +87,19 @@ export function StudentProfileScreen() {
           </View>
 
           <View style={styles.logoutSection}>
-            <Pressable style={styles.logoutRow} onPress={signOut}>
-              <Ionicons name="log-out-outline" size={22} color={DesignColors.error} />
-              <Text style={styles.logoutText}>Logout Account</Text>
+            <Pressable
+              style={styles.logoutRow}
+              onPress={handleLogout}
+              disabled={signingOut}
+            >
+              {signingOut ? (
+                <ActivityIndicator color={DesignColors.error} />
+              ) : (
+                <>
+                  <Ionicons name="log-out-outline" size={22} color={DesignColors.error} />
+                  <Text style={styles.logoutText}>Logout Account</Text>
+                </>
+              )}
             </Pressable>
           </View>
 

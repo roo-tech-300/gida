@@ -21,7 +21,7 @@ export function ClaimRulesCard({ rules, maxRoommates }: Props) {
       <View style={styles.capacityRow}>
         <Ionicons name="people-outline" size={16} color={DesignColors.onSurfaceVariant} />
         <Text style={styles.capacityText}>
-          Max roommates allowed: <Text style={styles.capacityValue}>{effectiveMax}</Text>
+          This space allows up to <Text style={styles.capacityValue}>{effectiveMax}</Text> {effectiveMax === 1 ? 'roommate' : 'roommates'}
         </Text>
       </View>
 

@@ -7,11 +7,11 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 
 type Props = {
   onBookTour?: () => void;
-  onApplyListing?: () => void;
+  onClaimRoom?: () => void;
   hasActiveClaim?: boolean;
 };
 
-export function PropertyBottomBar({ onBookTour, onApplyListing, hasActiveClaim }: Props) {
+export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim }: Props) {
   const insets = useSafeAreaInsets();
   const [liked, setLiked] = useState(false);
 
@@ -30,7 +30,7 @@ export function PropertyBottomBar({ onBookTour, onApplyListing, hasActiveClaim }
         <Text style={styles.secondaryCtaText}>Book Tour</Text>
       </Pressable>
 
-      <Pressable onPress={onApplyListing} style={styles.primaryCtaButton}>
+      <Pressable onPress={onClaimRoom} style={styles.primaryCtaButton}>
         <Ionicons name={hasActiveClaim ? 'eye-outline' : 'enter-outline'} size={18} color={DesignColors.onPrimaryContainer} />
         <Text style={styles.primaryCtaText}>{hasActiveClaim ? 'View Claim' : 'Claim Room'}</Text>
       </Pressable>

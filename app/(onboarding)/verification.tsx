@@ -24,7 +24,7 @@ export default function OnboardingVerificationScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
   const { data, updateData, resetData } = useOnboarding();
-  const { profile } = useAuth();
+  const { profile, refreshProfile } = useAuth();
   const [loading, setLoading] = useState(false);
   const [schoolOpen, setSchoolOpen] = useState(false);
 
@@ -36,14 +36,13 @@ export default function OnboardingVerificationScreen() {
       }
 
       await saveOnboardingProfile(profile.id, data);
+      await refreshProfile();
       resetData();
-      showToast({ type: 'success', message: 'Profile setup complete!' });
       router.replace('/(tabs)');
     } catch (error) {
+      setLoading(false);
       const message = error instanceof Error ? error.message : 'Could not save your profile.';
       showToast({ type: 'error', message });
-    } finally {
-      setLoading(false);
     }
   };
 

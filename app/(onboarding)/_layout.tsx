@@ -10,7 +10,7 @@ export default function OnboardingLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest },
-          animation: 'none',
+          animation: 'slide_from_right',
         }}>
         <Stack.Screen name="city" />
         <Stack.Screen name="roommate" />

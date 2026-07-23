@@ -23,9 +23,8 @@ export function useAuthForm() {
             showToast({type: 'success', message: "Registration successful!"});
             router.replace('/(onboarding)/city');
         } catch (error) {
-            showToast({type: 'error', message: "Registration failed. Please try again."});
-        } finally {
             setLoading(false);
+            showToast({type: 'error', message: "Registration failed. Please try again."});
         }
     }
 
@@ -39,9 +38,8 @@ export function useAuthForm() {
       await loginUserAccount(email, password);
       router.replace('/(tabs)');
     } catch (err: any) {
-      showToast({ title: 'Login Failed', message: err.message || 'An error occurred during login. Please try again.', type: 'error' });
-    } finally {
       setLoading(false);
+      showToast({ title: 'Login Failed', message: err.message || 'An error occurred during login. Please try again.', type: 'error' });
     }
   };
    return {

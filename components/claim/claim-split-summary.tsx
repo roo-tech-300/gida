@@ -25,6 +25,15 @@ export function ClaimSplitSummary({ totalPrice, numberOfPeople }: Props) {
 
       <View style={styles.divider} />
 
+      <View style={styles.peopleRow}>
+        {Array.from({ length: numberOfPeople }).map((_, i) => (
+          <View key={i} style={styles.personChip}>
+            <Ionicons name="checkmark-circle" size={16} color={DesignColors.secondary} />
+            <Text style={styles.personLabel}>Person {i + 1}</Text>
+          </View>
+        ))}
+      </View>
+
       <View style={styles.splitRow}>
         <View style={styles.splitInfo}>
           <Ionicons name="people" size={16} color={DesignColors.primaryBright} />
@@ -72,6 +81,26 @@ const styles = StyleSheet.create({
   divider: {
     height: 1,
     backgroundColor: DesignColors.cardBorder,
+  },
+  peopleRow: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: DesignSpacing.sm,
+  },
+  personChip: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    backgroundColor: DesignColors.surfaceContainerHigh,
+    borderRadius: DesignRadius.sm,
+    paddingHorizontal: DesignSpacing.sm,
+    paddingVertical: 4,
+  },
+  personLabel: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '600',
   },
   splitRow: {
     flexDirection: 'row',

@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-claim';
+import { RecentSearches, getRecents, saveRecent, clearRecents } from './recent-searches';
 
 type Profile = { id: string; full_name: string | null };
 
@@ -12,34 +13,6 @@ type Props = {
   onSelect: (profile: Profile) => void;
   onClear: () => void;
 };
-
-const RECENT_KEY = 'gida_recent_roommate_searches';
-const MAX_RECENT = 5;
-
-function getRecents(): string[] {
-  try {
-    const raw = typeof localStorage !== 'undefined' ? localStorage.getItem(RECENT_KEY) : null;
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveRecent(query: string) {
-  try {
-    const recents = getRecents().filter((r) => r !== query);
-    recents.unshift(query);
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(RECENT_KEY, JSON.stringify(recents.slice(0, MAX_RECENT)));
-    }
-  } catch {}
-}
-
-function clearRecents() {
-  try {
-    if (typeof localStorage !== 'undefined') localStorage.removeItem(RECENT_KEY);
-  } catch {}
-}
 
 export function RoommateSearch({ selectedRoommate, onSelect, onClear }: Props) {
   const [query, setQuery] = useState('');
@@ -130,21 +103,12 @@ export function RoommateSearch({ selectedRoommate, onSelect, onClear }: Props) {
         </View>
       )}
 
-      {debouncedQuery.length < 2 && recents.length > 0 && (
-        <View style={styles.recentsSection}>
-          <View style={styles.recentsHeader}>
-            <Text style={styles.recentsLabel}>Recent searches</Text>
-            <Pressable onPress={() => { clearRecents(); setRecents([]); }}>
-              <Text style={styles.clearAll}>Clear</Text>
-            </Pressable>
-          </View>
-          {recents.map((term) => (
-            <Pressable key={term} style={styles.recentChip} onPress={() => setQuery(term)}>
-              <Ionicons name="time-outline" size={14} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.recentText}>{term}</Text>
-            </Pressable>
-          ))}
-        </View>
+      {debouncedQuery.length < 2 && (
+        <RecentSearches
+          terms={recents}
+          onSelect={setQuery}
+          onClear={() => { clearRecents(); setRecents([]); }}
+        />
       )}
     </View>
   );
@@ -211,41 +175,6 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '600',
-  },
-  recentsSection: {
-    gap: 6,
-  },
-  recentsHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  recentsLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-  },
-  clearAll: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.primaryBright,
-    fontFamily,
-  },
-  recentChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-    borderRadius: DesignRadius.sm,
-    paddingHorizontal: DesignSpacing.sm,
-    paddingVertical: 6,
-    alignSelf: 'flex-start',
-  },
-  recentText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
   },
   selectedCard: {
     flexDirection: 'row',

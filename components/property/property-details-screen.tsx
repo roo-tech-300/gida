@@ -99,7 +99,7 @@ export function PropertyDetailsScreen({ property, photos }: { property: FeedList
 
       <PropertyBottomBar
         onBookTour={() => router.push(`/property/tour-scheduler?id=${property.id}`)}
-        onApplyListing={handleClaimRoom}
+        onClaimRoom={handleClaimRoom}
         hasActiveClaim={!!activeClaim}
       />
 

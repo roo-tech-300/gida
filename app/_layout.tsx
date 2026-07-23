@@ -9,6 +9,19 @@ import { ToastProvider } from '@/components/ui/toast-card';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
+
+const customTheme = {
+  ...DarkTheme,
+  colors: {
+    ...DarkTheme.colors,
+    background: DesignColors.surfaceContainerLowest,
+    card: DesignColors.surface,
+    text: DesignColors.onSurface,
+    border: DesignColors.cardBorder,
+  },
+};
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated } = useAuth();
   const segments = useSegments();
@@ -48,17 +61,19 @@ export default function RootLayout() {
           <OnboardingProvider>
             <ToastProvider>
               <AuthGate>
-                <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: '#000000' } }}>
-                  <Stack.Screen name="index" />
-                  <Stack.Screen name="(auth)" />
-                  <Stack.Screen name="(onboarding)" />
-                  <Stack.Screen name="(tabs)" />
-                  <Stack.Screen name="property/[id]" />
-                  <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
-                  <Stack.Screen name="messages/[id]" />
-                  <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                </Stack>
+                <ThemeProvider value={customTheme}>
+                  <Stack screenOptions={{ headerShown: false, animation: 'slide_from_right', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(onboarding)" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="property/[id]" />
+                    <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="messages/[id]" />
+                    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                  </Stack>
+                </ThemeProvider>
               </AuthGate>
             </ToastProvider>
           </OnboardingProvider>

@@ -44,10 +44,13 @@ export default function OnboardingLivingScreen() {
           <View style={styles.inputWrap}>
             <Ionicons name="cash-outline" size={22} color={DesignColors.primary} style={styles.inputIcon} />
             <TextInput
-              placeholder="e.g. 50000"
+              placeholder="e.g. 50,000"
               placeholderTextColor={DesignColors.textSecondary}
-              value={data.maxBudget}
-              onChangeText={(value) => updateData({ maxBudget: value.replace(/[^0-9]/g, '') })}
+              value={data.maxBudget ? Number(data.maxBudget).toLocaleString('en-US') : ''}
+              onChangeText={(value) => {
+                const digits = value.replace(/[^0-9]/g, '');
+                updateData({ maxBudget: digits });
+              }}
               keyboardType="numeric"
               style={styles.input}
             />

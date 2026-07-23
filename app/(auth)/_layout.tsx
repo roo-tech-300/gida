@@ -10,7 +10,7 @@ export default function AuthLayout() {
         screenOptions={{
           headerShown: false,
           contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest },
-          animation: 'none',
+          animation: 'slide_from_right',
         }}>
         <Stack.Screen name="welcome" />
         <Stack.Screen name="login" />

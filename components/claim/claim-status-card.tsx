@@ -11,6 +11,7 @@ type Props = {
   currentUserId: string;
   onPayNow: () => void;
   onExpired?: () => void;
+  onFindNewRoommate?: () => void;
 };
 
 const STATUS_CONFIG: Record<RoommateInviteStatus, { color: string; label: string; icon: keyof typeof Ionicons.glyphMap }> = {
@@ -24,9 +25,10 @@ function formatNaira(amount: number) {
   return `₦${amount.toLocaleString('en-US')}`;
 }
 
-export function ClaimStatusCard({ expiresAt, roommates, currentUserId, onPayNow, onExpired }: Props) {
+export function ClaimStatusCard({ expiresAt, roommates, currentUserId, onPayNow, onExpired, onFindNewRoommate }: Props) {
   const currentUser = roommates.find((r) => r.student_id === currentUserId);
   const isPaid = currentUser?.has_paid ?? false;
+  const hasDeclined = roommates.some((r) => r.invite_status === 'declined' && r.student_id !== currentUserId);
 
   return (
     <View style={styles.card}>
@@ -65,6 +67,19 @@ export function ClaimStatusCard({ expiresAt, roommates, currentUserId, onPayNow,
         <View style={styles.paidBadge}>
           <Ionicons name="checkmark-done" size={18} color={DesignColors.secondary} />
           <Text style={styles.paidText}>Your share is paid</Text>
+        </View>
+      )}
+
+      {hasDeclined && onFindNewRoommate && (
+        <View style={styles.declinedSection}>
+          <View style={styles.declinedBanner}>
+            <Ionicons name="alert-circle-outline" size={18} color={DesignColors.error} />
+            <Text style={styles.declinedText}>A roommate declined the invite</Text>
+          </View>
+          <Pressable style={styles.findNewButton} onPress={onFindNewRoommate}>
+            <Ionicons name="person-add-outline" size={18} color={DesignColors.onPrimaryContainer} />
+            <Text style={styles.findNewText}>Find New Roommate</Text>
+          </Pressable>
         </View>
       )}
     </View>
@@ -149,6 +164,39 @@ const styles = StyleSheet.create({
   paidText: {
     ...DesignTypography.bodyLg,
     color: DesignColors.secondary,
+    fontFamily,
+    fontWeight: '700',
+  },
+  declinedSection: {
+    gap: DesignSpacing.sm,
+  },
+  declinedBanner: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    backgroundColor: DesignColors.errorContainer,
+    borderRadius: DesignRadius.sm,
+    padding: DesignSpacing.sm,
+  },
+  declinedText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onErrorContainer,
+    fontFamily,
+    fontWeight: '600',
+    flex: 1,
+  },
+  findNewButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: DesignSpacing.sm,
+    backgroundColor: DesignColors.primaryContainer,
+    borderRadius: DesignRadius.xl,
+    paddingVertical: 14,
+  },
+  findNewText: {
+    ...DesignTypography.bodyLg,
+    color: DesignColors.onPrimaryContainer,
     fontFamily,
     fontWeight: '700',
   },

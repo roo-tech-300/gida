@@ -108,6 +108,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             currentUserId={userId!}
             onPayNow={handlePayNow}
             onExpired={() => setShowStatus(false)}
+            onFindNewRoommate={() => { setShowStatus(false); setHasRoommate(true); setSelectedRoommate(null); }}
           />
 
           <Pressable style={styles.backToListing} onPress={() => router.replace(`/property/${listingId}`)}>
@@ -179,9 +180,8 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
           ) : (
             <>
-              <Ionicons name="lock-closed" size={20} color={DesignColors.onPrimaryContainer} />
               <Text style={styles.lockText}>
-                {hasRoommate ? 'Send Invite & Lock Space' : 'Lock Space'}
+                {hasRoommate ? 'Send Invite & Secure Space' : 'Secure Space'}
               </Text>
             </>
           )}

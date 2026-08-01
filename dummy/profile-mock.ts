@@ -3,7 +3,6 @@ export interface ProfileData {
   verified: boolean;
   name: string;
   university: string;
-  department: string;
   level: string;
   email: string;
   roommateProfile: {
@@ -19,7 +18,6 @@ export const studentProfile: ProfileData = {
   verified: true,
   name: 'Danjuma Ibrahim',
   university: 'FUTMinna',
-  department: 'Cyber Security',
   level: '300L',
   email: 'danjuma.ibrahim@futminna.edu.ng',
   roommateProfile: {

@@ -60,8 +60,8 @@ const styles = StyleSheet.create({
   },
   backButton: {
     flex: 1,
-    height: DesignLayout.buttonHeight,
-    borderRadius: DesignRadius.lg,
+    height: 48,
+    borderRadius: DesignRadius.md,
     backgroundColor: DesignColors.surfaceContainerHigh,
     flexDirection: 'row',
     alignItems: 'center',

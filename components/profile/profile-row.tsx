@@ -23,7 +23,7 @@ export function ProfileRow({
           {value ? <Text style={styles.value}>{value}</Text> : null}
         </View>
       </View>
-      <Ionicons name="chevron-forward" size={20} color={DesignColors.onSurfaceVariant} />
+      <Ionicons name="chevron-forward" size={20} color={DesignColors.outlineVariant} />
     </Pressable>
   );
 }
@@ -37,7 +37,7 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.md,
     minHeight: 56,
     borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: 'rgba(255, 255, 255, 0.05)',
+    borderTopColor: DesignColors.cardBorder,
   },
   left: {
     flexDirection: 'row',

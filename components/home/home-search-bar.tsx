@@ -63,7 +63,7 @@ export function HomeSearchBar({
           )}
           <View style={styles.divider} />
           <Pressable style={styles.modeArea} onPress={onSwipeDown}>
-            <Ionicons name="swap-vertical-outline" size={18} color={DesignColors.onPrimary} />
+            <Ionicons name="swap-vertical-outline" size={18} color="#ffffff" />
           </Pressable>
         </View>
       </View>

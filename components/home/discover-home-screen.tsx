@@ -12,15 +12,25 @@ import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/fe
 import { HomeSearchBar } from '@/components/home/home-search-bar';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
+import { useRecommendedListings } from '@/hooks/useRecommendedListings';
 import { useListings } from '@/hooks/use-listings';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
+import { useAuth } from '@/context/auth-context';
 import type { FeedListing } from '@/types/feed-listing';
 
 type FeedMode = 'listings' | 'roommates';
 
 export function DiscoverHomeScreen() {
   const router = useRouter();
-  const { data: listings = [], isLoading, isRefetching, refetch } = useListings();
+  const { profile } = useAuth();
+  const recommended = useRecommendedListings(profile?.id);
+  const fallback = useListings();
+
+  const useRecommended = recommended.data && recommended.data.length > 0;
+  const listings = useRecommended ? recommended.data! : fallback.data ?? [];
+  const isLoading = useRecommended ? recommended.isLoading : fallback.isLoading;
+  const isRefetching = useRecommended ? recommended.isRefetching : fallback.isRefetching;
+  const refetch = useRecommended ? recommended.refetch : fallback.refetch;
   const { data: savedIds = [] } = useSavedIds();
   const { mutate: toggleSave } = useToggleSave();
   const [query, setQuery] = useState('');

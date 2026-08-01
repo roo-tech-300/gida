@@ -93,7 +93,7 @@ export function AddAdminScreen() {
                         <Text style={styles.resultName}>{selected.name}</Text>
                         <Ionicons name="checkmark-circle" size={18} color={DesignColors.primary} />
                       </View>
-                      <Text style={styles.resultEmail}>{selected.department} • {selected.university}</Text>
+                      <Text style={styles.resultEmail}>{selected.level} • {selected.university}</Text>
                     </View>
                   </View>
                   <View style={styles.statusBadge}>
@@ -122,7 +122,7 @@ export function AddAdminScreen() {
                       </View>
                       <View>
                         <Text style={styles.resultRowName}>{item.name}</Text>
-                        <Text style={styles.resultRowMeta}>{item.department} • {item.university}</Text>
+                        <Text style={styles.resultRowMeta}>{item.level} • {item.university}</Text>
                       </View>
                     </View>
                     <Ionicons name="add-circle-outline" size={22} color={DesignColors.primary} />

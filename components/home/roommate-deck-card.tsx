@@ -13,6 +13,12 @@ type Props = {
   onSayHello: (id: string) => void;
 };
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return parts[0]?.substring(0, 2).toUpperCase() ?? '?';
+}
+
 function getDotColor(value: string): string {
   const v = value.toLowerCase();
   if (v === 'high' || v === 'very high' || v === 'yes' || v === 'ok') return DesignColors.secondary;
@@ -33,7 +39,13 @@ function ChipPill({ label, value }: { label: string; value: string }) {
 export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) {
   return (
     <View style={styles.card}>
-      <Image source={profile.avatar} style={styles.image} contentFit="cover" />
+      {profile.avatar ? (
+        <Image source={profile.avatar} style={styles.image} contentFit="cover" />
+      ) : (
+        <View style={styles.imageFallback}>
+          <Text style={styles.initials}>{getInitials(profile.name)}</Text>
+        </View>
+      )}
 
       <View style={styles.gradientOverlay}>
         <Svg height="100%" width="100%">
@@ -98,6 +110,20 @@ const styles = StyleSheet.create({
   },
   image: {
     ...StyleSheet.absoluteFillObject,
+  },
+  imageFallback: {
+    ...StyleSheet.absoluteFillObject,
+    backgroundColor: DesignColors.surfaceContainerHigh,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: '20%',
+  },
+  initials: {
+    fontSize: 200,
+    fontWeight: '700',
+    color: DesignColors.primary,
+    fontFamily,
+    opacity: 0.5,
   },
   gradientOverlay: {
     ...StyleSheet.absoluteFillObject,

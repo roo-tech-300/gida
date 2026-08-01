@@ -9,7 +9,6 @@ export type RoommateProfile = {
   age: number;
   avatar: any;
   university: string;
-  department: string;
   level: string;
   compatibility: number;
   moveInDate: string;

@@ -39,7 +39,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     if (isAuthenticated && !profile?.onboarded && !inOnboardingGroup) {
-      router.replace('/(onboarding)/city');
+      router.replace('/(onboarding)/preferences-budget');
       return;
     }
 

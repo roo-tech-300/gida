@@ -7,6 +7,7 @@ export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
 export type AuthProfile = {
   id: string;
   full_name: string | null;
+  avatar_url: string | null;
   is_student: boolean | null;
   is_admin: boolean | null;
   admin_role: AdminRole | null;
@@ -14,6 +15,11 @@ export type AuthProfile = {
   city: string | null;
   school: string | null;
   onboarded: boolean | null;
+  show_in_roommate_feed: boolean | null;
+  birth_year: number | null;
+  entry_year: number | null;
+  program_duration: number | null;
+  religion: string | null;
 };
 
 type AuthContextValue = {

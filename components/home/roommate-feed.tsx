@@ -41,7 +41,6 @@ export function RoommateFeed() {
         (r) =>
           r.name.toLowerCase().includes(q) ||
           r.university.toLowerCase().includes(q) ||
-          r.department.toLowerCase().includes(q) ||
           r.bio.toLowerCase().includes(q),
       );
     }

@@ -19,6 +19,12 @@ function CompatibilityBadge({ pct }: { pct: number }) {
   );
 }
 
+function getInitials(name: string): string {
+  const parts = name.trim().split(/\s+/);
+  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+  return parts[0]?.substring(0, 2).toUpperCase() ?? '?';
+}
+
 function Chip({ label, value }: { label: string; value: string }) {
   return (
     <View style={styles.chip}>
@@ -34,7 +40,13 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
     <View style={styles.card}>
       <View style={styles.topRow}>
         <View style={styles.avatarRow}>
-          <Image source={roommate.avatar} style={styles.avatar} contentFit="cover" />
+          {roommate.avatar ? (
+            <Image source={roommate.avatar} style={styles.avatar} contentFit="cover" />
+          ) : (
+            <View style={styles.avatarFallback}>
+              <Text style={styles.avatarInitials}>{getInitials(roommate.name)}</Text>
+            </View>
+          )}
           <View style={styles.nameBlock}>
             <Text style={styles.name}>{roommate.name}, {roommate.age}</Text>
             <Text style={styles.logistics}>Move-in: {roommate.moveInDate} | Budget: {roommate.budget}</Text>
@@ -89,6 +101,20 @@ const styles = StyleSheet.create({
     height: 48,
     borderRadius: 24,
     backgroundColor: DesignColors.surfaceContainerHigh,
+  },
+  avatarFallback: {
+    width: 48,
+    height: 48,
+    borderRadius: 24,
+    backgroundColor: DesignColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  avatarInitials: {
+    fontSize: 18,
+    color: DesignColors.onPrimary,
+    fontFamily,
+    fontWeight: '800',
   },
   nameBlock: {
     flex: 1,

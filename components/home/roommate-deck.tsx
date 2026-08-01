@@ -2,7 +2,11 @@ import { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
 import { RoommateDeckCard } from '@/components/home/roommate-deck-card';
-import { roommateProfiles } from '@/dummy/roommates-mock';
+import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
+import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
+import { useAuth } from '@/context/auth-context';
+import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
+import { useRoommates } from '@/hooks/useRoommates';
 import type { RoommateProfile } from '@/types/roommates';
 
 type Props = {
@@ -11,26 +15,24 @@ type Props = {
   onQueryChange: (value: string) => void;
 };
 
-export function RoommateDeck({ itemHeight, query }: Props) {
-  const [refreshing, setRefreshing] = useState(false);
+export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
+  const { needsOnboarding } = useRoommateVisibility();
+  const { profile } = useAuth();
+  const [sheetVisible, setSheetVisible] = useState(true);
   const listRef = useRef<FlatList<RoommateProfile>>(null);
 
+  const { data: allRoommates = [], isRefetching, refetch } = useRoommates();
+
   const filtered = useMemo(() => {
+    const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
     const q = query.trim().toLowerCase();
-    if (!q) return roommateProfiles;
-    return roommateProfiles.filter(
+    if (!q) return others;
+    return others.filter(
       (p) =>
         p.name.toLowerCase().includes(q) ||
-        p.university.toLowerCase().includes(q) ||
-        p.department.toLowerCase().includes(q) ||
         p.bio.toLowerCase().includes(q),
     );
-  }, [query]);
-
-  const onRefresh = useCallback(() => {
-    setRefreshing(true);
-    setTimeout(() => setRefreshing(false), 1300);
-  }, []);
+  }, [query, allRoommates, profile?.id]);
 
   const onViewProfile = useCallback((id: string) => {
     // TODO: navigate to profile detail
@@ -60,6 +62,23 @@ export function RoommateDeck({ itemHeight, query }: Props) {
     [itemHeight],
   );
 
+  if (needsOnboarding) {
+    return <RoommateOnboardingSheet visible={sheetVisible} onDismiss={() => setSheetVisible(false)} />;
+  }
+
+  if (allRoommates.length === 0 && !isRefetching) {
+    return (
+      <NoResultsFoundScreen
+        query={query}
+        onQueryChange={onQueryChange}
+        onAdjustFilters={() => {}}
+        onRefresh={() => refetch()}
+        refreshing={isRefetching}
+        subtitle="No roommates have joined yet. Be the first to complete your profile!"
+      />
+    );
+  }
+
   return (
     <View style={styles.container}>
       <FlatList
@@ -71,8 +90,8 @@ export function RoommateDeck({ itemHeight, query }: Props) {
         showsVerticalScrollIndicator={false}
         decelerationRate="fast"
         removeClippedSubviews
-        refreshing={refreshing}
-        onRefresh={onRefresh}
+        refreshing={isRefetching}
+        onRefresh={() => refetch()}
         getItemLayout={getItemLayout}
       />
     </View>

@@ -42,17 +42,13 @@ export function OnboardingContinueButton({
 
 const styles = StyleSheet.create({
   base: {
-    height: 60,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.primary,
+    height: 48,
+    borderRadius: DesignRadius.md,
+    backgroundColor: DesignColors.secondary,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    gap: 8,
-    shadowColor: DesignColors.primary,
-    shadowOpacity: 0.35,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 12 },
+    gap: 6,
   },
   pressed: {
     transform: [{ scale: 0.98 }],
@@ -62,8 +58,9 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   label: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onPrimaryContainer,
+    ...DesignTypography.bodyLg,
+    color: DesignColors.onPrimary,
     fontFamily,
+    fontWeight: '600',
   },
 });

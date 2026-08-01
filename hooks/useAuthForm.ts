@@ -23,7 +23,7 @@ export function useAuthForm() {
             const profileData: UserProfileInput = { fullName };
             await registerUserAccount(email, password, profileData);
             showToast({type: 'success', message: "Registration successful!"});
-            router.replace('/(onboarding)/city');
+            router.replace('/(onboarding)/preferences-budget');
         } catch (error) {
             setLoading(false);
             showToast({type: 'error', message: "Registration failed. Please try again."});

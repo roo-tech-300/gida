@@ -7,10 +7,12 @@ interface IntentSelectorProps {
   propertyTier: number;
   selectedIntent: number;
   onSelectIntent: (intent: number) => void;
+  isFriendMode?: boolean;
 }
 
-export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent }: IntentSelectorProps) {
-  const options = useMemo(() => getAvailableIntentOptions(propertyTier), [propertyTier]);
+export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, isFriendMode = false }: IntentSelectorProps) {
+  const options = useMemo(() => getAvailableIntentOptions(propertyTier, isFriendMode), [propertyTier, isFriendMode]);
+
 
   return (
     <View style={styles.container} testID="intent-selector-container">

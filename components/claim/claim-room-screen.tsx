@@ -11,7 +11,7 @@ import { IntentSelector } from '@/components/claim/intent-selector';
 import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateSplitAmount } from '@/utils/liquidity-math';
+import { calculateSplitAmount, isValidIntentSize } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
@@ -21,15 +21,9 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const { showToast } = useAppToast();
 
   const [selectedIntent, setSelectedIntent] = useState<number>(1);
+  const [matchingMode, setMatchingMode] = useState<'open_pool' | 'friends'>('open_pool');
   const [isSeparateBilling, setIsSeparateBilling] = useState<boolean>(false);
   const [friendCode, setFriendCode] = useState<string>('');
-
-  const handleIntentChange = (newIntent: number) => {
-    setSelectedIntent(newIntent);
-    if (newIntent <= 1) {
-      setIsSeparateBilling(false);
-    }
-  };
 
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
@@ -39,16 +33,37 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const propertyTier: number = dbListing?.property_tier ?? ((rawMax > 0 && rawMax < 10) ? rawMax : 4);
   const rules = dbListing?.rules ?? ['No smoking indoors', 'Quiet hours after 10 PM'];
 
-  const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier);
-  const billingPayers = (isSeparateBilling && selectedIntent > 1) ? selectedIntent : 1;
+  const isFriendMode = matchingMode === 'friends';
+
+  const handleModeChange = (newMode: 'open_pool' | 'friends') => {
+    setMatchingMode(newMode);
+    if (newMode === 'open_pool') {
+      setIsSeparateBilling(false);
+      setFriendCode('');
+      if (!isValidIntentSize(propertyTier, selectedIntent, false)) {
+        setSelectedIntent(1);
+        showToast({ message: 'Reset to 1 slot to comply with solo odd-tier fairness rules.', type: 'info' });
+      }
+    }
+  };
+
+  const handleIntentChange = (newIntent: number) => {
+    setSelectedIntent(newIntent);
+    if (newIntent <= 1) {
+      setIsSeparateBilling(false);
+    }
+  };
+
+  const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier, isFriendMode);
+  const billingPayers = (isSeparateBilling && selectedIntent > 1 && isFriendMode) ? selectedIntent : 1;
 
   const handleSecureSpace = useCallback(async () => {
     try {
       await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
-      if (friendCode.trim()) {
+      if (friendCode.trim() && isFriendMode) {
         showToast({ message: `Linked directly to pod ${friendCode.toUpperCase()}!`, type: 'success' });
-      } else if (isSeparateBilling && selectedIntent > 1) {
-        showToast({ message: `Reserved ${selectedIntent} slots with separate billing! Share your Pod Code in the lobby.`, type: 'success' });
+      } else if (isSeparateBilling && selectedIntent > 1 && isFriendMode) {
+        showToast({ message: `Reserved ${selectedIntent} slots with separate billing! Share Pod Code in lobby.`, type: 'success' });
       } else {
         showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
       }
@@ -56,7 +71,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
     } catch (error: any) {
       showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
     }
-  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isSeparateBilling, showToast, router]);
+  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isSeparateBilling, isFriendMode, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
@@ -83,18 +98,21 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             </View>
           </View>
 
-          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={handleIntentChange} />
-          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={billingPayers} />
-          
           {propertyTier > 1 && (
             <RoommateLinkCard
+              matchingMode={matchingMode}
+              onChangeMatchingMode={handleModeChange}
               intentSize={selectedIntent}
               isSeparateBilling={isSeparateBilling}
               onToggleSeparateBilling={setIsSeparateBilling}
               friendCode={friendCode}
               onChangeFriendCode={setFriendCode}
+              propertyTier={propertyTier}
             />
           )}
+
+          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={handleIntentChange} isFriendMode={isFriendMode} />
+          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={billingPayers} />
 
           <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
 

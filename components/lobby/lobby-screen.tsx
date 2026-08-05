@@ -71,12 +71,10 @@ export function LobbyScreen() {
         
         {remainingSlots > 0 ? (
           <>
-            <RoommateInviteCard
-              inviteCode={credit?.invite_code ?? 'GIDA-POD-4921'}
-              remainingSlots={remainingSlots}
-              onOpenInviteModal={() => setModalVisible(true)}
-            />
-            <Text style={styles.sectionHeader}>COMPATIBLE PEERS IN LOBBY ({compatiblePeers.length})</Text>
+            <View style={{ gap: 4 }}>
+              <Text style={styles.sectionHeader}>COMPATIBLE PEERS IN LOBBY ({compatiblePeers.length})</Text>
+              <Text style={styles.peerSubtitle}>We are matching your remaining {remainingSlots} slot(s) with verified peers below based on study habits and cleanliness. All residents contribute equal share per slot.</Text>
+            </View>
             <View style={styles.list}>
               {compatiblePeers.map((peer) => (
                 <PeerCard key={peer.user_id} peer={peer} onInvite={handleInvite} />
@@ -85,6 +83,11 @@ export function LobbyScreen() {
                 <Text style={styles.emptyText}>No compatible peers currently match your exact remaining slot capacity ({remainingSlots} slot{remainingSlots === 1 ? '' : 's'}).</Text>
               )}
             </View>
+            <RoommateInviteCard
+              inviteCode={credit?.invite_code ?? 'GIDA-POD-4921'}
+              remainingSlots={remainingSlots}
+              onOpenInviteModal={() => setModalVisible(true)}
+            />
           </>
         ) : (
           <View style={styles.completedCard}>
@@ -110,6 +113,7 @@ const styles = StyleSheet.create({
   content: { padding: DesignSpacing.md, gap: DesignSpacing.lg, paddingBottom: 40 },
   screenTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontWeight: '800', fontFamily },
   sectionHeader: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, marginTop: DesignSpacing.sm, fontFamily },
+  peerSubtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, lineHeight: 20, marginBottom: 8 },
   list: { gap: DesignSpacing.md },
   emptyText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontStyle: 'italic', textAlign: 'center', marginTop: 10 },
   completedCard: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.md, padding: DesignSpacing.lg, borderWidth: 1, borderColor: DesignColors.primaryBright, gap: DesignSpacing.sm },
@@ -117,3 +121,4 @@ const styles = StyleSheet.create({
   completedDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, lineHeight: 20 },
   errorText: { ...DesignTypography.bodyLg, color: DesignColors.error, textAlign: 'center', marginTop: 40 },
 });
+

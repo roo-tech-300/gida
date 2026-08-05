@@ -4,74 +4,118 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 interface Props {
+  matchingMode: 'open_pool' | 'friends';
+  onChangeMatchingMode: (mode: 'open_pool' | 'friends') => void;
   intentSize: number;
   isSeparateBilling: boolean;
   onToggleSeparateBilling: (val: boolean) => void;
   friendCode: string;
   onChangeFriendCode: (code: string) => void;
+  propertyTier: number;
 }
 
 export function RoommateLinkCard({
+  matchingMode,
+  onChangeMatchingMode,
   intentSize,
   isSeparateBilling,
   onToggleSeparateBilling,
   friendCode,
   onChangeFriendCode,
+  propertyTier,
 }: Props) {
   const isSingleSlot = intentSize <= 1;
+  const isOddTier = propertyTier % 2 !== 0;
 
   return (
     <View style={styles.card}>
-      <View style={styles.headerRow}>
-        <Ionicons name="people-circle-outline" size={22} color={DesignColors.primaryBright} />
-        <Text style={styles.title}>Roommate & Separate Billing Options</Text>
+      <Text style={styles.sectionTitle}>SELECT MATCHING PREFERENCE</Text>
+      <View style={styles.tabRow}>
+        <Pressable
+          style={[styles.tabButton, matchingMode === 'open_pool' && styles.tabActive]}
+          onPress={() => onChangeMatchingMode('open_pool')}
+        >
+          <Text style={[styles.tabText, matchingMode === 'open_pool' && styles.tabTextActive]}>🌐 Open Pool</Text>
+        </Pressable>
+        <Pressable
+          style={[styles.tabButton, matchingMode === 'friends' && styles.tabActive]}
+          onPress={() => onChangeMatchingMode('friends')}
+        >
+          <Text style={[styles.tabText, matchingMode === 'friends' && styles.tabTextActive]}>👥 Friend Group</Text>
+        </Pressable>
       </View>
 
-      <Pressable
-        style={[styles.toggleRow, isSingleSlot && styles.toggleDisabled]}
-        onPress={() => !isSingleSlot && onToggleSeparateBilling(!isSeparateBilling)}
-        disabled={isSingleSlot}
-        testID="toggle-separate-billing"
-      >
-        <Ionicons
-          name={!isSingleSlot && isSeparateBilling ? 'checkbox-outline' : 'square-outline'}
-          size={22}
-          color={!isSingleSlot && isSeparateBilling ? DesignColors.primaryBright : DesignColors.onSurfaceVariant}
-        />
-        <View style={styles.toggleTextContainer}>
-          <View style={styles.badgeWrap}>
-            <Text style={styles.toggleLabel}>Bring a Roommate (Separate Billing)</Text>
-            {isSingleSlot && <Text style={styles.lockBadge}>REQUIRES 2+ SLOTS</Text>}
-          </View>
-          <Text style={[styles.toggleDesc, isSingleSlot && styles.warningText]}>
-            {isSingleSlot
-              ? 'Select 2 or more slots above to bring specific classmates with separate billing.'
-              : 'Generate a shareable Pod Code after reservation so your classmate can pay their share independently.'}
+      {matchingMode === 'open_pool' ? (
+        <View style={styles.infoBox}>
+          <Ionicons name="sparkles" size={18} color={DesignColors.primaryBright} />
+          <Text style={styles.infoText}>
+            Recommended for solo students! Enter the Matching Lobby after reservation to effortlessly pair with verified classmates based on lifestyle habits and cleanliness. No invite codes needed.
           </Text>
         </View>
-      </Pressable>
-
-      <View style={styles.divider} />
-
-      <Text style={styles.inputLabel}>OR JOIN AN EXISTING ROOMMATE&apos;S POD:</Text>
-      <TextInput
-        style={styles.input}
-        placeholder="Enter friend's Pod Code (e.g., GIDA-POD-8291)"
-        placeholderTextColor={DesignColors.onSurfaceVariant}
-        value={friendCode}
-        onChangeText={onChangeFriendCode}
-        autoCapitalize="characters"
-        autoCorrect={false}
-      />
+      ) : (
+        <View style={styles.friendsContainer}>
+          {isOddTier && (
+            <View style={styles.oddNotice}>
+              <Text style={styles.oddNoticeText}>
+                💡 <Text style={{ fontWeight: '700' }}>Tier {propertyTier} Note:</Text> Multi-slot selections decode as independent classmates paying equal individual shares under Separate Billing.
+              </Text>
+            </View>
+          )}
+          <Pressable
+            style={[styles.toggleRow, isSingleSlot && styles.toggleDisabled]}
+            onPress={() => !isSingleSlot && onToggleSeparateBilling(!isSeparateBilling)}
+            disabled={isSingleSlot}
+            testID="toggle-separate-billing"
+          >
+            <Ionicons
+              name={!isSingleSlot && isSeparateBilling ? 'checkbox-outline' : 'square-outline'}
+              size={22}
+              color={!isSingleSlot && isSeparateBilling ? DesignColors.primaryBright : DesignColors.onSurfaceVariant}
+            />
+            <View style={styles.toggleTextContainer}>
+              <View style={styles.badgeWrap}>
+                <Text style={styles.toggleLabel}>Bring Roommate(s) (Separate Billing)</Text>
+                {isSingleSlot && <Text style={styles.lockBadge}>REQUIRES 2+ SLOTS</Text>}
+              </View>
+              <Text style={[styles.toggleDesc, isSingleSlot && styles.warningText]}>
+                {isSingleSlot
+                  ? 'Select 2 or more slots above to reserve space for specific classmates with separate billing.'
+                  : 'Generate a shareable Pod Code after reservation so classmates can pay their share independently.'}
+              </Text>
+            </View>
+          </Pressable>
+          <View style={styles.divider} />
+          <Text style={styles.inputLabel}>OR JOIN AN EXISTING ROOMMATE&apos;S POD:</Text>
+          <TextInput
+            style={styles.input}
+            placeholder="Enter friend's Pod Code (e.g., GIDA-POD-8291)"
+            placeholderTextColor={DesignColors.onSurfaceVariant}
+            value={friendCode}
+            onChangeText={onChangeFriendCode}
+            autoCapitalize="characters"
+            autoCorrect={false}
+          />
+        </View>
+      )}
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   card: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.md, padding: DesignSpacing.md, borderWidth: 1, borderColor: DesignColors.cardBorder, gap: DesignSpacing.sm },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
-  title: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
-  toggleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: DesignSpacing.sm, marginTop: 4 },
+  sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
+  tabRow: { flexDirection: 'row', backgroundColor: DesignColors.surfaceContainerLowest, borderRadius: DesignRadius.sm, padding: 2, borderWidth: 1, borderColor: DesignColors.cardBorder },
+  tabButton: { flex: 1, paddingVertical: 10, alignItems: 'center', borderRadius: DesignRadius.sm },
+
+  tabActive: { backgroundColor: DesignColors.primaryContainer },
+  tabText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontWeight: '600', fontFamily },
+  tabTextActive: { color: DesignColors.onPrimaryContainer, fontWeight: '700' },
+  infoBox: { flexDirection: 'row', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerHigh, padding: DesignSpacing.sm, borderRadius: DesignRadius.sm },
+  infoText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, flex: 1, lineHeight: 20 },
+  friendsContainer: { gap: DesignSpacing.sm },
+  oddNotice: { backgroundColor: DesignColors.surfaceContainerHigh, padding: 8, borderRadius: DesignRadius.sm, borderLeftWidth: 3, borderLeftColor: DesignColors.secondary },
+  oddNoticeText: { ...DesignTypography.labelSm, color: DesignColors.onSurface },
+  toggleRow: { flexDirection: 'row', alignItems: 'flex-start', gap: DesignSpacing.sm, marginTop: 2 },
   toggleDisabled: { opacity: 0.45 },
   toggleTextContainer: { flex: 1 },
   badgeWrap: { flexDirection: 'row', alignItems: 'center', flexWrap: 'wrap', gap: 6 },

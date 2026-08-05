@@ -24,6 +24,13 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const [isSeparateBilling, setIsSeparateBilling] = useState<boolean>(false);
   const [friendCode, setFriendCode] = useState<string>('');
 
+  const handleIntentChange = (newIntent: number) => {
+    setSelectedIntent(newIntent);
+    if (newIntent <= 1) {
+      setIsSeparateBilling(false);
+    }
+  };
+
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
   const priceAmount = dbListing?.price_amount ?? 1200000;
@@ -33,6 +40,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const rules = dbListing?.rules ?? ['No smoking indoors', 'Quiet hours after 10 PM'];
 
   const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier);
+  const billingPayers = (isSeparateBilling && selectedIntent > 1) ? selectedIntent : 1;
 
   const handleSecureSpace = useCallback(async () => {
     try {
@@ -40,7 +48,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
       if (friendCode.trim()) {
         showToast({ message: `Linked directly to pod ${friendCode.toUpperCase()}!`, type: 'success' });
       } else if (isSeparateBilling && selectedIntent > 1) {
-        showToast({ message: 'Reserved with separate billing! Share your Pod Code in the lobby.', type: 'success' });
+        showToast({ message: `Reserved ${selectedIntent} slots with separate billing! Share your Pod Code in the lobby.`, type: 'success' });
       } else {
         showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
       }
@@ -75,11 +83,12 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             </View>
           </View>
 
-          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={setSelectedIntent} />
-          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={1} />
+          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={handleIntentChange} />
+          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={billingPayers} />
           
           {propertyTier > 1 && (
             <RoommateLinkCard
+              intentSize={selectedIntent}
               isSeparateBilling={isSeparateBilling}
               onToggleSeparateBilling={setIsSeparateBilling}
               friendCode={friendCode}

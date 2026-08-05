@@ -55,3 +55,31 @@ export function getAvailableIntentOptions(inputTier: number): IntentOption[] {
   }
   return options;
 }
+
+export function calculateSeparateBillingPerPerson(totalPrice: number, intentSize: number, tier: number): number {
+  if (tier <= 0 || intentSize <= 0 || !isValidIntentSize(tier, intentSize)) {
+    return 0;
+  }
+  const totalReservedAmount = calculateSplitAmount(totalPrice, intentSize, tier);
+  return Math.ceil(totalReservedAmount / intentSize);
+}
+
+export function verifyPodRevenueParity(
+  totalAnnualRent: number,
+  propertyTier: number,
+  memberIntentSizes: number[],
+): { isParity: boolean; totalCollected: number; shortfall: number } {
+  if (propertyTier <= 0 || totalAnnualRent <= 0) {
+    return { isParity: false, totalCollected: 0, shortfall: totalAnnualRent };
+  }
+  const perSlotRate = Math.ceil(totalAnnualRent / propertyTier);
+  const totalCollected = memberIntentSizes.reduce((sum, size) => sum + Math.ceil(perSlotRate * size), 0);
+  const shortfall = Math.max(0, totalAnnualRent - totalCollected);
+  const totalSlots = memberIntentSizes.reduce((a, b) => a + b, 0);
+  return {
+    isParity: totalCollected >= totalAnnualRent && totalSlots === propertyTier,
+    totalCollected,
+    shortfall,
+  };
+}
+

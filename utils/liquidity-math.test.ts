@@ -3,6 +3,8 @@ import {
   calculateSplitAmount,
   canFinalizePod,
   getAvailableIntentOptions,
+  calculateSeparateBillingPerPerson,
+  verifyPodRevenueParity,
 } from './liquidity-math';
 
 describe('Liquidity Math Rules & Edge Case Defense', () => {
@@ -49,4 +51,25 @@ describe('Liquidity Math Rules & Edge Case Defense', () => {
       expect(options[2].disabled).toBe(false);
     });
   });
+
+  describe('Separate Billing Math & Revenue Parity Verification', () => {
+    it('accurately divides total reserved amount across independent roommate invoices', () => {
+      const perPerson = calculateSeparateBillingPerPerson(1200000, 2, 4);
+      expect(perPerson).toBe(300000);
+    });
+
+    it('verifies 100% revenue parity when pod slots are completely filled via separate invoices', () => {
+      const parityResult = verifyPodRevenueParity(1200000, 4, [1, 1, 2]);
+      expect(parityResult.isParity).toBe(true);
+      expect(parityResult.totalCollected).toBeGreaterThanOrEqual(1200000);
+      expect(parityResult.shortfall).toBe(0);
+    });
+
+    it('returns false for parity if total slots do not equal property tier', () => {
+      const incomplete = verifyPodRevenueParity(1200000, 4, [1, 2]);
+      expect(incomplete.isParity).toBe(false);
+      expect(incomplete.shortfall).toBe(300000);
+    });
+  });
 });
+

@@ -33,7 +33,7 @@ export function RegionalDashboardScreen() {
               style={[styles.actionCard, a.primary && styles.actionCardPrimary]}
             >
               <View style={[styles.actionIcon, a.primary && styles.actionIconPrimary]}>
-                <Ionicons name={a.icon} size={22} color={a.primary ? '#ffffff' : DesignColors.onSurfaceVariant} />
+                <Ionicons name={a.icon as any} size={22} color={a.primary ? '#ffffff' : DesignColors.onSurfaceVariant} />
               </View>
               <Text style={[styles.actionLabel, a.primary && styles.actionLabelPrimary]}>{a.title}</Text>
             </Pressable>

@@ -20,6 +20,9 @@ export type FeedListing = {
   longitude?: number;
   locationFee?: number;
   isLocationUnlocked?: boolean;
+  estateId?: string;
+  propertyTier?: number;
+  abstractSlotsAvailable?: number;
 };
 
 export type DbListing = {
@@ -57,6 +60,9 @@ export type DbListing = {
   campus: string | null;
   rules: string[];
   max_roommates: number;
+  estate_id?: string;
+  property_tier?: number;
+  abstract_slots_available?: number;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -102,6 +108,9 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     longitude: Number(item.longitude) || 3.3792,
     locationFee: 500,
     isLocationUnlocked: false,
+    estateId: item.estate_id,
+    propertyTier: item.property_tier || ((item.number_of_bedrooms > 0 && item.number_of_bedrooms <= 8) ? item.number_of_bedrooms : ((item.max_roommates > 0 && item.max_roommates < 10) ? item.max_roommates : 4)),
+    abstractSlotsAvailable: item.abstract_slots_available || ((item.units_available || 1) * ((item.number_of_bedrooms > 0 && item.number_of_bedrooms <= 8) ? item.number_of_bedrooms : ((item.max_roommates > 0 && item.max_roommates < 10) ? item.max_roommates : 4))),
   };
 }
 

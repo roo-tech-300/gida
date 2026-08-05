@@ -17,6 +17,7 @@ export const DesignColors = {
   // Updated Primary Theme (Gold/Bronze)
   primary: '#9D7E43',
   primaryContainer: '#6b542c', // Darkened for better contrast
+  onPrimaryContainer: '#FFECD0',
   primaryFixed: '#d4ba88',      // Lighter tone for accents
   primaryBright: '#b8944f',     // Brighter version for active states
   onPrimary: '#0e0e10',
@@ -79,12 +80,22 @@ export const DesignTypography = {
     fontWeight: '400' as const,
     lineHeight: 20,
   },
+  titleMd: {
+    fontSize: 18,
+    fontWeight: '600' as const,
+    lineHeight: 24,
+  },
   labelCaps: {
     fontSize: 12,
     fontWeight: '600' as const,
     lineHeight: 16,
     letterSpacing: 1.2,
     textTransform: 'uppercase' as const,
+  },
+  labelLg: {
+    fontSize: 14,
+    fontWeight: '600' as const,
+    lineHeight: 20,
   },
   labelSm: {
     fontSize: 11,

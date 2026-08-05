@@ -8,7 +8,7 @@ export function useListings() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from('listings')
-        .select('id, title, description, price_amount, location_landmark, city, category, layout_type, number_of_bedrooms, number_of_bathrooms, size_sqft, total_floors, primary_image, status, featured, custom_features, is_shared_bathroom, is_shared_kitchen, has_borehole, has_generator, has_fenced_gate, has_internet, has_burglary, has_cabinet, has_wardrobe')
+        .select('id, title, description, price_amount, location_landmark, city, category, layout_type, number_of_bedrooms, number_of_bathrooms, size_sqft, total_floors, primary_image, status, featured, custom_features, is_shared_bathroom, is_shared_kitchen, has_borehole, has_generator, has_fenced_gate, has_internet, has_burglary, has_cabinet, has_wardrobe, property_tier, max_roommates, estate_id, abstract_slots_available, rules')
         .order('created_at', { ascending: false });
 
       if (error) throw error;

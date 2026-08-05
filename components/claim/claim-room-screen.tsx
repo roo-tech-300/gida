@@ -1,192 +1,83 @@
-import { useCallback, useMemo, useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-
 import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
-import { useClaimByApplicationId, useCreateClaim, useAddRoommate } from '@/hooks/use-claim';
 import { useListing } from '@/hooks/use-listing';
+import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { IntentSelector } from './intent-selector';
 import { ClaimRulesCard } from './claim-rules-card';
 import { ClaimSplitSummary } from './claim-split-summary';
-import { ClaimStatusCard } from './claim-status-card';
-import { RoommateSearch } from './roommate-search';
-
-type Profile = { id: string; full_name: string | null };
+import { calculateSplitAmount } from '@/utils/liquidity-math';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const { profile } = useAuth();
-  const userId = profile?.id;
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
-  const dbListing = detail?.dbListing;
-  const listing = detail?.listing;
-  const { mutateAsync: createClaim, isPending: isCreating } = useCreateClaim();
-  const { mutateAsync: addRoommate, isPending: isAddingRoommate } = useAddRoommate();
-
-  const [hasRoommate, setHasRoommate] = useState(false);
-  const [selectedRoommate, setSelectedRoommate] = useState<Profile | null>(null);
-  const [showStatus, setShowStatus] = useState(false);
-  const [createdClaimId, setCreatedClaimId] = useState<string | null>(null);
-
+  const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { showToast } = useAppToast();
 
-  const priceAmount = dbListing?.price_amount ?? 0;
-  const maxRoommates = dbListing?.max_roommates ?? 1;
-  const rules = dbListing?.rules ?? [];
-  const numberOfPeople = hasRoommate && selectedRoommate ? 2 : 1;
+  const [selectedIntent, setSelectedIntent] = useState<number>(1);
 
-  const { data: claimDetails } = useClaimByApplicationId(createdClaimId);
+  const dbListing = detail?.dbListing;
+  const listing = detail?.listing;
+  const priceAmount = dbListing?.price_amount ?? 1200000;
+  const bedrooms = (dbListing?.number_of_bedrooms && dbListing.number_of_bedrooms > 0 && dbListing.number_of_bedrooms <= 8) ? dbListing.number_of_bedrooms : null;
+  const rawMax = bedrooms ?? dbListing?.max_roommates ?? 4;
+  const propertyTier: number = dbListing?.property_tier ?? ((rawMax > 0 && rawMax < 10) ? rawMax : 4);
+  const rules = dbListing?.rules ?? ['No smoking indoors', 'Quiet hours after 10 PM'];
 
-  const handleLockSpace = useCallback(async () => {
-    if (!userId || !listingId) return;
+  const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier);
 
-    const splitAmount = hasRoommate && selectedRoommate
-      ? Math.ceil(priceAmount / 2)
-      : priceAmount;
-
+  const handleSecureSpace = useCallback(async () => {
     try {
-      const claim = await createClaim({ listingId, splitAmount });
-      if (hasRoommate && selectedRoommate) {
-        await addRoommate({
-          applicationId: claim.id,
-          studentId: selectedRoommate.id,
-          splitAmount: Math.ceil(priceAmount / 2),
-        });
-      }
-      setCreatedClaimId(claim.id);
-      setShowStatus(true);
+      await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
+      showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
+      router.push('/property/lobby' as any);
     } catch (error: any) {
-      showToast({ message: error.message || 'Failed to lock space.', type: 'error' });
+      showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
     }
-  }, [userId, listingId, hasRoommate, selectedRoommate, priceAmount, createClaim, addRoommate]);
-
-  const handlePayNow = useCallback(() => {
-    showToast({ message: 'Payment integration coming soon.', type: 'info' });
-  }, []);
+  }, [listingId, propertyTier, selectedIntent, purchaseSlot]);
 
   if (listingLoading) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={DesignColors.primary} />
-        </View>
-      </SafeAreaView>
-    );
+    return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
   }
-
-  if (!listing) {
-    return (
-      <SafeAreaView style={styles.safe}>
-        <View style={styles.center}>
-          <Text style={styles.errorText}>Listing not found.</Text>
-        </View>
-      </SafeAreaView>
-    );
-  }
-
-  if (showStatus && claimDetails) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Claim Status</Text>
-        </View>
-        <ScrollView bounces={false} contentContainerStyle={styles.content}>
-          <View style={styles.listingMini}>
-            {(dbListing?.primary_image || listing?.image) && (
-              <Image source={{ uri: dbListing?.primary_image || listing?.image }} style={styles.listingThumb} />
-            )}
-            <View style={styles.listingMiniInfo}>
-              <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title}</Text>
-              <Text style={styles.listingMiniPrice}>₦{priceAmount.toLocaleString('en-US')}</Text>
-            </View>
-          </View>
-
-          <ClaimStatusCard
-            expiresAt={claimDetails.lock_expires_at}
-            roommates={claimDetails.application_roommates}
-            currentUserId={userId!}
-            onPayNow={handlePayNow}
-            onExpired={() => setShowStatus(false)}
-            onFindNewRoommate={() => { setShowStatus(false); setHasRoommate(true); setSelectedRoommate(null); }}
-          />
-
-          <Pressable style={styles.backToListing} onPress={() => router.replace(`/property/${listingId}`)}>
-            <Text style={styles.backToListingText}>Back to listing</Text>
-          </Pressable>
-        </ScrollView>
-      </SafeAreaView>
-    );
+  if (!listing && !dbListing) {
+    return <SafeAreaView style={styles.safe}><Text style={styles.errorText}>Listing unavailable.</Text></SafeAreaView>;
   }
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.topBar}>
         <BackButton hasBackground={false} />
-        <Text style={styles.topBarTitle}>Claim Room</Text>
+        <Text style={styles.topBarTitle}>Reserve Space & Join Pool</Text>
       </View>
-
-      <ScrollView bounces={false} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView bounces={false} contentContainerStyle={styles.content}>
         <View style={styles.listingMini}>
-            {(dbListing?.primary_image || listing?.image) && (
-              <Image source={{ uri: dbListing?.primary_image || listing?.image }} style={styles.listingThumb} />
-            )}
-            <View style={styles.listingMiniInfo}>
-              <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title}</Text>
-              <Text style={styles.listingMiniPrice}>₦{priceAmount.toLocaleString('en-US')}</Text>
-            </View>
-          </View>
-
-          <View style={styles.toggleSection}>
-          <Text style={styles.toggleLabel}>Do you have a roommate on Gida?</Text>
-          <View style={styles.toggleRow}>
-            <Pressable
-              style={[styles.toggleBtn, !hasRoommate && styles.toggleBtnActive]}
-              onPress={() => { setHasRoommate(false); setSelectedRoommate(null); }}
-            >
-              <Ionicons name="person" size={18} color={!hasRoommate ? DesignColors.onPrimaryContainer : DesignColors.onSurfaceVariant} />
-              <Text style={[styles.toggleBtnText, !hasRoommate && styles.toggleBtnTextActive]}>No, solo</Text>
-            </Pressable>
-            <Pressable
-              style={[styles.toggleBtn, hasRoommate && styles.toggleBtnActive]}
-              onPress={() => setHasRoommate(true)}
-            >
-              <Ionicons name="people" size={18} color={hasRoommate ? DesignColors.onPrimaryContainer : DesignColors.onSurfaceVariant} />
-              <Text style={[styles.toggleBtnText, hasRoommate && styles.toggleBtnTextActive]}>Yes, with roommate</Text>
-            </Pressable>
+          {(dbListing?.primary_image || listing?.image) && (
+            <Image source={{ uri: dbListing?.primary_image || listing?.image }} style={styles.listingThumb} />
+          )}
+          <View style={styles.listingMiniInfo}>
+            <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title || 'Gida Prestige Estate'}</Text>
+            <Text style={styles.listingMiniPrice}>Tier {propertyTier} Property • ₦{priceAmount.toLocaleString()}/yr</Text>
           </View>
         </View>
 
-        {hasRoommate && (
-          <View style={styles.section}>
-            <Text style={styles.sectionLabel}>Find your roommate</Text>
-            <RoommateSearch
-              selectedRoommate={selectedRoommate}
-              onSelect={setSelectedRoommate}
-              onClear={() => setSelectedRoommate(null)}
-            />
-          </View>
-        )}
-
-        <ClaimSplitSummary totalPrice={priceAmount} numberOfPeople={numberOfPeople} />
-        <ClaimRulesCard rules={rules} maxRoommates={maxRoommates} />
+        <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={setSelectedIntent} />
+        <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={1} />
+        <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
 
         <Pressable
-          style={[styles.lockButton, (isCreating || isAddingRoommate) && styles.lockButtonDisabled]}
-          onPress={handleLockSpace}
-          disabled={isCreating || isAddingRoommate || (hasRoommate && !selectedRoommate)}
+          style={[styles.lockButton, isPurchasing && styles.lockButtonDisabled]}
+          onPress={handleSecureSpace}
+          disabled={isPurchasing}
         >
-          {isCreating || isAddingRoommate ? (
+          {isPurchasing ? (
             <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
           ) : (
-            <>
-              <Text style={styles.lockText}>
-                {hasRoommate ? 'Send Invite & Secure Space' : 'Secure Space'}
-              </Text>
-            </>
+            <Text style={styles.lockText}>Confirm & Enter Matching Lobby</Text>
           )}
         </Pressable>
       </ScrollView>
@@ -196,129 +87,17 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surface },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center' },
-  errorText: { ...DesignTypography.bodyLg, color: DesignColors.onSurfaceVariant, fontFamily },
-  topBar: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingVertical: DesignSpacing.sm,
-  },
-  topBarTitle: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  content: {
-    padding: DesignSpacing.marginMobile,
-    paddingBottom: DesignSpacing.xl * 2,
-    gap: DesignSpacing.lg,
-  },
-  listingMini: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.md,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    padding: DesignSpacing.sm,
-  },
-  listingThumb: {
-    width: 56,
-    height: 56,
-    borderRadius: DesignRadius.sm,
-  },
-  listingMiniInfo: {
-    flex: 1,
-    gap: 2,
-  },
-  listingMiniTitle: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  listingMiniPrice: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.primaryBright,
-    fontFamily,
-    fontWeight: '600',
-  },
-  toggleSection: {
-    gap: DesignSpacing.sm,
-  },
-  toggleLabel: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '600',
-  },
-  toggleRow: {
-    flexDirection: 'row',
-    gap: DesignSpacing.sm,
-  },
-  toggleBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.xl,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-  },
-  toggleBtnActive: {
-    backgroundColor: DesignColors.primaryContainer,
-    borderColor: DesignColors.primaryBright,
-  },
-  toggleBtnText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    fontWeight: '600',
-  },
-  toggleBtnTextActive: {
-    color: DesignColors.onPrimaryContainer,
-  },
-  section: {
-    gap: DesignSpacing.sm,
-  },
-  sectionLabel: {
-    ...DesignTypography.labelCaps,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  lockButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: DesignSpacing.sm,
-    backgroundColor: DesignColors.primaryContainer,
-    borderRadius: DesignRadius.xl,
-    paddingVertical: 16,
-  },
-  lockButtonDisabled: {
-    opacity: 0.5,
-  },
-  lockText: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onPrimaryContainer,
-    fontFamily,
-    fontWeight: '700',
-  },
-  backToListing: {
-    alignItems: 'center',
-    paddingVertical: DesignSpacing.sm,
-  },
-  backToListingText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.primaryBright,
-    fontFamily,
-    fontWeight: '600',
-  },
+  center: { flex: 1, alignSelf: 'center' },
+  errorText: { ...DesignTypography.bodyLg, color: DesignColors.error, textAlign: 'center', marginTop: 40 },
+  topBar: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm },
+  topBarTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  content: { padding: DesignSpacing.md, paddingBottom: 60, gap: DesignSpacing.md },
+  listingMini: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.md, padding: DesignSpacing.sm, borderWidth: 1, borderColor: DesignColors.cardBorder },
+  listingThumb: { width: 56, height: 56, borderRadius: DesignRadius.sm },
+  listingMiniInfo: { flex: 1, gap: 2 },
+  listingMiniTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  listingMiniPrice: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
+  lockButton: { alignItems: 'center', justifyContent: 'center', backgroundColor: DesignColors.primaryContainer, borderRadius: DesignRadius.xl, paddingVertical: 16, marginTop: DesignSpacing.sm },
+  lockButtonDisabled: { opacity: 0.5 },
+  lockText: { ...DesignTypography.bodyLg, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
 });

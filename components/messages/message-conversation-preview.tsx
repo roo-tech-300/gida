@@ -25,7 +25,7 @@ export function MessageConversationPreview({ thread }: { thread?: Conversation }
       </View>
 
       <View style={styles.messages}>
-        {thread.messages.slice(-3).map((message) => (
+        {thread.messages?.slice(-3).map((message: any) => (
           <Bubble key={message.id} message={message.text} sender={message.sender} />
         ))}
       </View>

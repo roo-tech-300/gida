@@ -52,16 +52,17 @@ describe('Liquidity Math Rules & Edge Case Defense', () => {
       expect(options).toHaveLength(3);
       expect(options[0].disabled).toBe(false);
       expect(options[1].disabled).toBe(true);
-      expect(options[1].reason).toContain('Solo odd-tier fairness rule');
+      expect(options[1].reason).toContain('Fair Rent Policy');
       expect(options[2].disabled).toBe(false);
     });
 
     it('generates enabled options for odd tiers under friend coordination mode', () => {
       const options = getAvailableIntentOptions(3, true);
       expect(options[1].disabled).toBe(false); // 2 slots enabled under friend mode!
-      expect(options[1].description).toContain('individual beds');
+      expect(options[1].description).toContain('individual slots');
     });
   });
+
 
 
   describe('Separate Billing Math & Revenue Parity Verification', () => {

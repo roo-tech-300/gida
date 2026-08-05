@@ -49,8 +49,9 @@ export function RoommateInviteModal({ visible, onClose, onSubmitInvite }: Props)
             </View>
 
             <Text style={styles.subtitle}>
-              Enter your friend&apos;s Student ID or University email. They will receive an invitation to join your Pod with separate billing.
+              Enter your friend&apos;s Student ID or University email. They will receive an invitation to join your apartment group with separate student invoices.
             </Text>
+
 
             <TextInput
               style={styles.input}

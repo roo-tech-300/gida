@@ -22,7 +22,6 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
 
   const [selectedIntent, setSelectedIntent] = useState<number>(1);
   const [matchingMode, setMatchingMode] = useState<'open_pool' | 'friends'>('open_pool');
-  const [isSeparateBilling, setIsSeparateBilling] = useState<boolean>(false);
   const [friendCode, setFriendCode] = useState<string>('');
 
   const dbListing = detail?.dbListing;
@@ -38,40 +37,36 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const handleModeChange = (newMode: 'open_pool' | 'friends') => {
     setMatchingMode(newMode);
     if (newMode === 'open_pool') {
-      setIsSeparateBilling(false);
       setFriendCode('');
       if (!isValidIntentSize(propertyTier, selectedIntent, false)) {
         setSelectedIntent(1);
-        showToast({ message: 'Reset to 1 slot to comply with solo odd-tier fairness rules.', type: 'info' });
+        showToast({ message: 'Reset to 1 slot to comply with fair sharing rent policies.', type: 'info' });
       }
     }
   };
 
   const handleIntentChange = (newIntent: number) => {
     setSelectedIntent(newIntent);
-    if (newIntent <= 1) {
-      setIsSeparateBilling(false);
-    }
   };
 
   const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier, isFriendMode);
-  const billingPayers = (isSeparateBilling && selectedIntent > 1 && isFriendMode) ? selectedIntent : 1;
+  const billingPayers = (isFriendMode && selectedIntent > 1) ? selectedIntent : 1;
 
   const handleSecureSpace = useCallback(async () => {
     try {
       await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
       if (friendCode.trim() && isFriendMode) {
-        showToast({ message: `Linked directly to pod ${friendCode.toUpperCase()}!`, type: 'success' });
-      } else if (isSeparateBilling && selectedIntent > 1 && isFriendMode) {
-        showToast({ message: `Reserved ${selectedIntent} slots with separate billing! Share Pod Code in lobby.`, type: 'success' });
+        showToast({ message: `Linked directly to group ${friendCode.toUpperCase()}!`, type: 'success' });
+      } else if (selectedIntent > 1 && isFriendMode) {
+        showToast({ message: `Reserved ${selectedIntent} slots under separate student invoices! Share Group Code in lobby.`, type: 'success' });
       } else {
-        showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
+        showToast({ message: 'Slot reserved! Welcome to Roommate Matching.', type: 'success' });
       }
       router.push('/property/lobby' as any);
     } catch (error: any) {
       showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
     }
-  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isSeparateBilling, isFriendMode, showToast, router]);
+  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isFriendMode, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
@@ -85,7 +80,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Reserve Space & Join Pool</Text>
+          <Text style={styles.topBarTitle}>Reserve Space & Join Roommate Matching</Text>
         </View>
         <ScrollView bounces={false} contentContainerStyle={styles.content}>
           <View style={styles.listingMini}>
@@ -94,7 +89,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             )}
             <View style={styles.listingMiniInfo}>
               <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title || 'Gida Prestige Estate'}</Text>
-              <Text style={styles.listingMiniPrice}>Tier {propertyTier} Property • ₦{priceAmount.toLocaleString()}/yr</Text>
+              <Text style={styles.listingMiniPrice}>{propertyTier}-Slot Property • ₦{priceAmount.toLocaleString()}/yr</Text>
             </View>
           </View>
 
@@ -103,8 +98,6 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
               matchingMode={matchingMode}
               onChangeMatchingMode={handleModeChange}
               intentSize={selectedIntent}
-              isSeparateBilling={isSeparateBilling}
-              onToggleSeparateBilling={setIsSeparateBilling}
               friendCode={friendCode}
               onChangeFriendCode={setFriendCode}
               propertyTier={propertyTier}
@@ -124,7 +117,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             {isPurchasing ? (
               <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
             ) : (
-              <Text style={styles.lockText}>Confirm & Enter Matching Lobby</Text>
+              <Text style={styles.lockText}>Confirm & Enter Roommate Matching</Text>
             )}
           </Pressable>
         </ScrollView>
@@ -138,7 +131,7 @@ const styles = StyleSheet.create({
   center: { flex: 1, alignSelf: 'center' },
   errorText: { ...DesignTypography.bodyLg, color: DesignColors.error, textAlign: 'center', marginTop: 40 },
   topBar: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm },
-  topBarTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  topBarTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700', fontSize: 17 },
   content: { padding: DesignSpacing.md, paddingBottom: 60, gap: DesignSpacing.md },
   listingMini: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.md, padding: DesignSpacing.sm, borderWidth: 1, borderColor: DesignColors.cardBorder },
   listingThumb: { width: 56, height: 56, borderRadius: DesignRadius.sm },

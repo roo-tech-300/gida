@@ -35,29 +35,30 @@ export function getAvailableIntentOptions(inputTier: number, isFriendMode = fals
   for (let i = 1; i <= tier; i++) {
     const valid = isValidIntentSize(tier, i, isFriendMode);
     let label = `${i} Slot${i > 1 ? 's' : ''}`;
-    let description = `Reserve ${i} bed${i > 1 ? 's' : ''} in a Tier ${tier} property.`;
+    let description = `Reserve ${i} slot${i > 1 ? 's' : ''} in a ${tier}-slot property.`;
     if (i === tier) {
-      label = i === 1 ? 'Single Room Buyout' : 'Full Property Buyout';
+      label = i === 1 ? 'Single Slot Buyout' : 'Full Property Buyout';
       description = 'You reserve the entire property privately.';
     } else if (i === 2 && tier === 4) {
-      label = isFriendMode ? '2 Slots (Me & 1 Classmate)' : '2 Slots (50% Capacity)';
+      label = isFriendMode ? '2 Slots (Me & 1 Classmate)' : '2 Slots (50% Occupancy)';
       description = isFriendMode
-        ? 'Reserve 2 individual beds for you and a classmate under separate invoices.'
-        : 'Reserve 50% capacity (2 slots). Remaining 2 slots are matched with 1 or 2 compatible peers in lobby.';
+        ? 'Reserve 2 individual slots for you and a classmate under separate student invoices.'
+        : 'Reserve 50% occupancy (2 slots). Remaining 2 slots are paired with 1 or 2 compatible classmates in Roommate Matching.';
     } else if (i === 1) {
-      description = `Reserve 1 slot. You will be paired with up to ${tier - 1} compatible student peer${tier - 1 > 1 ? 's' : ''} in the Matching Lobby.`;
+      description = `Reserve 1 slot. You will be paired with up to ${tier - 1} compatible classmate${tier - 1 > 1 ? 's' : ''} in Roommate Matching.`;
     } else if (isFriendMode && i > 1 && i < tier) {
-      description = `Reserve ${i} individual beds for your classmate group under separate billing.`;
+      description = `Reserve ${i} individual slots for your classmate group under separate student invoices.`;
     }
     options.push({
       intent: i,
       label,
       description,
       disabled: !valid,
-      reason: !valid ? 'Solo odd-tier fairness rule: Cannot purchase partial majority solo. Switch to Friend Coordination or select 1 slot.' : undefined,
+      reason: !valid ? 'Fair Rent Policy: Cannot purchase partial majority solo. Switch to Move in with Friends or select 1 slot.' : undefined,
     });
   }
   return options;
+
 }
 
 export function calculateSeparateBillingPerPerson(totalPrice: number, intentSize: number, tier: number, isFriendMode = true): number {

@@ -20,7 +20,7 @@ export function PodStatusCard({ pod, targetTier, physicalDoor, countdownTimer }:
     <View style={[styles.container, isComplete ? styles.completeContainer : styles.formingContainer]}>
       <View style={styles.headerRow}>
         <Ionicons name={isComplete ? 'shield-checkmark' : 'time-outline'} size={24} color={isComplete ? DesignColors.secondary : DesignColors.tertiary} />
-        <Text style={styles.statusText}>{isComplete ? 'ROOM MINTED & CONFIRMED' : 'POD IN FORMATION'}</Text>
+        <Text style={styles.statusText}>{isComplete ? 'ROOM CONFIRMED & ASSIGNED' : 'GROUP IN FORMATION'}</Text>
       </View>
       <Text style={styles.mainTitle}>
         {isComplete ? (physicalDoor || 'Assigned Room: Pending confirmation') : `${filled} of ${targetTier} Slots Secured (${percentage}%)`}
@@ -32,10 +32,11 @@ export function PodStatusCard({ pod, targetTier, physicalDoor, countdownTimer }:
       )}
       <Text style={styles.desc}>
         {isComplete
-          ? 'Your roommate group reached 100% capacity. An empty physical room has been assigned from the estate pool.'
-          : 'Invite compatible peers from the matching lobby below to finalize your pod and mint a room.'}
+          ? 'Your roommate group reached 100% capacity. Your physical apartment and door number have been officially confirmed and assigned!'
+          : 'Invite compatible classmates or select verified peers below to complete your group and confirm your physical room.'}
       </Text>
     </View>
+
   );
 }
 

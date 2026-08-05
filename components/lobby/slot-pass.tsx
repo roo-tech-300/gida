@@ -17,17 +17,17 @@ export function SlotPass({ credit }: { credit?: SlotCredit }) {
   return (
     <View style={styles.passCard} testID="slot-pass-card">
       <View style={styles.topSection}>
-        <Text style={styles.issuer}>GIDA SLOT CREDIT PASS</Text>
+        <Text style={styles.issuer}>GIDA DIGITAL MOVE-IN PASS</Text>
         <Ionicons name="qr-code" size={28} color={DesignColors.primaryBright} />
       </View>
       <Text style={styles.estateTitle}>{estateName}</Text>
       <View style={styles.metaRow}>
         <View>
-          <Text style={styles.metaLabel}>PROPERTY TIER</Text>
-          <Text style={styles.metaValue}>{credit?.property_tier || 4} Students</Text>
+          <Text style={styles.metaLabel}>TOTAL SLOTS</Text>
+          <Text style={styles.metaValue}>{credit?.property_tier || 4} Slots</Text>
         </View>
         <View>
-          <Text style={styles.metaLabel}>INTENT SIZE</Text>
+          <Text style={styles.metaLabel}>RESERVED SLOTS</Text>
           <Text style={styles.metaValue}>{credit?.intent_size || 1} Slot(s)</Text>
         </View>
         <View>
@@ -37,8 +37,9 @@ export function SlotPass({ credit }: { credit?: SlotCredit }) {
       </View>
       <View style={styles.divider} />
       <View style={styles.inviteSection}>
-        <Text style={styles.inviteLabel}>FLAKE-PROOF INVITE TOKEN</Text>
+        <Text style={styles.inviteLabel}>APARTMENT GROUP INVITE CODE</Text>
         <Pressable style={styles.inviteButton} onPress={handleCopyInvite} testID="copy-invite-btn">
+
           <Text style={styles.inviteCode}>{inviteCode}</Text>
           <Ionicons name="copy-outline" size={18} color={DesignColors.onPrimaryContainer} />
         </Pressable>

@@ -65,7 +65,7 @@ export function LobbyScreen() {
         contentContainerStyle={styles.content}
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={DesignColors.primaryBright} />}
       >
-        <Text style={styles.screenTitle}>MATCHING LOBBY & MINTING</Text>
+        <Text style={styles.screenTitle}>ROOMMATE MATCHING & CONFIRMATION</Text>
         <SlotPass credit={credit} />
         <PodStatusCard pod={activePod} targetTier={targetTier} physicalDoor={room} countdownTimer="23h 48m" />
         
@@ -84,19 +84,20 @@ export function LobbyScreen() {
               )}
             </View>
             <RoommateInviteCard
-              inviteCode={credit?.invite_code ?? 'GIDA-POD-4921'}
+              inviteCode={credit?.invite_code ?? 'GIDA-GRP-4921'}
               remainingSlots={remainingSlots}
               onOpenInviteModal={() => setModalVisible(true)}
             />
           </>
         ) : (
           <View style={styles.completedCard}>
-            <Text style={styles.completedTitle}>Pod at 100% Capacity</Text>
+            <Text style={styles.completedTitle}>Apartment Group at 100% Capacity</Text>
             <Text style={styles.completedDesc}>
-              All slots in this property are filled and verified. Your physical room has been minted and locked—no further peer matching required!
+              All slots in this property are filled and verified. Your physical room and door number are officially confirmed and locked in!
             </Text>
           </View>
         )}
+
       </ScrollView>
       
       <RoommateInviteModal

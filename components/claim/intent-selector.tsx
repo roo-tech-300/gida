@@ -16,9 +16,10 @@ export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, i
 
   return (
     <View style={styles.container} testID="intent-selector-container">
-      <Text style={styles.sectionHeader}>SELECT YOUR ROOMMATE INTENT</Text>
-      <Text style={styles.subtitle}>Choose how many slots to secure in this Tier {propertyTier} property.</Text>
+      <Text style={styles.sectionHeader}>CHOOSE YOUR RESERVATION SIZE</Text>
+      <Text style={styles.subtitle}>Choose how many slots to secure in this {propertyTier}-slot property.</Text>
       {options.map((opt) => {
+
         const isSelected = selectedIntent === opt.intent;
         return (
           <Pressable

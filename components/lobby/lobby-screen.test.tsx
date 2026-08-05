@@ -40,8 +40,9 @@ describe('LobbyScreen & Peer Matching Integration', () => {
       </ToastProvider>
     );
 
-    expect(getByText('MATCHING LOBBY & MINTING')).toBeTruthy();
+    expect(getByText('ROOMMATE MATCHING & CONFIRMATION')).toBeTruthy();
     expect(getByTestId('slot-pass-card')).toBeTruthy();
+
     expect(getByText('COMPATIBLE PEERS IN LOBBY (3)')).toBeTruthy();
 
     expect(getByText('Chinedu Okeke')).toBeTruthy();

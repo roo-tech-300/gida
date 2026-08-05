@@ -14,18 +14,19 @@ export function RoommateInviteCard({ inviteCode, remainingSlots, onOpenInviteMod
     <View style={styles.card}>
       <View style={styles.header}>
         <Ionicons name="person-add-outline" size={20} color={DesignColors.primaryBright} />
-        <Text style={styles.title}>Invite a Specific Roommate</Text>
+        <Text style={styles.title}>Invite Friends to Group</Text>
       </View>
       
       <Text style={styles.description}>
-        You have <Text style={styles.highlight}>{remainingSlots} remaining slot(s)</Text>. Want to live with a classmate? Send an invitation for separate billing instead of matching with strangers.
+        You have <Text style={styles.highlight}>{remainingSlots} remaining slot(s)</Text>. Want to live with friends? Share your Group Code below so classmates can join directly under separate student invoices.
       </Text>
 
       <View style={styles.actionRow}>
         <View style={styles.codeBadge}>
-          <Text style={styles.codeLabel}>POD CODE</Text>
-          <Text style={styles.codeValue}>{inviteCode || 'GIDA-POD-DEV'}</Text>
+          <Text style={styles.codeLabel}>GROUP CODE</Text>
+          <Text style={styles.codeValue}>{inviteCode || 'GIDA-GRP-DEV'}</Text>
         </View>
+
         
         <Pressable style={styles.inviteButton} onPress={onOpenInviteModal} testID="open-roommate-modal-btn">
           <Ionicons name="mail-outline" size={16} color={DesignColors.onPrimaryContainer} />

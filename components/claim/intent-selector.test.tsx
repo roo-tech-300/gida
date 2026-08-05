@@ -9,8 +9,8 @@ describe('IntentSelector UI Integration', () => {
       <IntentSelector propertyTier={4} selectedIntent={2} onSelectIntent={mockSelect} />
     );
 
-    expect(getByText('SELECT YOUR ROOMMATE INTENT')).toBeTruthy();
-    expect(getByText('2 Slots (50% Capacity)')).toBeTruthy();
+    expect(getByText('CHOOSE YOUR RESERVATION SIZE')).toBeTruthy();
+    expect(getByText('2 Slots (50% Occupancy)')).toBeTruthy();
 
     const option2 = getByTestId('intent-option-2');
     fireEvent.press(option2);
@@ -25,7 +25,8 @@ describe('IntentSelector UI Integration', () => {
 
     const option2 = getByTestId('intent-option-2');
     expect(option2.props.accessibilityState?.disabled ?? option2.props.disabled).toBe(true);
-    expect(getByText('Solo odd-tier fairness rule: Cannot purchase partial majority solo. Switch to Friend Coordination or select 1 slot.')).toBeTruthy();
+    expect(getByText('Fair Rent Policy: Cannot purchase partial majority solo. Switch to Move in with Friends or select 1 slot.')).toBeTruthy();
+
 
     fireEvent.press(option2);
     expect(mockSelect).not.toHaveBeenCalled();

@@ -146,3 +146,39 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
     return localPods;
   }
 }
+
+export async function inviteRoommateToPod(podId: string | undefined, studentIdOrEmail: string): Promise<Pod | null> {
+  try {
+    const targetPod = localPods.find((p) => !podId || p.id === podId) ?? localPods[0];
+    if (!targetPod) return null;
+
+    const newMember = {
+      user_id: `usr-inv-${Date.now()}`,
+      full_name: `Invited: ${studentIdOrEmail}`,
+      intent_size: 1,
+      campus: 'UNILAG (Main Campus)',
+      major: 'Separate Billing (Pending)',
+      cleanliness_score: 5,
+      sleep_schedule: 'Flexible',
+      slot_credit_id: 'pending-separate-billing',
+    };
+
+    const nextTotalIntent = targetPod.current_total_intent + 1;
+    const isNowFinalized = nextTotalIntent >= targetPod.property_tier;
+
+    const updatedPod: Pod = {
+      ...targetPod,
+      members: [...targetPod.members, newMember],
+      current_total_intent: nextTotalIntent,
+      is_finalized: isNowFinalized,
+      physical_room_id: isNowFinalized ? 'room-701' : targetPod.physical_room_id,
+    };
+
+    localPods = localPods.map((p) => (p.id === targetPod.id ? updatedPod : p));
+    return updatedPod;
+  } catch (error) {
+    console.error('[LiquidityService] Exception during inviteRoommateToPod:', error);
+    throw error;
+  }
+}
+

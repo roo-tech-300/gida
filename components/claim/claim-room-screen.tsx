@@ -1,25 +1,28 @@
-import React, { useState, useCallback } from 'react';
-import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useState } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { router } from 'expo-router';
-import { BackButton } from '@/components/ui/back-button';
-import { useAppToast } from '@/components/ui/toast-card';
+import { useRouter } from 'expo-router';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { useAuth } from '@/context/auth-context';
+import { BackButton } from '@/components/ui/back-button';
+import { ClaimRulesCard } from '@/components/claim/claim-rules-card';
+import { ClaimSplitSummary } from '@/components/claim/claim-split-summary';
+import { IntentSelector } from '@/components/claim/intent-selector';
+import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
-import { useCreateSlotCredit } from '@/hooks/use-liquidity';
-import { IntentSelector } from './intent-selector';
-import { ClaimRulesCard } from './claim-rules-card';
-import { ClaimSplitSummary } from './claim-split-summary';
+import { useAppToast } from '@/components/ui/toast-card';
 import { calculateSplitAmount } from '@/utils/liquidity-math';
+import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
-  const { profile } = useAuth();
+  const router = useRouter();
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { showToast } = useAppToast();
 
   const [selectedIntent, setSelectedIntent] = useState<number>(1);
+  const [isSeparateBilling, setIsSeparateBilling] = useState<boolean>(false);
+  const [friendCode, setFriendCode] = useState<string>('');
 
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
@@ -34,12 +37,18 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const handleSecureSpace = useCallback(async () => {
     try {
       await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
-      showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
+      if (friendCode.trim()) {
+        showToast({ message: `Linked directly to pod ${friendCode.toUpperCase()}!`, type: 'success' });
+      } else if (isSeparateBilling && selectedIntent > 1) {
+        showToast({ message: 'Reserved with separate billing! Share your Pod Code in the lobby.', type: 'success' });
+      } else {
+        showToast({ message: 'Slot reserved! Welcome to the Matching Lobby.', type: 'success' });
+      }
       router.push('/property/lobby' as any);
     } catch (error: any) {
       showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
     }
-  }, [listingId, propertyTier, selectedIntent, purchaseSlot]);
+  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isSeparateBilling, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
@@ -50,37 +59,49 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <BackButton hasBackground={false} />
-        <Text style={styles.topBarTitle}>Reserve Space & Join Pool</Text>
-      </View>
-      <ScrollView bounces={false} contentContainerStyle={styles.content}>
-        <View style={styles.listingMini}>
-          {(dbListing?.primary_image || listing?.image) && (
-            <Image source={{ uri: dbListing?.primary_image || listing?.image }} style={styles.listingThumb} />
-          )}
-          <View style={styles.listingMiniInfo}>
-            <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title || 'Gida Prestige Estate'}</Text>
-            <Text style={styles.listingMiniPrice}>Tier {propertyTier} Property • ₦{priceAmount.toLocaleString()}/yr</Text>
-          </View>
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <View style={styles.topBar}>
+          <BackButton hasBackground={false} />
+          <Text style={styles.topBarTitle}>Reserve Space & Join Pool</Text>
         </View>
+        <ScrollView bounces={false} contentContainerStyle={styles.content}>
+          <View style={styles.listingMini}>
+            {(dbListing?.primary_image || listing?.image) && (
+              <Image source={{ uri: dbListing?.primary_image || listing?.image }} style={styles.listingThumb} />
+            )}
+            <View style={styles.listingMiniInfo}>
+              <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title || 'Gida Prestige Estate'}</Text>
+              <Text style={styles.listingMiniPrice}>Tier {propertyTier} Property • ₦{priceAmount.toLocaleString()}/yr</Text>
+            </View>
+          </View>
 
-        <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={setSelectedIntent} />
-        <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={1} />
-        <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
-
-        <Pressable
-          style={[styles.lockButton, isPurchasing && styles.lockButtonDisabled]}
-          onPress={handleSecureSpace}
-          disabled={isPurchasing}
-        >
-          {isPurchasing ? (
-            <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
-          ) : (
-            <Text style={styles.lockText}>Confirm & Enter Matching Lobby</Text>
+          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={setSelectedIntent} />
+          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={1} />
+          
+          {propertyTier > 1 && (
+            <RoommateLinkCard
+              isSeparateBilling={isSeparateBilling}
+              onToggleSeparateBilling={setIsSeparateBilling}
+              friendCode={friendCode}
+              onChangeFriendCode={setFriendCode}
+            />
           )}
-        </Pressable>
-      </ScrollView>
+
+          <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
+
+          <Pressable
+            style={[styles.lockButton, isPurchasing && styles.lockButtonDisabled]}
+            onPress={handleSecureSpace}
+            disabled={isPurchasing}
+          >
+            {isPurchasing ? (
+              <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
+            ) : (
+              <Text style={styles.lockText}>Confirm & Enter Matching Lobby</Text>
+            )}
+          </Pressable>
+        </ScrollView>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }

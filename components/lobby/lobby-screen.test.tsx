@@ -19,6 +19,10 @@ jest.mock('@/hooks/use-liquidity', () => ({
   }),
 }));
 
+jest.mock('@/services/liquidity-service', () => ({
+  inviteRoommateToPod: jest.fn().mockResolvedValue({}),
+}));
+
 describe('LobbyScreen & Peer Matching Integration', () => {
   beforeEach(() => {
     jest.useFakeTimers();

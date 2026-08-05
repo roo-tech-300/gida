@@ -44,11 +44,14 @@ export function RoommateLinkCard({
       </View>
 
       {matchingMode === 'open_pool' ? (
-        <View style={styles.infoBox}>
-          <Ionicons name="sparkles" size={18} color={DesignColors.primaryBright} style={{ marginTop: 2 }} />
-          <Text style={styles.infoText}>
-            Recommended for solo students! After reserving your slot, enter Roommate Matching to effortlessly connect with verified classmates based on lifestyle habits and cleanliness. No invite codes needed.
-          </Text>
+        <View style={styles.detailCard}>
+          <Ionicons name="sparkles" size={22} color={DesignColors.primaryBright} />
+          <View style={styles.detailTextWrap}>
+            <Text style={styles.detailTitle}>Automated Classmate Matching</Text>
+            <Text style={styles.detailDesc}>
+              We automatically pair your reserved slot with compatible, verified classmates based on study habits and schedule. No group codes needed!
+            </Text>
+          </View>
         </View>
       ) : (
         <View style={styles.friendsContainer}>
@@ -61,18 +64,18 @@ export function RoommateLinkCard({
           )}
 
           {isMultiSlot ? (
-            <View style={styles.autoBillingCard}>
+            <View style={styles.detailCard}>
               <Ionicons name="checkmark-circle" size={22} color={DesignColors.primaryBright} />
-              <View style={styles.billingTextWrap}>
-                <Text style={styles.autoBillingTitle}>Separate Student Invoices Enabled</Text>
-                <Text style={styles.autoBillingDesc}>
-                  You are reserving {intentSize} individual slots for your friend group. Each classmate will pay their exact share independently after you generate your Group Code!
+              <View style={styles.detailTextWrap}>
+                <Text style={styles.detailTitle}>Separate Student Invoices</Text>
+                <Text style={styles.detailDesc}>
+                  Reserving {intentSize} individual slots for your group. Each classmate pays their share independently via your Group Code.
                 </Text>
               </View>
             </View>
           ) : (
             <View style={styles.joinSection}>
-              <Text style={styles.inputLabel}>JOIN AN EXISTING FRIEND&apos;S APARTMENT GROUP:</Text>
+              <Text style={styles.inputLabel}>JOIN A FRIEND&apos;S APARTMENT GROUP:</Text>
               <TextInput
                 style={styles.input}
                 placeholder="Enter Group Code (e.g., GIDA-GRP-8291)"
@@ -83,7 +86,7 @@ export function RoommateLinkCard({
                 autoCorrect={false}
               />
               <Text style={styles.hintText}>
-                Want to bring friends instead? Select 2 or more slots below to automatically reserve beds for your classmate group!
+                Tip: Select 2 or more slots below to start your own group with separate classmate billing.
               </Text>
             </View>
           )}
@@ -101,15 +104,13 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: DesignColors.primaryContainer },
   tabText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontWeight: '600', fontFamily },
   tabTextActive: { color: DesignColors.onPrimaryContainer, fontWeight: '700' },
-  infoBox: { flexDirection: 'row', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerHigh, padding: DesignSpacing.sm, borderRadius: DesignRadius.sm },
-  infoText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, flex: 1, lineHeight: 20 },
   friendsContainer: { gap: DesignSpacing.sm, marginTop: 2 },
   oddNotice: { backgroundColor: DesignColors.surfaceContainerHigh, padding: 10, borderRadius: DesignRadius.sm, borderLeftWidth: 3, borderLeftColor: DesignColors.secondary },
   oddNoticeText: { ...DesignTypography.labelSm, color: DesignColors.onSurface, lineHeight: 18 },
-  autoBillingCard: { flexDirection: 'row', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest, padding: DesignSpacing.sm, borderRadius: DesignRadius.sm, borderWidth: 1, borderColor: DesignColors.primaryBright },
-  billingTextWrap: { flex: 1, gap: 2 },
-  autoBillingTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
-  autoBillingDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, lineHeight: 18 },
+  detailCard: { flexDirection: 'row', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest, padding: DesignSpacing.sm, borderRadius: DesignRadius.sm, borderWidth: 1, borderColor: DesignColors.primaryBright },
+  detailTextWrap: { flex: 1, gap: 2 },
+  detailTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
+  detailDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, lineHeight: 18 },
   joinSection: { gap: 6 },
   inputLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontSize: 11 },
   input: { backgroundColor: DesignColors.surfaceContainerLowest, borderWidth: 1, borderColor: DesignColors.cardBorder, borderRadius: DesignRadius.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm, color: DesignColors.onSurface, ...DesignTypography.bodyMd, fontFamily },

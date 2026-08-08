@@ -1,3 +1,5 @@
+import { derivePropertyTier } from '@/utils/liquidity-math';
+
 export type FeedListing = {
   id: string;
   title: string;
@@ -109,8 +111,8 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     locationFee: 500,
     isLocationUnlocked: false,
     estateId: item.estate_id,
-    propertyTier: item.property_tier || ((item.number_of_bedrooms > 0 && item.number_of_bedrooms <= 8) ? item.number_of_bedrooms : ((item.max_roommates > 0 && item.max_roommates < 10) ? item.max_roommates : 4)),
-    abstractSlotsAvailable: item.abstract_slots_available || ((item.units_available || 1) * ((item.number_of_bedrooms > 0 && item.number_of_bedrooms <= 8) ? item.number_of_bedrooms : ((item.max_roommates > 0 && item.max_roommates < 10) ? item.max_roommates : 4))),
+    propertyTier: derivePropertyTier(item.property_tier, item.max_roommates),
+    abstractSlotsAvailable: item.abstract_slots_available || ((item.units_available || 1) * derivePropertyTier(item.property_tier, item.max_roommates)),
   };
 }
 

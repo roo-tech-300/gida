@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Estate, SlotCredit, Pod } from '@/types/liquidity';
+import type { Estate, SlotCredit, Pod, ReserveSlotCreditInput, ReserveSlotCreditResult } from '@/types/liquidity';
 import { MOCK_ESTATES, MOCK_SLOT_CREDITS, MOCK_PODS } from '@/dummy/liquidity-mock';
 
 let localUserCredits: SlotCredit[] = [...MOCK_SLOT_CREDITS];
@@ -23,86 +23,52 @@ export async function fetchEstates(): Promise<Estate[]> {
   }
 }
 
-export async function purchaseSlotCredit(estateId: string, propertyTier: number, intentSize: number): Promise<SlotCredit> {
+export async function reserveSlotCredit(input: ReserveSlotCreditInput): Promise<ReserveSlotCreditResult> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
-    const userId = user?.id || 'usr-current-student';
-
-    const existingEstate = MOCK_ESTATES.find((e) => e.id === estateId || e.property_tier === propertyTier);
-    const fallbackEstate: Estate = existingEstate ?? {
-      id: estateId,
-      name: `Gida Residence (Tier ${propertyTier})`,
-      description: `Tier ${propertyTier} premium student accommodation unit with biometric security.`,
-      campus: 'University of Lagos, Akoka',
-      property_tier: propertyTier,
-      price_per_annum: 300000 * propertyTier,
-      physical_rooms_inventory: 10,
-      abstract_slots_available: 10 * propertyTier,
-      primary_image: 'https://images.unsplash.com/photo-1522708323590-d24dbb6b0267?w=800',
-      rules: ['Quiet hours after 10 PM', 'No indoor smoking', 'Student ID required'],
-      amenities: ['Generator', 'Fenced Gate', 'Internet', 'Wardrobe', 'Borehole Water'],
-    };
-
-    const newCredit: SlotCredit = {
-      id: `credit-dyn-${Date.now()}`,
-      user_id: userId,
-      estate_id: estateId,
-      property_tier: propertyTier,
-      intent_size: intentSize,
-      status: 'booked_pending_claim',
-      invite_code: `GIDA-POD-${Math.floor(1000 + Math.random() * 9000)}`,
-      created_at: new Date().toISOString(),
-      payment_deadline: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-      estate: fallbackEstate,
-    };
-
-    const newPod: Pod = {
-      id: `pod-dyn-${Math.floor(100 + Math.random() * 900)}`,
-      estate_id: estateId,
-      property_tier: propertyTier,
-      matched_gender: 'ANY',
-      members: [
-        {
-          user_id: userId,
-          full_name: 'You (Current User)',
-          intent_size: intentSize,
-          campus: 'UNILAG (Main Campus)',
-          major: 'Computer Science',
-          cleanliness_score: 5,
-          sleep_schedule: 'Midnight (12 AM)',
-          slot_credit_id: newCredit.id,
-        },
-      ],
-      current_total_intent: intentSize,
-      is_finalized: intentSize === propertyTier,
-      physical_room_id: intentSize === propertyTier ? 'room-701' : null,
-      created_at: new Date().toISOString(),
-    };
-
-    localUserCredits = [newCredit, ...localUserCredits];
-    localPods = [newPod, ...localPods];
-
-    const { data, error } = await supabase
-      .from('slot_credits')
-      .insert({
-        user_id: userId,
-        estate_id: estateId,
-        property_tier: propertyTier,
-        intent_size: intentSize,
-        status: 'booked_pending_claim',
-        payment_deadline: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
-      })
-      .select()
-      .maybeSingle();
-
-    if (error || !data) {
-      console.warn('[LiquidityService] Supabase insert failed or offline, returning synchronized local credit.');
-      return newCredit;
+    if (!user) {
+      throw new Error('Please sign in to reserve a slot.');
     }
-    return data as SlotCredit;
+
+    const { data, error } = await supabase.rpc('reserve_slot_credit', {
+      p_user_id: user.id,
+      p_listing_id: input.listingId,
+      p_pod_id: input.podId ?? null,
+      p_intent_size: input.intentSize,
+      p_amount: input.amount ?? 0,
+    });
+
+    if (error) {
+      throw error;
+    }
+
+    const result = data as ReserveSlotCreditResult;
+    if (!result.success) {
+      throw new Error(result.error || 'Slot reservation failed.');
+    }
+    return result;
   } catch (error) {
-    console.error('[LiquidityService] Exception during purchaseSlotCredit:', error);
-    return localUserCredits[0];
+    console.error('[LiquidityService] reserveSlotCredit failed:', error);
+    throw error;
+  }
+}
+
+export async function findPodByGroupCode(groupCode: string): Promise<Pod | null> {
+  try {
+    const code = groupCode.trim().toUpperCase();
+    if (!code) return null;
+    const { data, error } = await supabase
+      .from('pods')
+      .select('id, tier, status, current_total_intent, listing_id, group_code')
+      .eq('group_code', code)
+      .maybeSingle();
+    if (error || !data) {
+      return null;
+    }
+    return data as Pod;
+  } catch (error) {
+    console.error('[LiquidityService] findPodByGroupCode failed:', error);
+    return null;
   }
 }
 

@@ -5,6 +5,7 @@ import {
   getAvailableIntentOptions,
   calculateSeparateBillingPerPerson,
   verifyPodRevenueParity,
+  derivePropertyTier,
 } from './liquidity-math';
 
 describe('Liquidity Math Rules & Edge Case Defense', () => {
@@ -64,6 +65,28 @@ describe('Liquidity Math Rules & Edge Case Defense', () => {
   });
 
 
+
+  describe('derivePropertyTier (maxRoommates as tier source)', () => {
+    it('prefers a stored property_tier column', () => {
+      expect(derivePropertyTier(3, 5)).toBe(3);
+    });
+
+    it('falls back to max_roommates when no tier column exists', () => {
+      expect(derivePropertyTier(undefined, 4)).toBe(4);
+      expect(derivePropertyTier(null, 2)).toBe(2);
+    });
+
+    it('ignores the No-Limit sentinel (999) and out-of-range values', () => {
+      expect(derivePropertyTier(undefined, 999)).toBe(4);
+      expect(derivePropertyTier(undefined, 15)).toBe(4);
+      expect(derivePropertyTier(0, 0)).toBe(4);
+    });
+
+    it('defaults to 4 when nothing is provided', () => {
+      expect(derivePropertyTier()).toBe(4);
+      expect(derivePropertyTier(null, null)).toBe(4);
+    });
+  });
 
   describe('Separate Billing Math & Revenue Parity Verification', () => {
     it('accurately divides total reserved amount across independent roommate invoices', () => {

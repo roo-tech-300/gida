@@ -88,12 +88,12 @@ export function CreateListingRulesScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Max Roommates Per Room</Text>
+            <Text style={styles.label}>Rent Slots (Property Tier)</Text>
             <View style={[styles.glassInput, styles.roommateCard]}>
               <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <View style={styles.roommateLeft}>
-                <Text style={styles.roommateTitle}>Roommates</Text>
-                <Text style={styles.roommateDesc}>How many people per room?</Text>
+                <Text style={styles.roommateTitle}>Roommates / Slots</Text>
+                <Text style={styles.roommateDesc}>Each roommate pays an equal share of the rent</Text>
               </View>
               <View style={[styles.stepper, step4.noLimit && styles.stepperDimmed]}>
                 <Pressable
@@ -108,18 +108,19 @@ export function CreateListingRulesScreen() {
                 </Text>
                 <Pressable
                   style={styles.stepperBtn}
-                  onPress={() => setStep4({ maxRoommates: step4.maxRoommates + 1 })}
+                  onPress={() => setStep4({ maxRoommates: Math.min(8, step4.maxRoommates + 1) })}
                   disabled={step4.noLimit}
                 >
                   <Ionicons name="add" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
                 </Pressable>
               </View>
             </View>
+            <Text style={styles.fieldHint}>This sets the property slot tier (1-8). Each slot bills separately via roommate matching.</Text>
             <Pressable style={styles.checkRow} onPress={() => setStep4({ noLimit: !step4.noLimit })}>
               <View style={[styles.checkbox, step4.noLimit && styles.checkboxActive]}>
                 {step4.noLimit && <Ionicons name="checkmark" size={14} color={DesignColors.onPrimary} />}
               </View>
-              <Text style={styles.checkLabel}>No limit — landlord doesn't mind</Text>
+              <Text style={styles.checkLabel}>No limit - cannot be split into slots (defaults to 4 slots)</Text>
             </Pressable>
           </View>
         </ScrollView>

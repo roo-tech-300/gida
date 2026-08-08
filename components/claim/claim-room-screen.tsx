@@ -11,8 +11,9 @@ import { IntentSelector } from '@/components/claim/intent-selector';
 import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateSplitAmount, isValidIntentSize } from '@/utils/liquidity-math';
+import { calculateSplitAmount, isValidIntentSize, derivePropertyTier } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { findPodByGroupCode } from '@/services/liquidity-service';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const router = useRouter();
@@ -27,9 +28,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
   const priceAmount = dbListing?.price_amount ?? 1200000;
-  const bedrooms = (dbListing?.number_of_bedrooms && dbListing.number_of_bedrooms > 0 && dbListing.number_of_bedrooms <= 8) ? dbListing.number_of_bedrooms : null;
-  const rawMax = bedrooms ?? dbListing?.max_roommates ?? 4;
-  const propertyTier: number = dbListing?.property_tier ?? ((rawMax > 0 && rawMax < 10) ? rawMax : 4);
+  const propertyTier: number = derivePropertyTier(dbListing?.property_tier, dbListing?.max_roommates);
   const rules = dbListing?.rules ?? ['No smoking indoors', 'Quiet hours after 10 PM'];
 
   const isFriendMode = matchingMode === 'friends';
@@ -54,9 +53,21 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
 
   const handleSecureSpace = useCallback(async () => {
     try {
-      await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
-      if (friendCode.trim() && isFriendMode) {
-        showToast({ message: `Linked directly to group ${friendCode.toUpperCase()}!`, type: 'success' });
+      let podId: string | null = null;
+      if (isFriendMode && friendCode.trim()) {
+        const pod = await findPodByGroupCode(friendCode);
+        if (!pod) {
+          showToast({ message: `Group code ${friendCode.toUpperCase()} not found.`, type: 'error' });
+          return;
+        }
+        podId = pod.id;
+      }
+
+      const amount = calculateSplitAmount(priceAmount, selectedIntent, propertyTier, isFriendMode);
+      await purchaseSlot({ listingId, intentSize: selectedIntent, amount, podId });
+
+      if (podId) {
+        showToast({ message: `Joined group ${friendCode.toUpperCase()} under separate billing!`, type: 'success' });
       } else if (selectedIntent > 1 && isFriendMode) {
         showToast({ message: `Reserved ${selectedIntent} slots under separate student invoices! Share Group Code in lobby.`, type: 'success' });
       } else {
@@ -66,7 +77,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
     } catch (error: any) {
       showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
     }
-  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isFriendMode, showToast, router]);
+  }, [listingId, priceAmount, propertyTier, selectedIntent, purchaseSlot, friendCode, isFriendMode, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;

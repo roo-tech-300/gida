@@ -77,6 +77,7 @@ export function CreateListingMediaScreen() {
       number_of_bedrooms: step1.bedrooms,
       number_of_bathrooms: step1.bathrooms,
       max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
+      property_tier: step4.noLimit ? null : step4.maxRoommates,
       rules: step4.rulesList,
       location_landmark: step2.landmark.trim(),
       city: profile?.city || 'Minna',

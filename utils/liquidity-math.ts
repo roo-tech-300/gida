@@ -29,6 +29,16 @@ export function canFinalizePod(currentTotalIntent: number, targetTier: number): 
   return currentTotalIntent === targetTier && targetTier > 0;
 }
 
+function isValidTier(n: number | null | undefined): n is number {
+  return typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= 8;
+}
+
+export function derivePropertyTier(propertyTier?: number | null, maxRoommates?: number | null): number {
+  if (isValidTier(propertyTier)) return propertyTier;
+  if (isValidTier(maxRoommates)) return maxRoommates;
+  return 4;
+}
+
 export function getAvailableIntentOptions(inputTier: number, isFriendMode = false): IntentOption[] {
   const tier = (inputTier > 0 && inputTier <= 8) ? inputTier : 4;
   const options: IntentOption[] = [];

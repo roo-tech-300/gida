@@ -33,6 +33,9 @@ export interface SlotCredit {
   created_at: string;
   payment_deadline: string;
   estate?: Estate;
+  listing_id?: string;
+  pod_id?: string | null;
+  amount_paid?: number | null;
 }
 
 export interface PodMember {
@@ -57,7 +60,26 @@ export interface Pod {
   is_finalized: boolean;
   physical_room_id?: string | null;
   created_at: string;
+  listing_id?: string;
+  tier?: number;
+  group_code?: string | null;
+  status?: 'forming' | 'finalized';
 }
+
+export type ReserveSlotCreditInput = {
+  listingId: string;
+  intentSize: number;
+  amount?: number;
+  podId?: string | null;
+};
+
+export type ReserveSlotCreditResult = {
+  success: boolean;
+  pod_id?: string | null;
+  slot_credit_id?: string | null;
+  message?: string | null;
+  error?: string | null;
+};
 
 export interface PhysicalRoom {
   id: string;

@@ -1,11 +1,11 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import {
   fetchEstates,
-  purchaseSlotCredit,
+  reserveSlotCredit,
   fetchUserSlotCredits,
   fetchActivePods,
 } from '@/services/liquidity-service';
-import type { Estate, SlotCredit, Pod } from '@/types/liquidity';
+import type { Estate, SlotCredit, Pod, ReserveSlotCreditInput, ReserveSlotCreditResult } from '@/types/liquidity';
 
 export function useEstates() {
   return useQuery<Estate[], Error>({
@@ -34,13 +34,8 @@ export function useActivePods(estateId?: string) {
 export function useCreateSlotCredit() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    SlotCredit,
-    Error,
-    { estateId: string; propertyTier: number; intentSize: number }
-  >({
-    mutationFn: ({ estateId, propertyTier, intentSize }) =>
-      purchaseSlotCredit(estateId, propertyTier, intentSize),
+  return useMutation<ReserveSlotCreditResult, Error, ReserveSlotCreditInput>({
+    mutationFn: (input) => reserveSlotCredit(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });

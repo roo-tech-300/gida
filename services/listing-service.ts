@@ -32,6 +32,7 @@ export type CreateListingInput = {
   custom_features: string[];
   size_sqft: number | null;
   total_floors: number | null;
+  property_tier?: number | null;
 };
 
 export type CreateListingPhoto = {
@@ -97,6 +98,7 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
       custom_features: input.custom_features,
       size_sqft: input.size_sqft,
       total_floors: input.total_floors,
+      property_tier: input.property_tier ?? null,
       primary_image: null,
     })
     .select('id')

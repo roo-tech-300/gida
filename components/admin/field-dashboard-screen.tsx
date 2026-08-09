@@ -10,7 +10,7 @@ const TABS = ['Super View', 'State Teams', 'Field Agents'];
 
 const TOOLS = [
   { key: 'onboard', title: 'Onboard\nNew Property', icon: 'add-circle-outline', color: DesignColors.primaryContainer },
-  { key: 'allocations', title: 'Manage\nAllocations', icon: 'swap-horizontal-outline', color: '#f59e0b' },
+  { key: 'allocations', title: 'Manage\nAllocations', icon: 'swap-horizontal-outline', color: DesignColors.warning },
   { key: 'maintenance', title: 'Maintenance\nLogs', icon: 'construct-outline', color: DesignColors.tertiary },
   { key: 'contacts', title: 'Landlord\nContacts', icon: 'call-outline', color: DesignColors.secondary },
 ];
@@ -89,14 +89,14 @@ function Metric({ label, value }: { label: string; value: string }) {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#000000' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 24 },
   tabRow: { flexDirection: 'row', backgroundColor: DesignColors.glassBg, borderRadius: 12, padding: 4, borderWidth: 1, borderColor: DesignColors.glassBorder },
   tab: { flex: 1, paddingVertical: 10, borderRadius: 10, alignItems: 'center' },
   tabActive: { backgroundColor: DesignColors.primaryContainer },
   tabText: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
-  tabTextActive: { color: '#ffffff' },
+  tabTextActive: { color: DesignColors.onSurface },
   metricsRow: { flexDirection: 'row', gap: 12 },
   metricCard: { flex: 1, backgroundColor: DesignColors.glassBg, borderRadius: 16, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 16, gap: 4 },
   metricLabel: { fontSize: 10, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase', opacity: 0.6 },
@@ -109,9 +109,9 @@ const styles = StyleSheet.create({
   sectionTitle: { fontSize: 20, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.24 },
   scheduleSection: { backgroundColor: DesignColors.glassBg, borderRadius: 16, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 16, gap: 16 },
   scheduleRow: { flexDirection: 'row', gap: 12, paddingBottom: 12 },
-  scheduleBordered: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  scheduleBordered: { borderBottomWidth: 1, borderBottomColor: DesignColors.borderFaint },
   scheduleTime: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, width: 64 },
-  scheduleLine: { width: 1, backgroundColor: 'rgba(255,255,255,0.08)' },
+  scheduleLine: { width: 1, backgroundColor: DesignColors.cardBorder },
   scheduleContent: { flex: 1, gap: 4 },
   scheduleTop: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   scheduleTitle: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },

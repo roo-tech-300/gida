@@ -15,10 +15,10 @@ import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
 import { PropertyBottomBar } from './property-bottom-bar';
 import { PropertyPhotos } from './property-photos';
-import { PropertyLocationCard } from './property-location-card';
+import { BookTourCard } from './book-tour-card';
+import { BookTourModal } from './book-tour-modal';
 import { PropertyRulesCard } from './property-rules-card';
 import { PropertyReviewsSection } from './property-reviews-section';
-import { LocationPaymentModal } from './location-payment-modal';
 
 const HERO_HEIGHT = 340;
 
@@ -29,8 +29,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const { visible: alertVisible, title: alertTitle, message: alertMessage, buttons: alertButtons, showAlert, hideAlert } = useCustomAlert();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
-  const [paymentModalOpen, setPaymentModalOpen] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(property.isLocationUnlocked || false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
 
   const allPhotos = useMemo(() => {
     if (photos && photos.length > 0) return photos;
@@ -75,6 +74,11 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     router.push(`/property/claim-room?id=${property.id}`);
   };
 
+  const handleAssistedTour = () => {
+    setTourModalOpen(false);
+    router.push(`/property/tour-scheduler?id=${property.id}`);
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} />
@@ -108,13 +112,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
           <Text style={styles.description}>{property.description}</Text>
         </View>
 
-        <PropertyLocationCard
-          latitude={property.latitude}
-          longitude={property.longitude}
-          locationFee={property.locationFee}
-          isUnlocked={isUnlocked}
-          onUnlockPress={() => setPaymentModalOpen(true)}
-        />
+        <BookTourCard onPress={() => setTourModalOpen(true)} />
 
         <View style={styles.amenitiesSection}>
           <Text style={styles.sectionTitle}>Amenities</Text>
@@ -136,7 +134,6 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       </PropertyBottomSheet>
 
       <PropertyBottomBar
-        onBookTour={() => router.push(`/property/tour-scheduler?id=${property.id}`)}
         onClaimRoom={handleClaimRoom}
         hasActiveClaim={!!activeClaim}
         isCheckingClaim={isCheckingClaim}
@@ -149,15 +146,15 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         onClose={() => setGalleryOpen(false)}
       />
 
-      <LocationPaymentModal
-        visible={paymentModalOpen}
-        feeAmount={property.locationFee || 500}
+      <BookTourModal
+        visible={tourModalOpen}
         propertyTitle={property.title}
-        onClose={() => setPaymentModalOpen(false)}
-        onSuccess={() => {
-          setIsUnlocked(true);
-          setPaymentModalOpen(false);
-        }}
+        propertyLocation={property.location}
+        latitude={property.latitude}
+        longitude={property.longitude}
+        locationFee={property.locationFee}
+        onClose={() => setTourModalOpen(false)}
+        onAssistedTour={handleAssistedTour}
       />
 
       <CustomAlert
@@ -184,7 +181,7 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surface },
   statusBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(74, 225, 118, 0.12)',
+    backgroundColor: DesignColors.successContainer,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,

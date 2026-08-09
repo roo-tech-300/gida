@@ -108,7 +108,7 @@ export function MessageChatScreen({ conversation }: { conversation: Conversation
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   flex: {
     flex: 1,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.sm,
     borderBottomWidth: 1,
     borderBottomColor: DesignColors.cardBorder,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   backButton: {
     width: 40,
@@ -159,8 +159,8 @@ const styles = StyleSheet.create({
   },
   composerWrap: {
     paddingTop: DesignSpacing.xs,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.04)',
+    borderTopColor: DesignColors.borderFaint,
   },
 });

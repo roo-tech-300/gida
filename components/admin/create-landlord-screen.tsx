@@ -63,7 +63,7 @@ export function CreateLandlordScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
@@ -89,7 +89,7 @@ export function CreateLandlordScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. John Doe"
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor={DesignColors.divider}
                 value={fullName}
                 onChangeText={setFullName}
                 autoCapitalize="words"
@@ -104,7 +104,7 @@ export function CreateLandlordScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. john@example.com"
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor={DesignColors.divider}
                 value={email}
                 onChangeText={setEmail}
                 keyboardType="email-address"
@@ -120,7 +120,7 @@ export function CreateLandlordScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. +234 800 000 0000"
-                placeholderTextColor="rgba(199,196,216,0.4)"
+                placeholderTextColor={DesignColors.divider}
                 value={phone}
                 onChangeText={(text) => setPhone(text.replace(/[^+\d]/g, ''))}
                 keyboardType="default"
@@ -147,7 +147,7 @@ export function CreateLandlordScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. GTBank"
-                      placeholderTextColor="rgba(199,196,216,0.4)"
+                      placeholderTextColor={DesignColors.divider}
                       value={bankName}
                       onChangeText={setBankName}
                     />
@@ -160,7 +160,7 @@ export function CreateLandlordScreen() {
                     <TextInput
                       style={styles.textInput}
                         placeholder="e.g. 0123456789"
-                        placeholderTextColor="rgba(199,196,216,0.4)"
+                        placeholderTextColor={DesignColors.divider}
                         value={accountNumber}
                         onChangeText={(text) => setAccountNumber(text.replace(/\D/g, ''))}
                         keyboardType="default"
@@ -174,7 +174,7 @@ export function CreateLandlordScreen() {
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. John Doe"
-                      placeholderTextColor="rgba(199,196,216,0.4)"
+                      placeholderTextColor={DesignColors.divider}
                       value={accountName}
                       onChangeText={setAccountName}
                       autoCapitalize="words"
@@ -201,7 +201,7 @@ export function CreateLandlordScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8,
@@ -216,10 +216,10 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: 8 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   subLabel: { fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
-  optional: { fontSize: 11, fontWeight: '400', color: 'rgba(199,196,216,0.5)', fontFamily },
+  optional: { fontSize: 11, fontWeight: '400', color: DesignColors.divider, fontFamily },
   glassInput: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassStrong,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   textInput: {
     paddingHorizontal: 16, paddingVertical: 14,

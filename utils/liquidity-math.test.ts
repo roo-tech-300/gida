@@ -6,6 +6,8 @@ import {
   calculateSeparateBillingPerPerson,
   verifyPodRevenueParity,
   derivePropertyTier,
+  NO_LIMIT_TIER,
+  MAX_PROPERTY_TIER,
 } from './liquidity-math';
 
 describe('Liquidity Math Rules & Edge Case Defense', () => {
@@ -74,17 +76,32 @@ describe('Liquidity Math Rules & Edge Case Defense', () => {
     it('falls back to max_roommates when no tier column exists', () => {
       expect(derivePropertyTier(undefined, 4)).toBe(4);
       expect(derivePropertyTier(null, 2)).toBe(2);
+      expect(derivePropertyTier(null, 9)).toBe(9);
+      expect(derivePropertyTier(null, NO_LIMIT_TIER)).toBe(NO_LIMIT_TIER);
     });
 
-    it('ignores the No-Limit sentinel (999) and out-of-range values', () => {
-      expect(derivePropertyTier(undefined, 999)).toBe(4);
-      expect(derivePropertyTier(undefined, 15)).toBe(4);
-      expect(derivePropertyTier(0, 0)).toBe(4);
+    it('accepts the top-of-range tier stored on the property column', () => {
+      expect(derivePropertyTier(NO_LIMIT_TIER, NO_LIMIT_TIER)).toBe(NO_LIMIT_TIER);
+      expect(derivePropertyTier(MAX_PROPERTY_TIER, 2)).toBe(MAX_PROPERTY_TIER);
     });
 
-    it('defaults to 4 when nothing is provided', () => {
-      expect(derivePropertyTier()).toBe(4);
-      expect(derivePropertyTier(null, null)).toBe(4);
+    it('ignores the legacy No-Limit sentinel (999) and out-of-range values', () => {
+      expect(derivePropertyTier(undefined, 999)).toBe(NO_LIMIT_TIER);
+      expect(derivePropertyTier(undefined, 15)).toBe(NO_LIMIT_TIER);
+      expect(derivePropertyTier(0, 0)).toBe(NO_LIMIT_TIER);
+    });
+
+    it('defaults to the no-limit tier when nothing is provided', () => {
+      expect(derivePropertyTier()).toBe(NO_LIMIT_TIER);
+      expect(derivePropertyTier(null, null)).toBe(NO_LIMIT_TIER);
+    });
+  });
+
+  describe('getAvailableIntentOptions with an extended top tier', () => {
+    it('generates a full set of enabled intents for an even No-Limit tier', () => {
+      const options = getAvailableIntentOptions(NO_LIMIT_TIER, false);
+      expect(options).toHaveLength(NO_LIMIT_TIER);
+      expect(options.every((opt) => !opt.disabled)).toBe(true);
     });
   });
 

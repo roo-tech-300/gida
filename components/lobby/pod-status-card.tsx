@@ -43,7 +43,7 @@ export function PodStatusCard({ pod, targetTier, physicalDoor, countdownTimer }:
 const styles = StyleSheet.create({
   container: { padding: DesignSpacing.md, borderRadius: DesignRadius.lg, borderWidth: 1, gap: DesignSpacing.sm },
   formingContainer: { backgroundColor: DesignColors.surfaceContainerHigh, borderColor: DesignColors.tertiary },
-  completeContainer: { backgroundColor: 'rgba(74, 225, 118, 0.12)', borderColor: DesignColors.secondary },
+  completeContainer: { backgroundColor: DesignColors.successContainer, borderColor: DesignColors.secondary },
   headerRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
   statusText: { ...DesignTypography.labelCaps, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
   mainTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontWeight: '800', fontFamily },

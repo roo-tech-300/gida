@@ -74,6 +74,7 @@ export default function RootLayout() {
                     <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="messages/[id]" />
+                    <Stack.Screen name="roommate/[id]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>
                 </ThemeProvider>

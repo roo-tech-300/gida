@@ -28,9 +28,9 @@ const ACTION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const ACTION_BG_MAP: Record<string, string> = {
-  secondary: 'rgba(78, 222, 163, 0.15)',
-  primary: 'rgba(79, 70, 229, 0.15)',
-  tertiary: 'rgba(255, 182, 149, 0.15)',
+  secondary: DesignColors.successContainer,
+  primary: DesignColors.primaryTint,
+  tertiary: DesignColors.warningContainer,
 };
 
 const ACTION_COLOR_MAP: Record<string, string> = {
@@ -101,7 +101,7 @@ export function SuperAdminDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 24 },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   actionIconWrap: {
     width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.borderSoft,
     alignItems: 'center', justifyContent: 'center',
   },
   actionLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },
@@ -132,7 +132,7 @@ const styles = StyleSheet.create({
   },
   activityTitle: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
   activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  activityRowBordered: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  activityRowBordered: { borderBottomWidth: 1, borderBottomColor: DesignColors.borderFaint },
   activityIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   activityText: { flex: 1, gap: 2 },
   activityTitleText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },

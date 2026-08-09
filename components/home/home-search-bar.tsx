@@ -63,7 +63,7 @@ export function HomeSearchBar({
           )}
           <View style={styles.divider} />
           <Pressable style={styles.modeArea} onPress={onSwipeDown}>
-            <Ionicons name="swap-vertical-outline" size={18} color="#ffffff" />
+            <Ionicons name="swap-vertical-outline" size={18} color={DesignColors.onSurface} />
           </Pressable>
         </View>
       </View>
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 16,
     paddingVertical: 14,
     borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    backgroundColor: DesignColors.scrimHeavy,
   },
   input: {
     flex: 1,
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
   divider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.cardBorder,
   },
   modeArea: {
     flexDirection: 'row',
@@ -168,7 +168,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(26, 26, 30, 0.82)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },

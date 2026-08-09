@@ -79,7 +79,7 @@ export function RoommateInviteModal({ visible, onClose, onSubmitInvite }: Props)
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'center', alignItems: 'center', padding: DesignSpacing.lg },
+  backdrop: { flex: 1, backgroundColor: DesignColors.scrimHeavy, justifyContent: 'center', alignItems: 'center', padding: DesignSpacing.lg },
   keyboardWrap: { width: '100%', maxWidth: 420, justifyContent: 'center' },
   dialog: { backgroundColor: DesignColors.surface, borderRadius: DesignRadius.lg, padding: DesignSpacing.lg, borderWidth: 1, borderColor: DesignColors.cardBorder, gap: DesignSpacing.md },
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },

@@ -54,7 +54,7 @@ export function ActiveAdminCard({ role }: Props) {
 const styles = StyleSheet.create({
   card: { padding: DesignSpacing.lg, paddingTop: DesignSpacing.sm },
   row: { flexDirection: 'row', gap: DesignSpacing.md },
-  iconWrap: { width: 48, height: 48, borderRadius: DesignRadius.lg, backgroundColor: 'rgba(54, 71, 54, 0.12)', alignItems: 'center', justifyContent: 'center' },
+  iconWrap: { width: 48, height: 48, borderRadius: DesignRadius.lg, backgroundColor: DesignColors.primaryTint, alignItems: 'center', justifyContent: 'center' },
   textWrap: { flex: 1, gap: 4 },
   title: { ...DesignTypography.bodyLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
   desc: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontFamily, lineHeight: 20 },
@@ -62,8 +62,8 @@ const styles = StyleSheet.create({
     marginTop: DesignSpacing.md,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm,
     paddingVertical: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md,
-    borderRadius: DesignRadius.lg, backgroundColor: 'rgba(54, 71, 54, 0.12)',
-    borderWidth: 1, borderColor: 'rgba(54, 71, 54, 0.2)',
+    borderRadius: DesignRadius.lg, backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1, borderColor: DesignColors.primaryTintMid,
   },
   buttonText: { ...DesignTypography.bodyMd, color: DesignColors.primary, fontFamily, fontWeight: '600' },
 });

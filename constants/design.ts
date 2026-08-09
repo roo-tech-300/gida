@@ -36,6 +36,40 @@ export const DesignColors = {
   glassFill: 'rgba(27, 27, 29, 0.8)',
   glassBg: 'rgba(24, 24, 28, 0.7)',
   glassBorder: 'rgba(255, 255, 255, 0.1)',
+
+  // Semantic status & feedback colors (harmonized with the dark/gold palette)
+  success: '#a5d6b7',
+  successContainer: 'rgba(165, 214, 183, 0.12)',
+  warning: '#ffd08a',
+  warningContainer: 'rgba(255, 208, 138, 0.12)',
+  danger: '#ffb4ab',
+  dangerContainer: 'rgba(255, 180, 171, 0.12)',
+  info: '#b3c7ff',
+  infoContainer: 'rgba(179, 199, 255, 0.12)',
+  rating: '#f4c35c',
+
+  // Brand gold tints (replace legacy green rgba(54,71,54,…) family)
+  primaryTint: 'rgba(157, 126, 67, 0.12)',
+  primaryTintMid: 'rgba(157, 126, 67, 0.2)',
+  primaryTintStrong: 'rgba(157, 126, 67, 0.5)',
+  primaryTintBorder: 'rgba(157, 126, 67, 0.4)',
+
+  // Glass / overlay surfaces
+  glassSoft: 'rgba(24, 24, 28, 0.5)',
+  glassStrong: 'rgba(24, 24, 28, 0.65)',
+  glassOpaque: 'rgba(24, 24, 28, 0.95)',
+
+  // Border / divider / scrim alphas
+  borderFaint: 'rgba(255, 255, 255, 0.04)',
+  borderSoft: 'rgba(255, 255, 255, 0.06)',
+  borderMedium: 'rgba(255, 255, 255, 0.12)',
+  borderStrong: 'rgba(255, 255, 255, 0.2)',
+  divider: 'rgba(199, 196, 216, 0.4)',
+  scrimLight: 'rgba(0, 0, 0, 0.18)',
+  scrim: 'rgba(0, 0, 0, 0.5)',
+  scrimHeavy: 'rgba(0, 0, 0, 0.65)',
+  scrimDeep: 'rgba(0, 0, 0, 0.9)',
+  transparent: 'rgba(0, 0, 0, 0)',
 } as const;
 
 export const DesignSpacing = {

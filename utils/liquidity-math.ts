@@ -29,18 +29,21 @@ export function canFinalizePod(currentTotalIntent: number, targetTier: number): 
   return currentTotalIntent === targetTier && targetTier > 0;
 }
 
+export const MAX_PROPERTY_TIER = 10;
+export const NO_LIMIT_TIER = MAX_PROPERTY_TIER;
+
 function isValidTier(n: number | null | undefined): n is number {
-  return typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= 8;
+  return typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= MAX_PROPERTY_TIER;
 }
 
 export function derivePropertyTier(propertyTier?: number | null, maxRoommates?: number | null): number {
   if (isValidTier(propertyTier)) return propertyTier;
   if (isValidTier(maxRoommates)) return maxRoommates;
-  return 4;
+  return NO_LIMIT_TIER;
 }
 
 export function getAvailableIntentOptions(inputTier: number, isFriendMode = false): IntentOption[] {
-  const tier = (inputTier > 0 && inputTier <= 8) ? inputTier : 4;
+  const tier = (inputTier > 0 && inputTier <= MAX_PROPERTY_TIER) ? inputTier : NO_LIMIT_TIER;
   const options: IntentOption[] = [];
   for (let i = 1; i <= tier; i++) {
     const valid = isValidIntentSize(tier, i, isFriendMode);

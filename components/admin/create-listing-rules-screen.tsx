@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { NO_LIMIT_TIER } from '@/utils/liquidity-math';
 
 export function CreateListingRulesScreen() {
   const { data, setStep4 } = useCreateListingForm();
@@ -31,11 +32,20 @@ export function CreateListingRulesScreen() {
     setInputValue(pill + ' ');
   };
 
+  const handleRoommateInput = (val: string) => {
+    const digits = val.replace(/[^0-9]/g, '');
+    if (digits === '') {
+      setStep4({ maxRoommates: 1 });
+      return;
+    }
+    setStep4({ maxRoommates: Math.max(1, Math.min(10, parseInt(digits, 10))) });
+  };
+
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <View />
@@ -88,11 +98,11 @@ export function CreateListingRulesScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Rent Slots (Property Tier)</Text>
+            <Text style={styles.label}>Roommates / Slots</Text>
             <View style={[styles.glassInput, styles.roommateCard]}>
               <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <View style={styles.roommateLeft}>
-                <Text style={styles.roommateTitle}>Roommates / Slots</Text>
+                <Text style={styles.roommateTitle}>Max Roommates</Text>
                 <Text style={styles.roommateDesc}>Each roommate pays an equal share of the rent</Text>
               </View>
               <View style={[styles.stepper, step4.noLimit && styles.stepperDimmed]}>
@@ -103,24 +113,30 @@ export function CreateListingRulesScreen() {
                 >
                   <Ionicons name="remove" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
                 </Pressable>
-                <Text style={[styles.roommateCount, step4.noLimit && styles.roommateCountDimmed]}>
-                  {step4.noLimit ? '--' : String(step4.maxRoommates).padStart(2, '0')}
-                </Text>
+                <TextInput
+                  style={[styles.roommateInput, step4.noLimit && styles.roommateInputDimmed]}
+                  value={step4.noLimit ? '--' : String(step4.maxRoommates)}
+                  onChangeText={handleRoommateInput}
+                  keyboardType="number-pad"
+                  maxLength={2}
+                  editable={!step4.noLimit}
+                  selectTextOnFocus
+                />
                 <Pressable
                   style={styles.stepperBtn}
-                  onPress={() => setStep4({ maxRoommates: Math.min(8, step4.maxRoommates + 1) })}
+                  onPress={() => setStep4({ maxRoommates: Math.min(10, step4.maxRoommates + 1) })}
                   disabled={step4.noLimit}
                 >
                   <Ionicons name="add" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
                 </Pressable>
               </View>
             </View>
-            <Text style={styles.fieldHint}>This sets the property slot tier (1-8). Each slot bills separately via roommate matching.</Text>
+            <Text style={styles.fieldHint}>Max roommates = rent slots (1-10). Rent splits into this many equal shares - reserve 1, several, or all.</Text>
             <Pressable style={styles.checkRow} onPress={() => setStep4({ noLimit: !step4.noLimit })}>
               <View style={[styles.checkbox, step4.noLimit && styles.checkboxActive]}>
                 {step4.noLimit && <Ionicons name="checkmark" size={14} color={DesignColors.onPrimary} />}
               </View>
-              <Text style={styles.checkLabel}>No limit - cannot be split into slots (defaults to 4 slots)</Text>
+              <Text style={styles.checkLabel}>No limit - treated as a {NO_LIMIT_TIER}-slot property; rented as a whole.</Text>
             </Pressable>
           </View>
         </ScrollView>
@@ -139,7 +155,7 @@ export function CreateListingRulesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 8 },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 12 },
@@ -175,8 +191,15 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
-  roommateCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 32, textAlign: 'center' },
-  roommateCountDimmed: { color: DesignColors.onSurfaceVariant },
+  roommateInput: {
+    ...DesignTypography.headlineMd,
+    color: DesignColors.primary,
+    fontFamily,
+    width: 40,
+    textAlign: 'center',
+    paddingVertical: 0,
+  },
+  roommateInputDimmed: { color: DesignColors.onSurfaceVariant },
   checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 4 },
   checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
   checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },

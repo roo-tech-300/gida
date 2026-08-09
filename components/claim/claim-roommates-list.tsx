@@ -35,7 +35,7 @@ function getInitial(name: string | null | undefined) {
 function getInitialColor(name: string | null | undefined) {
   if (!name) return DesignColors.outline;
   const charCode = name.charCodeAt(0);
-  const colors = ['#10B981', '#60A5FA', '#F59E0B', '#8B5CF6', '#EC4899', '#14B8A6'];
+  const colors = [DesignColors.success, DesignColors.info, DesignColors.warning, DesignColors.primaryBright, DesignColors.tertiary, DesignColors.success];
   return colors[charCode % colors.length];
 }
 

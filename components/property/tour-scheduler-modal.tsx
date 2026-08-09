@@ -59,7 +59,7 @@ export function TourSchedulerModal({ propertyId, propertyTitle, propertyLocation
             <Text style={styles.agentName}>{TOUR_ADMIN.name}</Text>
           </View>
           <View style={styles.agentRating}>
-            <Ionicons name="star" size={16} color="#fbbf24" />
+            <Ionicons name="star" size={16} color={DesignColors.rating} />
             <Text style={styles.ratingText}>{TOUR_ADMIN.rating}</Text>
           </View>
         </View>
@@ -95,7 +95,7 @@ const styles = StyleSheet.create({
   subtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flexShrink: 1 },
   verifiedBadge: {
     flexDirection: 'row', alignItems: 'center', gap: 4,
-    backgroundColor: 'rgba(74, 225, 118, 0.12)', paddingHorizontal: 10, paddingVertical: 4,
+    backgroundColor: DesignColors.successContainer, paddingHorizontal: 10, paddingVertical: 4,
     borderRadius: DesignRadius.full,
   },
   verifiedText: { ...DesignTypography.labelSm, color: DesignColors.secondary, fontFamily, fontWeight: '600' },

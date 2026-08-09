@@ -16,6 +16,7 @@ import { useCreateListing } from '@/hooks/use-create-listing';
 import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, deleteListing } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
+import { NO_LIMIT_TIER } from '@/utils/liquidity-math';
 import { supabase } from '@/lib/supabase';
 
 function isRemoteUrl(str: string) {
@@ -76,8 +77,8 @@ export function CreateListingMediaScreen() {
       units_available: step1.units,
       number_of_bedrooms: step1.bedrooms,
       number_of_bathrooms: step1.bathrooms,
-      max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
-      property_tier: step4.noLimit ? null : step4.maxRoommates,
+      max_roommates: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
+      property_tier: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
       rules: step4.rulesList,
       location_landmark: step2.landmark.trim(),
       city: profile?.city || 'Minna',
@@ -222,6 +223,10 @@ export function CreateListingMediaScreen() {
       showToast({ message: 'Please enter a price in step 1.', type: 'error' });
       return;
     }
+    if (!step4.noLimit && (step4.maxRoommates < 1 || step4.maxRoommates > 10)) {
+      showToast({ message: 'Max roommates must be between 1 and 10 in step 4.', type: 'error' });
+      return;
+    }
     if (!step2.coords) {
       showToast({ message: 'Please lock the GPS location in step 2.', type: 'error' });
       return;
@@ -254,7 +259,7 @@ export function CreateListingMediaScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
@@ -364,7 +369,7 @@ export function CreateListingMediaScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8,

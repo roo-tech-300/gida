@@ -51,9 +51,9 @@ export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) 
         <Svg height="100%" width="100%">
           <Defs>
             <LinearGradient id="bottomMask" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="rgba(14,14,16,0)" stopOpacity="0" />
-              <Stop offset="40%" stopColor="rgba(14,14,16,0.6)" stopOpacity="0.6" />
-              <Stop offset="100%" stopColor="rgba(14,14,16,1)" stopOpacity="1" />
+              <Stop offset="0%" stopColor={DesignColors.surfaceContainerLowest} stopOpacity="0" />
+              <Stop offset="40%" stopColor={DesignColors.surfaceContainerLowest} stopOpacity="0.6" />
+              <Stop offset="100%" stopColor={DesignColors.surfaceContainerLowest} stopOpacity="1" />
             </LinearGradient>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#bottomMask)" />
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   card: {
     flex: 1,
     position: 'relative',
-    backgroundColor: '#0e0e10',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   image: {
     ...StyleSheet.absoluteFillObject,
@@ -140,9 +140,9 @@ const styles = StyleSheet.create({
   glassCard: {
     borderRadius: DesignRadius.xl,
     overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.4)',
+    backgroundColor: DesignColors.glassSoft,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: DesignColors.glassBorder,
   },
   glassBlur: {
     ...StyleSheet.absoluteFillObject,
@@ -192,7 +192,7 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.xs + 2,
     borderRadius: DesignRadius.md,
     borderWidth: 1,
-    backgroundColor: 'rgba(24,24,28,0.4)',
+    backgroundColor: DesignColors.glassSoft,
   },
   chipDot: {
     width: 8,
@@ -218,8 +218,8 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: DesignRadius.full,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
-    backgroundColor: 'rgba(24,24,28,0.5)',
+    borderColor: DesignColors.borderMedium,
+    backgroundColor: DesignColors.glassSoft,
     paddingVertical: 16,
     alignItems: 'center',
   },

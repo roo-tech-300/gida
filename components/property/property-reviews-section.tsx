@@ -15,7 +15,7 @@ export function PropertyReviewsSection({ reviews, avgRating }: Props) {
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Reviews</Text>
         <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={14} color="#FFD700" />
+          <Ionicons name="star" size={14} color={DesignColors.rating} />
           <Text style={styles.ratingText}>{avgRating.toFixed(1)}</Text>
           <Text style={styles.reviewCount}>({reviews.length})</Text>
         </View>
@@ -36,7 +36,7 @@ export function PropertyReviewsSection({ reviews, avgRating }: Props) {
                   key={i}
                   name={i < review.rating ? 'star' : 'star-outline'}
                   size={12}
-                  color={i < review.rating ? '#FFD700' : DesignColors.onSurfaceVariant}
+                  color={i < review.rating ? DesignColors.rating : DesignColors.onSurfaceVariant}
                 />
               ))}
             </View>

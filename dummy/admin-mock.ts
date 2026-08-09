@@ -1,4 +1,4 @@
-export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin' | 'independent_field_admin';
+export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
 
 export type AdminMember = {
   id: string;

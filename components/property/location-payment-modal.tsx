@@ -60,10 +60,10 @@ export function LocationPaymentModal({
             </Pressable>
           </View>
 
-          <Text style={styles.title}>Unlock Exact Location</Text>
+          <Text style={styles.title}>Unlock Location & Directions</Text>
           <Text style={styles.subtitle}>
-            Pay a small verification fee to view the exact GPS coordinates (Latitude & Longitude) and precise map pin for{' '}
-            <Text style={styles.bold}>{propertyTitle}</Text>.
+            Pay a small verification fee to view the exact GPS coordinates and get Google Maps
+            directions for <Text style={styles.bold}>{propertyTitle}</Text>.
           </Text>
 
           <View style={styles.feeCard}>
@@ -86,7 +86,7 @@ export function LocationPaymentModal({
             ) : (
               <>
                 <Ionicons name="lock-open-outline" size={20} color={DesignColors.onPrimary} />
-                <Text style={styles.payButtonText}>Pay ₦{feeAmount.toLocaleString('en-US')} & View Location</Text>
+                <Text style={styles.payButtonText}>Pay ₦{feeAmount.toLocaleString('en-US')} & Unlock Directions</Text>
               </>
             )}
           </Pressable>
@@ -99,7 +99,7 @@ export function LocationPaymentModal({
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.65)',
+    backgroundColor: DesignColors.scrimHeavy,
     justifyContent: 'center',
     alignItems: 'center',
     padding: DesignSpacing.md,
@@ -123,7 +123,7 @@ const styles = StyleSheet.create({
     width: 48,
     height: 48,
     borderRadius: 24,
-    backgroundColor: 'rgba(74, 225, 118, 0.15)',
+    backgroundColor: DesignColors.successContainer,
     alignItems: 'center',
     justifyContent: 'center',
   },

@@ -40,7 +40,7 @@ export function CreateListingCoreSpecsScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
@@ -297,7 +297,7 @@ export function CreateListingCoreSpecsScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8,

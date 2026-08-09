@@ -10,6 +10,7 @@ import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DiscoverListingFeed } from '@/components/home/discover-listing-feed';
 import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/feed-mode-selector';
 import { HomeSearchBar } from '@/components/home/home-search-bar';
+import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
 import { useRecommendedListings } from '@/hooks/useRecommendedListings';
@@ -31,6 +32,7 @@ export function DiscoverHomeScreen() {
   const isLoading = useRecommended ? recommended.isLoading : fallback.isLoading;
   const isRefetching = useRecommended ? recommended.isRefetching : fallback.isRefetching;
   const refetch = useRecommended ? recommended.refetch : fallback.refetch;
+  const isError = useRecommended ? recommended.isError : fallback.isError;
   const { data: savedIds = [] } = useSavedIds();
   const { mutate: toggleSave } = useToggleSave();
   const [query, setQuery] = useState('');
@@ -98,6 +100,10 @@ export function DiscoverHomeScreen() {
   const handleSelectMode = useCallback((m: FeedMode) => {
     setMode(m);
   }, []);
+
+  if (isError && !isLoading && mode === 'listings') {
+    return <NetworkErrorScreen onRetry={onRefresh} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   flex: {
     flex: 1,

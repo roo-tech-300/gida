@@ -15,4 +15,8 @@ export type RoommateProfile = {
   budget: string;
   bio: string;
   chips: LifestyleChip[];
+  preferredArea?: string;
+  maxBudget?: number;
+  religion?: string;
+  smokerAllowed?: boolean;
 };

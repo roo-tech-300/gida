@@ -49,7 +49,7 @@ export function SlotPass({ credit }: { credit?: SlotCredit }) {
 }
 
 const styles = StyleSheet.create({
-  passCard: { backgroundColor: '#1A1A1E', borderRadius: DesignRadius.xl, padding: DesignSpacing.lg, borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)', gap: DesignSpacing.md },
+  passCard: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.xl, padding: DesignSpacing.lg, borderWidth: 1, borderColor: DesignColors.cardBorder, gap: DesignSpacing.md },
   topSection: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   issuer: { ...DesignTypography.labelCaps, color: DesignColors.primaryBright, fontFamily },
   estateTitle: { ...DesignTypography.headlineLg, color: DesignColors.onSurface, fontWeight: '800' },
@@ -57,7 +57,7 @@ const styles = StyleSheet.create({
   metaLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant },
   metaValue: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontWeight: '700' },
   statusValue: { ...DesignTypography.bodyLg, color: DesignColors.secondary, fontWeight: '700' },
-  divider: { height: 1, backgroundColor: 'rgba(255,255,255,0.1)' },
+  divider: { height: 1, backgroundColor: DesignColors.glassBorder },
   inviteSection: { gap: DesignSpacing.xs },
   inviteLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant },
   inviteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', backgroundColor: DesignColors.primaryContainer, padding: DesignSpacing.sm, borderRadius: DesignRadius.md },

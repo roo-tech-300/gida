@@ -1,4 +1,5 @@
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from 'react';
+import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
+import { AppState } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { signOutUserAccount } from '@/services/authService';
 
@@ -36,7 +37,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const fetchProfile = async (userId: string) => {
+  const fetchProfile = useCallback(async (userId: string) => {
     const { data: profileData, error } = await supabase
       .from('profiles')
       .select('*')
@@ -60,12 +61,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       admin_role: adminData?.role ?? null,
       assigned_region_id: adminData?.assigned_region_id ?? null,
     });
-  };
+  }, []);
 
   useEffect(() => {
+    let realtimeCleanup: (() => void) | null = null;
+
+    const attachRealtime = (userId: string) => {
+      realtimeCleanup?.();
+      const channel = supabase
+        .channel(`profile-changes-${userId}`)
+        .on(
+          'postgres_changes',
+          { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
+          () => {
+            console.log('[Auth] Profile updated on the server — refreshing.');
+            void fetchProfile(userId);
+          },
+        )
+        .subscribe();
+      realtimeCleanup = () => void supabase.removeChannel(channel);
+    };
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
         fetchProfile(session.user.id).finally(() => setIsLoading(false));
+        attachRealtime(session.user.id);
       } else {
         setProfile(null);
         setIsLoading(false);
@@ -75,20 +95,38 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         fetchProfile(session.user.id);
+        attachRealtime(session.user.id);
       } else {
         setProfile(null);
+        realtimeCleanup?.();
+        realtimeCleanup = null;
       }
     });
 
-    return () => subscription.unsubscribe();
-  }, []);
+    return () => {
+      subscription.unsubscribe();
+      realtimeCleanup?.();
+    };
+  }, [fetchProfile]);
 
-  const refreshProfile = async () => {
+  const refreshProfile = useCallback(async () => {
     const { data: { session } } = await supabase.auth.getSession();
     if (session?.user) {
       await fetchProfile(session.user.id);
     }
-  };
+  }, [fetchProfile]);
+
+  const appStateRef = useRef(AppState.currentState);
+
+  useEffect(() => {
+    const subscription = AppState.addEventListener('change', (nextState) => {
+      if (appStateRef.current.match(/inactive|background/) && nextState === 'active') {
+        void refreshProfile();
+      }
+      appStateRef.current = nextState;
+    });
+    return () => subscription.remove();
+  }, [refreshProfile]);
 
   const signOut = useCallback(async () => {
     await signOutUserAccount();

@@ -97,7 +97,7 @@ export function ClaimPaymentSummary({ claim, currentUserId }: Props) {
         <View style={styles.detailRow}>
           <Ionicons name="people-outline" size={16} color={DesignColors.onSurfaceVariant} />
           <Text style={styles.detailLabel}>
-            This space allows up to {listing.max_roommates} roommates
+            This space allows up to {listing.max_roommates >= 999 ? 'No limit' : listing.max_roommates} roommates
           </Text>
         </View>
       )}

@@ -66,7 +66,7 @@ export function CreateListingLocationScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <View />
@@ -188,7 +188,7 @@ export function CreateListingLocationScreen() {
               <Ionicons
                 name={lockLoading ? 'hourglass-outline' : step2.coords ? 'checkmark-circle-outline' : 'locate-outline'}
                 size={20}
-                color={step2.coords ? '#0e0e10' : DesignColors.secondary}
+                color={step2.coords ? DesignColors.surfaceContainerLowest : DesignColors.secondary}
               />
               <Text style={[styles.lockBtnText, step2.coords && styles.lockBtnTextActive]}>
                 {lockLoading ? 'Locking...' : step2.coords ? `${step2.coords.latitude.toFixed(4)}, ${step2.coords.longitude.toFixed(4)}` : 'Lock Live Location'}
@@ -220,7 +220,7 @@ export function CreateListingLocationScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 8 },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   scroll: { flex: 1 },
@@ -259,9 +259,9 @@ const styles = StyleSheet.create({
   gpsDesc: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 18 },
   lockBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: 12, paddingVertical: 12, borderWidth: 1, borderColor: DesignColors.cardBorder },
   lockBtnActive: { backgroundColor: DesignColors.secondary, borderColor: DesignColors.secondary },
-  lockBtnTextActive: { color: '#0e0e10' },
+  lockBtnTextActive: { color: DesignColors.surfaceContainerLowest },
   lockBtnText: { fontSize: 15, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
-  mapDeco: { height: 96, borderRadius: 12, backgroundColor: '#0e0e10', borderWidth: 1, borderColor: DesignColors.cardBorder, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  mapDeco: { height: 96, borderRadius: 12, backgroundColor: DesignColors.surfaceContainerLowest, borderWidth: 1, borderColor: DesignColors.cardBorder, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   mapPin: { alignItems: 'center', justifyContent: 'center' },
   mapPinGlow: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: DesignColors.primaryContainer },
   ctaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },

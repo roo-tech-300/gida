@@ -6,13 +6,12 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type Props = {
-  onBookTour?: () => void;
   onClaimRoom?: () => void;
   hasActiveClaim?: boolean;
   isCheckingClaim?: boolean;
 };
 
-export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim, isCheckingClaim }: Props) {
+export function PropertyBottomBar({ onClaimRoom, hasActiveClaim, isCheckingClaim }: Props) {
   const insets = useSafeAreaInsets();
   const [liked, setLiked] = useState(false);
 
@@ -26,11 +25,6 @@ export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim, isC
           size={20}
           color={liked ? DesignColors.secondary : DesignColors.onSurface}
         />
-      </Pressable>
-
-      <Pressable onPress={onBookTour} style={styles.secondaryCtaButton}>
-        <Ionicons name="calendar-outline" size={18} color={DesignColors.onSurface} />
-        <Text style={styles.secondaryCtaText}>Book Tour</Text>
       </Pressable>
 
       <Pressable
@@ -73,24 +67,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
     backgroundColor: DesignColors.surfaceContainerLow,
-  },
-  secondaryCtaButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.xl,
-    paddingVertical: 14,
-  },
-  secondaryCtaText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
   },
   primaryCtaButton: {
     flex: 1,

@@ -121,7 +121,7 @@ export function MessagesScreen() {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   flex: {
     flex: 1,
@@ -173,7 +173,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 2,
-    borderColor: 'rgba(74, 68, 85, 0.2)',
+    borderColor: DesignColors.outlineVariant,
   },
   matchAvatarVerified: {
     borderColor: DesignColors.primaryContainer,
@@ -205,9 +205,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: DesignSpacing.md,
     paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: DesignColors.borderFaint,
     borderWidth: 1,
-    borderColor: 'rgba(74, 68, 85, 0.2)',
+    borderColor: DesignColors.outlineVariant,
   },
   filterPillActive: {
     backgroundColor: DesignColors.primaryContainer,

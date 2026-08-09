@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     gap: DesignSpacing.sm,
-    backgroundColor: 'rgba(74, 225, 118, 0.12)',
+    backgroundColor: DesignColors.successContainer,
     borderRadius: DesignRadius.xl,
     paddingVertical: 14,
   },

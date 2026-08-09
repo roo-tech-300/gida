@@ -91,7 +91,7 @@ function LandlordPropertyCard({ property }: { property: LandlordProperty }) {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,
@@ -111,7 +111,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
   },
   imageWrap: {
     height: 256,
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    backgroundColor: DesignColors.scrimLight,
   },
   badge: {
     position: 'absolute',
@@ -131,7 +131,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(54, 71, 54, 0.92)',
+    backgroundColor: DesignColors.primaryContainer,
     zIndex: 2,
   },
   badgeText: {
@@ -147,7 +147,7 @@ const styles = StyleSheet.create({
     padding: DesignSpacing.lg,
     backgroundColor: DesignColors.surfaceContainerLow,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: DesignColors.borderSoft,
   },
   titleBlock: { gap: 6 },
   title: {

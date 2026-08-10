@@ -27,6 +27,7 @@ export interface SlotCredit {
   estate_id: string;
   property_tier: number;
   intent_size: number;
+  target_occupancy: number;
   status: SlotCreditStatus;
   linked_credit_id?: string | null;
   invite_code?: string | null;
@@ -54,6 +55,7 @@ export interface Pod {
   matched_gender: 'MALE' | 'FEMALE' | 'ANY';
   members: PodMember[];
   current_total_intent: number;
+  target_occupancy: number;
   is_finalized: boolean;
   physical_room_id?: string | null;
   created_at: string;

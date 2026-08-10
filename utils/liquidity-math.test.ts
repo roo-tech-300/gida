@@ -1,88 +1,76 @@
 import {
-  isValidIntentSize,
-  calculateSplitAmount,
-  canFinalizePod,
-  getAvailableIntentOptions,
-  calculateSeparateBillingPerPerson,
-  verifyPodRevenueParity,
+  isValidTargetOccupancy,
+  getTargetOccupancyOptions,
+  calculateBaseRent,
+  calculatePlatformFee,
+  calculateTotalUserCost,
+  verifyPodCompleteness,
 } from './liquidity-math';
 
-describe('Liquidity Math Rules & Edge Case Defense', () => {
-  describe('Case B: Odd-Numbered Tiers & Fairness Defense (isValidIntentSize)', () => {
-    it('allows only intent 1 or full buyout in Tier 3 properties under Solo mode', () => {
-      expect(isValidIntentSize(3, 1, false)).toBe(true);
-      expect(isValidIntentSize(3, 2, false)).toBe(false); // Rejected solo for financial fairness!
-      expect(isValidIntentSize(3, 3, false)).toBe(true);
+describe('Dynamic Target Occupancy Math', () => {
+  describe('isValidTargetOccupancy', () => {
+    it('allows valid occupancies within physical limits', () => {
+      expect(isValidTargetOccupancy(4, 1)).toBe(true);
+      expect(isValidTargetOccupancy(4, 2)).toBe(true);
+      expect(isValidTargetOccupancy(4, 4)).toBe(true);
     });
 
-    it('allows 2 slots in Tier 3 properties under Friend mode via individual decomposition', () => {
-      expect(isValidIntentSize(3, 2, true)).toBe(true); // Permitted! Each friend pays equal share.
-    });
-
-    it('allows all intent sizes in even Tier 4 properties', () => {
-      expect(isValidIntentSize(4, 1)).toBe(true);
-      expect(isValidIntentSize(4, 2)).toBe(true);
-      expect(isValidIntentSize(4, 3)).toBe(true);
-      expect(isValidIntentSize(4, 4)).toBe(true);
+    it('rejects invalid or out of bounds occupancies', () => {
+      expect(isValidTargetOccupancy(4, 0)).toBe(false);
+      expect(isValidTargetOccupancy(4, 5)).toBe(false);
+      expect(isValidTargetOccupancy(4, 1.5)).toBe(false);
     });
   });
 
-  describe('Case A & Pricing Split Calculation', () => {
-    it('calculates precise split amounts for valid intents', () => {
-      expect(calculateSplitAmount(1200000, 2, 4)).toBe(600000);
-      expect(calculateSplitAmount(900000, 1, 3)).toBe(300000);
-      expect(calculateSplitAmount(900000, 2, 3, true)).toBe(600000); // 2 friends in 3-bed property
-    });
+  describe('getTargetOccupancyOptions', () => {
+    it('generates the correct human-readable UI options', () => {
+      const options = getTargetOccupancyOptions(4);
+      expect(options).toHaveLength(4);
+      
+      // Option 1: Solo
+      expect(options[0].label).toBe('Just Me (Private)');
+      expect(options[0].targetOccupancy).toBe(1);
 
-    it('returns 0 for invalid intent configurations', () => {
-      expect(calculateSplitAmount(900000, 2, 3, false)).toBe(0); // Invalid solo!
-    });
-  });
+      // Option 2: Live with 1
+      expect(options[1].label).toBe('Live with 1 Roommate (2 People Total)');
+      expect(options[1].description).toContain('sharing common areas with 1 matched roommate');
 
-  describe('Pod Finalization & Minting Triggers', () => {
-    it('returns true when current total intent equals target property tier', () => {
-      expect(canFinalizePod(4, 4)).toBe(true);
-      expect(canFinalizePod(2, 4)).toBe(false);
-    });
-  });
-
-  describe('getAvailableIntentOptions', () => {
-    it('generates options array with proper disabled state for odd tiers under solo mode', () => {
-      const options = getAvailableIntentOptions(3, false);
-      expect(options).toHaveLength(3);
-      expect(options[0].disabled).toBe(false);
-      expect(options[1].disabled).toBe(true);
-      expect(options[1].reason).toContain('Fair Rent Policy');
-      expect(options[2].disabled).toBe(false);
-    });
-
-    it('generates enabled options for odd tiers under friend coordination mode', () => {
-      const options = getAvailableIntentOptions(3, true);
-      expect(options[1].disabled).toBe(false); // 2 slots enabled under friend mode!
-      expect(options[1].description).toContain('individual slots');
+      // Option 4: Max density
+      expect(options[3].label).toBe('Live with 3 Roommates (4 People Total)');
+      expect(options[3].description).toContain('Most affordable.');
     });
   });
 
-
-
-  describe('Separate Billing Math & Revenue Parity Verification', () => {
-    it('accurately divides total reserved amount across independent roommate invoices', () => {
-      const perPerson = calculateSeparateBillingPerPerson(1200000, 2, 4);
-      expect(perPerson).toBe(300000);
+  describe('Pricing & Rent Splits', () => {
+    it('calculates the base rent correctly (Math.ceil(totalRent / occupancy))', () => {
+      expect(calculateBaseRent(1200000, 1)).toBe(1200000); // Solo
+      expect(calculateBaseRent(1200000, 2)).toBe(600000); // 50%
+      expect(calculateBaseRent(1200000, 3)).toBe(400000); // 33.3%
+      expect(calculateBaseRent(1200000, 4)).toBe(300000); // 25%
     });
 
-    it('verifies 100% revenue parity when pod slots are completely filled via separate invoices', () => {
-      const parityResult = verifyPodRevenueParity(1200000, 4, [1, 1, 2]);
-      expect(parityResult.isParity).toBe(true);
-      expect(parityResult.totalCollected).toBeGreaterThanOrEqual(1200000);
-      expect(parityResult.shortfall).toBe(0);
+    it('calculates the platform fee correctly based on total expected fee', () => {
+      const totalPodFee = 20000;
+      expect(calculatePlatformFee(totalPodFee, 1)).toBe(20000); // Solo pays all
+      expect(calculatePlatformFee(totalPodFee, 2)).toBe(10000); // 2 people split it
+      expect(calculatePlatformFee(totalPodFee, 4)).toBe(5000); // 4 people split it
     });
 
-    it('returns false for parity if total slots do not equal property tier', () => {
-      const incomplete = verifyPodRevenueParity(1200000, 4, [1, 2]);
-      expect(incomplete.isParity).toBe(false);
-      expect(incomplete.shortfall).toBe(300000);
+    it('calculates total user cost correctly', () => {
+      const totalCost = calculateTotalUserCost(1200000, 20000, 4);
+      expect(totalCost).toBe(305000); // 300000 + 5000
+    });
+  });
+
+  describe('Pod Finalization', () => {
+    it('returns true when current intent equals target occupancy', () => {
+      expect(verifyPodCompleteness(4, 4)).toBe(true);
+      expect(verifyPodCompleteness(2, 2)).toBe(true);
+    });
+
+    it('returns false when current intent is less or more than target occupancy', () => {
+      expect(verifyPodCompleteness(1, 2)).toBe(false);
+      expect(verifyPodCompleteness(3, 2)).toBe(false);
     });
   });
 });
-

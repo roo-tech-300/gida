@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, Pressable, View } from 'react-native';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { getAvailableIntentOptions } from '@/utils/liquidity-math';
+import { getTargetOccupancyOptions } from '@/utils/liquidity-math';
 
 interface IntentSelectorProps {
   propertyTier: number;
@@ -11,7 +11,7 @@ interface IntentSelectorProps {
 }
 
 export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, isFriendMode = false }: IntentSelectorProps) {
-  const options = useMemo(() => getAvailableIntentOptions(propertyTier, isFriendMode), [propertyTier, isFriendMode]);
+  const options = useMemo(() => getTargetOccupancyOptions(propertyTier), [propertyTier]);
 
 
   return (
@@ -20,21 +20,18 @@ export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, i
       <Text style={styles.subtitle}>Choose how many slots to secure in this {propertyTier}-slot property.</Text>
       {options.map((opt) => {
 
-        const isSelected = selectedIntent === opt.intent;
+        const isSelected = selectedIntent === opt.targetOccupancy;
         return (
           <Pressable
-            key={opt.intent}
-            testID={`intent-option-${opt.intent}`}
-            disabled={opt.disabled}
-            style={[styles.card, isSelected && styles.activeCard, opt.disabled && styles.disabledCard]}
-            onPress={() => !opt.disabled && onSelectIntent(opt.intent)}
+            key={opt.targetOccupancy}
+            testID={`intent-option-${opt.targetOccupancy}`}
+            style={[styles.card, isSelected && styles.activeCard]}
+            onPress={() => onSelectIntent(opt.targetOccupancy)}
           >
             <View style={styles.row}>
               <Text style={[styles.label, isSelected && styles.activeText]}>{opt.label}</Text>
-              {opt.disabled && <Text style={styles.badgeText}>UNSUPPORTED</Text>}
             </View>
             <Text style={styles.description}>{opt.description}</Text>
-            {opt.reason && <Text style={styles.reasonText}>{opt.reason}</Text>}
           </Pressable>
         );
       })}

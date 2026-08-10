@@ -37,10 +37,10 @@ export function useCreateSlotCredit() {
   return useMutation<
     SlotCredit,
     Error,
-    { estateId: string; propertyTier: number; intentSize: number }
+    { estateId: string; propertyTier: number; intentSize: number; targetOccupancy: number }
   >({
-    mutationFn: ({ estateId, propertyTier, intentSize }) =>
-      purchaseSlotCredit(estateId, propertyTier, intentSize),
+    mutationFn: ({ estateId, propertyTier, intentSize, targetOccupancy }) =>
+      purchaseSlotCredit(estateId, propertyTier, intentSize, targetOccupancy),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });

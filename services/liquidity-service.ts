@@ -23,7 +23,7 @@ export async function fetchEstates(): Promise<Estate[]> {
   }
 }
 
-export async function purchaseSlotCredit(estateId: string, propertyTier: number, intentSize: number): Promise<SlotCredit> {
+export async function purchaseSlotCredit(estateId: string, propertyTier: number, intentSize: number, targetOccupancy: number): Promise<SlotCredit> {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     const userId = user?.id || 'usr-current-student';
@@ -49,6 +49,7 @@ export async function purchaseSlotCredit(estateId: string, propertyTier: number,
       estate_id: estateId,
       property_tier: propertyTier,
       intent_size: intentSize,
+      target_occupancy: targetOccupancy,
       status: 'booked_pending_claim',
       invite_code: `GIDA-POD-${Math.floor(1000 + Math.random() * 9000)}`,
       created_at: new Date().toISOString(),
@@ -61,6 +62,7 @@ export async function purchaseSlotCredit(estateId: string, propertyTier: number,
       estate_id: estateId,
       property_tier: propertyTier,
       matched_gender: 'ANY',
+      target_occupancy: targetOccupancy,
       members: [
         {
           user_id: userId,
@@ -89,6 +91,7 @@ export async function purchaseSlotCredit(estateId: string, propertyTier: number,
         estate_id: estateId,
         property_tier: propertyTier,
         intent_size: intentSize,
+        target_occupancy: targetOccupancy,
         status: 'booked_pending_claim',
         payment_deadline: new Date(Date.now() + 24 * 3600 * 1000).toISOString(),
       })

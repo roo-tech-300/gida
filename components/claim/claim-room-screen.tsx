@@ -11,8 +11,10 @@ import { IntentSelector } from '@/components/claim/intent-selector';
 import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateSplitAmount, isValidIntentSize } from '@/utils/liquidity-math';
+import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+
+const EXPECTED_TOTAL_POD_FEE = 20000;
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const router = useRouter();
@@ -20,7 +22,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { showToast } = useAppToast();
 
-  const [selectedIntent, setSelectedIntent] = useState<number>(1);
+  const [selectedTargetOccupancy, setSelectedTargetOccupancy] = useState<number>(1);
   const [matchingMode, setMatchingMode] = useState<'open_pool' | 'friends'>('open_pool');
   const [friendCode, setFriendCode] = useState<string>('');
 
@@ -32,41 +34,44 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const propertyTier: number = dbListing?.property_tier ?? ((rawMax > 0 && rawMax < 10) ? rawMax : 4);
   const rules = dbListing?.rules ?? ['No smoking indoors', 'Quiet hours after 10 PM'];
 
-  const isFriendMode = matchingMode === 'friends';
-
   const handleModeChange = (newMode: 'open_pool' | 'friends') => {
     setMatchingMode(newMode);
     if (newMode === 'open_pool') {
       setFriendCode('');
-      if (!isValidIntentSize(propertyTier, selectedIntent, false)) {
-        setSelectedIntent(1);
-        showToast({ message: 'Reset to 1 slot to comply with fair sharing rent policies.', type: 'info' });
-      }
     }
   };
 
-  const handleIntentChange = (newIntent: number) => {
-    setSelectedIntent(newIntent);
+  const handleOccupancyChange = (newOccupancy: number) => {
+    setSelectedTargetOccupancy(newOccupancy);
   };
 
-  const splitPrice = calculateSplitAmount(priceAmount, selectedIntent, propertyTier, isFriendMode);
-  const billingPayers = (isFriendMode && selectedIntent > 1) ? selectedIntent : 1;
+  const baseRent = calculateBaseRent(priceAmount, selectedTargetOccupancy);
+  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, selectedTargetOccupancy);
+  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, selectedTargetOccupancy);
 
   const handleSecureSpace = useCallback(async () => {
     try {
-      await purchaseSlot({ estateId: listingId, propertyTier, intentSize: selectedIntent });
-      if (friendCode.trim() && isFriendMode) {
-        showToast({ message: `Linked directly to group ${friendCode.toUpperCase()}!`, type: 'success' });
-      } else if (selectedIntent > 1 && isFriendMode) {
-        showToast({ message: `Reserved ${selectedIntent} slots under separate student invoices! Share Group Code in lobby.`, type: 'success' });
+      await purchaseSlot({ 
+        estateId: listingId, 
+        propertyTier, 
+        intentSize: 1, 
+        targetOccupancy: selectedTargetOccupancy 
+      });
+      
+      if (matchingMode === 'friends') {
+        if (friendCode.trim()) {
+          showToast({ message: `Linked directly to group ${friendCode.toUpperCase()}!`, type: 'success' });
+        } else {
+          showToast({ message: `Spot secured! You will receive an Invite Code to share with your friend.`, type: 'success' });
+        }
       } else {
-        showToast({ message: 'Slot reserved! Welcome to Roommate Matching.', type: 'success' });
+        showToast({ message: 'Spot reserved! Welcome to Roommate Matching.', type: 'success' });
       }
       router.push('/property/lobby' as any);
     } catch (error: any) {
-      showToast({ message: error.message || 'Failed to reserve slot.', type: 'error' });
+      showToast({ message: error.message || 'Failed to reserve spot.', type: 'error' });
     }
-  }, [listingId, propertyTier, selectedIntent, purchaseSlot, friendCode, isFriendMode, showToast, router]);
+  }, [listingId, propertyTier, selectedTargetOccupancy, purchaseSlot, friendCode, matchingMode, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
@@ -89,7 +94,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             )}
             <View style={styles.listingMiniInfo}>
               <Text style={styles.listingMiniTitle} numberOfLines={1}>{listing?.title || 'Gida Prestige Estate'}</Text>
-              <Text style={styles.listingMiniPrice}>{propertyTier}-Slot Property • ₦{priceAmount.toLocaleString()}/yr</Text>
+              <Text style={styles.listingMiniPrice}>Max Capacity: {propertyTier} • ₦{priceAmount.toLocaleString()}/yr</Text>
             </View>
           </View>
 
@@ -97,15 +102,22 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             <RoommateLinkCard
               matchingMode={matchingMode}
               onChangeMatchingMode={handleModeChange}
-              intentSize={selectedIntent}
               friendCode={friendCode}
               onChangeFriendCode={setFriendCode}
-              propertyTier={propertyTier}
             />
           )}
 
-          <IntentSelector propertyTier={propertyTier} selectedIntent={selectedIntent} onSelectIntent={handleIntentChange} isFriendMode={isFriendMode} />
-          <ClaimSplitSummary totalPrice={splitPrice} numberOfPeople={billingPayers} />
+          <IntentSelector 
+            propertyTier={propertyTier} 
+            selectedIntent={selectedTargetOccupancy} 
+            onSelectIntent={handleOccupancyChange} 
+          />
+          
+          <ClaimSplitSummary 
+            baseRent={baseRent} 
+            platformFee={platformFee}
+            totalCost={totalCost} 
+          />
 
           <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
 
@@ -117,7 +129,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             {isPurchasing ? (
               <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
             ) : (
-              <Text style={styles.lockText}>Confirm & Enter Roommate Matching</Text>
+              <Text style={styles.lockText}>Confirm & Secure Spot</Text>
             )}
           </Pressable>
         </ScrollView>

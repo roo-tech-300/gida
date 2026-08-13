@@ -65,6 +65,7 @@ export type DbListing = {
   estate_id?: string;
   property_tier?: number;
   abstract_slots_available?: number;
+  region_path?: string[] | null;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -154,6 +155,8 @@ export function dbToListingForm(item: DbListing) {
       selectedCampus: item.campus,
       landmark: item.location_landmark,
       coords: { latitude: Number(item.latitude), longitude: Number(item.longitude) },
+      regionPath: item.region_path ?? [],
+      transferAdminId: item.admin_id,
     },
     step3: {
       selectedAmenities: amenityBooleans.filter((key) => item[key]),

@@ -4,6 +4,7 @@ export type AdminRegion = {
   id: string;
   name: string;
   parent_region_id: string | null;
+  path: string[];
 };
 
 export type AdminMember = {

@@ -16,9 +16,9 @@ function member(
 }
 
 describe('deriveSupervisors', () => {
-  const westAfrica: AdminRegion = { id: 'west-africa', name: 'West Africa', parent_region_id: null };
-  const nigeria: AdminRegion = { id: 'nigeria', name: 'Nigeria', parent_region_id: 'west-africa' };
-  const lagos: AdminRegion = { id: 'lagos', name: 'Lagos', parent_region_id: 'nigeria' };
+  const westAfrica: AdminRegion = { id: 'west-africa', name: 'West Africa', parent_region_id: null, path: ['west-africa'] };
+  const nigeria: AdminRegion = { id: 'nigeria', name: 'Nigeria', parent_region_id: 'west-africa', path: ['west-africa', 'nigeria'] };
+  const lagos: AdminRegion = { id: 'lagos', name: 'Lagos', parent_region_id: 'nigeria', path: ['west-africa', 'nigeria', 'lagos'] };
 
   const regions: AdminRegion[] = [westAfrica, nigeria, lagos];
 
@@ -53,6 +53,16 @@ describe('deriveSupervisors', () => {
     const result = deriveSupervisors(members, regions);
     expect(result[1].supervisor_id).toBe('ng');
     expect(result[1].supervisor_name).toBe('Musa Ibrahim');
+  });
+
+  it('walks up the region chain when no regional admin heads the same region', () => {
+    const members = [
+      member({ id: 'wa', full_name: 'Amina Bello', role: 'regional_admin', assigned_region_id: 'west-africa' }),
+      member({ id: 'lag', role: 'field_admin', assigned_region_id: 'lagos' }),
+    ];
+    const result = deriveSupervisors(members, regions);
+    expect(result[1].supervisor_id).toBe('wa');
+    expect(result[1].supervisor_name).toBe('Amina Bello');
   });
 
   it('leaves a field admin without a supervisor when no regional admin heads their region', () => {

@@ -65,8 +65,11 @@ export function CreateListingMediaScreen() {
 
   const buildListingInput = () => {
     const coords = step2.coords!;
+    const isFlat = step1.layoutType === 'flat';
+    const bedroomCount = isFlat ? step1.bedrooms : 0;
+    const bathroomCount = isFlat ? step1.bathrooms : step1.layoutType === 'self_contain' ? 1 : 0;
     return {
-      admin_id: profile?.id || '',
+      admin_id: step2.transferAdminId ?? profile?.id ?? '',
       title: step1.title.trim(),
       description: step1.description.trim() || null,
       landlord_id: step1.landlordId,
@@ -75,8 +78,8 @@ export function CreateListingMediaScreen() {
       price_amount: parseFloat(step1.price.replace(/,/g, '')),
       lease_term: step1.term,
       units_available: step1.units,
-      number_of_bedrooms: step1.bedrooms,
-      number_of_bathrooms: step1.bathrooms,
+      number_of_bedrooms: bedroomCount,
+      number_of_bathrooms: bathroomCount,
       max_roommates: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
       property_tier: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
       rules: step4.rulesList,
@@ -101,6 +104,7 @@ export function CreateListingMediaScreen() {
         return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
       })(),
       total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
+      region_path: step2.regionPath.length > 0 ? step2.regionPath : null,
     };
   };
 
@@ -138,8 +142,10 @@ export function CreateListingMediaScreen() {
     const id = editListingId!;
 
     const updatePayload: any = { ...buildListingInput() };
-    delete updatePayload.admin_id;
     delete updatePayload.category;
+    if (!step2.transferAdminId) {
+      delete updatePayload.admin_id;
+    }
     await updateListing(id, updatePayload);
 
     const { data: existingRows } = await supabase

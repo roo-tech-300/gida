@@ -181,9 +181,9 @@ const styles = StyleSheet.create({
   },
 
   roommateCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  roommateLeft: { gap: 2 },
+  roommateLeft: { flex: 1, gap: 2, paddingRight: 12 },
   roommateTitle: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
-  roommateDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
+  roommateDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, flexShrink: 1 },
   stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
   stepperDimmed: { opacity: 0.4 },
   stepperBtn: {

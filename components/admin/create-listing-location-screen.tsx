@@ -11,17 +11,23 @@ import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
+import { ListingRegionSelect } from '@/components/admin/listing-region-select';
+import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
   const { profile } = useAuth();
-  const { data, setStep2 } = useCreateListingForm();
+  const { data, setStep2, editListingId } = useCreateListingForm();
   const { step2 } = data;
   const { showToast } = useAppToast();
   const alert = useCustomAlert();
   const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
+
+  const canAssignRegion =
+    profile?.admin_role === 'super_admin' ||
+    (editListingId !== null && profile?.admin_role === 'regional_admin');
 
   const canProceed = step2.selectedSchool && step2.selectedCampus;
   const handleForward = () => {
@@ -162,11 +168,27 @@ export function CreateListingLocationScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Behind GK Main Gate, near Chapel of Grace"
-              placeholderTextColor="DesignColors.onSurfaceVariant"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
               value={step2.landmark}
               onChangeText={(v) => setStep2({ landmark: v })}
             />
           </View>
+        </View>
+
+        {canAssignRegion && (
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Region</Text>
+            <ListingRegionSelect regionPath={step2.regionPath} onSelect={(path) => setStep2({ regionPath: path })} />
+          </View>
+        )}
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Transfer Property</Text>
+          <AdminTransferSelect
+            selectedAdminId={step2.transferAdminId}
+            onSelect={(adminId) => setStep2({ transferAdminId: adminId })}
+          />
+          <Text style={styles.fieldHint}>Assign this lodge to any admin, regardless of region.</Text>
         </View>
 
         <View style={styles.fieldGroup}>
@@ -229,6 +251,7 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 28, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.5 },
   heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4 },
   fieldGroup: { gap: 8 },
+  fieldHint: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: 2 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: { borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder },
   glassBlur: { ...StyleSheet.absoluteFillObject },

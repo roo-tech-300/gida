@@ -23,14 +23,26 @@ export function deriveSupervisors(
     }
   }
 
+  const findSupervisor = (startRegionId: string): AdminHierarchyInput | undefined => {
+    let currentId: string | null = startRegionId;
+
+    while (currentId) {
+      const regional = regionalByRegion.get(currentId);
+      if (regional) return regional;
+      currentId = regionById.get(currentId)?.parent_region_id ?? null;
+    }
+
+    return undefined;
+  };
+
   return members.map((member) => {
     let supervisor: AdminHierarchyInput | undefined;
 
     if (member.role === 'field_admin' && member.assigned_region_id) {
-      supervisor = regionalByRegion.get(member.assigned_region_id);
+      supervisor = findSupervisor(member.assigned_region_id);
     } else if (member.role === 'regional_admin' && member.assigned_region_id) {
       const parentId = regionById.get(member.assigned_region_id)?.parent_region_id ?? null;
-      supervisor = parentId ? regionalByRegion.get(parentId) : undefined;
+      supervisor = parentId ? findSupervisor(parentId) : undefined;
     }
 
     return {

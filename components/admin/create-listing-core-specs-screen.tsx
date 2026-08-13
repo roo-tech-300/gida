@@ -65,7 +65,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Royal Heights Apartments"
-              placeholderTextColor="DesignColors.onSurfaceVariant"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
               value={step1.title}
               onChangeText={(v) => setStep1({ title: v })}
             />
@@ -79,7 +79,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={[styles.textInput, { minHeight: 100, textAlignVertical: 'top' }]}
               placeholder="Describe the proximity to campus, water availability, and security features..."
-              placeholderTextColor="DesignColors.onSurfaceVariant"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
               value={step1.description}
               onChangeText={(v) => setStep1({ description: v })}
               multiline
@@ -105,6 +105,7 @@ export function CreateListingCoreSpecsScreen() {
                     const updates: any = { layoutType: opt.key };
                     if (opt.key === 'single_room') { updates.bedrooms = 0; updates.bathrooms = 0; }
                     else if (opt.key === 'self_contain') { updates.bedrooms = 0; updates.bathrooms = 1; }
+                    else { updates.bedrooms = Math.max(1, step1.bedrooms); updates.bathrooms = Math.max(1, step1.bathrooms); }
                     setStep1(updates);
                   }}
                 >
@@ -169,7 +170,7 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="250,000"
-                placeholderTextColor="DesignColors.onSurfaceVariant"
+                placeholderTextColor={DesignColors.onSurfaceVariant}
                 value={step1.price}
                 onChangeText={(text) => setStep1({ price: formatPrice(text) })}
                 keyboardType="numeric"
@@ -214,7 +215,7 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder={step1.sizeUnit === 'sqft' ? 'e.g. 1,200' : 'e.g. 112'}
-                placeholderTextColor="DesignColors.onSurfaceVariant"
+                placeholderTextColor={DesignColors.onSurfaceVariant}
                 value={step1.sizeValue}
                 onChangeText={(v) => {
                   const digits = v.replace(/\D/g, '');

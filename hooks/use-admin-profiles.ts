@@ -7,11 +7,28 @@ import {
   searchAdminCandidates,
   type CreateAdminProfileInput,
 } from '@/services/adminService';
+import { fetchRecentAdminActivity, fetchSuperAdminStats } from '@/services/super-admin-service';
 
 export function useAdminProfiles() {
   return useQuery({
     queryKey: ['admin-profiles'],
     queryFn: fetchAdminProfiles,
+    staleTime: 30_000,
+  });
+}
+
+export function useAdminStats() {
+  return useQuery({
+    queryKey: ['admin-stats'],
+    queryFn: fetchSuperAdminStats,
+    staleTime: 30_000,
+  });
+}
+
+export function useRecentAdminActivity() {
+  return useQuery({
+    queryKey: ['admin-activity'],
+    queryFn: () => fetchRecentAdminActivity(5),
     staleTime: 30_000,
   });
 }

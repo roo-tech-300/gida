@@ -15,13 +15,36 @@ export type AdminListing = {
 };
 
 export async function fetchAdminListings(adminId: string): Promise<AdminListing[]> {
-  const { data, error } = await supabase
+  const { data: adminRow, error: adminError } = await supabase
+    .from('admin_profiles')
+    .select('role, assigned_region_id')
+    .eq('id', adminId)
+    .maybeSingle();
+
+  if (adminError || !adminRow) {
+    console.error('[AdminService] Failed to load admin profile:', adminError?.message);
+    return [];
+  }
+
+  let query = supabase
     .from('listings')
     .select('id, title, price_amount, location_landmark, city, primary_image, featured, status, created_at')
-    .eq('agent_id', adminId)
     .order('created_at', { ascending: false });
 
-  if (error) return [];
+  if (adminRow.role === 'super_admin') {
+    // Global visibility: no scope filter.
+  } else if (adminRow.role === 'regional_admin' && adminRow.assigned_region_id) {
+    query = query.or(`admin_id.eq.${adminId},region_path.cs.{${adminRow.assigned_region_id}}`);
+  } else {
+    query = query.eq('admin_id', adminId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('[AdminService] Failed to fetch admin listings:', error.message);
+    return [];
+  }
   return data as AdminListing[];
 }
 
@@ -66,7 +89,7 @@ export async function fetchAdminProfiles(): Promise<AdminMember[]> {
 export async function fetchRegions(): Promise<AdminRegion[]> {
   const { data, error } = await supabase
     .from('regions')
-    .select('id, name, parent_region_id')
+    .select('id, name, parent_region_id, path')
     .order('name', { ascending: true });
 
   if (error) {

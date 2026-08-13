@@ -88,6 +88,7 @@ export const MOCK_SLOT_CREDITS: SlotCredit[] = [
     estate_id: 'est-101',
     property_tier: 4,
     intent_size: 2,
+    target_occupancy: 4,
     status: 'paid_unmatched',
     invite_code: 'GIDA-POD-4821',
     created_at: new Date(Date.now() - 2 * 3600 * 1000).toISOString(),
@@ -135,6 +136,7 @@ export const MOCK_PODS: Pod[] = [
     estate_id: 'est-101',
     property_tier: 4,
     matched_gender: 'ANY',
+    target_occupancy: 4,
     members: [
       {
         user_id: 'usr-901',

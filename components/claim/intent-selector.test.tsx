@@ -3,46 +3,43 @@ import { render, fireEvent } from '@testing-library/react-native';
 import { IntentSelector } from './intent-selector';
 
 describe('IntentSelector UI Integration', () => {
-  it('renders all available intent options for an even tier property', async () => {
+  it('renders all occupancy options for a property and selects on press', async () => {
     const mockSelect = jest.fn();
     const { getByTestId, getByText } = await render(
-      <IntentSelector propertyTier={4} selectedIntent={2} onSelectIntent={mockSelect} />
+      <IntentSelector propertyTier={4} selectedIntent={1} onSelectIntent={mockSelect} />
     );
 
     expect(getByText('CHOOSE YOUR RESERVATION SIZE')).toBeTruthy();
-    expect(getByText('2 Slots (50% Occupancy)')).toBeTruthy();
+    expect(getByText('Just Me (Private)')).toBeTruthy();
+    expect(getByText('Live with 1 Roommate (2 People Total)')).toBeTruthy();
 
     const option2 = getByTestId('intent-option-2');
     fireEvent.press(option2);
     expect(mockSelect).toHaveBeenCalledWith(2);
   });
 
-  it('automatically disables unsupported intent options for odd tier properties in solo mode', async () => {
-    const mockSelect = jest.fn();
-    const { getByTestId, getByText } = await render(
-      <IntentSelector propertyTier={3} selectedIntent={1} onSelectIntent={mockSelect} isFriendMode={false} />
-    );
-
-    const option2 = getByTestId('intent-option-2');
-    expect(option2.props.accessibilityState?.disabled ?? option2.props.disabled).toBe(true);
-    expect(getByText('Fair Rent Policy: Cannot purchase partial majority solo. Switch to Move in with Friends or select 1 slot.')).toBeTruthy();
-
-
-    fireEvent.press(option2);
-    expect(mockSelect).not.toHaveBeenCalled();
-  });
-
-  it('unlocks multi-slot selections in odd tier properties under friend group mode', async () => {
+  it('selects the solo (Just Me) occupancy when pressed', async () => {
     const mockSelect = jest.fn();
     const { getByTestId } = await render(
-      <IntentSelector propertyTier={3} selectedIntent={1} onSelectIntent={mockSelect} isFriendMode={true} />
+      <IntentSelector propertyTier={3} selectedIntent={1} onSelectIntent={mockSelect} />
     );
 
-    const option2 = getByTestId('intent-option-2');
-    expect(option2.props.accessibilityState?.disabled ?? option2.props.disabled).toBe(false);
+    fireEvent.press(getByTestId('intent-option-1'));
+    expect(mockSelect).toHaveBeenCalledWith(1);
+  });
 
-    fireEvent.press(option2);
+  it('offers every occupancy from 1 to tier, including odd tiers', async () => {
+    const mockSelect = jest.fn();
+    const { getByTestId, queryByTestId } = await render(
+      <IntentSelector propertyTier={3} selectedIntent={1} onSelectIntent={mockSelect} />
+    );
+
+    expect(queryByTestId('intent-option-1')).toBeTruthy();
+    expect(queryByTestId('intent-option-2')).toBeTruthy();
+    expect(queryByTestId('intent-option-3')).toBeTruthy();
+    expect(queryByTestId('intent-option-4')).toBeNull();
+
+    fireEvent.press(getByTestId('intent-option-2'));
     expect(mockSelect).toHaveBeenCalledWith(2);
   });
 });
-

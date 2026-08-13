@@ -6,23 +6,16 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 interface Props {
   matchingMode: 'open_pool' | 'friends';
   onChangeMatchingMode: (mode: 'open_pool' | 'friends') => void;
-  intentSize: number;
   friendCode: string;
   onChangeFriendCode: (code: string) => void;
-  propertyTier: number;
 }
 
 export function RoommateLinkCard({
   matchingMode,
   onChangeMatchingMode,
-  intentSize,
   friendCode,
   onChangeFriendCode,
-  propertyTier,
 }: Props) {
-  const isMultiSlot = intentSize > 1;
-  const isOddCapacity = propertyTier % 2 !== 0;
-
   return (
     <View style={styles.card}>
       <Text style={styles.sectionTitle}>HOW WOULD YOU LIKE TO MOVE IN?</Text>
@@ -47,49 +40,36 @@ export function RoommateLinkCard({
         <View style={styles.detailCard}>
           <Ionicons name="sparkles" size={22} color={DesignColors.primaryBright} />
           <View style={styles.detailTextWrap}>
-            <Text style={styles.detailTitle}>Automated Classmate Matching</Text>
+            <Text style={styles.detailTitle}>Automated Matchmaking</Text>
             <Text style={styles.detailDesc}>
-              We automatically pair your reserved slot with compatible, verified classmates based on study habits and schedule. No group codes needed!
+              We will automatically pair your slot with compatible, verified classmates based on study habits and schedule.
             </Text>
           </View>
         </View>
       ) : (
         <View style={styles.friendsContainer}>
-          {isOddCapacity && isMultiSlot && (
-            <View style={styles.oddNotice}>
-              <Text style={styles.oddNoticeText}>
-                💡 <Text style={{ fontWeight: '700' }}>Fair Rent Policy:</Text> Selecting multiple slots in this {propertyTier}-slot suite automatically divides rent equally across individual student invoices.
+          <View style={styles.detailCard}>
+            <Ionicons name="link-outline" size={22} color={DesignColors.primaryBright} />
+            <View style={styles.detailTextWrap}>
+              <Text style={styles.detailTitle}>Link with Friends</Text>
+              <Text style={styles.detailDesc}>
+                Securing your spot... You will receive an Invite Code after checkout to send to a friend so they can claim the other spot in your arrangement!
               </Text>
             </View>
-          )}
+          </View>
 
-          {isMultiSlot ? (
-            <View style={styles.detailCard}>
-              <Ionicons name="checkmark-circle" size={22} color={DesignColors.primaryBright} />
-              <View style={styles.detailTextWrap}>
-                <Text style={styles.detailTitle}>Separate Student Invoices</Text>
-                <Text style={styles.detailDesc}>
-                  Reserving {intentSize} individual slots for your group. Each classmate pays their share independently via your Group Code.
-                </Text>
-              </View>
-            </View>
-          ) : (
-            <View style={styles.joinSection}>
-              <Text style={styles.inputLabel}>JOIN A FRIEND&apos;S APARTMENT GROUP:</Text>
-              <TextInput
-                style={styles.input}
-                placeholder="Enter Group Code (e.g., GIDA-GRP-8291)"
-                placeholderTextColor={DesignColors.onSurfaceVariant}
-                value={friendCode}
-                onChangeText={onChangeFriendCode}
-                autoCapitalize="characters"
-                autoCorrect={false}
-              />
-              <Text style={styles.hintText}>
-                Tip: Select 2 or more slots below to start your own group with separate classmate billing.
-              </Text>
-            </View>
-          )}
+          <View style={styles.joinSection}>
+            <Text style={styles.inputLabel}>ALREADY HAVE AN INVITE CODE?</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="Enter Code (e.g., GIDA-GRP-8291)"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
+              value={friendCode}
+              onChangeText={onChangeFriendCode}
+              autoCapitalize="characters"
+              autoCorrect={false}
+            />
+          </View>
         </View>
       )}
     </View>
@@ -105,14 +85,11 @@ const styles = StyleSheet.create({
   tabText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontWeight: '600', fontFamily },
   tabTextActive: { color: DesignColors.onPrimaryContainer, fontWeight: '700' },
   friendsContainer: { gap: DesignSpacing.sm, marginTop: 2 },
-  oddNotice: { backgroundColor: DesignColors.surfaceContainerHigh, padding: 10, borderRadius: DesignRadius.sm, borderLeftWidth: 3, borderLeftColor: DesignColors.secondary },
-  oddNoticeText: { ...DesignTypography.labelSm, color: DesignColors.onSurface, lineHeight: 18 },
   detailCard: { flexDirection: 'row', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest, padding: DesignSpacing.sm, borderRadius: DesignRadius.sm, borderWidth: 1, borderColor: DesignColors.primaryBright },
   detailTextWrap: { flex: 1, gap: 2 },
   detailTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
   detailDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, lineHeight: 18 },
-  joinSection: { gap: 6 },
+  joinSection: { gap: 6, marginTop: DesignSpacing.xs },
   inputLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontSize: 11 },
   input: { backgroundColor: DesignColors.surfaceContainerLowest, borderWidth: 1, borderColor: DesignColors.cardBorder, borderRadius: DesignRadius.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm, color: DesignColors.onSurface, ...DesignTypography.bodyMd, fontFamily },
-  hintText: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontStyle: 'italic', marginTop: 2 },
 });

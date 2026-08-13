@@ -4,45 +4,37 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type Props = {
-  totalPrice: number;
-  numberOfPeople: number;
+  baseRent: number;
+  platformFee: number;
+  totalCost: number;
 };
 
-export function ClaimSplitSummary({ totalPrice, numberOfPeople }: Props) {
-  const perPerson = numberOfPeople > 0 ? Math.ceil(totalPrice / numberOfPeople) : totalPrice;
-
+export function ClaimSplitSummary({ baseRent, platformFee, totalCost }: Props) {
   const formatNaira = (amount: number) =>
     `₦${amount.toLocaleString('en-US')}`;
 
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>PAYMENT SPLIT</Text>
+      <Text style={styles.label}>YOUR PAYMENT BREAKDOWN</Text>
 
-      <View style={styles.totalRow}>
-        <Text style={styles.totalLabel}>Total price</Text>
-        <Text style={styles.totalValue}>{formatNaira(totalPrice)}</Text>
+      <View style={styles.row}>
+        <Text style={styles.itemLabel}>Base Rent (Property Share)</Text>
+        <Text style={styles.itemValue}>{formatNaira(baseRent)}</Text>
+      </View>
+
+      <View style={styles.row}>
+        <View style={styles.feeLabelContainer}>
+          <Text style={styles.itemLabel}>Platform Service Fee</Text>
+          <Ionicons name="information-circle-outline" size={14} color={DesignColors.onSurfaceVariant} />
+        </View>
+        <Text style={styles.itemValue}>{formatNaira(platformFee)}</Text>
       </View>
 
       <View style={styles.divider} />
 
-      <View style={styles.peopleRow}>
-        {Array.from({ length: numberOfPeople }).map((_, i) => (
-          <View key={i} style={styles.personChip}>
-            <Ionicons name="checkmark-circle" size={16} color={DesignColors.secondary} />
-            <Text style={styles.personLabel}>Person {i + 1}</Text>
-          </View>
-        ))}
-      </View>
-
-      <View style={styles.splitRow}>
-        <View style={styles.splitInfo}>
-          <Ionicons name="people" size={16} color={DesignColors.primaryBright} />
-          <Text style={styles.splitLabel}>{numberOfPeople} {numberOfPeople === 1 ? 'person' : 'people'}</Text>
-        </View>
-        <View style={styles.splitAmount}>
-          <Text style={styles.perPersonLabel}>Each pays</Text>
-          <Text style={styles.perPersonValue}>{formatNaira(perPerson)}</Text>
-        </View>
+      <View style={styles.totalRow}>
+        <Text style={styles.totalLabel}>Total Due Today</Text>
+        <Text style={styles.totalValue}>{formatNaira(totalCost)}</Text>
       </View>
     </View>
   );
@@ -61,75 +53,50 @@ const styles = StyleSheet.create({
     ...DesignTypography.labelCaps,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+    marginBottom: DesignSpacing.xs,
+  },
+  row: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  feeLabelContainer: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  itemLabel: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+  },
+  itemValue: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '600',
   },
   totalRow: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
+    marginTop: DesignSpacing.xs,
   },
   totalLabel: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  totalValue: {
     ...DesignTypography.bodyLg,
     color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '700',
   },
-  divider: {
-    height: 1,
-    backgroundColor: DesignColors.cardBorder,
-  },
-  peopleRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: DesignSpacing.sm,
-  },
-  personChip: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-    borderRadius: DesignRadius.sm,
-    paddingHorizontal: DesignSpacing.sm,
-    paddingVertical: 4,
-  },
-  personLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '600',
-  },
-  splitRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  splitInfo: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  splitLabel: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '600',
-  },
-  splitAmount: {
-    alignItems: 'flex-end',
-  },
-  perPersonLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  perPersonValue: {
+  totalValue: {
     ...DesignTypography.headlineMd,
     color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '800',
+  },
+  divider: {
+    height: 1,
+    backgroundColor: DesignColors.cardBorder,
+    marginVertical: DesignSpacing.xs,
   },
 });

@@ -27,6 +27,7 @@ export interface SlotCredit {
   estate_id: string;
   property_tier: number;
   intent_size: number;
+  target_occupancy: number;
   status: SlotCreditStatus;
   linked_credit_id?: string | null;
   invite_code?: string | null;
@@ -57,6 +58,7 @@ export interface Pod {
   matched_gender: 'MALE' | 'FEMALE' | 'ANY';
   members: PodMember[];
   current_total_intent: number;
+  target_occupancy: number;
   is_finalized: boolean;
   physical_room_id?: string | null;
   created_at: string;
@@ -65,21 +67,6 @@ export interface Pod {
   group_code?: string | null;
   status?: 'forming' | 'finalized';
 }
-
-export type ReserveSlotCreditInput = {
-  listingId: string;
-  intentSize: number;
-  amount?: number;
-  podId?: string | null;
-};
-
-export type ReserveSlotCreditResult = {
-  success: boolean;
-  pod_id?: string | null;
-  slot_credit_id?: string | null;
-  message?: string | null;
-  error?: string | null;
-};
 
 export interface PhysicalRoom {
   id: string;

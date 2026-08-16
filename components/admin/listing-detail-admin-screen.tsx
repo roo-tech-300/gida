@@ -70,7 +70,6 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
         </View>
 
         <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>ASKING PRICE</Text>
           <Text style={styles.price}>{property.price}</Text>
         </View>
 

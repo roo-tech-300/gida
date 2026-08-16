@@ -64,7 +64,6 @@ export function PropertyPhotos({ photos, onImagePress }: { photos?: string[]; on
 const styles = StyleSheet.create({
   section: {
     marginBottom: DesignSpacing.xl,
-    paddingBottom: 80,
   },
   title: {
     ...DesignTypography.headlineMd,

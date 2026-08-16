@@ -2,16 +2,17 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import type { Pod } from '@/types/liquidity';
 
 interface PodStatusCardProps {
   pod?: Pod;
   targetTier: number;
   physicalDoor?: string | null;
-  countdownTimer?: string;
+  paymentDeadline?: string;
 }
 
-export function PodStatusCard({ pod, targetTier, physicalDoor, countdownTimer }: PodStatusCardProps) {
+export function PodStatusCard({ pod, targetTier, physicalDoor, paymentDeadline }: PodStatusCardProps) {
   const filled = pod?.current_total_intent ?? 1;
   const isComplete = filled >= targetTier || !!physicalDoor;
   const percentage = Math.min(Math.round((filled / targetTier) * 100), 100);
@@ -25,9 +26,10 @@ export function PodStatusCard({ pod, targetTier, physicalDoor, countdownTimer }:
       <Text style={styles.mainTitle}>
         {isComplete ? (physicalDoor || 'Assigned Room: Pending confirmation') : `${filled} of ${targetTier} Slots Secured (${percentage}%)`}
       </Text>
-      {!isComplete && countdownTimer && (
+      {!isComplete && paymentDeadline && (
         <View style={styles.timerBox}>
-          <Text style={styles.timerText}>⏱️ Unmatched hold expires in: {countdownTimer}</Text>
+          <Text style={styles.timerLabel}>Unmatched hold expires in</Text>
+          <ClaimCountdown expiresAt={paymentDeadline} variant="inline" />
         </View>
       )}
       <Text style={styles.desc}>
@@ -48,6 +50,6 @@ const styles = StyleSheet.create({
   statusText: { ...DesignTypography.labelCaps, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
   mainTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontWeight: '800', fontFamily },
   timerBox: { backgroundColor: DesignColors.surfaceContainerLowest, padding: 8, borderRadius: DesignRadius.sm },
-  timerText: { ...DesignTypography.bodyMd, color: DesignColors.tertiary, fontWeight: '700' },
+  timerLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 2 },
   desc: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, lineHeight: 20 },
 });

@@ -1,20 +1,29 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { REGIONAL_ADMIN_MOCK } from '@/dummy/admin-mock';
+import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
 
 const ACTIONS = [
   { key: 'sub_admins', title: 'Appoint\nSub Admins', icon: 'git-network-outline', primary: true },
   { key: 'field_staff', title: 'Deploy\nField Staff', icon: 'person-add-outline', primary: false },
   { key: 'inventory', title: 'Zone\nInventory', icon: 'storefront-outline', primary: false },
   { key: 'landlords', title: 'Landlord\nAccounts', icon: 'document-text-outline', primary: false },
+  { key: 'tours', title: 'Tour\nRequests', icon: 'calendar-outline', primary: false },
 ];
 
 export function RegionalDashboardScreen() {
-  const admin = REGIONAL_ADMIN_MOCK;
+  const { unread, clearUnread } = useRealtimeTourAlerts();
+
+  const handleActionPress = (key: string) => {
+    if (key === 'tours') {
+      clearUnread();
+      router.push('/admin/tours');
+    }
+  };
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -31,7 +40,13 @@ export function RegionalDashboardScreen() {
             <Pressable
               key={a.key}
               style={[styles.actionCard, a.primary && styles.actionCardPrimary]}
+              onPress={() => handleActionPress(a.key)}
             >
+              {a.key === 'tours' && unread > 0 && (
+                <View style={styles.actionBadge}>
+                  <Text style={styles.actionBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                </View>
+              )}
               <View style={[styles.actionIcon, a.primary && styles.actionIconPrimary]}>
                 <Ionicons name={a.icon as any} size={22} color={a.primary ? DesignColors.onSurface : DesignColors.onSurfaceVariant} />
               </View>
@@ -75,7 +90,6 @@ export function RegionalDashboardScreen() {
                 <Text style={styles.activityTitleText}>{act.title}</Text>
                 <Text style={styles.activitySub}>{act.sub}</Text>
               </View>
-              <Ionicons name="chevron-forward" size={16} color={DesignColors.onSurfaceVariant} />
             </View>
           ))}
         </View>
@@ -104,6 +118,19 @@ const styles = StyleSheet.create({
   actionGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   actionCard: { width: '47%', height: 128, borderRadius: 16, backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 20, justifyContent: 'space-between' },
   actionCardPrimary: { backgroundColor: DesignColors.primaryContainer, borderColor: 'transparent' },
+  actionBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.primary,
+  },
+  actionBadgeText: { fontSize: 11, fontWeight: '700', color: DesignColors.onPrimary, fontFamily },
   actionIcon: { width: 40, height: 40, borderRadius: 12, backgroundColor: DesignColors.borderSoft, alignItems: 'center', justifyContent: 'center' },
   actionIconPrimary: { backgroundColor: DesignColors.borderStrong },
   actionLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },

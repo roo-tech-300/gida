@@ -1,12 +1,22 @@
 import { useEffect, useState } from 'react';
-import { Linking, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Linking, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
+import { useQueryClient } from '@tanstack/react-query';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
+import { useDraggableSheet } from '@/components/claim/use-draggable-sheet';
+import { useUnlockedListings } from '@/hooks/use-location-access';
+import { initializeLocationPayment, verifyLocationPayment } from '@/services/location-access-service';
+import { extractReference } from '@/utils/paystack';
 import { LocationPaymentModal } from './location-payment-modal';
+import { LocationCheckStep } from './location-check-step';
+import { TourOptionCard } from './tour-option-card';
+import { styles } from './book-tour-modal.styles';
 
 type Props = {
   visible: boolean;
+  propertyId: string;
   propertyTitle: string;
   propertyLocation: string;
   latitude?: number;
@@ -20,6 +30,7 @@ type Step = 'type' | 'unassisted';
 
 export function BookTourModal({
   visible,
+  propertyId,
   propertyTitle,
   propertyLocation,
   latitude,
@@ -30,13 +41,18 @@ export function BookTourModal({
 }: Props) {
   const [step, setStep] = useState<Step>('type');
   const [paymentOpen, setPaymentOpen] = useState(false);
-  const [isUnlocked, setIsUnlocked] = useState(false);
+  const [unlockedOverride, setUnlockedOverride] = useState<boolean | null>(null);
+  const { data: unlockedIds } = useUnlockedListings();
+  const queryClient = useQueryClient();
+  const { panHandlers, sheetHeight } = useDraggableSheet();
+
+  const isUnlocked = unlockedOverride ?? (unlockedIds?.includes(propertyId) ?? false);
 
   useEffect(() => {
     if (!visible) {
       setStep('type');
       setPaymentOpen(false);
-      setIsUnlocked(false);
+      setUnlockedOverride(null);
     }
   }, [visible]);
 
@@ -67,349 +83,127 @@ export function BookTourModal({
     Linking.openURL(directionsUrl).catch(() => {});
   };
 
+  const fee = (locationFee ?? 500).toLocaleString('en-US');
+
+  const handlePay = async (): Promise<boolean> => {
+    try {
+      const init = await initializeLocationPayment(propertyId);
+      if (init.simulated) {
+        await new Promise((resolve) => setTimeout(resolve, 1200));
+        setUnlockedOverride(true);
+        return true;
+      }
+      if (!init.authorizationUrl) {
+        return false;
+      }
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          window.location.href = init.authorizationUrl;
+        }
+        return false;
+      }
+
+      const redirectUrl = `gida://property/location-unlock-callback?listingId=${propertyId}`;
+      const result = await WebBrowser.openAuthSessionAsync(init.authorizationUrl, redirectUrl);
+      const reference = result.type === 'success' ? extractReference(result.url) ?? init.reference : init.reference;
+      if (!reference) {
+        return false;
+      }
+      const verified = await verifyLocationPayment(reference);
+      if (verified.unlocked) {
+        setUnlockedOverride(true);
+        queryClient.invalidateQueries({ queryKey: ['location-access'] });
+      }
+      return verified.unlocked;
+    } catch (error) {
+      console.error('[BookTourModal] Unlock payment flow failed:', error);
+      return false;
+    }
+  };
+
   return (
-    <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.overlay} onPress={onClose}>
-        <Pressable style={styles.modalContent} onPress={(e) => e.stopPropagation()}>
-          {step === 'type' ? (
-            <View>
-              <View style={styles.headerRow}>
-                <View style={styles.iconCircle}>
-                  <Ionicons name="calendar" size={24} color={DesignColors.primary} />
-                </View>
-                <Pressable onPress={onClose} style={styles.closeBtn}>
-                  <Ionicons name="close" size={22} color={DesignColors.onSurfaceVariant} />
-                </Pressable>
-              </View>
-
-              <Text style={styles.title}>Book a Tour</Text>
-              <Text style={styles.subtitle}>
-                Choose how you&apos;d like to visit{' '}
-                <Text style={styles.bold}>{propertyTitle}</Text>.
-              </Text>
-
-              <View style={styles.optionList}>
-                <TourOption
-                  icon="people-outline"
-                  label="ASSISTED TOUR"
-                  title="Guided Full Inspection"
-                  description="Explore the inside of the property accompanied by a Gida Agent. Get full interior access, inspect amenities, and ask questions on the spot."
-                  onPress={onAssistedTour}
-                />
-                <TourOption
-                  icon="navigate-outline"
-                  label="UNASSISTED TOUR"
-                  title="Location & Exterior Check"
-                  description="Visit the property on your own time. Perfect for scoping out the neighborhood and exact location (Note: Exterior view only, no interior access)."
-                  onPress={() => setStep('unassisted')}
-                />
-              </View>
+    <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
+      <Pressable style={styles.backdrop} onPress={onClose}>
+        <Animated.View style={[styles.sheet, { height: sheetHeight }]}>
+          <Pressable style={styles.sheetBody} onPress={(e) => e.stopPropagation()}>
+            <View {...panHandlers} style={styles.handleArea}>
+              <View style={styles.handle} />
             </View>
-          ) : (
-            <View>
-              <View style={styles.headerRow}>
-                <Pressable onPress={() => setStep('type')} style={styles.backBtn}>
-                  <Ionicons name="chevron-back" size={24} color={DesignColors.onSurface} />
-                </Pressable>
-                <Text style={styles.headerTitle}>Location & Exterior Check</Text>
-                <Pressable onPress={onClose} style={styles.closeBtn}>
-                  <Ionicons name="close" size={22} color={DesignColors.onSurfaceVariant} />
-                </Pressable>
-              </View>
 
-              <Text style={styles.subtitle}>
-                Visit the property on your own time. Perfect for scoping out the neighborhood and
-                exact location.
-              </Text>
-
-              <View style={styles.locationCard}>
-                <View style={styles.locationRow}>
-                  <Ionicons name="location-outline" size={18} color={DesignColors.primary} />
-                  <Text style={styles.locationText}>{propertyLocation}</Text>
-                </View>
-                {isUnlocked && hasCoords && (
-                  <View style={styles.coordsRow}>
-                    <View style={styles.coordBox}>
-                      <Text style={styles.coordLabel}>LATITUDE</Text>
-                      <Text style={styles.coordValue}>{latitude!.toFixed(4)}° N</Text>
-                    </View>
-                    <View style={styles.coordBox}>
-                      <Text style={styles.coordLabel}>LONGITUDE</Text>
-                      <Text style={styles.coordValue}>{longitude!.toFixed(4)}° E</Text>
-                    </View>
-                  </View>
-                )}
-                {!isUnlocked && (
-                  <View style={styles.lockedRow}>
-                    <Ionicons name="lock-closed" size={14} color={DesignColors.primary} />
-                    <Text style={styles.lockedHint}>
-                      Exact GPS coordinates & directions are locked. Pay a small verification fee to
-                      unlock.
-                    </Text>
-                  </View>
-                )}
-                <Text style={styles.exteriorNote}>Exterior view only, no interior access.</Text>
-              </View>
-
-              {isUnlocked ? (
-                <Pressable style={styles.directionsBtn} onPress={handleGetDirections}>
-                  <Ionicons name="navigate" size={18} color={DesignColors.onPrimary} />
-                  <Text style={styles.directionsBtnText}>Get Directions</Text>
-                </Pressable>
+            <View style={styles.header}>
+              {step === 'type' ? (
+                <View style={styles.headerSide} />
               ) : (
-                <Pressable style={styles.directionsBtn} onPress={() => setPaymentOpen(true)}>
-                  <Ionicons name="lock-open-outline" size={18} color={DesignColors.onPrimary} />
-                  <Text style={styles.directionsBtnText}>
-                    Unlock Location & Directions (₦{(locationFee ?? 500).toLocaleString('en-US')})
-                  </Text>
+                <Pressable onPress={() => setStep('type')} style={styles.headerSide} hitSlop={8}>
+                  <Ionicons name="chevron-back" size={20} color={DesignColors.onSurfaceVariant} />
                 </Pressable>
               )}
-
-              <Pressable onPress={() => setStep('type')} style={styles.switchLink}>
-                <Text style={styles.switchLinkText}>Back to tour options</Text>
+              <View style={styles.stepWrap}>
+                <Text style={styles.stepLabel}>{step === 'type' ? 'BOOK A TOUR' : 'LOCATION CHECK'}</Text>
+              </View>
+              <Pressable onPress={onClose} style={styles.headerSide} hitSlop={8}>
+                <Ionicons name="close" size={20} color={DesignColors.onSurfaceVariant} />
               </Pressable>
             </View>
-          )}
-        </Pressable>
+
+            <View style={styles.divider} />
+
+            {step === 'type' ? (
+              <ScrollView
+                bounces={false}
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.content}
+                style={styles.scroll}
+              >
+                <Text style={styles.title}>How would you like to visit?</Text>
+                <Text style={styles.subtitle}>
+                  Choose how you&apos;d like to explore <Text style={styles.bold}>{propertyTitle}</Text>.
+                </Text>
+
+                <View style={styles.optionList}>
+                  <TourOptionCard
+                    icon="people-outline"
+                    label="GUIDED"
+                    title="Guided Full Inspection"
+                    description="Explore the inside with a Gida Agent. Full interior access, inspect amenities, and ask questions on the spot."
+                    feeLabel="₦2,000 guided tour"
+                    onPress={onAssistedTour}
+                  />
+                  <TourOptionCard
+                    icon="navigate-outline"
+                    label="SOLO"
+                    title="Location & Exterior Check"
+                    description="Visit on your own time. Perfect for scoping out the neighborhood and exact location (exterior only)."
+                    feeLabel={`₦${fee} exterior unlock`}
+                    onPress={() => setStep('unassisted')}
+                  />
+                </View>
+              </ScrollView>
+            ) : (
+              <LocationCheckStep
+                propertyLocation={propertyLocation}
+                latitude={latitude}
+                longitude={longitude}
+                isUnlocked={isUnlocked}
+                fee={fee}
+                onUnlock={() => setPaymentOpen(true)}
+                onGetDirections={handleGetDirections}
+                onBack={() => setStep('type')}
+              />
+            )}
+          </Pressable>
+        </Animated.View>
       </Pressable>
       <LocationPaymentModal
         visible={paymentOpen}
         feeAmount={locationFee}
         propertyTitle={propertyTitle}
         onClose={() => setPaymentOpen(false)}
+        onPay={handlePay}
         onSuccess={() => {
-          setIsUnlocked(true);
           setPaymentOpen(false);
         }}
       />
     </Modal>
   );
 }
-
-function TourOption({
-  icon,
-  label,
-  title,
-  description,
-  onPress,
-}: {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  title: string;
-  description: string;
-  onPress: () => void;
-}) {
-  return (
-    <Pressable style={({ pressed }) => [styles.optionCard, pressed && styles.optionCardPressed]} onPress={onPress}>
-      <View style={styles.optionIconBg}>
-        <Ionicons name={icon} size={22} color={DesignColors.primary} />
-      </View>
-      <View style={styles.optionCopy}>
-        <Text style={styles.optionLabel}>{label}</Text>
-        <Text style={styles.optionTitle}>{title}</Text>
-        <Text style={styles.optionDesc}>{description}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={20} color={DesignColors.onSurfaceVariant} />
-    </Pressable>
-  );
-}
-
-const styles = StyleSheet.create({
-  overlay: {
-    flex: 1,
-    backgroundColor: DesignColors.scrimHeavy,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: DesignSpacing.md,
-  },
-  modalContent: {
-    width: '100%',
-    maxWidth: 420,
-    backgroundColor: DesignColors.surface,
-    borderRadius: DesignRadius.lg,
-    padding: DesignSpacing.lg,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  headerRow: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: DesignSpacing.md,
-  },
-  iconCircle: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: DesignColors.successContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  closeBtn: {
-    padding: 6,
-  },
-  backBtn: {
-    padding: 6,
-    marginLeft: -6,
-  },
-  headerTitle: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-    flex: 1,
-    textAlign: 'center',
-  },
-  title: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-    marginBottom: 6,
-  },
-  subtitle: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 20,
-    marginBottom: DesignSpacing.md,
-  },
-  bold: {
-    fontWeight: '700',
-    color: DesignColors.onSurface,
-  },
-  optionList: {
-    gap: DesignSpacing.md,
-  },
-  optionCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.md,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
-    padding: DesignSpacing.md,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  optionCardPressed: {
-    borderColor: DesignColors.primary,
-  },
-  optionIconBg: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: DesignColors.successContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  optionCopy: {
-    flex: 1,
-    gap: 2,
-  },
-  optionLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.secondary,
-    fontFamily,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  optionTitle: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  optionDesc: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 16,
-  },
-  locationCard: {
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
-    padding: DesignSpacing.md,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    gap: DesignSpacing.md,
-    marginBottom: DesignSpacing.md,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  locationText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    flex: 1,
-  },
-  coordsRow: {
-    flexDirection: 'row',
-    gap: DesignSpacing.md,
-  },
-  coordBox: {
-    flex: 1,
-    backgroundColor: DesignColors.surface,
-    padding: DesignSpacing.sm,
-    borderRadius: DesignRadius.sm,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  coordLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    marginBottom: 2,
-  },
-  coordValue: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  lockedRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  lockedHint: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    flex: 1,
-  },
-  exteriorNote: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    fontStyle: 'italic',
-  },
-  directionsBtn: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    backgroundColor: DesignColors.primary,
-    borderRadius: DesignRadius.md,
-    paddingVertical: 14,
-    marginBottom: DesignSpacing.md,
-  },
-  directionsBtnText: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onPrimary,
-    fontFamily,
-    fontWeight: '700',
-  },
-  switchLink: {
-    alignSelf: 'center',
-    paddingVertical: 6,
-  },
-  switchLinkText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.primary,
-    fontFamily,
-    fontWeight: '600',
-  },
-});

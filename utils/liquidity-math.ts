@@ -43,8 +43,8 @@ function isValidTier(n: number | null | undefined): n is number {
 }
 
 export function derivePropertyTier(propertyTier?: number | null, maxRoommates?: number | null): number {
-  if (isValidTier(propertyTier)) return propertyTier;
   if (isValidTier(maxRoommates)) return maxRoommates;
+  if (isValidTier(propertyTier)) return propertyTier;
   return NO_LIMIT_TIER;
 }
 
@@ -87,22 +87,37 @@ export function calculateSeparateBillingPerPerson(totalPrice: number, intentSize
   return Math.ceil(totalReservedAmount / intentSize);
 }
 
-export function verifyPodRevenueParity(
-  totalAnnualRent: number,
-  propertyTier: number,
-  memberIntentSizes: number[],
-): { isParity: boolean; totalCollected: number; shortfall: number } {
-  if (propertyTier <= 0 || totalAnnualRent <= 0) {
-    return { isParity: false, totalCollected: 0, shortfall: totalAnnualRent };
+export const EXPECTED_TOTAL_POD_FEE = 20000;
+export const PAYMENT_WINDOW_MS = 3 * 24 * 3600 * 1000;
+
+export function allocateEvenShares(total: number, count: number): { shares: number[]; total: number } {
+  if (count <= 0 || total < 0) {
+    return { shares: [], total: 0 };
   }
-  const perSlotRate = Math.ceil(totalAnnualRent / propertyTier);
-  const totalCollected = memberIntentSizes.reduce((sum, size) => sum + Math.ceil(perSlotRate * size), 0);
-  const shortfall = Math.max(0, totalAnnualRent - totalCollected);
-  const totalSlots = memberIntentSizes.reduce((a, b) => a + b, 0);
+  const base = Math.floor(total / count);
+  const remainder = total % count;
+  const shares = Array.from({ length: count }, (_, i) => base + (i < remainder ? 1 : 0));
+  return { shares, total: shares.reduce((sum, share) => sum + share, 0) };
+}
+
+export type RevenueParity = {
+  isParity: boolean;
+  totalCollected: number;
+  expectedTotal: number;
+  shortfall: number;
+  overage: number;
+};
+
+export function verifyRevenueParity(expectedTotal: number, memberAmounts: number[]): RevenueParity {
+  const totalCollected = memberAmounts.reduce((sum, amount) => sum + amount, 0);
+  const shortfall = Math.max(0, expectedTotal - totalCollected);
+  const overage = Math.max(0, totalCollected - expectedTotal);
   return {
-    isParity: totalCollected >= totalAnnualRent && totalSlots === propertyTier,
+    isParity: expectedTotal > 0 && totalCollected === expectedTotal,
     totalCollected,
+    expectedTotal,
     shortfall,
+    overage,
   };
 }
 
@@ -112,7 +127,7 @@ export function isValidTargetOccupancy(maxRoommates: number, targetOccupancy: nu
 
 export function getTargetOccupancyOptions(maxRoommates: number): TargetOccupancyOption[] {
   const options: TargetOccupancyOption[] = [];
-  const max = (maxRoommates > 0 && maxRoommates <= 8) ? maxRoommates : 4;
+  const max = (maxRoommates > 0 && maxRoommates <= MAX_PROPERTY_TIER) ? maxRoommates : MAX_PROPERTY_TIER;
 
   for (let i = 1; i <= max; i++) {
     let label = '';

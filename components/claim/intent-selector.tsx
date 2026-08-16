@@ -1,23 +1,23 @@
 import React, { useMemo } from 'react';
 import { StyleSheet, Text, Pressable, View } from 'react-native';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { Ionicons } from '@expo/vector-icons';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { getTargetOccupancyOptions } from '@/utils/liquidity-math';
 
 interface IntentSelectorProps {
   propertyTier: number;
   selectedIntent: number;
   onSelectIntent: (intent: number) => void;
-  isFriendMode?: boolean;
 }
 
-export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, isFriendMode = false }: IntentSelectorProps) {
+export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent }: IntentSelectorProps) {
   const options = useMemo(() => getTargetOccupancyOptions(propertyTier), [propertyTier]);
 
 
   return (
     <View style={styles.container} testID="intent-selector-container">
       <Text style={styles.sectionHeader}>CHOOSE YOUR RESERVATION SIZE</Text>
-      <Text style={styles.subtitle}>Choose how many slots to secure in this {propertyTier}-slot property.</Text>
+      <Text style={styles.subtitle}>Choose how many people will live in this {propertyTier}-slot property.</Text>
       {options.map((opt) => {
 
         const isSelected = selectedIntent === opt.targetOccupancy;
@@ -28,10 +28,15 @@ export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, i
             style={[styles.card, isSelected && styles.activeCard]}
             onPress={() => onSelectIntent(opt.targetOccupancy)}
           >
-            <View style={styles.row}>
+            <View style={styles.copy}>
               <Text style={[styles.label, isSelected && styles.activeText]}>{opt.label}</Text>
+              <Text style={styles.description}>{opt.description}</Text>
             </View>
-            <Text style={styles.description}>{opt.description}</Text>
+            {isSelected && (
+              <View style={styles.checkBadge} testID={`intent-selected-${opt.targetOccupancy}`}>
+                <Ionicons name="checkmark" size={13} color={DesignColors.onPrimary} />
+              </View>
+            )}
           </Pressable>
         );
       })}
@@ -40,23 +45,30 @@ export function IntentSelector({ propertyTier, selectedIntent, onSelectIntent, i
 }
 
 const styles = StyleSheet.create({
-  container: { gap: DesignSpacing.sm, marginVertical: DesignSpacing.sm },
+  container: { gap: DesignSpacing.sm },
   sectionHeader: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   subtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, marginBottom: DesignSpacing.xs },
   card: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
     backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
+    borderRadius: 14,
     padding: DesignSpacing.md,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
-    gap: 4,
   },
-  activeCard: { borderColor: DesignColors.primaryBright, backgroundColor: DesignColors.primaryContainer },
-  disabledCard: { opacity: 0.45, backgroundColor: DesignColors.surfaceContainerLowest },
-  row: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
+  activeCard: { borderColor: DesignColors.primaryBright, backgroundColor: DesignColors.primaryTint },
+  copy: { flex: 1, gap: 2, paddingRight: 4 },
   label: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
   activeText: { color: DesignColors.onPrimaryContainer },
   description: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  badgeText: { ...DesignTypography.labelSm, color: DesignColors.error, fontWeight: '700' },
-  reasonText: { ...DesignTypography.labelSm, color: DesignColors.error, marginTop: 2 },
+  checkBadge: {
+    width: 22,
+    height: 22,
+    borderRadius: 11,
+    backgroundColor: DesignColors.primary,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
 });

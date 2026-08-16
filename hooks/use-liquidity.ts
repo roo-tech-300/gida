@@ -5,6 +5,8 @@ import {
   fetchUserSlotCredits,
   fetchActivePods,
 } from '@/services/liquidity-service';
+import { markSlotCreditPaid, expireSlotCredit } from '@/services/liquidity-payment-service';
+import type { PurchaseSlotCreditInput, PurchaseSlotCreditResult } from '@/services/liquidity-service';
 import type { Estate, SlotCredit, Pod } from '@/types/liquidity';
 
 export function useEstates() {
@@ -23,6 +25,12 @@ export function useUserSlotCredits() {
   });
 }
 
+export function useCreditForListing(listingId?: string) {
+  const { data: credits, isLoading } = useUserSlotCredits();
+  const credit = credits?.find((c) => c.listing_id === listingId);
+  return { data: credit, isLoading };
+}
+
 export function useActivePods(estateId?: string) {
   return useQuery<Pod[], Error>({
     queryKey: ['active-pods', estateId],
@@ -34,19 +42,42 @@ export function useActivePods(estateId?: string) {
 export function useCreateSlotCredit() {
   const queryClient = useQueryClient();
 
-  return useMutation<
-    SlotCredit,
-    Error,
-    { estateId: string; propertyTier: number; intentSize: number; targetOccupancy: number }
-  >({
-    mutationFn: ({ estateId, propertyTier, intentSize, targetOccupancy }) =>
-      purchaseSlotCredit(estateId, propertyTier, intentSize, targetOccupancy),
+  return useMutation<PurchaseSlotCreditResult, Error, PurchaseSlotCreditInput>({
+    mutationFn: (input) => purchaseSlotCredit(input),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });
     },
     onError: (error) => {
       console.error('[useCreateSlotCredit] Mutation failed:', error);
+    },
+  });
+}
+
+export function useMarkSlotCreditPaid() {
+  const queryClient = useQueryClient();
+
+  return useMutation<SlotCredit | null, Error, string>({
+    mutationFn: (creditId) => markSlotCreditPaid(creditId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
+    },
+    onError: (error) => {
+      console.error('[useMarkSlotCreditPaid] Mutation failed:', error);
+    },
+  });
+}
+
+export function useExpireSlotCredit() {
+  const queryClient = useQueryClient();
+
+  return useMutation<boolean, Error, string>({
+    mutationFn: (creditId) => expireSlotCredit(creditId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
+    },
+    onError: (error) => {
+      console.error('[useExpireSlotCredit] Mutation failed:', error);
     },
   });
 }

@@ -81,14 +81,14 @@ export const REGIONS: Region[] = [
 ];
 
 export const ADMIN_MEMBERS: AdminMember[] = [
-  { id: 'admin-1', full_name: 'Fatima Bello', email: 'fatima@gida.app', role: 'regional_admin', assigned_region_id: 'region_minna', region_name: 'Minna', jurisdiction: 'Niger State', avatar_initials: 'FB', stat_label: 'Hubs', stat_value: '14' },
-  { id: 'admin-2', full_name: 'Chinedu Obi', email: 'chinedu@gida.app', role: 'regional_admin', assigned_region_id: 'region_bosso', region_name: 'Bosso', jurisdiction: 'Minna Metro', avatar_initials: 'CO', stat_label: 'Zones', stat_value: '4' },
-  { id: 'admin-3', full_name: 'Amara Okafor', email: 'amara@gida.app', role: 'regional_admin', assigned_region_id: 'region_abuja_north', region_name: 'Abuja North', jurisdiction: 'FCT', avatar_initials: 'AO', stat_label: 'Hubs', stat_value: '9' },
-  { id: 'admin-4', full_name: 'Tunde Bakare', email: 'tunde@gida.app', role: 'field_admin', assigned_region_id: 'region_lagos_mainland', region_name: 'Lagos Mainland', jurisdiction: 'Lagos Mainland', avatar_initials: 'TB', stat_label: 'Tasks', stat_value: '28' },
-  { id: 'admin-5', full_name: 'Ngozi Eze', email: 'ngozi@gida.app', role: 'regional_admin', assigned_region_id: 'region_lagos_island', region_name: 'Lagos Island', jurisdiction: 'Lagos State', avatar_initials: 'NE', stat_label: 'Hubs', stat_value: '11' },
-  { id: 'admin-6', full_name: 'Segun Adeyemi', email: 'segun@gida.app', role: 'field_admin', assigned_region_id: 'region_ibadan', region_name: 'Ibadan', jurisdiction: 'Ibadan North', avatar_initials: 'SA', stat_label: 'Tasks', stat_value: '19' },
-  { id: 'admin-7', full_name: 'Hauwa Mohammed', email: 'hauwa@gida.app', role: 'regional_admin', assigned_region_id: 'region_ph', region_name: 'Port Harcourt', jurisdiction: 'Rivers State', avatar_initials: 'HM', stat_label: 'Hubs', stat_value: '7' },
-  { id: 'admin-8', full_name: 'Daniel John', email: 'daniel@gida.app', role: 'field_admin', assigned_region_id: 'region_abuja_south', region_name: 'Abuja South', jurisdiction: 'Abuja South', avatar_initials: 'DJ', stat_label: 'Tasks', stat_value: '22' },
+  { id: 'admin-1', full_name: 'Fatima Bello', email: 'fatima@gida.apartments', role: 'regional_admin', assigned_region_id: 'region_minna', region_name: 'Minna', jurisdiction: 'Niger State', avatar_initials: 'FB', stat_label: 'Hubs', stat_value: '14' },
+  { id: 'admin-2', full_name: 'Chinedu Obi', email: 'chinedu@gida.apartments', role: 'regional_admin', assigned_region_id: 'region_bosso', region_name: 'Bosso', jurisdiction: 'Minna Metro', avatar_initials: 'CO', stat_label: 'Zones', stat_value: '4' },
+  { id: 'admin-3', full_name: 'Amara Okafor', email: 'amara@gida.apartments', role: 'regional_admin', assigned_region_id: 'region_abuja_north', region_name: 'Abuja North', jurisdiction: 'FCT', avatar_initials: 'AO', stat_label: 'Hubs', stat_value: '9' },
+  { id: 'admin-4', full_name: 'Tunde Bakare', email: 'tunde@gida.apartments', role: 'field_admin', assigned_region_id: 'region_lagos_mainland', region_name: 'Lagos Mainland', jurisdiction: 'Lagos Mainland', avatar_initials: 'TB', stat_label: 'Tasks', stat_value: '28' },
+  { id: 'admin-5', full_name: 'Ngozi Eze', email: 'ngozi@gida.apartments', role: 'regional_admin', assigned_region_id: 'region_lagos_island', region_name: 'Lagos Island', jurisdiction: 'Lagos State', avatar_initials: 'NE', stat_label: 'Hubs', stat_value: '11' },
+  { id: 'admin-6', full_name: 'Segun Adeyemi', email: 'segun@gida.apartments', role: 'field_admin', assigned_region_id: 'region_ibadan', region_name: 'Ibadan', jurisdiction: 'Ibadan North', avatar_initials: 'SA', stat_label: 'Tasks', stat_value: '19' },
+  { id: 'admin-7', full_name: 'Hauwa Mohammed', email: 'hauwa@gida.apartments', role: 'regional_admin', assigned_region_id: 'region_ph', region_name: 'Port Harcourt', jurisdiction: 'Rivers State', avatar_initials: 'HM', stat_label: 'Hubs', stat_value: '7' },
+  { id: 'admin-8', full_name: 'Daniel John', email: 'daniel@gida.apartments', role: 'field_admin', assigned_region_id: 'region_abuja_south', region_name: 'Abuja South', jurisdiction: 'Abuja South', avatar_initials: 'DJ', stat_label: 'Tasks', stat_value: '22' },
 ];
 
 export type InventoryProperty = {

@@ -1,9 +1,12 @@
 import React, { useMemo, useState } from 'react';
-import { StyleSheet, Text, View, ScrollView, RefreshControl } from 'react-native';
+import { StyleSheet, Text, View, ScrollView, RefreshControl, Pressable } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useActivePods, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { useAppToast } from '@/components/ui/toast-card';
+import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { SlotPass } from './slot-pass';
 import { PodStatusCard } from './pod-status-card';
 import { PeerCard } from './peer-card';
@@ -13,6 +16,7 @@ import { MOCK_LOBBY_PEERS, MOCK_PHYSICAL_ROOMS } from '@/dummy/liquidity-mock';
 import { inviteRoommateToPod } from '@/services/liquidity-service';
 
 export function LobbyScreen() {
+  const router = useRouter();
   const { data: credits, refetch: refetchCredits, isError } = useUserSlotCredits();
   const { data: pods, refetch: refetchPods } = useActivePods();
   const [refreshing, setRefreshing] = useState(false);
@@ -25,6 +29,8 @@ export function LobbyScreen() {
   const currentTotalIntent = activePod?.current_total_intent ?? credit?.intent_size ?? 1;
   const remainingSlots = Math.max(0, targetTier - currentTotalIntent);
   const room = activePod?.is_finalized ? MOCK_PHYSICAL_ROOMS[0].physical_door_number : null;
+  const isPendingPayment = credit?.status === 'booked_pending_claim';
+  const isExpiredCredit = credit?.status === 'expired';
 
   const compatiblePeers = useMemo(() => {
     if (remainingSlots <= 0) return [];
@@ -67,7 +73,31 @@ export function LobbyScreen() {
       >
         <Text style={styles.screenTitle}>ROOMMATE MATCHING & CONFIRMATION</Text>
         <SlotPass credit={credit} />
-        <PodStatusCard pod={activePod} targetTier={targetTier} physicalDoor={room} countdownTimer="23h 48m" />
+        {isPendingPayment && credit && (
+          <View style={styles.paymentCard}>
+            <Ionicons name="card-outline" size={20} color={DesignColors.tertiary} />
+            <View style={styles.paymentInfo}>
+              <Text style={styles.paymentTitle}>Payment required to confirm your spot</Text>
+              <ClaimCountdown expiresAt={credit.payment_deadline} variant="inline" />
+            </View>
+            <Pressable style={styles.payNowButton} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })} testID="lobby-pay-now">
+              <Text style={styles.payNowText}>Pay Now</Text>
+            </Pressable>
+          </View>
+        )}
+        {isExpiredCredit && (
+          <View style={styles.expiredCard}>
+            <Ionicons name="time-outline" size={20} color={DesignColors.error} />
+            <View style={styles.paymentInfo}>
+              <Text style={styles.expiredTitle}>Your hold expired</Text>
+              <Text style={styles.expiredDesc}>Make a fresh reservation to restart your 24-hour window.</Text>
+            </View>
+            <Pressable style={styles.payNowButton} onPress={() => router.push('/explore')} testID="lobby-view-properties">
+              <Text style={styles.payNowText}>View Properties</Text>
+            </Pressable>
+          </View>
+        )}
+        <PodStatusCard pod={activePod} targetTier={targetTier} physicalDoor={room} paymentDeadline={credit?.payment_deadline} />
         
         {remainingSlots > 0 ? (
           <>
@@ -121,5 +151,13 @@ const styles = StyleSheet.create({
   completedTitle: { ...DesignTypography.headlineMd, color: DesignColors.primaryBright, fontWeight: '800', fontFamily },
   completedDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, lineHeight: 20 },
   errorText: { ...DesignTypography.bodyLg, color: DesignColors.error, textAlign: 'center', marginTop: 40 },
+  paymentCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: DesignRadius.md, borderWidth: 1, borderColor: DesignColors.tertiary, padding: DesignSpacing.md },
+  paymentInfo: { flex: 1, gap: 4 },
+  paymentTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
+  expiredTitle: { ...DesignTypography.bodyMd, color: DesignColors.error, fontWeight: '700', fontFamily },
+  expiredDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 16 },
+  payNowButton: { backgroundColor: DesignColors.primaryContainer, borderRadius: DesignRadius.xl, paddingHorizontal: DesignSpacing.md, paddingVertical: 10 },
+  payNowText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimaryContainer, fontWeight: '700', fontFamily },
+  expiredCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.errorContainer, borderRadius: DesignRadius.md, borderWidth: 1, borderColor: DesignColors.error, padding: DesignSpacing.md },
 });
 

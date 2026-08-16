@@ -33,7 +33,7 @@
     status slot_credit_status NOT NULL DEFAULT 'booked_pending_claim',
     linked_credit_id UUID REFERENCES slot_credits(id) ON DELETE SET NULL,
     invite_code TEXT UNIQUE,
-    payment_deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '24 hours'),
+    payment_deadline TIMESTAMPTZ NOT NULL DEFAULT (NOW() + INTERVAL '3 days'),
     created_at TIMESTAMPTZ DEFAULT NOW(),
     CONSTRAINT check_odd_tier_intent CHECK (
       (property_tier % 2 = 0) OR (intent_size = 1 OR intent_size = property_tier)

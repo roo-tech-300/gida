@@ -4,7 +4,8 @@ import {
   canFinalizePod,
   getAvailableIntentOptions,
   calculateSeparateBillingPerPerson,
-  verifyPodRevenueParity,
+  allocateEvenShares,
+  verifyRevenueParity,
   derivePropertyTier,
   NO_LIMIT_TIER,
   MAX_PROPERTY_TIER,
@@ -44,6 +45,12 @@ describe('Dynamic Target Occupancy Math', () => {
 
       expect(options[3].label).toBe('Live with 3 Roommates (4 People Total)');
       expect(options[3].description).toContain('Most affordable.');
+    });
+
+    it('offers every occupancy up to the max property tier (no 8-slot cap)', () => {
+      expect(getTargetOccupancyOptions(MAX_PROPERTY_TIER)).toHaveLength(MAX_PROPERTY_TIER);
+      expect(getTargetOccupancyOptions(10)[9].targetOccupancy).toBe(10);
+      expect(getTargetOccupancyOptions(0)).toHaveLength(MAX_PROPERTY_TIER);
     });
   });
 
@@ -126,9 +133,10 @@ describe('Legacy Intent Math & Revenue Parity', () => {
     });
   });
 
-  describe('derivePropertyTier (maxRoommates as tier source)', () => {
-    it('prefers a stored property_tier column', () => {
-      expect(derivePropertyTier(3, 5)).toBe(3);
+  describe('derivePropertyTier (maxRoommates as authoritative capacity)', () => {
+    it('prefers max_roommates when both are present and valid', () => {
+      expect(derivePropertyTier(3, 5)).toBe(5);
+      expect(derivePropertyTier(1, 4)).toBe(4);
     });
 
     it('falls back to max_roommates when no tier column exists', () => {
@@ -138,9 +146,10 @@ describe('Legacy Intent Math & Revenue Parity', () => {
       expect(derivePropertyTier(null, NO_LIMIT_TIER)).toBe(NO_LIMIT_TIER);
     });
 
-    it('accepts the top-of-range tier stored on the property column', () => {
+    it('uses the property tier only when max_roommates is missing or invalid', () => {
       expect(derivePropertyTier(NO_LIMIT_TIER, NO_LIMIT_TIER)).toBe(NO_LIMIT_TIER);
-      expect(derivePropertyTier(MAX_PROPERTY_TIER, 2)).toBe(MAX_PROPERTY_TIER);
+      expect(derivePropertyTier(MAX_PROPERTY_TIER, null)).toBe(MAX_PROPERTY_TIER);
+      expect(derivePropertyTier(2, 0)).toBe(2);
     });
 
     it('ignores the legacy No-Limit sentinel (999) and out-of-range values', () => {
@@ -155,23 +164,51 @@ describe('Legacy Intent Math & Revenue Parity', () => {
     });
   });
 
-  describe('Separate Billing Math & Revenue Parity Verification', () => {
+  describe('Separate Billing', () => {
     it('accurately divides total reserved amount across independent roommate invoices', () => {
-      const perPerson = calculateSeparateBillingPerPerson(1200000, 2, 4);
-      expect(perPerson).toBe(300000);
+      expect(calculateSeparateBillingPerPerson(1200000, 2, 4)).toBe(300000);
+    });
+  });
+
+  describe('Even Share Allocation (No Over-Collection)', () => {
+    it('splits evenly with no remainder', () => {
+      expect(allocateEvenShares(1200000, 4)).toEqual({ shares: [300000, 300000, 300000, 300000], total: 1200000 });
     });
 
-    it('verifies 100% revenue parity when pod slots are completely filled via separate invoices', () => {
-      const parityResult = verifyPodRevenueParity(1200000, 4, [1, 1, 2]);
-      expect(parityResult.isParity).toBe(true);
-      expect(parityResult.totalCollected).toBeGreaterThanOrEqual(1200000);
-      expect(parityResult.shortfall).toBe(0);
+    it('spreads the remainder across the first members so the sum is exact', () => {
+      expect(allocateEvenShares(1000000, 3)).toEqual({ shares: [333334, 333333, 333333], total: 1000000 });
+      expect(allocateEvenShares(101, 4)).toEqual({ shares: [26, 25, 25, 25], total: 101 });
     });
 
-    it('returns false for parity if total slots do not equal property tier', () => {
-      const incomplete = verifyPodRevenueParity(1200000, 4, [1, 2]);
-      expect(incomplete.isParity).toBe(false);
-      expect(incomplete.shortfall).toBe(300000);
+    it('returns empty for invalid counts', () => {
+      expect(allocateEvenShares(1000000, 0)).toEqual({ shares: [], total: 0 });
+      expect(allocateEvenShares(1000000, -2)).toEqual({ shares: [], total: 0 });
+    });
+  });
+
+  describe('Revenue Parity Verification', () => {
+    it('confirms parity when collected shares equal the expected total', () => {
+      const parity = verifyRevenueParity(1000000, [333334, 333333, 333333]);
+      expect(parity.isParity).toBe(true);
+      expect(parity.totalCollected).toBe(1000000);
+      expect(parity.shortfall).toBe(0);
+      expect(parity.overage).toBe(0);
+    });
+
+    it('flags over-collection from naive per-member ceil billing', () => {
+      const parity = verifyRevenueParity(1000000, [400000, 400000, 400000]);
+      expect(parity.isParity).toBe(false);
+      expect(parity.overage).toBe(200000);
+    });
+
+    it('reports the shortfall when members have not fully paid', () => {
+      const parity = verifyRevenueParity(1000000, [200000, 300000]);
+      expect(parity.isParity).toBe(false);
+      expect(parity.shortfall).toBe(500000);
+    });
+
+    it('is never parity for a non-positive expected total', () => {
+      expect(verifyRevenueParity(0, [1, 1]).isParity).toBe(false);
     });
   });
 });

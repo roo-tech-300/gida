@@ -60,6 +60,34 @@ type AdminProfileRow = {
   region: { name: string } | null;
 };
 
+export async function fetchAdminProfile(adminId: string): Promise<AdminMember | null> {
+  const { data, error } = await supabase
+    .from('admin_profiles')
+    .select('id, role, assigned_region_id, profile:profiles(full_name, email, avatar_url)')
+    .eq('id', adminId)
+    .maybeSingle();
+
+  if (error) {
+    console.error('[AdminService] Failed to fetch admin profile:', error.message);
+    return null;
+  }
+
+  if (!data) return null;
+
+  const row = data as unknown as AdminProfileRow;
+  return {
+    id: row.id,
+    full_name: row.profile?.full_name ?? 'Unknown Admin',
+    email: row.profile?.email ?? null,
+    avatar_url: row.profile?.avatar_url ?? null,
+    role: row.role,
+    assigned_region_id: row.assigned_region_id,
+    region_name: null,
+    supervisor_id: null,
+    supervisor_name: null,
+  };
+}
+
 export async function fetchAdminProfiles(): Promise<AdminMember[]> {
   const { data, error } = await supabase
     .from('admin_profiles')

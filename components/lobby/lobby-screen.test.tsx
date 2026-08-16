@@ -1,43 +1,55 @@
 import React from 'react';
 import { render, fireEvent } from '@testing-library/react-native';
 import { ToastProvider } from '@/components/ui/toast-card';
+import { useUserSlotCredits, useActivePods } from '@/hooks/use-liquidity';
+import { MOCK_SLOT_CREDITS, MOCK_PODS } from '@/dummy/liquidity-mock';
 import { LobbyScreen } from './lobby-screen';
+import type { SlotCredit } from '@/types/liquidity';
 
 jest.mock('@/hooks/use-liquidity', () => ({
-  useUserSlotCredits: jest.fn().mockReturnValue({
-    data: [require('@/dummy/liquidity-mock').mockSlotCredit],
-    isLoading: false,
-    isRefetching: false,
-    isError: false,
-    refetch: jest.fn(),
-  }),
-  useActivePods: jest.fn().mockReturnValue({
-    data: [require('@/dummy/liquidity-mock').mockPod],
-    isLoading: false,
-    isRefetching: false,
-    refetch: jest.fn(),
-  }),
+  useUserSlotCredits: jest.fn(),
+  useActivePods: jest.fn(),
 }));
 
 jest.mock('@/services/liquidity-service', () => ({
   inviteRoommateToPod: jest.fn().mockResolvedValue({}),
 }));
 
+jest.mock('expo-router', () => ({
+  useRouter: jest.fn(() => ({ push: jest.fn(), back: jest.fn() })),
+}));
+
+function mockLobbyData(credits: SlotCredit[] = MOCK_SLOT_CREDITS, pods = MOCK_PODS) {
+  (useUserSlotCredits as jest.Mock).mockReturnValue({
+    data: credits,
+    isLoading: false,
+    isRefetching: false,
+    isError: false,
+    refetch: jest.fn(),
+  });
+  (useActivePods as jest.Mock).mockReturnValue({
+    data: pods,
+    isLoading: false,
+    isRefetching: false,
+    refetch: jest.fn(),
+  });
+}
+
 describe('LobbyScreen & Peer Matching Integration', () => {
   beforeEach(() => {
-    jest.useFakeTimers();
+    jest.clearAllMocks();
+    mockLobbyData();
   });
 
   afterEach(() => {
     jest.clearAllTimers();
-    jest.useRealTimers();
   });
 
   it('renders slot credit pass, pod formation status, and peer profile badges', async () => {
     const { getByTestId, getByText, getAllByText } = await render(
       <ToastProvider>
         <LobbyScreen />
-      </ToastProvider>
+      </ToastProvider>,
     );
 
     expect(getByText('ROOMMATE MATCHING & CONFIRMATION')).toBeTruthy();
@@ -55,11 +67,25 @@ describe('LobbyScreen & Peer Matching Integration', () => {
     const { getByTestId } = await render(
       <ToastProvider>
         <LobbyScreen />
-      </ToastProvider>
+      </ToastProvider>,
     );
 
     const inviteBtn = getByTestId('invite-btn-peer-201');
     fireEvent.press(inviteBtn);
     expect(inviteBtn).toBeTruthy();
+  });
+
+  it('shows a Pay Now CTA when the credit is still pending payment', async () => {
+    const pending = { ...MOCK_SLOT_CREDITS[0], status: 'booked_pending_claim' as const };
+    mockLobbyData([pending]);
+
+    const { getByTestId, getByText } = await render(
+      <ToastProvider>
+        <LobbyScreen />
+      </ToastProvider>,
+    );
+
+    expect(getByText(/Payment required to confirm your spot/)).toBeTruthy();
+    expect(getByTestId('lobby-pay-now')).toBeTruthy();
   });
 });

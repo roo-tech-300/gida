@@ -2,7 +2,6 @@ import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { useAppToast } from '@/components/ui/toast-card';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -11,10 +10,11 @@ type TourPassProps = {
   propertyLocation: string;
   date: string;
   time: string;
+  bookingId?: string;
 };
 
-export function TourPassScreen({ propertyTitle, propertyLocation, date, time }: TourPassProps) {
-  const { showToast } = useAppToast();
+export function TourPassScreen({ propertyTitle, propertyLocation, date, time, bookingId }: TourPassProps) {
+  const bookingReference = bookingId ? `GIDA-TR-${bookingId.slice(-4).toUpperCase()}` : 'GIDA-TR-DEMO';
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -55,34 +55,20 @@ export function TourPassScreen({ propertyTitle, propertyLocation, date, time }: 
                   <Text style={styles.locationText}>{propertyLocation}</Text>
                 </View>
 
+                <View style={styles.refRow}>
+                  <Ionicons name="ticket-outline" size={16} color={DesignColors.primaryBright} />
+                  <Text style={styles.refText}>Booking Ref: {bookingReference}</Text>
+                </View>
+
                 <View style={styles.perforationRow}>
                   <View style={styles.cutout} />
                   <View style={styles.dashedLine} />
                   <View style={styles.cutout} />
                 </View>
-
-                <View style={styles.qrSection}>
-                  <View style={styles.qrFrame}>
-                    <View style={styles.qrGrid}>
-                      {qrCells.map((cell, index) => (
-                        <View key={`${cell ? 'on' : 'off'}-${index}`} style={[styles.qrCell, cell && styles.qrCellOn]} />
-                      ))}
-                    </View>
-                  </View>
-                  <Text style={styles.scanText}>Scan at main lobby security desk</Text>
-                </View>
               </View>
 
               <View style={styles.footer}>
-                <Pressable
-                  style={styles.walletButton}
-                  onPress={() => {
-                    showToast({ message: 'Added to Apple Wallet', type: 'success' });
-                  }}
-                >
-                  <Text style={styles.walletText}>Add to Apple Wallet</Text>
-                </Pressable>
-                <Pressable style={styles.closeAction} onPress={() => router.back()}>
+                <Pressable style={styles.closeAction} onPress={() => router.replace('/property/tour-history')}>
                   <Text style={styles.closeActionText}>Close & View History</Text>
                 </Pressable>
               </View>
@@ -93,19 +79,6 @@ export function TourPassScreen({ propertyTitle, propertyLocation, date, time }: 
     </SafeAreaView>
   );
 }
-
-const qrCells = [
-  true, false, true, true, false, true, false, false, true, false,
-  false, true, false, false, true, false, true, true, false, true,
-  true, true, false, true, false, false, true, false, true, false,
-  false, true, true, false, true, true, false, false, true, true,
-  true, false, false, true, false, true, true, false, false, true,
-  false, true, true, false, true, false, false, true, true, false,
-  true, false, false, true, true, false, true, false, false, true,
-  false, true, false, false, true, true, false, true, true, false,
-  true, false, true, false, false, true, false, true, false, true,
-  false, true, true, false, true, false, false, true, true, false,
-];
 
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
@@ -162,24 +135,22 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.md,
   },
   locationText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, flex: 1 },
+  refRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: DesignSpacing.sm,
+    backgroundColor: DesignColors.primaryTint,
+    borderRadius: DesignRadius.full,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
+    paddingHorizontal: DesignSpacing.md,
+    paddingVertical: 10,
+  },
+  refText: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, letterSpacing: 0.8 },
   perforationRow: { flexDirection: 'row', alignItems: 'center', height: 16 },
   dashedLine: { flex: 1, borderTopWidth: 1, borderStyle: 'dashed', borderColor: DesignColors.borderStrong },
   cutout: { width: 32, height: 32, borderRadius: 16, backgroundColor: DesignColors.scrim, borderWidth: 1, borderColor: DesignColors.glassBorder },
-  qrSection: { alignItems: 'center', gap: DesignSpacing.md, paddingTop: 2, paddingBottom: DesignSpacing.xs },
-  qrFrame: { padding: 16, borderRadius: 20, backgroundColor: DesignColors.onSurface },
-  qrGrid: { width: 128, height: 128, flexDirection: 'row', flexWrap: 'wrap' },
-  qrCell: { width: 12.8, height: 12.8, backgroundColor: DesignColors.onSurface },
-  qrCellOn: { backgroundColor: DesignColors.surfaceContainerLowest },
-  scanText: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  walletButton: {
-    height: 56,
-    width: '100%',
-    borderRadius: DesignRadius.xl,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  walletText: { ...DesignTypography.bodyLg, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
   footer: { paddingHorizontal: DesignSpacing.lg, paddingBottom: DesignSpacing.lg, gap: DesignSpacing.md },
   closeAction: { alignItems: 'center', paddingTop: 4, paddingBottom: 2 },
   closeActionText: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },

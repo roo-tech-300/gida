@@ -1,10 +1,11 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
 
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { FIELD_ADMIN_MOCK } from '@/dummy/admin-mock';
+import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
 
 const TABS = ['Super View', 'State Teams', 'Field Agents'];
 
@@ -13,6 +14,7 @@ const TOOLS = [
   { key: 'allocations', title: 'Manage\nAllocations', icon: 'swap-horizontal-outline', color: DesignColors.warning },
   { key: 'maintenance', title: 'Maintenance\nLogs', icon: 'construct-outline', color: DesignColors.tertiary },
   { key: 'contacts', title: 'Landlord\nContacts', icon: 'call-outline', color: DesignColors.secondary },
+  { key: 'tours', title: 'Tour\nRequests', icon: 'calendar-outline', color: DesignColors.primaryBright },
 ];
 
 const SCHEDULE = [
@@ -22,7 +24,14 @@ const SCHEDULE = [
 ];
 
 export function FieldAdminDashboardScreen() {
-  const admin = FIELD_ADMIN_MOCK;
+  const { unread, clearUnread } = useRealtimeTourAlerts();
+
+  const handleToolPress = (key: string) => {
+    if (key === 'tours') {
+      clearUnread();
+      router.push('/admin/tours');
+    }
+  };
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
@@ -46,7 +55,12 @@ export function FieldAdminDashboardScreen() {
           <Text style={styles.sectionTitle}>Management Toolkit</Text>
           <View style={styles.toolGrid}>
             {TOOLS.map((t) => (
-              <Pressable key={t.key} style={styles.toolCard}>
+              <Pressable key={t.key} style={styles.toolCard} onPress={() => handleToolPress(t.key)}>
+                {t.key === 'tours' && unread > 0 && (
+                  <View style={styles.toolBadge}>
+                    <Text style={styles.toolBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                )}
                 <View style={[styles.toolIcon, { backgroundColor: `${t.color}20` }]}>
                   <Ionicons name={t.icon as any} size={22} color={t.color} />
                 </View>
@@ -104,6 +118,19 @@ const styles = StyleSheet.create({
   toolSection: { gap: 16 },
   toolGrid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   toolCard: { width: '47%', height: 112, borderRadius: 16, backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: 20, justifyContent: 'space-between' },
+  toolBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.primary,
+  },
+  toolBadgeText: { fontSize: 11, fontWeight: '700', color: DesignColors.onPrimary, fontFamily },
   toolIcon: { width: 40, height: 40, borderRadius: 12, alignItems: 'center', justifyContent: 'center' },
   toolLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },
   sectionTitle: { fontSize: 20, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.24 },

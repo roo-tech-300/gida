@@ -15,12 +15,17 @@ export function ClaimSplitSummary({ baseRent, platformFee, totalCost }: Props) {
 
   return (
     <View style={styles.card}>
-      <Text style={styles.label}>YOUR PAYMENT BREAKDOWN</Text>
+      <View style={styles.header}>
+        <View style={styles.accent} />
+        <Text style={styles.label}>PAYMENT BREAKDOWN</Text>
+      </View>
 
       <View style={styles.row}>
         <Text style={styles.itemLabel}>Base Rent (Property Share)</Text>
         <Text style={styles.itemValue}>{formatNaira(baseRent)}</Text>
       </View>
+
+      <View style={styles.divider} />
 
       <View style={styles.row}>
         <View style={styles.feeLabelContainer}>
@@ -30,9 +35,7 @@ export function ClaimSplitSummary({ baseRent, platformFee, totalCost }: Props) {
         <Text style={styles.itemValue}>{formatNaira(platformFee)}</Text>
       </View>
 
-      <View style={styles.divider} />
-
-      <View style={styles.totalRow}>
+      <View style={styles.totalBlock}>
         <Text style={styles.totalLabel}>Total Due Today</Text>
         <Text style={styles.totalValue}>{formatNaira(totalCost)}</Text>
       </View>
@@ -49,11 +52,21 @@ const styles = StyleSheet.create({
     padding: DesignSpacing.md,
     gap: DesignSpacing.sm,
   },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
+  },
+  accent: {
+    width: 3,
+    height: 14,
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.primaryBright,
+  },
   label: {
     ...DesignTypography.labelCaps,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-    marginBottom: DesignSpacing.xs,
   },
   row: {
     flexDirection: 'row',
@@ -76,15 +89,24 @@ const styles = StyleSheet.create({
     fontFamily,
     fontWeight: '600',
   },
-  totalRow: {
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: DesignColors.borderFaint,
+  },
+  totalBlock: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginTop: DesignSpacing.xs,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
+    borderRadius: DesignRadius.sm,
+    paddingHorizontal: DesignSpacing.sm,
+    paddingVertical: DesignSpacing.sm + 2,
   },
   totalLabel: {
     ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
+    color: DesignColors.onPrimaryContainer,
     fontFamily,
     fontWeight: '700',
   },
@@ -93,10 +115,5 @@ const styles = StyleSheet.create({
     color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '800',
-  },
-  divider: {
-    height: 1,
-    backgroundColor: DesignColors.cardBorder,
-    marginVertical: DesignSpacing.xs,
   },
 });

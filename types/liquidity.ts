@@ -3,7 +3,8 @@ export type SlotCreditStatus =
   | 'booked_pending_claim'
   | 'paid_unmatched'
   | 'matched'
-  | 'subletting';
+  | 'subletting'
+  | 'expired';
 
 export type PodStatus = 'forming' | 'finalized' | 'swept_latecomer';
 
@@ -37,6 +38,7 @@ export interface SlotCredit {
   listing_id?: string;
   pod_id?: string | null;
   amount_paid?: number | null;
+  paid_at?: string | null;
 }
 
 export interface PodMember {
@@ -49,6 +51,7 @@ export interface PodMember {
   cleanliness_score: number;
   sleep_schedule: string;
   slot_credit_id: string;
+  amount_paid?: number;
 }
 
 export interface Pod {

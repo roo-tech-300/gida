@@ -11,10 +11,8 @@ import { IntentSelector } from '@/components/claim/intent-selector';
 import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier } from '@/utils/liquidity-math';
+import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
-
-const EXPECTED_TOTAL_POD_FEE = 20000;
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const router = useRouter();
@@ -48,28 +46,33 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, selectedTargetOccupancy);
 
   const handleSecureSpace = useCallback(async () => {
+    if (!dbListing) return;
+    const joinCode = matchingMode === 'friends' ? friendCode.trim() : '';
     try {
-      await purchaseSlot({
-        estateId: listingId,
-        propertyTier,
-        intentSize: 1,
+      const { credit, synced } = await purchaseSlot({
+        listing: dbListing,
         targetOccupancy: selectedTargetOccupancy,
+        joinCode: joinCode || undefined,
       });
 
       if (matchingMode === 'friends') {
-        if (friendCode.trim()) {
-          showToast({ message: `Linked directly to group ${friendCode.toUpperCase()}!`, type: 'success' });
+        if (joinCode) {
+          showToast({ message: `Joined your friend's group!`, type: 'success' });
         } else {
-          showToast({ message: `Spot secured! You will receive an Invite Code to share with your friend.`, type: 'success' });
+          showToast({ message: `Spot secured! Share invite code ${credit.invite_code ?? ''} with your friend.`, type: 'success' });
         }
       } else {
         showToast({ message: 'Spot reserved! Welcome to Roommate Matching.', type: 'success' });
       }
-      router.push('/property/lobby' as any);
-    } catch (error: any) {
-      showToast({ message: error.message || 'Failed to reserve spot.', type: 'error' });
+      if (!synced) {
+        showToast({ message: "Reserved locally — couldn't sync to the server. Sign in to persist your spot.", type: 'error' });
+      }
+      router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
+      showToast({ message, type: 'error' });
     }
-  }, [listingId, propertyTier, selectedTargetOccupancy, purchaseSlot, friendCode, matchingMode, showToast, router]);
+  }, [dbListing, selectedTargetOccupancy, purchaseSlot, friendCode, matchingMode, showToast, router]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;

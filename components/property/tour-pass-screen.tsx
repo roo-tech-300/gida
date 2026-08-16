@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { openDirectionsInMaps } from '@/utils/open-maps';
 
 type TourPassProps = {
   propertyTitle: string;
@@ -11,10 +12,16 @@ type TourPassProps = {
   date: string;
   time: string;
   bookingId?: string;
+  latitude?: number;
+  longitude?: number;
 };
 
-export function TourPassScreen({ propertyTitle, propertyLocation, date, time, bookingId }: TourPassProps) {
+export function TourPassScreen({ propertyTitle, propertyLocation, date, time, bookingId, latitude, longitude }: TourPassProps) {
   const bookingReference = bookingId ? `GIDA-TR-${bookingId.slice(-4).toUpperCase()}` : 'GIDA-TR-DEMO';
+
+  const handleGetDirections = () => {
+    openDirectionsInMaps({ latitude, longitude, placeName: propertyTitle, placeArea: propertyLocation });
+  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -54,6 +61,11 @@ export function TourPassScreen({ propertyTitle, propertyLocation, date, time, bo
                   <Ionicons name="location-outline" size={18} color={DesignColors.onSurfaceVariant} />
                   <Text style={styles.locationText}>{propertyLocation}</Text>
                 </View>
+
+                <Pressable style={styles.directionsButton} onPress={handleGetDirections}>
+                  <Ionicons name="navigate-outline" size={16} color={DesignColors.primaryBright} />
+                  <Text style={styles.directionsText}>Get directions</Text>
+                </Pressable>
 
                 <View style={styles.refRow}>
                   <Ionicons name="ticket-outline" size={16} color={DesignColors.primaryBright} />
@@ -135,6 +147,18 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.md,
   },
   locationText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, flex: 1 },
+  directionsButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: DesignSpacing.sm,
+    backgroundColor: DesignColors.primaryTint,
+    borderRadius: DesignRadius.full,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
+    paddingVertical: 10,
+  },
+  directionsText: { ...DesignTypography.labelCaps, color: DesignColors.primaryBright, fontFamily, letterSpacing: 0.8 },
   refRow: {
     flexDirection: 'row',
     alignItems: 'center',

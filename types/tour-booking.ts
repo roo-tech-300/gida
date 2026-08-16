@@ -17,6 +17,8 @@ export type TourListingBrief = {
   city: string;
   primary_image: string | null;
   price_amount: number;
+  latitude: number | null;
+  longitude: number | null;
 };
 
 export type TourBookingWithListing = TourBooking & {

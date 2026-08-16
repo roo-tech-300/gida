@@ -36,6 +36,8 @@ export default function TourPassRoute() {
       date={date ?? ''}
       time={time ?? ''}
       bookingId={bookingId}
+      latitude={data.listing.latitude}
+      longitude={data.listing.longitude}
     />
   );
 }

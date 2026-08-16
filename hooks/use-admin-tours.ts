@@ -1,10 +1,15 @@
-import { useQuery } from '@tanstack/react-query';
-import { fetchAdminTourDetail, fetchAdminTours } from '@/services/admin-tour-service';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  completeTour,
+  fetchAdminTourDetail,
+  fetchAdminTours,
+  type AdminTourView,
+} from '@/services/admin-tour-service';
 
-export function useAdminTours() {
+export function useAdminTours(view: AdminTourView = 'active') {
   return useQuery({
-    queryKey: ['admin-tours'],
-    queryFn: fetchAdminTours,
+    queryKey: ['admin-tours', view],
+    queryFn: () => fetchAdminTours(view),
     staleTime: 30_000,
   });
 }
@@ -14,5 +19,16 @@ export function useAdminTourDetail(bookingId: string | undefined) {
     queryKey: ['admin-tour', bookingId],
     queryFn: () => fetchAdminTourDetail(bookingId ?? ''),
     enabled: Boolean(bookingId),
+  });
+}
+
+export function useCompleteTour() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: completeTour,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-tours'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-tour'] });
+    },
   });
 }

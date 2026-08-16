@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Animated, Linking, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { useQueryClient } from '@tanstack/react-query';
@@ -9,6 +9,7 @@ import { useDraggableSheet } from '@/components/claim/use-draggable-sheet';
 import { useUnlockedListings } from '@/hooks/use-location-access';
 import { initializeLocationPayment, verifyLocationPayment } from '@/services/location-access-service';
 import { extractReference } from '@/utils/paystack';
+import { openDirectionsInMaps } from '@/utils/open-maps';
 import { LocationPaymentModal } from './location-payment-modal';
 import { LocationCheckStep } from './location-check-step';
 import { TourOptionCard } from './tour-option-card';
@@ -74,13 +75,8 @@ export function BookTourModal({
     };
   }, [visible, onClose]);
 
-  const hasCoords = typeof latitude === 'number' && typeof longitude === 'number';
-  const directionsUrl = hasCoords
-    ? `https://www.google.com/maps/dir/?api=1&destination=${latitude},${longitude}`
-    : `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(propertyLocation || propertyTitle)}`;
-
   const handleGetDirections = () => {
-    Linking.openURL(directionsUrl).catch(() => {});
+    openDirectionsInMaps({ latitude, longitude, placeName: propertyTitle, placeArea: propertyLocation });
   };
 
   const fee = (locationFee ?? 500).toLocaleString('en-US');

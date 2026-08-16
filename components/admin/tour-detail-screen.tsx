@@ -8,6 +8,8 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { useAdminTourDetail } from '@/hooks/use-admin-tours';
 import { TourStatusChip } from '@/components/property/tour-status-chip';
 import { formatTourDate } from '@/utils/tour-availability';
+import { openDirectionsInMaps } from '@/utils/open-maps';
+import { CompleteTourButton } from './complete-tour-button';
 import type { AdminTourDetail } from '@/types/tour-booking';
 
 type IoniconName = ComponentProps<typeof Ionicons>['name'];
@@ -50,6 +52,7 @@ export function TourDetailScreen({ bookingId }: { bookingId: string }) {
           <PropertyCard detail={detail} />
           <ScheduleCard detail={detail} />
           <StudentCard detail={detail} />
+          <CompleteTourButton bookingId={detail.booking.id} status={detail.booking.status} />
         </ScrollView>
       )}
     </SafeAreaView>
@@ -79,6 +82,22 @@ function PropertyCard({ detail }: { detail: AdminTourDetail }) {
           </Text>
         ) : null}
         {listing ? <Text style={styles.propertyPrice}>₦{listing.price_amount.toLocaleString('en-US')}</Text> : null}
+        {listing ? (
+          <Pressable
+            style={styles.directionsRow}
+            onPress={() =>
+              openDirectionsInMaps({
+                latitude: listing.latitude,
+                longitude: listing.longitude,
+                placeName: listing.title,
+                placeArea: subtitle,
+              })
+            }
+          >
+            <Ionicons name="navigate-outline" size={14} color={DesignColors.primaryBright} />
+            <Text style={styles.directionsText}>Get directions</Text>
+          </Pressable>
+        ) : null}
       </View>
     </View>
   );
@@ -197,6 +216,8 @@ const styles = StyleSheet.create({
   propertyTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   propertyMeta: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   propertyPrice: { ...DesignTypography.headlineMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
+  directionsRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.xs, marginTop: 2 },
+  directionsText: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
   statusRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   divider: { height: 1, backgroundColor: DesignColors.cardBorder },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },

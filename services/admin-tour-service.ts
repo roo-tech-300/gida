@@ -1,6 +1,8 @@
 import { supabase } from '@/lib/supabase';
 import type { AdminTour, AdminTourDetail, TourBookingStatus, TourListingBrief } from '@/types/tour-booking';
 
+export type AdminTourView = 'active' | 'completed';
+
 type BookingRow = {
   id: string;
   user_id: string;
@@ -30,7 +32,7 @@ async function fetchListings(ids: string[]): Promise<Map<string, TourListingBrie
   }
   const { data } = await supabase
     .from('listings')
-    .select('id, title, location_landmark, city, primary_image, price_amount')
+    .select('id, title, location_landmark, city, primary_image, price_amount, latitude, longitude')
     .in('id', ids);
   for (const row of (data as (TourListingBrief & { id: string })[] | null) ?? []) {
     listings.set(row.id, row);
@@ -38,11 +40,13 @@ async function fetchListings(ids: string[]): Promise<Map<string, TourListingBrie
   return listings;
 }
 
-export async function fetchAdminTours(): Promise<AdminTour[]> {
+export async function fetchAdminTours(view: AdminTourView = 'active'): Promise<AdminTour[]> {
   try {
-    const { data, error } = await supabase
+    let query = supabase
       .from('tour_bookings')
-      .select('id, user_id, listing_id, scheduled_date, scheduled_time, status, created_at')
+      .select('id, user_id, listing_id, scheduled_date, scheduled_time, status, created_at');
+    query = view === 'completed' ? query.eq('status', 'completed') : query.neq('status', 'completed');
+    const { data, error } = await query
       .order('scheduled_date', { ascending: false })
       .order('scheduled_time', { ascending: false })
       .limit(100);
@@ -104,5 +108,24 @@ export async function fetchAdminTourDetail(bookingId: string): Promise<AdminTour
   } catch (error) {
     console.error('[AdminTourService] Failed to fetch tour detail:', error);
     return null;
+  }
+}
+
+export async function completeTour(bookingId: string): Promise<boolean> {
+  try {
+    const { data, error } = await supabase
+      .from('tour_bookings')
+      .update({ status: 'completed' })
+      .eq('id', bookingId)
+      .select('id')
+      .maybeSingle();
+    if (error || !data) {
+      console.warn('[AdminTourService] Complete tour skipped:', error?.message ?? 'no row returned');
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error('[AdminTourService] Failed to complete tour:', error);
+    return false;
   }
 }

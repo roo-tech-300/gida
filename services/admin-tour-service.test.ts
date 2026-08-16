@@ -1,4 +1,4 @@
-import { fetchAdminTourDetail, fetchAdminTours } from './admin-tour-service';
+import { completeTour, fetchAdminTourDetail, fetchAdminTours } from './admin-tour-service';
 import { supabase } from '@/lib/supabase';
 
 jest.mock('@/lib/supabase', () => ({
@@ -12,6 +12,8 @@ type Chain = Record<string, jest.Mock>;
 function listChain(data: unknown): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
+  chain.neq = jest.fn(() => chain);
+  chain.eq = jest.fn(() => chain);
   chain.order = jest.fn(() => chain);
   chain.limit = jest.fn(async () => ({ data, error: null }));
   return chain;
@@ -28,6 +30,15 @@ function singleChain(data: unknown): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
+  chain.maybeSingle = jest.fn(async () => ({ data, error: null }));
+  return chain;
+}
+
+function updateChain(data: unknown): Chain {
+  const chain: Chain = {};
+  chain.update = jest.fn(() => chain);
+  chain.eq = jest.fn(() => chain);
+  chain.select = jest.fn(() => chain);
   chain.maybeSingle = jest.fn(async () => ({ data, error: null }));
   return chain;
 }
@@ -49,6 +60,8 @@ const listingRow = {
   city: 'Zaria',
   primary_image: null,
   price_amount: 250000,
+  latitude: 9.057,
+  longitude: 7.495,
 };
 
 beforeEach(() => {
@@ -77,6 +90,8 @@ describe('admin tour service', () => {
         city: 'Zaria',
         primary_image: null,
         price_amount: 250000,
+        latitude: 9.057,
+        longitude: 7.495,
       },
     });
     expect(supabaseMock.from).toHaveBeenNthCalledWith(1, 'tour_bookings');
@@ -84,9 +99,22 @@ describe('admin tour service', () => {
     expect(supabaseMock.from).toHaveBeenNthCalledWith(3, 'listings');
   });
 
+  it('filters the active view to non-completed tours and the completed view to completed tours', async () => {
+    const activeChain = listChain([]);
+    supabaseMock.from.mockImplementationOnce(() => activeChain);
+    await fetchAdminTours('active');
+    expect(activeChain.neq).toHaveBeenCalledWith('status', 'completed');
+
+    const completedChain = listChain([]);
+    supabaseMock.from.mockImplementationOnce(() => completedChain);
+    await fetchAdminTours('completed');
+    expect(completedChain.eq).toHaveBeenCalledWith('status', 'completed');
+  });
+
   it('returns an empty list when the tour fetch fails', async () => {
     const chain: Chain = {};
     chain.select = jest.fn(() => chain);
+    chain.neq = jest.fn(() => chain);
     chain.order = jest.fn(() => chain);
     chain.limit = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
 
@@ -125,5 +153,16 @@ describe('admin tour service', () => {
     supabaseMock.from.mockImplementation(() => singleChain(null));
 
     await expect(fetchAdminTourDetail('missing')).resolves.toBeNull();
+  });
+
+  it('marks a booked tour as completed', async () => {
+    supabaseMock.from.mockImplementationOnce(() => updateChain({ id: 'b1' }));
+
+    await expect(completeTour('b1')).resolves.toBe(true);
+
+    expect(supabaseMock.from).toHaveBeenCalledWith('tour_bookings');
+    const chain = supabaseMock.from.mock.results[0].value as Chain;
+    expect(chain.update).toHaveBeenCalledWith({ status: 'completed' });
+    expect(chain.eq).toHaveBeenCalledWith('id', 'b1');
   });
 });

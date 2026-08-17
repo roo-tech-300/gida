@@ -43,7 +43,7 @@ export function ActiveAdminCard({ role }: Props) {
           <Text style={styles.desc}>{config.desc}</Text>
         </View>
       </View>
-      <Pressable style={styles.button} onPress={() => router.push(config.route as any)}>
+      <Pressable style={styles.button} onPress={() => router.push(config.route as never)}>
         <Text style={styles.buttonText}>Open Dashboard</Text>
         <Ionicons name="arrow-forward" size={18} color={DesignColors.primary} />
       </Pressable>

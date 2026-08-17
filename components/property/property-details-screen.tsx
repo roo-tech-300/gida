@@ -1,14 +1,16 @@
 import { useMemo, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { useCreditForListing } from '@/hooks/use-liquidity';
 import { useTourBookings } from '@/hooks/use-tour-bookings';
 import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
+import { useReviewEligibility } from '@/hooks/use-review-eligibility';
+import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
 import { ImageGalleryModal } from './image-gallery-modal';
@@ -26,9 +28,11 @@ import { AddReviewForm } from './add-review-form';
 const HERO_HEIGHT = 340;
 
 export function PropertyDetailsScreen({ property, photos, dbListing }: { property: FeedListing; photos?: string[]; dbListing?: DbListing }) {
+  const queryClient = useQueryClient();
   const { data: credit, isLoading: isCheckingCredit } = useCreditForListing(property.id);
   const { data: myTours = [] } = useTourBookings();
-  const { data: reviews = [], isLoading: isLoadingReviews } = useReviews(property.id);
+  const { data: reviews = [], isLoading: isLoadingReviews, isError: isReviewsError, error: reviewsError, refetch: refetchReviews } = useReviews(property.id);
+  const { data: reviewEligibility } = useReviewEligibility(property.id);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [tourModalOpen, setTourModalOpen] = useState(false);
@@ -39,6 +43,8 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     if (property.image) return [property.image];
     return [];
   }, [property.image, photos]);
+
+  const hasReviews = reviews.length > 0;
 
   const rules = dbListing?.rules ?? [];
   const keyAmenities = dbListing ? getToggleAmenities(dbListing) : [];
@@ -134,12 +140,47 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         <PropertyAmenitiesList amenities={property.amenities} />
 
         {/* Show review form if user has paid for a slot */}
-        {isPaid && (
+        {isPaid && reviewEligibility?.canReview && (
           <AddReviewForm listingId={property.id} />
         )}
 
-        {/* Show reviews section only if reviews exist */}
-        {!isLoadingReviews && <PropertyReviewsSection reviews={reviews} avgRating={avgRating} />}
+        {isPaid && reviewEligibility && !reviewEligibility.canReview ? (
+          <View style={styles.reviewLimitCard}>
+            <Text style={styles.reviewLimitTitle}>Review limit reached</Text>
+            <Text style={styles.reviewLimitText}>
+              {reviewEligibility.paid
+                ? `You have used all 3 review slots for this property.`
+                : 'You need a paid slot on this property before reviewing.'}
+            </Text>
+          </View>
+        ) : null}
+
+        {isReviewsError ? (
+          <View style={styles.reviewErrorCard}>
+            <Text style={styles.reviewErrorTitle}>Could not load reviews</Text>
+            <Text style={styles.reviewErrorText}>
+              {reviewsError instanceof Error ? reviewsError.message : 'Something went wrong while loading reviews.'}
+            </Text>
+            <Pressable
+              style={styles.reviewRetryButton}
+              onPress={() => {
+                void queryClient.invalidateQueries({ queryKey: ['reviews', property.id] });
+                void refetchReviews();
+              }}
+            >
+              <Text style={styles.reviewRetryText}>Retry</Text>
+            </Pressable>
+          </View>
+        ) : null}
+
+        {!isLoadingReviews && hasReviews ? <PropertyReviewsSection reviews={reviews} avgRating={avgRating} /> : null}
+
+        {!isLoadingReviews && hasReviews ? (
+          <Pressable style={styles.viewAllReviewsButton} onPress={() => router.push(`/property/reviews/${property.id}`)}>
+            <Text style={styles.viewAllReviewsText}>View all reviews</Text>
+            <Ionicons name="chevron-forward" size={16} color={DesignColors.primary} />
+          </Pressable>
+        ) : null}
       </PropertyBottomSheet>
 
       <PropertyBottomBar
@@ -232,4 +273,77 @@ const styles = StyleSheet.create({
   sectionTitleBar: { width: 3, height: 14, borderRadius: 2, backgroundColor: DesignColors.primaryBright },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.4 },
   description: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 24 },
+  reviewLimitCard: {
+    marginBottom: DesignSpacing.lg,
+    padding: DesignSpacing.md,
+    borderRadius: DesignRadius.md,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    gap: DesignSpacing.xs,
+  },
+  reviewLimitTitle: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '700',
+  },
+  reviewLimitText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    lineHeight: 22,
+  },
+  viewAllReviewsButton: {
+    marginBottom: DesignSpacing.xl,
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    gap: 6,
+    paddingVertical: DesignSpacing.md,
+    borderRadius: DesignRadius.md,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    backgroundColor: DesignColors.surfaceContainerLow,
+  },
+  viewAllReviewsText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.primary,
+    fontFamily,
+    fontWeight: '700',
+  },
+  reviewErrorCard: {
+    marginBottom: DesignSpacing.lg,
+    padding: DesignSpacing.md,
+    borderRadius: DesignRadius.md,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    gap: DesignSpacing.sm,
+  },
+  reviewErrorTitle: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '700',
+  },
+  reviewErrorText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    lineHeight: 22,
+  },
+  reviewRetryButton: {
+    alignSelf: 'flex-start',
+    paddingHorizontal: DesignSpacing.md,
+    paddingVertical: DesignSpacing.sm,
+    borderRadius: DesignRadius.sm,
+    backgroundColor: DesignColors.primary,
+  },
+  reviewRetryText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onPrimary,
+    fontFamily,
+    fontWeight: '700',
+  },
 });

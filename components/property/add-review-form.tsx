@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateReview } from '@/hooks/use-create-review';
+import { useReviewEligibility } from '@/hooks/use-review-eligibility';
 import { useAppToast } from '@/components/ui/toast-card';
 
 type Props = {
@@ -14,10 +15,18 @@ type Props = {
 export function AddReviewForm({ listingId, onSuccess }: Props) {
   const [rating, setRating] = useState(0);
   const [text, setText] = useState('');
+  const [anonymous, setAnonymous] = useState(true);
   const { mutateAsync: createReview, isPending } = useCreateReview(listingId);
+  const { data: eligibility } = useReviewEligibility(listingId);
   const { showToast } = useAppToast();
+  const remainingReviews = eligibility?.remainingReviews ?? 3;
+  const canReview = eligibility?.canReview ?? false;
 
   const handleSubmit = async () => {
+    if (!canReview) {
+      showToast({ message: 'You need a paid slot on this property before reviewing.', type: 'error' });
+      return;
+    }
     if (rating === 0) {
       showToast({ message: 'Please select a rating', type: 'error' });
       return;
@@ -33,6 +42,7 @@ export function AddReviewForm({ listingId, onSuccess }: Props) {
         listing_id: listingId,
         rating,
         text: text.trim(),
+        anonymous,
       });
 
       showToast({ message: 'Review posted successfully!', type: 'success' });
@@ -48,6 +58,7 @@ export function AddReviewForm({ listingId, onSuccess }: Props) {
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Share Your Experience</Text>
+      <Text style={styles.helperText}>{remainingReviews} review slot{remainingReviews === 1 ? '' : 's'} left for this property.</Text>
 
       <View style={styles.ratingContainer}>
         <Text style={styles.ratingLabel}>Rate this property</Text>
@@ -84,9 +95,17 @@ export function AddReviewForm({ listingId, onSuccess }: Props) {
       </View>
 
       <Pressable
+        onPress={() => setAnonymous((value) => !value)}
+        style={({ pressed }) => [styles.toggle, pressed && styles.togglePressed]}
+      >
+        <Ionicons name={anonymous ? 'eye-off-outline' : 'person-outline'} size={18} color={DesignColors.primary} />
+        <Text style={styles.toggleText}>{anonymous ? 'Posting anonymously' : 'Showing my name'}</Text>
+      </Pressable>
+
+      <Pressable
         style={({ pressed }) => [styles.submitButton, pressed && styles.submitButtonPressed, isPending && styles.submitButtonDisabled]}
         onPress={handleSubmit}
-        disabled={isPending}
+        disabled={isPending || !canReview}
       >
         {isPending ? (
           <ActivityIndicator color={DesignColors.onPrimary} />
@@ -114,6 +133,11 @@ const styles = StyleSheet.create({
   title: {
     ...DesignTypography.headlineMd,
     color: DesignColors.onSurface,
+    fontFamily,
+  },
+  helperText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
   },
   ratingContainer: {
@@ -153,6 +177,23 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     textAlign: 'right',
+  },
+  toggle: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    paddingHorizontal: DesignSpacing.md,
+    paddingVertical: DesignSpacing.sm,
+    borderRadius: DesignRadius.sm,
+    backgroundColor: DesignColors.surfaceContainerHighest,
+  },
+  togglePressed: {
+    opacity: 0.8,
+  },
+  toggleText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
   },
   submitButton: {
     backgroundColor: DesignColors.primary,

@@ -14,6 +14,7 @@ export type { PurchaseSlotCreditResult };
 export type PurchaseSlotCreditInput = {
   listing: DbListing;
   targetOccupancy: number;
+  createCode?: string;
   joinCode?: string;
 };
 
@@ -51,7 +52,7 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
   if (input.joinCode && input.joinCode.trim()) {
     return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier });
   }
-  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy });
+  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode });
 }
 
 export async function fetchEstates(): Promise<Estate[]> {

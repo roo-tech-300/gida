@@ -10,7 +10,7 @@ export function useDraggableSheet() {
   const collapsed = Math.round(screenHeight * COLLAPSED_RATIO);
   const expanded = Math.round(screenHeight * EXPANDED_RATIO);
 
-  const height = useRef(new Animated.Value(collapsed)).current;
+  const height = useRef(new Animated.Value(expanded)).current;
   const startY = useRef(0);
 
   const panResponder = useRef(

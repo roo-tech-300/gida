@@ -8,10 +8,10 @@ import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/con
 import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { useCreditForListing, useExpireSlotCredit } from '@/hooks/use-liquidity';
 import { useTourBookings } from '@/hooks/use-tour-bookings';
+import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
 import { useAppToast } from '@/components/ui/toast-card';
-import { MOCK_REVIEWS } from '@/dummy/reviews-mock';
 import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
@@ -24,6 +24,7 @@ import { PropertyRulesCard } from './property-rules-card';
 import { PropertyReviewsSection } from './property-reviews-section';
 import { ApplicationStatusCard } from './application-status-card';
 import { CancelApplicationModal } from './cancel-application-modal';
+import { AddReviewForm } from './add-review-form';
 
 const HERO_HEIGHT = 340;
 
@@ -31,6 +32,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const { data: credit, isLoading: isCheckingCredit } = useCreditForListing(property.id);
   const { mutateAsync: cancelCredit, isPending: isCancelling } = useExpireSlotCredit();
   const { data: myTours = [] } = useTourBookings();
+  const { data: reviews = [], isLoading: isLoadingReviews } = useReviews(property.id);
   const { showToast } = useAppToast();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
@@ -46,7 +48,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   const rules = dbListing?.rules ?? [];
   const keyAmenities = dbListing ? getToggleAmenities(dbListing) : [];
-  const avgRating = MOCK_REVIEWS.length === 0 ? 0 : MOCK_REVIEWS.reduce((sum, r) => sum + r.rating, 0) / MOCK_REVIEWS.length;
+  const avgRating = calculateAverageRating(reviews);
 
   const openGallery = (index: number) => {
     setGalleryIndex(index);
@@ -158,7 +160,13 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
         <PropertyAmenitiesList amenities={property.amenities} />
 
-        <PropertyReviewsSection reviews={MOCK_REVIEWS} avgRating={avgRating} />
+        {/* Show review form if user has paid for a slot */}
+        {isPaid && (
+          <AddReviewForm listingId={property.id} />
+        )}
+
+        {/* Show reviews section only if reviews exist */}
+        {!isLoadingReviews && <PropertyReviewsSection reviews={reviews} avgRating={avgRating} />}
       </PropertyBottomSheet>
 
       <PropertyBottomBar

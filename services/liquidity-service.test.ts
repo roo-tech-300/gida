@@ -94,7 +94,7 @@ describe('purchaseSlotCredit (founder + join-by-invite-code)', () => {
     const { credit } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
 
     expect(credit.target_occupancy).toBe(2);
-    expect(credit.invite_code).toMatch(/^GIDA-POD-\d{4}$/);
+    expect(credit.invite_code).toMatch(/^GIDA-POD-[A-Z2-9]{12}$/);
     expect(credit.estate_id).not.toBe(LISTING.id);
 
     const pod = await findPodByGroupCode(credit.invite_code as string);

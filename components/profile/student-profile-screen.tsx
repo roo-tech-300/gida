@@ -9,15 +9,10 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
 import { studentProfile } from '@/dummy/profile-mock';
+import { getInitials } from '@/utils/initials';
 import { ProfileRow } from './profile-row';
 import { ActiveAdminCard } from './active-admin-card';
-
-function getInitials(fullName: string | null | undefined): string {
-  if (!fullName) return 'S';
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0].substring(0, 2).toUpperCase();
-}
+import { JoinGroupCard } from './join-group-card';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
@@ -108,6 +103,8 @@ export function StudentProfileScreen() {
               </View>
             </View>
           </View>
+
+          <JoinGroupCard />
 
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>

@@ -9,8 +9,15 @@ export const DEV_USER_ID = 'usr-current-student';
 
 const SYNC_FAILURE_MESSAGE = 'Could not persist your reservation to the server. Please sign in and try again.';
 
+const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+const CODE_LENGTH = 12;
+
 export function generateInviteCode(): string {
-  return `GIDA-POD-${Math.floor(1000 + Math.random() * 9000)}`;
+  let code = '';
+  for (let i = 0; i < CODE_LENGTH; i++) {
+    code += CODE_CHARS[Math.floor(Math.random() * CODE_CHARS.length)];
+  }
+  return `GIDA-POD-${code}`;
 }
 
 export async function currentUserId(): Promise<string> {
@@ -235,8 +242,8 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   return { credit, synced };
 }
 
-export async function createFounderCredit(args: { listing: DbListing; estate: Estate; estateId: string; propertyTier: number; targetOccupancy: number }): Promise<PurchaseSlotCreditResult> {
-  const code = generateInviteCode();
+export async function createFounderCredit(args: { listing: DbListing; estate: Estate; estateId: string; propertyTier: number; targetOccupancy: number; createCode?: string }): Promise<PurchaseSlotCreditResult> {
+  const code = args.createCode?.trim() || generateInviteCode();
   const userId = await currentUserId();
   const credit = buildCredit(args.estateId, args.estate, args.listing.id, args.propertyTier, args.targetOccupancy, code);
   credit.user_id = userId;

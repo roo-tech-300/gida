@@ -12,7 +12,9 @@ import { PodStatusCard } from './pod-status-card';
 import { PeerCard } from './peer-card';
 import { RoommateInviteCard } from './roommate-invite-card';
 import { RoommateInviteModal } from './roommate-invite-modal';
+import { ManageGroupModal } from './manage-group-modal';
 import { MOCK_LOBBY_PEERS, MOCK_PHYSICAL_ROOMS } from '@/dummy/liquidity-mock';
+import { MOCK_GROUP_MEMBERS, type ManageGroupMember } from '@/dummy/group-members-mock';
 import { inviteRoommateToPod } from '@/services/liquidity-service';
 
 export function LobbyScreen() {
@@ -21,6 +23,7 @@ export function LobbyScreen() {
   const { data: pods, refetch: refetchPods } = useActivePods();
   const [refreshing, setRefreshing] = useState(false);
   const [modalVisible, setModalVisible] = useState(false);
+  const [manageModalVisible, setManageModalVisible] = useState(false);
   const { showToast } = useAppToast();
 
   const credit = credits?.[0];
@@ -31,6 +34,19 @@ export function LobbyScreen() {
   const room = activePod?.is_finalized ? MOCK_PHYSICAL_ROOMS[0].physical_door_number : null;
   const isPendingPayment = credit?.status === 'booked_pending_claim';
   const isExpiredCredit = credit?.status === 'expired';
+
+  const groupMembers: ManageGroupMember[] = [
+    { id: 'you', name: 'You', status: 'you', via: 'direct' },
+    ...(activePod?.members ?? [])
+      .filter((member) => member.user_id !== 'usr-current-student')
+      .map((member) => ({
+        id: member.user_id,
+        name: member.full_name,
+        status: (member.amount_paid ? 'paid' : 'accepted') as ManageGroupMember['status'],
+        via: 'direct' as const,
+      })),
+    ...MOCK_GROUP_MEMBERS,
+  ];
 
   const compatiblePeers = useMemo(() => {
     if (remainingSlots <= 0) return [];
@@ -98,6 +114,15 @@ export function LobbyScreen() {
           </View>
         )}
         <PodStatusCard pod={activePod} targetTier={targetTier} physicalDoor={room} paymentDeadline={credit?.payment_deadline} />
+
+        <Pressable style={styles.manageCard} onPress={() => setManageModalVisible(true)} testID="manage-group-btn">
+          <Ionicons name="settings-outline" size={20} color={DesignColors.primaryBright} />
+          <View style={styles.manageInfo}>
+            <Text style={styles.manageTitle}>Manage Group</Text>
+            <Text style={styles.manageDesc}>View members, regenerate the invite code, or remove people.</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color={DesignColors.onSurfaceVariant} />
+        </Pressable>
         
         {remainingSlots > 0 ? (
           <>
@@ -135,6 +160,13 @@ export function LobbyScreen() {
         onClose={() => setModalVisible(false)}
         onSubmitInvite={handleRoommateSubmit}
       />
+
+      <ManageGroupModal
+        visible={manageModalVisible}
+        groupCode={credit?.invite_code ?? 'GIDA-POD-4921'}
+        members={groupMembers}
+        onClose={() => setManageModalVisible(false)}
+      />
     </SafeAreaView>
   );
 }
@@ -159,5 +191,18 @@ const styles = StyleSheet.create({
   payNowButton: { backgroundColor: DesignColors.primaryContainer, borderRadius: DesignRadius.xl, paddingHorizontal: DesignSpacing.md, paddingVertical: 10 },
   payNowText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimaryContainer, fontWeight: '700', fontFamily },
   expiredCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.errorContainer, borderRadius: DesignRadius.md, borderWidth: 1, borderColor: DesignColors.error, padding: DesignSpacing.md },
+  manageCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.md,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderRadius: DesignRadius.md,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    padding: DesignSpacing.md,
+  },
+  manageInfo: { flex: 1, gap: 2 },
+  manageTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
+  manageDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 15 },
 });
 

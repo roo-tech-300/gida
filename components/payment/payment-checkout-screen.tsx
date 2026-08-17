@@ -1,12 +1,16 @@
 import { useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import * as WebBrowser from 'expo-web-browser';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
-import { useUserSlotCredits, useMarkSlotCreditPaid, useExpireSlotCredit } from '@/hooks/use-liquidity';
+import { useUserSlotCredits, useExpireSlotCredit } from '@/hooks/use-liquidity';
+import { useInitializeLodgePayment } from '@/hooks/use-lodge-payment';
+import { verifyLodgePayment } from '@/services/lodge-payment-service';
+import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 
 type PaymentMethod = 'card' | 'transfer' | 'ussd';
@@ -18,13 +22,12 @@ const METHODS: { id: PaymentMethod; title: string; subtitle: string; icon: keyof
 ];
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
-const delay = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const router = useRouter();
   const { showToast } = useAppToast();
   const { data: credits, isLoading } = useUserSlotCredits();
-  const { mutateAsync: payCredit } = useMarkSlotCreditPaid();
+  const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
 
   const [method, setMethod] = useState<PaymentMethod>('card');
@@ -40,11 +43,41 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const selectedMethod = METHODS.find((m) => m.id === method);
 
   const handlePay = async () => {
+    if (!credit) return;
     try {
       setIsProcessing(true);
-      await delay(1500);
-      await payCredit(creditId);
-      setLocallyPaid(true);
+      const result = await initPayment({
+        creditId,
+        listingId: credit.listing_id ?? '',
+        targetOccupancy: credit.target_occupancy,
+      });
+      if (result.simulated) {
+        await new Promise((resolve) => setTimeout(resolve, 1500));
+        setLocallyPaid(true);
+        return;
+      }
+      if (!result.authorizationUrl) return;
+
+      if (Platform.OS === 'web') {
+        if (typeof window !== 'undefined') {
+          window.location.href = result.authorizationUrl;
+        }
+        return;
+      }
+
+      const redirectUrl = `gida://property/location-unlock-callback?listingId=${encodeURIComponent(credit.listing_id ?? '')}&creditId=${encodeURIComponent(creditId)}&targetOccupancy=${credit.target_occupancy}&kind=lodge`;
+      const browserResult = await WebBrowser.openAuthSessionAsync(result.authorizationUrl, redirectUrl);
+      const reference = browserResult.type === 'success'
+        ? extractReference(browserResult.url) ?? result.reference
+        : result.reference;
+      if (!reference) return;
+
+      const verified = await verifyLodgePayment(reference);
+      if (verified.verified) {
+        setLocallyPaid(true);
+      } else {
+        showToast({ message: 'Payment is pending confirmation. Your spot is held — please check back shortly.', type: 'info' });
+      }
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Payment failed. Please try again.';
       showToast({ message, type: 'error' });
@@ -218,7 +251,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
             </>
           )}
         </Pressable>
-        {locallyExpired && (
+        {locallyExpired && !isProcessing && (
           <Pressable style={styles.releaseLink} onPress={handleRelease} testID="checkout-release-link">
             <Text style={styles.releaseText}>Hold expired — release spot</Text>
           </Pressable>

@@ -2,12 +2,12 @@ import { z } from 'zod';
 
 import type { Env } from './env';
 import { confirmTourBooking } from './tour-confirm';
+import { confirmSlotPayment } from './slot-confirm';
 import { json, paystackHeaders, upsertPayment, type PaymentRow } from './paystack-helpers';
 
 const PAYSTACK_BASE = 'https://api.paystack.co';
 const LOCATION_ACCESS_FEE_NGN = 500;
 const ASSISTED_TOUR_FEE_NGN = 2000;
-const PAYSTACK_REF_PREFIX = 'GIDA-LOC';
 
 async function hmacSha512Hex(secret: string, body: string): Promise<string> {
   const key = await crypto.subtle.importKey(
@@ -26,6 +26,7 @@ type PaymentMetadata = {
   userId?: string;
   listingId?: string;
   tourBookingId?: string;
+  slotCreditId?: string;
 };
 
 function requireUuid(value: string | undefined): string | null {
@@ -41,7 +42,9 @@ function paymentAmountKobo(kind: string | undefined, chargedAmount?: number): nu
 }
 
 function paymentMethod(kind: string | undefined, channel?: string): string {
-  return kind === 'tour' ? 'tour' : (channel ?? 'card');
+  if (kind === 'tour') return 'tour';
+  if (kind === 'lodge') return 'lodge';
+  return channel ?? 'card';
 }
 
 function paymentRow(kind: string | undefined, meta: PaymentMetadata, reference: string, chargedAmount?: number, channel?: string): PaymentRow | null {
@@ -67,15 +70,16 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
       email: z.string().email(),
       callbackUrl: z.string().url(),
       userId: z.string().optional(),
-      kind: z.enum(['location', 'tour']).default('location'),
+      kind: z.enum(['location', 'tour', 'lodge']).default('location'),
       tourBookingId: z.string().optional(),
+      slotCreditId: z.string().optional(),
     })
     .safeParse(await request.json().catch(() => null));
   if (!parseResult.success) {
     return json({ error: 'Invalid payload.' }, 400);
   }
 
-  const { listingId, email, callbackUrl, userId: rawUserId, kind, tourBookingId } = parseResult.data;
+  const { listingId, email, callbackUrl, userId: rawUserId, kind, tourBookingId, slotCreditId } = parseResult.data;
   const userId = requireUuid(rawUserId);
   if (!requireUuid(listingId) || !userId) {
     return json({ error: 'Invalid listing or user id.' }, 400);
@@ -83,18 +87,67 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
   if (kind === 'tour' && !tourBookingId) {
     return json({ error: 'Missing tour booking.' }, 400);
   }
+  if (kind === 'lodge' && !slotCreditId) {
+    return json({ error: 'Missing slot credit id.' }, 400);
+  }
 
-  const reference = `${PAYSTACK_REF_PREFIX}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  let amountKobo: number;
+  const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
+  const svcHeaders = {
+    'Content-Type': 'application/json',
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+  };
+
+  if (kind === 'lodge') {
+    const creditResp = await fetch(`${baseUrl}/rest/v1/slot_credits?id=eq.${encodeURIComponent(slotCreditId!)}&select=amount_paid,status`, {
+      method: 'GET',
+      headers: svcHeaders,
+    });
+    if (!creditResp.ok) {
+      return json({ error: 'Could not look up slot credit.' }, 500);
+    }
+    const rows = (await creditResp.json()) as Array<{ amount_paid: number | null; status: string | null }>;
+    const creditRow = rows[0];
+    const creditStatus = creditRow?.status;
+    if (creditStatus === 'paid_unmatched' || creditStatus === 'matched' || creditStatus === 'subletting') {
+      return json({ error: 'This reservation has already been paid for.' }, 409);
+    }
+    const amountNgn = creditRow?.amount_paid;
+    if (!amountNgn || amountNgn <= 0) {
+      return json({ error: 'Slot credit has no payment amount set.' }, 400);
+    }
+    amountKobo = Math.round(amountNgn * 100);
+  } else if (kind === 'location') {
+    const existingResp = await fetch(
+      `${baseUrl}/rest/v1/location_access_payments?user_id=eq.${encodeURIComponent(userId)}&listing_id=eq.${encodeURIComponent(listingId)}&select=id`,
+      { method: 'GET', headers: svcHeaders },
+    );
+    if (existingResp.ok) {
+      const existingRows = (await existingResp.json()) as Array<{ id: string }>;
+      if (existingRows.length > 0) {
+        return json({ error: 'Location access already unlocked for this property.' }, 409);
+      }
+    }
+    amountKobo = paymentAmountKobo(kind);
+  } else {
+    amountKobo = paymentAmountKobo(kind);
+  }
+
+  const reference = `GIDA-${kind.toUpperCase().slice(0, 4)}-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
   const metadata: PaymentMetadata = { kind, userId, listingId };
   if (kind === 'tour') {
     metadata.tourBookingId = tourBookingId;
+  }
+  if (kind === 'lodge') {
+    metadata.slotCreditId = slotCreditId;
   }
   const response = await fetch(`${PAYSTACK_BASE}/transaction/initialize`, {
     method: 'POST',
     headers: paystackHeaders(env),
     body: JSON.stringify({
       email,
-      amount: paymentAmountKobo(kind),
+      amount: amountKobo,
       reference,
       callback_url: callbackUrl,
       metadata,
@@ -128,7 +181,16 @@ async function handleVerify(request: Request, env: Env): Promise<Response> {
   }
 
   const data = result.data;
-  const kind = data.metadata?.kind === 'tour' ? 'tour' : 'location';
+  const kind = data.metadata?.kind === 'tour' ? 'tour' : data.metadata?.kind === 'lodge' ? 'lodge' : 'location';
+
+  if (kind === 'lodge' && data.metadata?.slotCreditId) {
+    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference);
+    if (!result.confirmed) {
+      return json({ unlocked: false, status: 'confirm-failed' }, 500);
+    }
+    return json({ unlocked: true, kind: 'lodge', slotCreditId: data.metadata.slotCreditId, locationUnlocked: result.locationUnlocked }, 200);
+  }
+
   const row = paymentRow(kind, data.metadata ?? {}, data.reference, data.amount, data.channel);
   if (!row) {
     return json({ unlocked: false, status: 'invalid-metadata' }, 200);
@@ -167,10 +229,19 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   }
 
   const data = payload.data;
-  const kind = data.metadata?.kind === 'tour' ? 'tour' : 'location';
+  const kind = data.metadata?.kind === 'tour' ? 'tour' : data.metadata?.kind === 'lodge' ? 'lodge' : 'location';
   if (!data.reference) {
     return json({ received: true });
   }
+
+  if (kind === 'lodge' && data.metadata?.slotCreditId) {
+    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference);
+    if (!result.confirmed) {
+      console.error(`[Webhook] Lodge confirm failed for credit ${data.metadata.slotCreditId}`);
+    }
+    return json({ received: true });
+  }
+
   const row = paymentRow(kind, data.metadata ?? {}, data.reference, data.amount, data.channel);
   if (!row) {
     return json({ received: true });

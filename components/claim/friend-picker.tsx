@@ -3,7 +3,7 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, TextInput, View } from 
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { useSearchProfiles } from '@/hooks/use-claim';
+import { useSearchProfiles } from '@/hooks/use-profile-search';
 import { SlotDiagram } from '@/components/claim/slot-diagram';
 import { InviteCodeModal } from '@/components/claim/invite-code-modal';
 

@@ -3,11 +3,14 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router, useLocalSearchParams } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useQueryClient } from '@tanstack/react-query';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useVerifyLocationPayment } from '@/hooks/use-location-access';
+import { verifyLodgePayment } from '@/services/lodge-payment-service';
 
 type Status = 'verifying' | 'unlocked' | 'failed';
+type PaymentKind = 'location' | 'tour' | 'lodge';
 
 export default function LocationUnlockCallbackScreen() {
   const params = useLocalSearchParams<{
@@ -18,13 +21,18 @@ export default function LocationUnlockCallbackScreen() {
     bookingId?: string;
     date?: string;
     time?: string;
+    creditId?: string;
+    targetOccupancy?: string;
   }>();
   const { mutateAsync: verify } = useVerifyLocationPayment();
+  const queryClient = useQueryClient();
   const [status, setStatus] = useState<Status>('verifying');
 
   const listingId = params.listingId ?? '';
   const reference = params.reference ?? params.trxref ?? '';
-  const kind = params.kind === 'tour' ? 'tour' : 'location';
+  const kind: PaymentKind = params.kind === 'tour' ? 'tour' : params.kind === 'lodge' ? 'lodge' : 'location';
+  const creditId = params.creditId ?? '';
+  const targetOccupancy = Number(params.targetOccupancy ?? '1');
 
   useEffect(() => {
     if (!reference || !listingId) {
@@ -32,9 +40,35 @@ export default function LocationUnlockCallbackScreen() {
       return;
     }
     let cancelled = false;
+
+    if (kind === 'lodge') {
+      verifyLodgePayment(reference)
+        .then((result) => {
+          if (cancelled) return;
+          if (result.verified) {
+            queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
+            if (targetOccupancy === 1) {
+              router.replace(`/property/booking?id=${encodeURIComponent(creditId)}`);
+            } else {
+              router.replace('/property/lobby');
+            }
+            return;
+          }
+          setStatus('failed');
+        })
+        .catch(() => {
+          if (!cancelled) setStatus('failed');
+        });
+      return () => { cancelled = true; };
+    }
+
     verify(reference)
       .then((result) => {
         if (cancelled) return;
+        if (result.unlocked) {
+          queryClient.invalidateQueries({ queryKey: ['location-access'] });
+          queryClient.invalidateQueries({ queryKey: ['tour-bookings'] });
+        }
         if (result.unlocked && result.kind === 'tour') {
           router.replace(
             `/property/tour-pass?id=${encodeURIComponent(listingId)}&bookingId=${encodeURIComponent(result.bookingId ?? '')}&date=${encodeURIComponent(params.date ?? '')}&time=${encodeURIComponent(params.time ?? '')}`,
@@ -46,10 +80,8 @@ export default function LocationUnlockCallbackScreen() {
       .catch(() => {
         if (!cancelled) setStatus('failed');
       });
-    return () => {
-      cancelled = true;
-    };
-  }, [reference, listingId, verify, params.date, params.time, params.bookingId]);
+    return () => { cancelled = true; };
+  }, [reference, listingId, verify, kind, creditId, targetOccupancy, params.date, params.time, params.bookingId, queryClient]);
 
   const goToProperty = () => {
     router.replace({ pathname: '/property/[id]', params: { id: listingId } });

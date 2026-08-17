@@ -80,6 +80,16 @@ export async function initializeLocationPayment(listingId: string): Promise<Init
     return { simulated: true };
   }
 
+  const { data: existingAccess } = await supabase
+    .from('location_access_payments')
+    .select('id')
+    .eq('user_id', userId)
+    .eq('listing_id', listingId)
+    .maybeSingle();
+  if (existingAccess) {
+    throw new Error('Location access is already unlocked for this property.');
+  }
+
   const { data: userData } = await supabase.auth.getUser();
   const email = userData.user?.email;
   if (!email) {

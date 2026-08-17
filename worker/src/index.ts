@@ -34,16 +34,6 @@ async function patchExpired(baseUrl: string, key: string, table: string, filter:
   return { expired: updated.length, ids: updated.map((r) => r.id) };
 }
 
-async function expireStaleClaims(env: Env): Promise<ExpireResult> {
-  const now = new Date().toISOString();
-  const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
-  const params = new URLSearchParams({
-    status: 'in.(locked_pending_roommate,locked_pending_payment,partially_paid)',
-    lock_expires_at: `lt.${now}`,
-  });
-  return patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'applications', params.toString());
-}
-
 async function reconcileExpiredPods(baseUrl: string, key: string, expiredCreditIds: string[]): Promise<number> {
   if (expiredCreditIds.length === 0) {
     return 0;
@@ -110,11 +100,10 @@ function summarize(result: ExpireResult | SlotCreditExpireResult, label: string)
 export default {
   async scheduled(_event: ScheduledEvent, env: Env, _ctx: ExecutionContext) {
     const results = await Promise.allSettled([
-      expireStaleClaims(env),
       expireStaleSlotCredits(env),
       expireStaleTourBookings(env),
     ]);
-    const labels = ['claims', 'slot credits', 'pending tours'];
+    const labels = ['slot credits', 'pending tours'];
     results.forEach((result, index) => {
       if (result.status === 'fulfilled') {
         summarize(result.value, labels[index]);
@@ -135,12 +124,11 @@ export default {
     }
 
     try {
-      const [claims, slotCredits, pendingTours] = await Promise.all([
-        expireStaleClaims(env),
+      const [slotCredits, pendingTours] = await Promise.all([
         expireStaleSlotCredits(env),
         expireStaleTourBookings(env),
       ]);
-      return new Response(JSON.stringify({ claims, slotCredits, pendingTours }), {
+      return new Response(JSON.stringify({ slotCredits, pendingTours }), {
         status: 200,
         headers: { 'Content-Type': 'application/json' },
       });

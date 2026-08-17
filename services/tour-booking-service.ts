@@ -163,3 +163,28 @@ export async function fetchTourBookings(): Promise<TourBookingWithListing[]> {
     return [];
   }
 }
+
+export async function findPendingBooking(listingId: string): Promise<TourBooking | null> {
+  const userId = await currentUserId();
+  if (userId === DEV_USER_ID) {
+    return null;
+  }
+  try {
+    const { data, error } = await supabase
+      .from('tour_bookings')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('listing_id', listingId)
+      .eq('status', 'pending_payment')
+      .order('created_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+    if (error || !data) {
+      return null;
+    }
+    return data as TourBooking;
+  } catch (error) {
+    console.error('[TourBooking] Failed to find pending booking:', error);
+    return null;
+  }
+}

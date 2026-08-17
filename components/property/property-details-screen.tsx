@@ -6,12 +6,11 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing, DbListing } from '@/types/feed-listing';
-import { useCreditForListing, useExpireSlotCredit } from '@/hooks/use-liquidity';
+import { useCreditForListing } from '@/hooks/use-liquidity';
 import { useTourBookings } from '@/hooks/use-tour-bookings';
 import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
-import { useAppToast } from '@/components/ui/toast-card';
 import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
@@ -22,23 +21,18 @@ import { PropertyAmenitiesList } from './property-amenities-list';
 import { BookTourModal } from './book-tour-modal';
 import { PropertyRulesCard } from './property-rules-card';
 import { PropertyReviewsSection } from './property-reviews-section';
-import { ApplicationStatusCard } from './application-status-card';
-import { CancelApplicationModal } from './cancel-application-modal';
 import { AddReviewForm } from './add-review-form';
 
 const HERO_HEIGHT = 340;
 
 export function PropertyDetailsScreen({ property, photos, dbListing }: { property: FeedListing; photos?: string[]; dbListing?: DbListing }) {
   const { data: credit, isLoading: isCheckingCredit } = useCreditForListing(property.id);
-  const { mutateAsync: cancelCredit, isPending: isCancelling } = useExpireSlotCredit();
   const { data: myTours = [] } = useTourBookings();
   const { data: reviews = [], isLoading: isLoadingReviews } = useReviews(property.id);
-  const { showToast } = useAppToast();
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [tourModalOpen, setTourModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
-  const [cancelModalOpen, setCancelModalOpen] = useState(false);
 
   const allPhotos = useMemo(() => {
     if (photos && photos.length > 0) return photos;
@@ -58,23 +52,6 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const isPaid = !!credit && (credit.status === 'paid_unmatched' || credit.status === 'matched' || credit.status === 'subletting');
   const isSolo = !!credit && credit.target_occupancy === 1;
   const isClaimable = !credit || credit.status === 'expired';
-  const hasActiveApplication = !!credit && credit.status === 'booked_pending_claim';
-
-  const handleCancelApplication = async () => {
-    if (!credit) return;
-    try {
-      const cancelled = await cancelCredit(credit.id);
-      if (!cancelled) {
-        showToast({ message: "Couldn't cancel your application. Check your connection and try again.", type: 'error' });
-        return;
-      }
-      setCancelModalOpen(false);
-      showToast({ message: 'Application cancelled. You can claim this spot again.', type: 'success' });
-    } catch (error) {
-      const message = error instanceof Error ? error.message : 'Failed to cancel application.';
-      showToast({ message, type: 'error' });
-    }
-  };
 
   let ctaLabel = 'Claim Spot';
   let ctaIcon: keyof typeof Ionicons.glyphMap = 'enter-outline';
@@ -138,10 +115,6 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
           {property.floor ? <StatItem label="FLOOR" value={property.floor} /> : null}
         </View>
 
-        {hasActiveApplication && (
-          <ApplicationStatusCard deadline={credit.payment_deadline} onCancelPress={() => setCancelModalOpen(true)} />
-        )}
-
         <PropertyKeyAmenities amenities={keyAmenities} />
 
         <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
@@ -194,14 +167,6 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         locationFee={property.locationFee}
         onClose={() => setTourModalOpen(false)}
         onAssistedTour={handleAssistedTour}
-      />
-
-      <CancelApplicationModal
-        visible={cancelModalOpen}
-        listingTitle={property.title}
-        onClose={() => setCancelModalOpen(false)}
-        onConfirm={handleCancelApplication}
-        isPending={isCancelling}
       />
 
       <ClaimRoomModal visible={claimModalOpen} listingId={property.id} onClose={() => setClaimModalOpen(false)} />

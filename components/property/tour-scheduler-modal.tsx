@@ -10,7 +10,7 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import type { AdminMember } from '@/types/admin';
 import { useReserveTour, useTourAvailability } from '@/hooks/use-tour-bookings';
 import { useVerifyLocationPayment } from '@/hooks/use-location-access';
-import { GUIDED_TOUR_FEE_NGN, payForTour } from '@/services/tour-booking-service';
+import { GUIDED_TOUR_FEE_NGN, payForTour, findPendingBooking } from '@/services/tour-booking-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { extractReference } from '@/utils/paystack';
 import { buildDatePills, dateKey, formatTourDate, slotsForDate } from '@/utils/tour-availability';
@@ -82,25 +82,39 @@ export function TourSchedulerModal({
         showToast({ message: 'That time just filled up. Please pick another slot.', type: 'error' });
         return;
       }
+
+      let bookingId: string;
+      let bookingDate: string;
+      let bookingTime: string;
+
       if (reserve.error === 'already_booked') {
-        showToast({ message: 'You already have a tour booked for this property.', type: 'info' });
-        return;
-      }
-      if (!reserve.booking) {
+        const pending = await findPendingBooking(propertyId);
+        if (!pending) {
+          showToast({ message: 'You already have a tour booked for this property.', type: 'info' });
+          return;
+        }
+        bookingId = pending.id;
+        bookingDate = pending.scheduled_date;
+        bookingTime = pending.scheduled_time;
+      } else if (reserve.booking) {
+        bookingId = reserve.booking.id;
+        bookingDate = dateKey(selectedDate);
+        bookingTime = selectedSlot;
+      } else {
         showToast({ message: 'We could not reserve that slot. Please try again.', type: 'error' });
         return;
       }
 
-      const formattedDate = formatTourDate(dateKey(selectedDate));
+      const formattedDate = formatTourDate(bookingDate);
       const passParams =
-        `id=${propertyId}&bookingId=${reserve.booking.id}` +
-        `&date=${encodeURIComponent(formattedDate)}&time=${encodeURIComponent(selectedSlot)}`;
+        `id=${propertyId}&bookingId=${bookingId}` +
+        `&date=${encodeURIComponent(formattedDate)}&time=${encodeURIComponent(bookingTime)}`;
 
       const init = await payForTour({
         listingId: propertyId,
-        bookingId: reserve.booking.id,
-        date: dateKey(selectedDate),
-        time: selectedSlot,
+        bookingId,
+        date: bookingDate,
+        time: bookingTime,
       });
       if (init.simulated) {
         await new Promise((resolve) => setTimeout(resolve, 1300));
@@ -119,8 +133,8 @@ export function TourSchedulerModal({
 
       const redirectUrl =
         `gida://property/location-unlock-callback?listingId=${propertyId}&kind=tour` +
-        `&bookingId=${reserve.booking.id}&date=${encodeURIComponent(formattedDate)}` +
-        `&time=${encodeURIComponent(selectedSlot)}`;
+        `&bookingId=${bookingId}&date=${encodeURIComponent(formattedDate)}` +
+        `&time=${encodeURIComponent(bookingTime)}`;
       const result = await WebBrowser.openAuthSessionAsync(init.authorizationUrl, redirectUrl);
       const reference = result.type === 'success' ? extractReference(result.url) ?? init.reference : init.reference;
       if (!reference) {

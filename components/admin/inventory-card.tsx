@@ -12,9 +12,9 @@ const layoutLabels: Record<string, string> = {
 };
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
-  available: { bg: 'rgba(74,225,115,0.12)', color: '#4ae176', label: 'Available' },
-  booked: { bg: 'rgba(54,71,54,0.12)', color: '#364736', label: 'Booked' },
-  maintenance: { bg: 'rgba(255,182,149,0.12)', color: '#ffb695', label: 'Maintenance' },
+  available: { bg: DesignColors.successContainer, color: DesignColors.success, label: 'Available' },
+  booked: { bg: DesignColors.primaryTint, color: DesignColors.primaryBright, label: 'Booked' },
+  maintenance: { bg: DesignColors.warningContainer, color: DesignColors.warning, label: 'Maintenance' },
 };
 
 export function InventoryCard({ listing, onPress }: { listing: FeedListing; onPress?: () => void }) {
@@ -71,13 +71,13 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'DesignColors.cardBorder',
+    borderColor: DesignColors.cardBorder,
   },
   imageWrap: { height: 200, position: 'relative' },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    backgroundColor: DesignColors.scrimLight,
   },
   badge: {
     position: 'absolute',
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     padding: 16,
     backgroundColor: DesignColors.surfaceContainerLow,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: DesignColors.borderSoft,
   },
   titleBlock: { gap: 6 },
   title: {
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: DesignColors.borderFaint,
   },
   metaText: {
     ...DesignTypography.bodyMd,

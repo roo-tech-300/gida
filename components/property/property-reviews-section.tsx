@@ -2,7 +2,7 @@ import { Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import type { Review } from '@/dummy/reviews-mock';
+import type { Review } from '@/types/reviews';
 
 type Props = {
   reviews: Review[];
@@ -10,12 +10,17 @@ type Props = {
 };
 
 export function PropertyReviewsSection({ reviews, avgRating }: Props) {
+  // Don't render section if no reviews
+  if (!reviews || reviews.length === 0) {
+    return null;
+  }
+
   return (
     <View style={styles.section}>
       <View style={styles.header}>
         <Text style={styles.sectionTitle}>Reviews</Text>
         <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={14} color="#FFD700" />
+          <Ionicons name="star" size={14} color={DesignColors.rating} />
           <Text style={styles.ratingText}>{avgRating.toFixed(1)}</Text>
           <Text style={styles.reviewCount}>({reviews.length})</Text>
         </View>
@@ -24,10 +29,10 @@ export function PropertyReviewsSection({ reviews, avgRating }: Props) {
         <View key={review.id} style={styles.card}>
           <View style={styles.reviewTop}>
             <View style={styles.authorRow}>
-              <Image source={{ uri: review.avatar }} style={styles.avatar} />
+              {review.avatar && <Image source={{ uri: review.avatar }} style={styles.avatar} />}
               <View>
-                <Text style={styles.author}>{review.author}</Text>
-                <Text style={styles.date}>{new Date(review.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
+                <Text style={styles.author}>{review.author || 'Anonymous'}</Text>
+                <Text style={styles.date}>{new Date(review.created_at).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</Text>
               </View>
             </View>
             <View style={styles.stars}>
@@ -36,7 +41,7 @@ export function PropertyReviewsSection({ reviews, avgRating }: Props) {
                   key={i}
                   name={i < review.rating ? 'star' : 'star-outline'}
                   size={12}
-                  color={i < review.rating ? '#FFD700' : DesignColors.onSurfaceVariant}
+                  color={i < review.rating ? DesignColors.rating : DesignColors.onSurfaceVariant}
                 />
               ))}
             </View>

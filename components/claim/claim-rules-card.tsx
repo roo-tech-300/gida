@@ -14,12 +14,12 @@ export function ClaimRulesCard({ rules, maxRoommates }: Props) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
-        <Ionicons name="document-text-outline" size={18} color={DesignColors.primaryBright} />
-        <Text style={styles.title}>House Rules</Text>
+        <View style={styles.accent} />
+        <Text style={styles.title}>HOUSE RULES</Text>
       </View>
 
       <View style={styles.capacityRow}>
-        <Ionicons name="people-outline" size={16} color={DesignColors.onSurfaceVariant} />
+        <Ionicons name="people-outline" size={16} color={DesignColors.primaryBright} />
         <Text style={styles.capacityText}>
           This space allows up to <Text style={styles.capacityValue}>{effectiveMax}</Text> {effectiveMax === 1 ? 'roommate' : 'roommates'}
         </Text>
@@ -51,19 +51,26 @@ const styles = StyleSheet.create({
   header: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: DesignSpacing.sm,
+    gap: 8,
+  },
+  accent: {
+    width: 3,
+    height: 14,
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.primaryBright,
   },
   title: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
+    ...DesignTypography.labelCaps,
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
-    fontWeight: '700',
   },
   capacityRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: DesignColors.primaryContainer,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
     borderRadius: DesignRadius.sm,
     padding: DesignSpacing.sm,
   },
@@ -73,7 +80,7 @@ const styles = StyleSheet.create({
     fontFamily,
   },
   capacityValue: {
-    color: DesignColors.onPrimaryContainer,
+    color: DesignColors.primaryBright,
     fontWeight: '700',
   },
   rulesList: {

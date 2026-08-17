@@ -15,9 +15,9 @@ export function MessageBubble({
 }) {
   return (
     <View style={[styles.row, isMe && styles.rowMe]}>
-      {!isMe && (
+      {!isMe && avatar ? (
         <Image source={avatar} style={styles.avatar} contentFit="cover" />
-      )}
+      ) : null}
       <View style={styles.bubbleWrap}>
         <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
           <Text style={[styles.text, isMe && styles.textMe]}>{message.text}</Text>

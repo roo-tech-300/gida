@@ -171,7 +171,7 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
 
           <View style={[styles.topBar, { top: insets.top }]}>
             <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color="#ffffff" />
+              <Ionicons name="close" size={24} color={DesignColors.onSurface} />
             </Pressable>
             <Text style={styles.counter}>
               {currentIndex + 1} / {photos.length}
@@ -200,14 +200,14 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
-  backdrop: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  backdrop: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   item: { flex: 1 },
   slide: {
     flex: 1,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   imageFrame: {
     width: '100%',
@@ -226,18 +226,18 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingHorizontal: 16,
     paddingVertical: 12,
-    backgroundColor: 'rgba(0,0,0,0.28)',
+    backgroundColor: DesignColors.scrim,
   },
   closeBtn: {
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.cardBorder,
     alignItems: 'center',
     justifyContent: 'center',
   },
   counter: {
-    color: '#ffffff',
+    color: DesignColors.onSurface,
     fontFamily,
     fontSize: 12,
     fontWeight: '700',
@@ -253,7 +253,7 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   hintText: {
-    color: 'rgba(255,255,255,0.45)',
+    color: DesignColors.onSurfaceVariant,
     fontSize: 10,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -268,7 +268,7 @@ const styles = StyleSheet.create({
     gap: 10,
   },
   bottomBadgeText: {
-    color: 'rgba(255,255,255,0.9)',
+    color: DesignColors.onSurface,
     fontSize: 12,
     fontWeight: '700',
     letterSpacing: 1.2,
@@ -284,7 +284,7 @@ const styles = StyleSheet.create({
     width: 6,
     height: 6,
     borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.2)',
+    backgroundColor: DesignColors.borderStrong,
   },
   dotActive: {
     width: 24,

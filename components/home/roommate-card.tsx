@@ -11,7 +11,7 @@ type Props = {
 };
 
 function CompatibilityBadge({ pct }: { pct: number }) {
-  const color = pct >= 90 ? '#4AE176' : pct >= 80 ? '#D2BBFF' : '#CCC3D8';
+  const color = pct >= 90 ? DesignColors.success : pct >= 80 ? DesignColors.primaryFixed : DesignColors.onSurfaceVariant;
   return (
     <View style={[styles.badge, { backgroundColor: color + '20', borderColor: color }]}>
       <Text style={[styles.badgeText, { color }]}>{pct}% Match</Text>
@@ -77,10 +77,10 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: 'rgba(26,26,30,0.8)',
+    backgroundColor: DesignColors.glassFill,
     borderRadius: DesignRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.08)',
+    borderColor: DesignColors.cardBorder,
     padding: DesignSpacing.md,
     gap: DesignSpacing.md,
   },
@@ -157,7 +157,7 @@ const styles = StyleSheet.create({
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.borderSoft,
     borderRadius: DesignRadius.full,
     paddingHorizontal: 10,
     paddingVertical: 4,
@@ -187,7 +187,7 @@ const styles = StyleSheet.create({
     flex: 1,
     borderRadius: DesignRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: DesignColors.borderMedium,
     paddingVertical: 12,
     alignItems: 'center',
   },

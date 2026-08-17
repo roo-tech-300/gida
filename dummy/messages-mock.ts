@@ -16,6 +16,9 @@ export type Conversation = {
   initials: string;
   image: number;
   verified: boolean;
+  role?: string;
+  propertyLocation?: string;
+  messages?: MessageItem[];
 };
 
 export type TourInfo = {
@@ -107,3 +110,5 @@ export const conversations: Conversation[] = [
     verified: false,
   },
 ];
+
+export const messageFilters = ['All', 'Landlords', 'Roommates', 'Unread'] as const;

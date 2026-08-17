@@ -3,22 +3,16 @@ import { ActivityIndicator, Image, Pressable, ScrollView, StyleSheet, Text, View
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import * as ImagePicker from 'expo-image-picker';
-import { router } from 'expo-router';
 import { useAuth } from '@/context/auth-context';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
 import { studentProfile } from '@/dummy/profile-mock';
+import { getInitials } from '@/utils/initials';
 import { ProfileRow } from './profile-row';
 import { ActiveAdminCard } from './active-admin-card';
-
-function getInitials(fullName: string | null | undefined): string {
-  if (!fullName) return 'S';
-  const parts = fullName.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0].substring(0, 2).toUpperCase();
-}
+import { JoinGroupCard } from './join-group-card';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
@@ -110,6 +104,8 @@ export function StudentProfileScreen() {
             </View>
           </View>
 
+          <JoinGroupCard />
+
           <View style={styles.section}>
             <Text style={styles.sectionTitle}>Personal Information</Text>
             <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} />
@@ -140,13 +136,6 @@ export function StudentProfileScreen() {
               <ActiveAdminCard role={profile.admin_role} />
             </View>
           ) : null}
-
-          <View style={styles.section}>
-              <Pressable style={styles.devButton} onPress={() => router.push('/admin/dev-views')}>
-              <Ionicons name="build-outline" size={20} color={DesignColors.primary} />
-              <Text style={styles.devButtonText}>Dev: Admin Dashboard</Text>
-            </Pressable>
-          </View>
 
           <View style={styles.logoutSection}>
             <Pressable
@@ -251,10 +240,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: DesignSpacing.lg },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: DesignSpacing.lg, paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
   completionBadge: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '700', paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
-  devButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, backgroundColor: 'rgba(54, 71, 54, 0.12)', borderWidth: 1, borderColor: 'rgba(54, 71, 54, 0.2)' },
-  devButtonText: { ...DesignTypography.bodyMd, color: DesignColors.primary, fontFamily, fontWeight: '600' },
   logoutSection: { marginHorizontal: DesignSpacing.marginMobile },
-  logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: 'rgba(255, 180, 171, 0.12)', borderWidth: 1, borderColor: 'rgba(255, 180, 171, 0.2)' },
+  logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: DesignColors.dangerContainer, borderWidth: 1, borderColor: DesignColors.dangerContainer },
   logoutText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, fontWeight: '600' },
   version: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center', opacity: 0.6, paddingTop: DesignSpacing.md },
 });

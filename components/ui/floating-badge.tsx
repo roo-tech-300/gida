@@ -1,6 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleSheet } from 'react-native';
+import { DesignColors } from '@/constants/design';
 
 export function FloatingBadge({
   icon,
@@ -80,8 +81,8 @@ const styles = StyleSheet.create({
     height: 44,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(27, 27, 29, 0.7)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
   },
 });

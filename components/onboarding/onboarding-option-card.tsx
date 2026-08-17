@@ -35,7 +35,7 @@ export function OnboardingOptionCard({
         pressed && styles.pressed,
       ]}>
       <View style={[styles.iconWrap, selected && styles.iconWrapSelected]}>
-        <Ionicons name={icon} size={28} color={selected ? '#ffffff' : DesignColors.primary} />
+        <Ionicons name={icon} size={28} color={selected ? DesignColors.onSurface : DesignColors.primary} />
       </View>
       <View style={styles.copy}>
         <Text style={styles.title}>{title}</Text>
@@ -55,13 +55,13 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.md,
     padding: DesignSpacing.lg,
     borderRadius: DesignRadius.lg,
-    backgroundColor: '#1a1a1e',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
   cardSelected: {
     borderColor: DesignColors.primary,
-    backgroundColor: 'rgba(54, 71, 54, 0.08)',
+    backgroundColor: DesignColors.primaryTint,
     shadowColor: DesignColors.primary,
     shadowOpacity: 0.15,
     shadowRadius: 20,
@@ -113,6 +113,6 @@ const styles = StyleSheet.create({
     width: 10,
     height: 10,
     borderRadius: 5,
-    backgroundColor: '#ffffff',
+    backgroundColor: DesignColors.onSurface,
   },
 });

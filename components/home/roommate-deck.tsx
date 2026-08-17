@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useRef, useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { RoommateDeckCard } from '@/components/home/roommate-deck-card';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
@@ -8,6 +9,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { useRoommates } from '@/hooks/useRoommates';
 import type { RoommateProfile } from '@/types/roommates';
+import { DesignColors } from '@/constants/design';
 
 type Props = {
   itemHeight: number;
@@ -16,6 +18,7 @@ type Props = {
 };
 
 export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
+  const router = useRouter();
   const { needsOnboarding } = useRoommateVisibility();
   const { profile } = useAuth();
   const [sheetVisible, setSheetVisible] = useState(true);
@@ -34,13 +37,19 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
     );
   }, [query, allRoommates, profile?.id]);
 
-  const onViewProfile = useCallback((id: string) => {
-    // TODO: navigate to profile detail
-  }, []);
+  const onViewProfile = useCallback(
+    (id: string) => {
+      router.push(`/roommate/${id}`);
+    },
+    [router],
+  );
 
-  const onSayHello = useCallback((id: string) => {
-    // TODO: open chat or message composer
-  }, []);
+  const onSayHello = useCallback(
+    (id: string) => {
+      router.push(`/messages/${id}`);
+    },
+    [router],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: RoommateProfile }) => (
@@ -101,6 +110,6 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0e0e10',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
 });

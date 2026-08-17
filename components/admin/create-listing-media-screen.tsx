@@ -16,6 +16,7 @@ import { useCreateListing } from '@/hooks/use-create-listing';
 import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, deleteListing } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
+import { NO_LIMIT_TIER } from '@/utils/liquidity-math';
 import { supabase } from '@/lib/supabase';
 
 function isRemoteUrl(str: string) {
@@ -64,8 +65,11 @@ export function CreateListingMediaScreen() {
 
   const buildListingInput = () => {
     const coords = step2.coords!;
+    const isFlat = step1.layoutType === 'flat';
+    const bedroomCount = isFlat ? step1.bedrooms : 0;
+    const bathroomCount = isFlat ? step1.bathrooms : step1.layoutType === 'self_contain' ? 1 : 0;
     return {
-      admin_id: profile?.id || '',
+      admin_id: step2.transferAdminId ?? profile?.id ?? '',
       title: step1.title.trim(),
       description: step1.description.trim() || null,
       landlord_id: step1.landlordId,
@@ -74,9 +78,10 @@ export function CreateListingMediaScreen() {
       price_amount: parseFloat(step1.price.replace(/,/g, '')),
       lease_term: step1.term,
       units_available: step1.units,
-      number_of_bedrooms: step1.bedrooms,
-      number_of_bathrooms: step1.bathrooms,
-      max_roommates: step4.noLimit ? 999 : step4.maxRoommates,
+      number_of_bedrooms: bedroomCount,
+      number_of_bathrooms: bathroomCount,
+      max_roommates: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
+      property_tier: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
       rules: step4.rulesList,
       location_landmark: step2.landmark.trim(),
       city: profile?.city || 'Minna',
@@ -99,6 +104,7 @@ export function CreateListingMediaScreen() {
         return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
       })(),
       total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
+      region_path: step2.regionPath.length > 0 ? step2.regionPath : null,
     };
   };
 
@@ -136,8 +142,10 @@ export function CreateListingMediaScreen() {
     const id = editListingId!;
 
     const updatePayload: any = { ...buildListingInput() };
-    delete updatePayload.admin_id;
     delete updatePayload.category;
+    if (!step2.transferAdminId) {
+      delete updatePayload.admin_id;
+    }
     await updateListing(id, updatePayload);
 
     const { data: existingRows } = await supabase
@@ -221,6 +229,10 @@ export function CreateListingMediaScreen() {
       showToast({ message: 'Please enter a price in step 1.', type: 'error' });
       return;
     }
+    if (!step4.noLimit && (step4.maxRoommates < 1 || step4.maxRoommates > 10)) {
+      showToast({ message: 'Max roommates must be between 1 and 10 in step 4.', type: 'error' });
+      return;
+    }
     if (!step2.coords) {
       showToast({ message: 'Please lock the GPS location in step 2.', type: 'error' });
       return;
@@ -253,7 +265,7 @@ export function CreateListingMediaScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
@@ -363,7 +375,7 @@ export function CreateListingMediaScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8,

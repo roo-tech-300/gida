@@ -100,7 +100,7 @@ export function LandlordContractsScreen() {
         </ScrollView>
 
         <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => router.push('/admin/create-landlord')}>
-          <Ionicons name="add" size={24} color="#ffffff" />
+          <Ionicons name="add" size={24} color={DesignColors.onSurface} />
           <Text style={styles.fabLabel}>Add Landlord</Text>
         </Pressable>
       </SafeAreaView>
@@ -109,7 +109,7 @@ export function LandlordContractsScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
 
   header: {
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     borderRadius: 9999, paddingHorizontal: 16, height: 44,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
     marginBottom: 20,
   },
   searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
@@ -134,11 +134,11 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1, borderRadius: 16, padding: 16,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
     gap: 8,
   },
   metricTop: { flexDirection: 'row', alignItems: 'center' },
-  metricValue: { fontSize: 22, fontWeight: '800', color: '#ffffff', fontFamily },
+  metricValue: { fontSize: 22, fontWeight: '800', color: DesignColors.onSurface, fontFamily },
   metricLabel: { fontSize: 11, fontWeight: '700', color: DesignColors.primaryContainer, fontFamily, letterSpacing: 0.5 },
 
   sectionTitle: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily, marginBottom: 16 },
@@ -150,12 +150,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 16, padding: 14,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
   cardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(54,71,54,0.12)',
+    backgroundColor: DesignColors.primaryTint,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 14, fontWeight: '700', color: DesignColors.primary, fontFamily },
@@ -170,5 +170,5 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.primaryContainer,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
-  fabLabel: { fontSize: 14, fontWeight: '700', color: '#ffffff', fontFamily },
+  fabLabel: { fontSize: 14, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
 });

@@ -1,24 +1,25 @@
-import { useState } from 'react';
-import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { useEffect, useState, type ComponentProps } from 'react';
+import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { BackButton } from '@/components/ui/back-button';
+import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminCreation } from '@/context/admin-creation-context';
-import { REGIONS, ADMIN_MEMBERS } from '@/dummy/admin-mock';
+import { useCreateAdminProfile, useRegions } from '@/hooks/use-admin-profiles';
+import type { AdminRole } from '@/types/admin';
 
-type RoleOption = 'super_admin' | 'regional_admin' | 'field_admin' | 'independent_field_admin';
+type RegionRequirement = 'required' | 'optional' | 'none';
 
 type RoleConfig = {
-  key: RoleOption;
+  key: AdminRole;
   title: string;
   description: string;
-  icon: string;
-  hasRegion: boolean;
-  hasSupervisor: boolean;
+  icon: IconName;
+  region: RegionRequirement;
 };
 
 const ROLE_OPTIONS: RoleConfig[] = [
@@ -27,251 +28,229 @@ const ROLE_OPTIONS: RoleConfig[] = [
     title: 'Super Admin',
     description: 'Full system ownership. Grants global access to configure geographic regions, manage team structures, override property delegations, and audit system-wide inventory data.',
     icon: 'shield-checkmark',
-    hasRegion: false,
-    hasSupervisor: false,
+    region: 'none',
   },
   {
     key: 'regional_admin',
     title: 'Regional Admin',
     description: 'Territory supervisor. Directly manages operations, hubs, and field personnel within a mandatory macro geographic region.',
     icon: 'map',
-    hasRegion: true,
-    hasSupervisor: false,
+    region: 'required',
   },
   {
     key: 'field_admin',
     title: 'Field Admin',
-    description: 'Localized operations unit. Executes tactical field tasks, manages property queues, and reports directly up to a designated Regional Admin.',
+    description: 'Localized operations unit. Executes tactical field tasks and manages property queues. Reports up to the Regional Admin of an assigned region, or operates independently when no region is assigned.',
     icon: 'briefcase',
-    hasRegion: false,
-    hasSupervisor: true,
-  },
-  {
-    key: 'independent_field_admin',
-    title: 'Independent Field Admin',
-    description: 'Floating field unit. Operates with direct structural clearance to execute verification tasks and manage assigned properties across any zone without a regional middle manager.',
-    icon: 'globe',
-    hasRegion: false,
-    hasSupervisor: false,
+    region: 'optional',
   },
 ];
 
-const regionalSupervisors = ADMIN_MEMBERS.filter((m) => m.role === 'regional_admin');
+type DropdownItem = { id: string; label: string; meta?: string };
+
+type IconName = ComponentProps<typeof Ionicons>['name'];
+
+type SearchableSelectProps = {
+  icon: IconName;
+  placeholder: string;
+  open: boolean;
+  selectedId: string | null;
+  items: DropdownItem[];
+  isLoading?: boolean;
+  hint?: string;
+  search: string;
+  onToggle: () => void;
+  onSelect: (id: string) => void;
+  onSearch: (text: string) => void;
+};
+
+function SearchableSelect(props: SearchableSelectProps) {
+  const { icon, placeholder, open, selectedId, items, isLoading, hint, search, onToggle, onSelect, onSearch } = props;
+  return (
+    <View style={styles.expandSection}>
+      {hint ? <Text style={styles.hintText}>{hint}</Text> : null}
+      <Pressable style={styles.pickerRow} onPress={onToggle}>
+        <Ionicons name={icon} size={18} color={DesignColors.primary} />
+        <Text style={[styles.pickerText, !selectedId && styles.pickerPlaceholder]}>
+          {items.find((item) => item.id === selectedId)?.label ?? placeholder}
+        </Text>
+        <Ionicons name={open ? 'chevron-up' : 'chevron-down'} size={18} color={DesignColors.onSurfaceVariant} />
+      </Pressable>
+      {open && (
+        <View style={styles.dropdown}>
+          <TextInput
+            style={styles.dropdownSearch}
+            placeholder="Search..."
+            placeholderTextColor={DesignColors.onSurfaceVariant}
+            value={search}
+            onChangeText={onSearch}
+          />
+          {isLoading ? (
+            <ActivityIndicator size="small" color={DesignColors.primary} style={styles.dropdownLoader} />
+          ) : items.length > 0 ? items.map((item) => (
+            <Pressable
+              key={item.id}
+              style={[styles.dropdownItem, selectedId === item.id && styles.dropdownItemSelected]}
+              onPress={() => onSelect(item.id)}
+            >
+              <View style={styles.dropdownItemTextWrap}>
+                <Text style={[styles.dropdownText, selectedId === item.id && styles.dropdownTextSelected]}>{item.label}</Text>
+                {item.meta ? <Text style={styles.dropdownMeta}>{item.meta}</Text> : null}
+              </View>
+              {selectedId === item.id && <Ionicons name="checkmark" size={18} color={DesignColors.primary} />}
+            </Pressable>
+          )) : (
+            <Text style={styles.dropdownEmpty}>No matching results</Text>
+          )}
+        </View>
+      )}
+    </View>
+  );
+}
 
 export function AssignRoleScreen() {
   const router = useRouter();
-  const { data, setRole, setRegionId, setSupervisorId } = useAdminCreation();
-  const [selectedRole, setSelectedRole] = useState<RoleOption | null>(data.role);
+  const { data, setRole, setRegionId, reset } = useAdminCreation();
+  const { showToast } = useAppToast();
+  const { mutateAsync: createAdmin, isPending } = useCreateAdminProfile();
+  const [selectedRole, setSelectedRole] = useState<AdminRole | null>(data.role);
   const [selectedRegion, setSelectedRegion] = useState<string | null>(data.regionId);
-  const [selectedSupervisor, setSelectedSupervisor] = useState<string | null>(data.supervisorId);
   const [regionOpen, setRegionOpen] = useState(false);
-  const [supervisorOpen, setSupervisorOpen] = useState(false);
   const [regionSearch, setRegionSearch] = useState('');
-  const [supervisorSearch, setSupervisorSearch] = useState('');
 
-  const filteredRegions = REGIONS.filter((r) =>
-    r.name.toLowerCase().includes(regionSearch.toLowerCase()),
-  );
-  const filteredSupervisors = regionalSupervisors.filter((s) =>
-    s.full_name.toLowerCase().includes(supervisorSearch.toLowerCase()),
-  );
+  const { data: regions = [], isPending: regionsPending, isError: regionsError } = useRegions();
 
-  const isValid = (() => {
-    if (!selectedRole) return false;
-    if (selectedRole === 'regional_admin' && !selectedRegion) return false;
-    if (selectedRole === 'field_admin' && !selectedSupervisor) return false;
-    return true;
-  })();
+  useEffect(() => {
+    if (regionsError) {
+      showToast({ message: 'Failed to load regions. Please retry.', type: 'error' });
+    }
+  }, [regionsError, showToast]);
 
-  const handleContinue = () => {
-    if (!isValid || !selectedRole) return;
-    setRole(selectedRole);
-    setRegionId(selectedRegion);
-    setSupervisorId(selectedSupervisor);
-    router.back();
-  };
+  const regionItems: DropdownItem[] = regions
+    .filter((region) => region.name.toLowerCase().includes(regionSearch.toLowerCase()))
+    .map((region) => ({ id: region.id, label: region.name }));
 
-  const handleSelectRole = (role: RoleOption) => {
+  const isValid = !!data.user && !!selectedRole && (ROLE_OPTIONS.find((opt) => opt.key === selectedRole)?.region !== 'required' || !!selectedRegion);
+
+  const handleSelectRole = (role: AdminRole) => {
     setSelectedRole(role);
     setRegionOpen(false);
-    setSupervisorOpen(false);
     setRegionSearch('');
-    setSupervisorSearch('');
+  };
+
+  const handleContinue = async () => {
+    if (!isValid || !selectedRole || !data.user) return;
+    setRole(selectedRole);
+    setRegionId(selectedRegion);
+    try {
+      await createAdmin({ id: data.user.id, role: selectedRole, assigned_region_id: selectedRegion });
+      reset();
+      showToast({ message: 'Admin created successfully.', type: 'success' });
+      router.navigate('/admin/manage-teams');
+    } catch (error) {
+      console.error('[AssignRole] Failed to create admin profile:', error);
+      showToast({ message: 'Failed to create admin. Please try again.', type: 'error' });
+    }
   };
 
   return (
     <View style={styles.root}>
       <AuthBackgroundBubbles />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-          <View style={styles.headerRow}>
-            <View style={styles.backAbs}>
-              <BackButton hasBackground />
-            </View>
-            <View style={styles.headerCenter}>
-              <Text style={styles.headerTitle}>Assign Authority</Text>
-              <View style={styles.stepBadge}>
-                <View style={styles.stepDot} />
-                <View style={[styles.stepDot, styles.stepDotActive]} />
-                <Text style={styles.stepLabel}>2/2</Text>
+        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
+          <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+            <View style={styles.headerRow}>
+              <View style={styles.backAbs}>
+                <BackButton hasBackground />
+              </View>
+              <View style={styles.headerCenter}>
+                <Text style={styles.headerTitle}>Assign Authority</Text>
+                <View style={styles.stepBadge}>
+                  <View style={styles.stepDot} />
+                  <View style={[styles.stepDot, styles.stepDotActive]} />
+                  <Text style={styles.stepLabel}>2/2</Text>
+                </View>
               </View>
             </View>
-          </View>
 
-          <Text style={styles.subtitle}>
-            Define the clearance level for the new administrative profile.
-          </Text>
+            {data.user && (
+              <View style={styles.userPill}>
+                <Ionicons name="person-circle-outline" size={20} color={DesignColors.primary} />
+                <Text style={styles.userPillText} numberOfLines={1}>{data.user.full_name}</Text>
+              </View>
+            )}
 
-          <View style={styles.optionsList}>
-            {ROLE_OPTIONS.map((opt) => {
-              const isSelected = selectedRole === opt.key;
-              return (
-                <View key={opt.key}>
-                  <Pressable
-                    style={[styles.optionCard, isSelected && (opt.hasRegion || opt.hasSupervisor) ? styles.optionCardExpandable : styles.optionCardSelected]}
-                    onPress={() => handleSelectRole(opt.key)}
-                  >
-                    <View style={styles.optionTop}>
-                      <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
-                        {isSelected && <View style={styles.radioInner} />}
-                      </View>
-                      <View style={styles.optionContent}>
-                        <Text style={styles.optionTitle}>{opt.title}</Text>
-                        <Text style={styles.optionDesc}>{opt.description}</Text>
-                      </View>
-                    </View>
-                  </Pressable>
+            <Text style={styles.subtitle}>
+              Define the clearance level for the new administrative profile.
+            </Text>
 
-                  {isSelected && opt.hasRegion && (
-                    <View style={styles.expandSection}>
-                      <Pressable
-                        style={styles.pickerRow}
-                        onPress={() => { setRegionOpen(!regionOpen); setRegionSearch(''); }}
-                      >
-                        <Ionicons name="location-outline" size={18} color={DesignColors.primary} />
-                        <Text style={[styles.pickerText, !selectedRegion && styles.pickerPlaceholder]}>
-                          {selectedRegion
-                            ? REGIONS.find((r) => r.id === selectedRegion)?.name ?? 'Select Target Region'
-                            : 'Select Target Region'}
-                        </Text>
-                        <Ionicons
-                          name={regionOpen ? 'chevron-up' : 'chevron-down'}
-                          size={18}
-                          color={DesignColors.onSurfaceVariant}
-                        />
-                      </Pressable>
-                      {regionOpen && (
-                        <View style={styles.dropdown}>
-                          <TextInput
-                            placeholder="Search regions..."
-                            placeholderTextColor={DesignColors.onSurfaceVariant}
-                            style={styles.dropdownSearch}
-                            value={regionSearch}
-                            onChangeText={setRegionSearch}
-                          />
-                          {filteredRegions.length > 0 ? filteredRegions.map((region) => (
-                            <Pressable
-                              key={region.id}
-                              style={[
-                                styles.dropdownItem,
-                                selectedRegion === region.id && styles.dropdownItemSelected,
-                              ]}
-                              onPress={() => { setSelectedRegion(region.id); setRegionOpen(false); setRegionSearch(''); }}
-                            >
-                              <Text style={[
-                                styles.dropdownText,
-                                selectedRegion === region.id && styles.dropdownTextSelected,
-                              ]}>{region.name}</Text>
-                              {selectedRegion === region.id && (
-                                <Ionicons name="checkmark" size={18} color={DesignColors.primary} />
-                              )}
-                            </Pressable>
-                          )) : (
-                            <Text style={styles.dropdownEmpty}>No matching region</Text>
-                          )}
+            <View style={styles.optionsList}>
+              {ROLE_OPTIONS.map((opt) => {
+                const isSelected = selectedRole === opt.key;
+                return (
+                  <View key={opt.key}>
+                    <Pressable
+                      style={[styles.optionCard, isSelected && (opt.region !== 'none' ? styles.optionCardExpandable : styles.optionCardSelected)]}
+                      onPress={() => handleSelectRole(opt.key)}
+                    >
+                      <View style={styles.optionTop}>
+                        <View style={[styles.radioOuter, isSelected && styles.radioOuterSelected]}>
+                          {isSelected && <View style={styles.radioInner} />}
                         </View>
-                      )}
-                    </View>
-                  )}
-
-                  {isSelected && opt.hasSupervisor && (
-                    <View style={styles.expandSection}>
-                      <Pressable
-                        style={styles.pickerRow}
-                        onPress={() => { setSupervisorOpen(!supervisorOpen); setSupervisorSearch(''); }}
-                      >
-                        <Ionicons name="person-outline" size={18} color={DesignColors.primary} />
-                        <Text style={[styles.pickerText, !selectedSupervisor && styles.pickerPlaceholder]}>
-                          {selectedSupervisor
-                            ? regionalSupervisors.find((s) => s.id === selectedSupervisor)?.full_name ?? 'Assign Reporting Supervisor'
-                            : 'Assign Reporting Supervisor'}
-                        </Text>
-                        <Ionicons
-                          name={supervisorOpen ? 'chevron-up' : 'chevron-down'}
-                          size={18}
-                          color={DesignColors.onSurfaceVariant}
-                        />
-                      </Pressable>
-                      {supervisorOpen && (
-                        <View style={styles.dropdown}>
-                          <TextInput
-                            placeholder="Search supervisors..."
-                            placeholderTextColor={DesignColors.onSurfaceVariant}
-                            style={styles.dropdownSearch}
-                            value={supervisorSearch}
-                            onChangeText={setSupervisorSearch}
-                          />
-                          {filteredSupervisors.length > 0 ? filteredSupervisors.map((sup) => (
-                            <Pressable
-                              key={sup.id}
-                              style={[
-                                styles.dropdownItem,
-                                selectedSupervisor === sup.id && styles.dropdownItemSelected,
-                              ]}
-                              onPress={() => { setSelectedSupervisor(sup.id); setSupervisorOpen(false); setSupervisorSearch(''); }}
-                            >
-                              <View style={{ flex: 1 }}>
-                                <Text style={[
-                                  styles.dropdownText,
-                                  selectedSupervisor === sup.id && styles.dropdownTextSelected,
-                                ]}>{sup.full_name}</Text>
-                                <Text style={styles.dropdownMeta}>{sup.region_name}</Text>
-                              </View>
-                              {selectedSupervisor === sup.id && (
-                                <Ionicons name="checkmark" size={18} color={DesignColors.primary} />
-                              )}
-                            </Pressable>
-                          )) : (
-                            <Text style={styles.dropdownEmpty}>No matching supervisor</Text>
-                          )}
+                        <View style={styles.optionContent}>
+                          <Text style={styles.optionTitle}>{opt.title}</Text>
+                          <Text style={styles.optionDesc}>{opt.description}</Text>
                         </View>
-                      )}
-                    </View>
-                  )}
-                </View>
-              );
-            })}
-          </View>
-        </ScrollView>
+                      </View>
+                    </Pressable>
 
-        <View style={styles.footer}>
-          <Pressable
-            style={[styles.continueBtn, !isValid && styles.continueBtnDisabled]}
-            onPress={handleContinue}
-            disabled={!isValid}
-          >
-            <Text style={[styles.continueText, !isValid && styles.continueTextDisabled]}>Continue</Text>
-            <Ionicons name="arrow-forward" size={20} color={isValid ? '#ffffff' : DesignColors.onSurfaceVariant} />
-          </Pressable>
-        </View>
+                    {isSelected && opt.region !== 'none' && (
+                      <SearchableSelect
+                        icon="location-outline"
+                        placeholder="Select Target Region"
+                        hint={opt.region === 'optional' ? 'Optional — skip to assign an independent field admin without a regional restriction.' : undefined}
+                        open={regionOpen}
+                        selectedId={selectedRegion}
+                        items={regionItems}
+                        isLoading={regionsPending}
+                        search={regionSearch}
+                        onToggle={() => { setRegionOpen(!regionOpen); setRegionSearch(''); }}
+                        onSelect={(id) => { setSelectedRegion(id); setRegionOpen(false); setRegionSearch(''); }}
+                        onSearch={setRegionSearch}
+                      />
+                    )}
+                  </View>
+                );
+              })}
+            </View>
+          </ScrollView>
+
+          <View style={styles.footer}>
+            <Pressable
+              style={[styles.continueBtn, (!isValid || isPending) && styles.continueBtnDisabled]}
+              onPress={handleContinue}
+              disabled={!isValid || isPending}
+            >
+              {isPending ? (
+                <ActivityIndicator size="small" color={DesignColors.onSurface} />
+              ) : (
+                <>
+                  <Text style={[styles.continueText, !isValid && styles.continueTextDisabled]}>Continue</Text>
+                  <Ionicons name="arrow-forward" size={20} color={isValid ? DesignColors.onSurface : DesignColors.onSurfaceVariant} />
+                </>
+              )}
+            </Pressable>
+          </View>
+        </KeyboardAvoidingView>
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
+  kav: { flex: 1 },
 
   headerRow: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center',
@@ -283,7 +262,7 @@ const styles = StyleSheet.create({
   stepBadge: { flexDirection: 'row', alignItems: 'center', gap: 5 },
   stepDot: {
     width: 6, height: 6, borderRadius: 3,
-    backgroundColor: 'rgba(255,255,255,0.15)',
+    backgroundColor: DesignColors.borderMedium,
   },
   stepDotActive: {
     backgroundColor: DesignColors.primary,
@@ -293,6 +272,17 @@ const styles = StyleSheet.create({
     fontSize: 11, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
     marginLeft: 2,
   },
+
+  userPill: {
+    flexDirection: 'row', alignItems: 'center', gap: 8,
+    alignSelf: 'center',
+    marginBottom: 14,
+    paddingHorizontal: 16, paddingVertical: 8,
+    borderRadius: 999,
+    backgroundColor: DesignColors.primaryContainer,
+    borderWidth: 1, borderColor: DesignColors.primaryTintBorder,
+  },
+  userPillText: { flexShrink: 1, fontSize: 14, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
 
   subtitle: {
     fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily,
@@ -311,26 +301,22 @@ const styles = StyleSheet.create({
   optionCard: {
     borderRadius: 20, padding: 18,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.06)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
-  optionCardSelected: {
-    borderColor: 'rgba(54,71,54,0.5)',
-  },
+  optionCardSelected: { borderColor: DesignColors.primaryTintStrong },
   optionCardExpandable: {
-    borderColor: 'rgba(54,71,54,0.5)',
+    borderColor: DesignColors.primaryTintStrong,
     borderBottomWidth: 0,
     borderBottomLeftRadius: 0, borderBottomRightRadius: 0,
   },
   optionTop: { flexDirection: 'row', gap: 14 },
   radioOuter: {
     width: 22, height: 22, borderRadius: 11,
-    borderWidth: 2, borderColor: 'rgba(255,255,255,0.15)',
+    borderWidth: 2, borderColor: DesignColors.borderMedium,
     alignItems: 'center', justifyContent: 'center',
     marginTop: 2,
   },
-  radioOuterSelected: {
-    borderColor: DesignColors.primary,
-  },
+  radioOuterSelected: { borderColor: DesignColors.primary },
   radioInner: {
     width: 12, height: 12, borderRadius: 6,
     backgroundColor: DesignColors.primary,
@@ -346,15 +332,20 @@ const styles = StyleSheet.create({
     paddingHorizontal: 18, paddingBottom: 20,
     backgroundColor: DesignColors.surface,
     borderLeftWidth: 1, borderRightWidth: 1, borderBottomWidth: 1,
-    borderColor: 'rgba(54,71,54,0.5)',
+    borderColor: DesignColors.primaryTintStrong,
     borderBottomLeftRadius: 20, borderBottomRightRadius: 20,
     overflow: 'hidden',
+  },
+  hintText: {
+    fontSize: 12, fontWeight: '500', color: DesignColors.onSurfaceVariant, fontFamily,
+    lineHeight: 17, opacity: 0.7,
+    paddingTop: 12, paddingBottom: 2,
   },
   pickerRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     paddingVertical: 12, paddingHorizontal: 14,
     borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: DesignColors.borderFaint,
     marginTop: 2,
   },
   pickerText: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
@@ -362,20 +353,22 @@ const styles = StyleSheet.create({
 
   dropdown: {
     marginTop: 6, borderRadius: 12, overflow: 'hidden',
-    backgroundColor: 'rgba(255,255,255,0.04)',
+    backgroundColor: DesignColors.borderFaint,
   },
+  dropdownLoader: { paddingVertical: 16 },
   dropdownItem: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingVertical: 14, paddingHorizontal: 14,
   },
-  dropdownItemSelected: { backgroundColor: 'rgba(54,71,54,0.12)' },
+  dropdownItemSelected: { backgroundColor: DesignColors.primaryTint },
+  dropdownItemTextWrap: { flex: 1 },
   dropdownText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
   dropdownTextSelected: { color: DesignColors.primary },
   dropdownMeta: { fontSize: 11, fontWeight: '500', color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 2, opacity: 0.6 },
   dropdownSearch: {
     fontSize: 13, fontWeight: '600', color: DesignColors.onSurface, fontFamily,
     paddingVertical: 10, paddingHorizontal: 14,
-    borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.06)',
+    borderBottomWidth: 1, borderBottomColor: DesignColors.borderSoft,
   },
   dropdownEmpty: {
     paddingVertical: 16, textAlign: 'center',
@@ -392,7 +385,7 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.primaryContainer,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
-  continueBtnDisabled: { backgroundColor: '#6b64b0' },
-  continueText: { fontSize: 17, fontWeight: '700', color: '#ffffff', fontFamily },
+  continueBtnDisabled: { backgroundColor: DesignColors.surfaceContainerHighest },
+  continueText: { fontSize: 17, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   continueTextDisabled: { color: DesignColors.onSurfaceVariant },
 });

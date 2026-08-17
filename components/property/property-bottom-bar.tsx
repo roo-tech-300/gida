@@ -6,44 +6,52 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type Props = {
-  onBookTour?: () => void;
-  onClaimRoom?: () => void;
-  hasActiveClaim?: boolean;
-  isCheckingClaim?: boolean;
+  ctaLabel: string;
+  ctaIcon?: keyof typeof Ionicons.glyphMap;
+  onCtaPress?: () => void;
+  onVisitProperty?: () => void;
+  showSpinner?: boolean;
 };
 
-export function PropertyBottomBar({ onBookTour, onClaimRoom, hasActiveClaim, isCheckingClaim }: Props) {
+export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, showSpinner = false }: Props) {
   const insets = useSafeAreaInsets();
   const [liked, setLiked] = useState(false);
 
-  const showSpinner = isCheckingClaim && !hasActiveClaim;
-
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
-      <Pressable onPress={() => setLiked((v) => !v)} style={styles.favButton}>
+      <Pressable
+        accessibilityRole="button"
+        onPress={() => setLiked((v) => !v)}
+        style={[styles.favButton, liked && styles.favButtonActive]}
+      >
         <Ionicons
           name={liked ? 'heart' : 'heart-outline'}
-          size={20}
-          color={liked ? DesignColors.secondary : DesignColors.onSurface}
+          size={22}
+          color={liked ? DesignColors.primaryBright : DesignColors.onSurface}
         />
       </Pressable>
 
-      <Pressable onPress={onBookTour} style={styles.secondaryCtaButton}>
-        <Ionicons name="calendar-outline" size={18} color={DesignColors.onSurface} />
-        <Text style={styles.secondaryCtaText}>Book Tour</Text>
-      </Pressable>
+      <View style={styles.tourWrap}>
+        {onVisitProperty && (
+          <Pressable accessibilityRole="button" onPress={onVisitProperty} style={styles.tourButton}>
+            <Ionicons name="calendar-outline" size={18} color={DesignColors.textPrimary} />
+            <Text style={styles.tourText}>Tour</Text>
+          </Pressable>
+        )}
+      </View>
 
       <Pressable
-        onPress={showSpinner ? undefined : onClaimRoom}
+        accessibilityRole="button"
+        onPress={showSpinner ? undefined : onCtaPress}
         style={[styles.primaryCtaButton, showSpinner && { opacity: 0.7 }]}
         disabled={showSpinner}
       >
         {showSpinner ? (
-          <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
+          <ActivityIndicator size="small" color={DesignColors.onPrimary} />
         ) : (
-          <Ionicons name={hasActiveClaim ? 'eye-outline' : 'enter-outline'} size={18} color={DesignColors.onPrimaryContainer} />
+          <Ionicons name={ctaIcon} size={18} color={DesignColors.onPrimary} />
         )}
-        <Text style={styles.primaryCtaText}>{hasActiveClaim ? 'View Claim' : 'Claim Room'}</Text>
+        <Text style={styles.primaryCtaText}>{ctaLabel}</Text>
       </Pressable>
     </View>
   );
@@ -62,7 +70,7 @@ const styles = StyleSheet.create({
     paddingVertical: DesignSpacing.sm + 4,
     backgroundColor: DesignColors.surface,
     borderTopWidth: 1,
-    borderTopColor: DesignColors.cardBorder,
+    borderTopColor: DesignColors.borderSoft,
   },
   favButton: {
     width: 48,
@@ -71,40 +79,42 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
+    borderColor: DesignColors.borderSoft,
     backgroundColor: DesignColors.surfaceContainerLow,
   },
-  secondaryCtaButton: {
+  favButtonActive: {
+    borderColor: DesignColors.primaryTintBorder,
+    backgroundColor: DesignColors.primaryTint,
+  },
+  tourWrap: {
     flex: 1,
+  },
+  tourButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
+    width: '100%',
+    height: 48,
+    borderRadius: DesignRadius.full,
     backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.xl,
-    paddingVertical: 14,
+    borderWidth: 1,
+    borderColor: DesignColors.borderSoft,
   },
-  secondaryCtaText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
+  tourText: { ...DesignTypography.bodyMd, color: DesignColors.textPrimary, fontFamily, fontWeight: '600' },
   primaryCtaButton: {
     flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     gap: 6,
-    backgroundColor: DesignColors.primaryContainer,
-    borderRadius: DesignRadius.xl,
-    paddingVertical: 14,
+    height: 48,
+    backgroundColor: DesignColors.primary,
+    borderRadius: DesignRadius.full,
   },
   primaryCtaText: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onPrimaryContainer,
+    color: DesignColors.onPrimary,
     fontFamily,
     fontWeight: '700',
   },

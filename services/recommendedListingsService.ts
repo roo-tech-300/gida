@@ -21,9 +21,12 @@ export async function fetchRecommendedListings(
     p_offset: page * limit,
   });
 
-  if (error) throw error;
+  if (error) {
+    console.error('[fetchRecommendedListings] Failed to fetch recommended listings:', error.message);
+    throw new Error(error.message);
+  }
 
-  return (data || []).map((row: RecommendedDbListing) => ({
+  return (data ?? []).map((row: RecommendedDbListing) => ({
     ...mapDbToFeedListing(row),
     photoCount: row.images?.length ?? 0,
     relevanceScore: row.relevance_score,

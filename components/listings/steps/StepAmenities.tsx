@@ -138,7 +138,7 @@ export function StepAmenities() {
             <TextInput
               style={styles.inputBox}
               placeholder="e.g. Balcony, POP Ceiling"
-              placeholderTextColor="#64748b"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
               value={inputValue}
               onChangeText={handleChange}
               onSubmitEditing={() => {
@@ -183,8 +183,8 @@ export function StepAmenities() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0E0E10' },
-  kav: { flex: 1, backgroundColor: '#0E0E10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  kav: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8,
@@ -199,30 +199,30 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 12 },
   tile: {
     width: '47%', aspectRatio: 1, borderRadius: 12, padding: 16,
-    backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.glassStrong,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   tileInner: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: 8 },
   tileActive: {
     borderColor: DesignColors.primary,
-    backgroundColor: 'rgba(54,71,54,0.1)',
+    backgroundColor: DesignColors.primaryTint,
   },
   tileLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },
   tileLabelActive: { color: DesignColors.onSurface },
   inputBox: {
-    backgroundColor: '#18181C', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)',
-    borderRadius: 12, padding: 16, color: '#FFFFFF', fontSize: 14, fontFamily,
+    backgroundColor: DesignColors.surfaceContainerLow, borderWidth: 1, borderColor: DesignColors.borderFaint,
+    borderRadius: 12, padding: 16, color: DesignColors.onSurface, fontSize: 14, fontFamily,
   },
-  fieldHint: { fontSize: 11, color: '#64748b', marginTop: 4, paddingLeft: 4, fontFamily },
+  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, marginTop: 4, paddingLeft: 4, fontFamily },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8 },
   pill: {
-    backgroundColor: 'rgba(54,71,54,0.1)',
-    borderWidth: 1, borderColor: 'rgba(54,71,54,0.2)',
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1, borderColor: DesignColors.primaryTintMid,
     borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6,
     flexDirection: 'row', alignItems: 'center', gap: 6,
   },
-  pillText: { fontSize: 12, fontWeight: '600', color: '#818CF8', fontFamily, letterSpacing: 0.3 },
-  pillIcon: { opacity: 0.4, fontSize: 10, color: '#818CF8' },
+  pillText: { fontSize: 12, fontWeight: '600', color: DesignColors.primaryBright, fontFamily, letterSpacing: 0.3 },
+  pillIcon: { opacity: 0.4, fontSize: 10, color: DesignColors.primaryBright },
   actionDeck: {
     flexDirection: 'row', justifyContent: 'space-between',
     paddingHorizontal: 24, paddingTop: 16,
@@ -230,8 +230,8 @@ const styles = StyleSheet.create({
   },
   deckBtn: {
     width: 56, height: 56, borderRadius: 28,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
-    backgroundColor: 'rgba(24,24,28,0.7)',
+    borderWidth: 1, borderColor: DesignColors.glassBorder,
+    backgroundColor: DesignColors.glassBg,
     alignItems: 'center', justifyContent: 'center',
   },
   deckBtnPrimary: {

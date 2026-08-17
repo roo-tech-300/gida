@@ -1,3 +1,4 @@
+import { useMemo } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -5,8 +6,11 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
-import { RECENT_ACTIONS, SUPER_ADMIN_MOCK } from '@/dummy/admin-mock';
 import { MetricCard } from '@/components/admin/super-admin-helpers';
+import { useAdminStats, useRecentAdminActivity } from '@/hooks/use-admin-profiles';
+import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
+import type { AdminActivity } from '@/services/super-admin-service';
+import { useAuth } from '@/context/auth-context';
 
 type ActionItem = {
   key: string;
@@ -19,6 +23,7 @@ const ACTIONS: ActionItem[] = [
   { key: 'inventory', title: 'Inventory', icon: 'map-outline' },
   { key: 'contracts', title: 'Contracts', icon: 'document-text-outline' },
   { key: 'regions', title: 'Regions', icon: 'globe-outline' },
+  { key: 'tours', title: 'Tour Requests', icon: 'calendar-outline' },
 ];
 
 const ACTION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -28,9 +33,9 @@ const ACTION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
 };
 
 const ACTION_BG_MAP: Record<string, string> = {
-  secondary: 'rgba(78, 222, 163, 0.15)',
-  primary: 'rgba(79, 70, 229, 0.15)',
-  tertiary: 'rgba(255, 182, 149, 0.15)',
+  secondary: DesignColors.successContainer,
+  primary: DesignColors.primaryTint,
+  tertiary: DesignColors.warningContainer,
 };
 
 const ACTION_COLOR_MAP: Record<string, string> = {
@@ -40,6 +45,30 @@ const ACTION_COLOR_MAP: Record<string, string> = {
 };
 
 export function SuperAdminDashboardScreen() {
+  const { profile } = useAuth();
+  const { data: stats } = useAdminStats();
+  const { data: activity, isError: activityError } = useRecentAdminActivity();
+  const { unread, clearUnread } = useRealtimeTourAlerts();
+
+  const displayName = profile?.full_name?.trim() || 'Super Admin';
+  const initials = useMemo(
+    () => displayName.split(' ').map((word) => word[0]).join('').toUpperCase().slice(0, 2),
+    [displayName],
+  );
+
+  const recentActions: AdminActivity[] = activity ?? [];
+
+  const handleActionPress = (key: string) => {
+    if (key === 'teams') router.push('/admin/manage-teams');
+    if (key === 'inventory') router.push('/admin/total-inventory');
+    if (key === 'contracts') router.push('/admin/landlord-contracts');
+    if (key === 'regions') router.push('/admin/regions');
+    if (key === 'tours') {
+      clearUnread();
+      router.push('/admin/tours');
+    }
+  };
+
   return (
     <View style={styles.root}>
       <SafeAreaView style={styles.safe} edges={['top']}>
@@ -48,12 +77,12 @@ export function SuperAdminDashboardScreen() {
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
         >
-          <AdminHeader initials="EA" name={SUPER_ADMIN_MOCK.full_name} roleLabel="Super Admin" subtitle="GLOBAL ACCESS" />
+          <AdminHeader initials={initials} name={displayName} roleLabel="Super Admin" subtitle="GLOBAL ACCESS" />
 
           <View style={styles.metricsRow}>
-            <MetricCard label="Total Regions" value="14" />
-            <MetricCard label="Regional Admins" value="42" />
-            <MetricCard label="Field Admins" value="512" />
+            <MetricCard label="Total Regions" value={String(stats?.totalRegions ?? '—')} />
+            <MetricCard label="Regional Admins" value={String(stats?.regionalAdmins ?? '—')} />
+            <MetricCard label="Field Admins" value={String(stats?.fieldAdmins ?? '—')} />
           </View>
 
           <View style={styles.actionGrid}>
@@ -61,12 +90,13 @@ export function SuperAdminDashboardScreen() {
               <Pressable
                 key={action.key}
                 style={styles.actionCard}
-                onPress={() => {
-                  if (action.key === 'teams') router.push('/admin/manage-teams');
-                  if (action.key === 'inventory') router.push('/admin/total-inventory');
-                  if (action.key === 'contracts') router.push('/admin/landlord-contracts');
-                }}
+                onPress={() => handleActionPress(action.key)}
               >
+                {action.key === 'tours' && unread > 0 && (
+                  <View style={styles.actionBadge}>
+                    <Text style={styles.actionBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                )}
                 <View style={styles.actionIconWrap}>
                   <Ionicons name={action.icon} size={22} color={DesignColors.onSurfaceVariant} />
                 </View>
@@ -77,22 +107,27 @@ export function SuperAdminDashboardScreen() {
 
           <View style={styles.activitySection}>
             <Text style={styles.activityTitle}>Recent Actions</Text>
-            {RECENT_ACTIONS.map((act, i) => (
-              <View key={act.id} style={[styles.activityRow, i < RECENT_ACTIONS.length - 1 && styles.activityRowBordered]}>
-                <View style={[styles.activityIcon, { backgroundColor: ACTION_BG_MAP[act.color] }]}>
-                  <Ionicons
-                    name={ACTION_ICON_MAP[act.icon]}
-                    size={16}
-                    color={ACTION_COLOR_MAP[act.color]}
-                  />
+            {recentActions.length === 0 ? (
+              <Text style={styles.activityEmpty}>
+                {activityError ? 'Could not load recent activity.' : 'No recent activity yet.'}
+              </Text>
+            ) : (
+              recentActions.map((act, i) => (
+                <View key={act.id} style={[styles.activityRow, i < recentActions.length - 1 && styles.activityRowBordered]}>
+                  <View style={[styles.activityIcon, { backgroundColor: ACTION_BG_MAP[act.color] }]}>
+                    <Ionicons
+                      name={ACTION_ICON_MAP[act.icon]}
+                      size={16}
+                      color={ACTION_COLOR_MAP[act.color]}
+                    />
+                  </View>
+                  <View style={styles.activityText}>
+                    <Text style={styles.activityTitleText}>{act.title}</Text>
+                    <Text style={styles.activitySub}>{act.subtitle}</Text>
+                  </View>
                 </View>
-                <View style={styles.activityText}>
-                  <Text style={styles.activityTitleText}>{act.title}</Text>
-                  <Text style={styles.activitySub}>{act.subtitle}</Text>
-                </View>
-                <Ionicons name="chevron-forward" size={16} color={DesignColors.onSurfaceVariant} />
-              </View>
-            ))}
+              ))
+            )}
           </View>
         </ScrollView>
       </SafeAreaView>
@@ -101,7 +136,7 @@ export function SuperAdminDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 24 },
@@ -118,9 +153,22 @@ const styles = StyleSheet.create({
   },
   actionIconWrap: {
     width: 40, height: 40, borderRadius: 12,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.borderSoft,
     alignItems: 'center', justifyContent: 'center',
   },
+  actionBadge: {
+    position: 'absolute',
+    top: 8,
+    right: 12,
+    minWidth: 20,
+    height: 20,
+    borderRadius: 10,
+    paddingHorizontal: 5,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.primary,
+  },
+  actionBadgeText: { fontSize: 11, fontWeight: '700', color: DesignColors.onPrimary, fontFamily },
   actionLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: 0.3 },
 
   activitySection: {
@@ -131,8 +179,9 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   activityTitle: { fontSize: 12, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1, textTransform: 'uppercase' },
+  activityEmpty: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, paddingVertical: 8 },
   activityRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 8 },
-  activityRowBordered: { borderBottomWidth: 1, borderBottomColor: 'rgba(255,255,255,0.04)' },
+  activityRowBordered: { borderBottomWidth: 1, borderBottomColor: DesignColors.borderFaint },
   activityIcon: { width: 32, height: 32, borderRadius: 16, alignItems: 'center', justifyContent: 'center' },
   activityText: { flex: 1, gap: 2 },
   activityTitleText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily },

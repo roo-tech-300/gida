@@ -104,15 +104,15 @@ const styles = StyleSheet.create({
   inputWrap: {
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 12, paddingHorizontal: 16, height: 48,
-    backgroundColor: 'rgba(24,24,28,0.65)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.glassStrong,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   input: { flex: 1, fontSize: 15, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
   spinner: { marginLeft: 8 },
   resultsCard: {
     borderRadius: 12, overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.95)',
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.glassOpaque,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   resultRow: {
     flexDirection: 'row', alignItems: 'center', gap: 10,
@@ -120,7 +120,7 @@ const styles = StyleSheet.create({
   },
   avatar: {
     width: 36, height: 36, borderRadius: 18,
-    backgroundColor: 'rgba(94,124,94,0.1)',
+    backgroundColor: DesignColors.primaryTint,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 12, fontWeight: '700', color: DesignColors.primary, fontFamily },

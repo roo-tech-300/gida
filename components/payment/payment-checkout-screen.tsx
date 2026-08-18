@@ -13,14 +13,6 @@ import { verifyLodgePayment } from '@/services/lodge-payment-service';
 import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 
-type PaymentMethod = 'card' | 'transfer' | 'ussd';
-
-const METHODS: { id: PaymentMethod; title: string; subtitle: string; icon: keyof typeof Ionicons.glyphMap }[] = [
-  { id: 'card', title: 'Debit / Credit Card', subtitle: 'Visa, Mastercard, Verve', icon: 'card-outline' },
-  { id: 'transfer', title: 'Bank Transfer', subtitle: 'Instant virtual account', icon: 'cash-outline' },
-  { id: 'ussd', title: 'USSD', subtitle: 'Dial *737# on your bank line', icon: 'phone-portrait-outline' },
-];
-
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
@@ -30,7 +22,6 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
 
-  const [method, setMethod] = useState<PaymentMethod>('card');
   const [isProcessing, setIsProcessing] = useState(false);
   const [locallyPaid, setLocallyPaid] = useState(false);
   const [locallyExpired, setLocallyExpired] = useState(false);
@@ -40,7 +31,6 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const isExpired = credit?.status === 'expired' || locallyExpired;
   const amount = credit?.amount_paid ?? 0;
   const estateName = credit?.estate?.name || 'Gida Campus Residence';
-  const selectedMethod = METHODS.find((m) => m.id === method);
 
   const handlePay = async () => {
     if (!credit) return;
@@ -142,7 +132,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
           <Text style={styles.successTitle}>Payment Successful</Text>
           <Text style={styles.successAmount}>{formatNaira(amount)}</Text>
           <View style={styles.successDivider} />
-          <Text style={styles.mutedText}>{estateName} • {selectedMethod?.title}</Text>
+          <Text style={styles.mutedText}>{estateName}</Text>
         </View>
         <View style={styles.footer}>
           <Pressable style={styles.primaryButton} onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : '/property/lobby')} testID="checkout-continue">
@@ -206,34 +196,6 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
           <View style={styles.amountDivider} />
           <Text style={styles.amountNote}>Covers your share of rent plus the platform service fee for this property.</Text>
         </View>
-
-        <View style={styles.methodsCard}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionBar} />
-            <Text style={styles.sectionLabel}>PAYMENT METHOD</Text>
-          </View>
-          {METHODS.map((m, i) => {
-            const isSelected = method === m.id;
-            return (
-              <Pressable
-                key={m.id}
-                style={[styles.methodRow, i > 0 && !isSelected && styles.methodRowDivider, isSelected && styles.methodRowSelected]}
-                onPress={() => setMethod(m.id)}
-                testID={`method-${m.id}`}
-              >
-                <View style={[styles.methodIcon, isSelected && styles.methodIconSelected]}>
-                  <Ionicons name={m.icon} size={18} color={isSelected ? DesignColors.primaryBright : DesignColors.onSurfaceVariant} />
-                </View>
-                <View style={styles.methodBody}>
-                  <Text style={styles.methodTitle}>{m.title}</Text>
-                  <Text style={styles.methodSubtitle}>{m.subtitle}</Text>
-                </View>
-                {isSelected && m.id === 'card' && <Text style={styles.maskedCard}>•••• 4821</Text>}
-                <Ionicons name={isSelected ? 'checkmark-circle' : 'ellipse-outline'} size={22} color={isSelected ? DesignColors.primaryBright : DesignColors.outline} />
-              </Pressable>
-            );
-          })}
-        </View>
       </ScrollView>
       <View style={styles.footer}>
         <Pressable
@@ -282,16 +244,6 @@ const styles = StyleSheet.create({
   amountValue: { ...DesignTypography.headlineLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '800', fontSize: 34 },
   amountDivider: { height: 1, backgroundColor: DesignColors.primaryTintBorder, marginVertical: DesignSpacing.sm },
   amountNote: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20 },
-  methodsCard: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.xl, borderWidth: 1, borderColor: DesignColors.borderFaint, padding: DesignSpacing.md, gap: DesignSpacing.sm },
-  methodRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, padding: DesignSpacing.md, borderRadius: DesignRadius.lg },
-  methodRowDivider: { borderTopWidth: 1, borderTopColor: DesignColors.borderFaint, borderTopLeftRadius: 0, borderTopRightRadius: 0 },
-  methodRowSelected: { backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder },
-  methodIcon: { width: 40, height: 40, borderRadius: DesignRadius.md, backgroundColor: DesignColors.surfaceContainerHigh, alignItems: 'center', justifyContent: 'center' },
-  methodIconSelected: { backgroundColor: DesignColors.surface, borderWidth: 1, borderColor: DesignColors.primaryTintBorder },
-  methodBody: { flex: 1 },
-  methodTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  methodSubtitle: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  maskedCard: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, fontVariant: ['tabular-nums'] },
   primaryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: DesignColors.primaryContainer, borderRadius: DesignRadius.full, paddingVertical: 16 },
   primaryButtonDisabled: { opacity: 0.6 },
   primaryText: { ...DesignTypography.bodyLg, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },

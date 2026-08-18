@@ -17,6 +17,21 @@ export type RoommateOnboardingData = {
   religionPreference?: string;
 };
 
+export async function fetchMyRoommatePreferences(userId: string) {
+  const [rpResult, lpResult] = await Promise.all([
+    supabase.from('roommate_preferences').select('*').eq('profile_id', userId).maybeSingle(),
+    supabase.from('living_preferences').select('*').eq('profile_id', userId).maybeSingle(),
+  ]);
+
+  if (rpResult.error) console.error('[fetchMyRoommatePreferences] roommate_preferences:', rpResult.error);
+  if (lpResult.error) console.error('[fetchMyRoommatePreferences] living_preferences:', lpResult.error);
+
+  return {
+    roommate: rpResult.data ?? null,
+    living: lpResult.data ?? null,
+  };
+}
+
 export async function saveRoommateProfile(
   userId: string,
   data: RoommateOnboardingData,

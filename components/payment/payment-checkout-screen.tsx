@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,6 +12,7 @@ import { useInitializeLodgePayment } from '@/hooks/use-lodge-payment';
 import { verifyLodgePayment } from '@/services/lodge-payment-service';
 import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
+import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
@@ -175,9 +176,13 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       </View>
       <ScrollView bounces={false} contentContainerStyle={styles.content}>
         <View style={styles.listingMini}>
-          <View style={styles.listingMiniIcon}>
-            <Ionicons name="business-outline" size={20} color={DesignColors.primaryBright} />
-          </View>
+          {credit.estate?.primary_image ? (
+            <Image source={{ uri: credit.estate.primary_image }} style={styles.listingMiniImage} />
+          ) : (
+            <View style={styles.listingMiniIcon}>
+              <Ionicons name="business-outline" size={20} color={DesignColors.primaryBright} />
+            </View>
+          )}
           <View style={styles.listingMiniInfo}>
             <Text style={styles.listingMiniSub}>RESIDENCE</Text>
             <Text style={styles.listingMiniTitle} numberOfLines={1}>{estateName}</Text>
@@ -185,7 +190,11 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
           </View>
         </View>
 
-        <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />
+        {!isPaid && !isExpired && (
+          <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />
+        )}
+
+        <ReservationManagementCard credit={credit} />
 
         <View style={styles.amountCard}>
           <View style={styles.sectionHeader}>
@@ -236,6 +245,7 @@ const styles = StyleSheet.create({
   sectionLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.4 },
   listingMini: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.lg, padding: DesignSpacing.md, borderWidth: 1, borderColor: DesignColors.borderFaint },
   listingMiniIcon: { width: 44, height: 44, borderRadius: DesignRadius.md, backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder, alignItems: 'center', justifyContent: 'center' },
+  listingMiniImage: { width: 44, height: 44, borderRadius: DesignRadius.md },
   listingMiniInfo: { flex: 1, gap: 2 },
   listingMiniSub: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
   listingMiniTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },

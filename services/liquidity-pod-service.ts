@@ -1,7 +1,8 @@
 import { supabase } from '@/lib/supabase';
-import { addCredit, addPod, upsertPod, getLocalPods, updateCredit, removeLocalCredit, removeLocalPod } from '@/services/liquidity-store';
+import { addCredit, addPod, upsertPod, getLocalPods, removeLocalCredit, removeLocalPod } from '@/services/liquidity-store';
 import { EXPECTED_TOTAL_POD_FEE, PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
 import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
+import { insertCredit, persistFounderPod, persistJoin } from '@/services/liquidity-pod-persistence';
 import type { Estate, SlotCredit, Pod, PodMember } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 
@@ -30,10 +31,10 @@ export async function currentUserId(): Promise<string> {
   }
 }
 
-function buildMember(userId: string, creditId: string, amountPaid?: number): PodMember {
+function buildMember(userId: string, creditId: string, amountPaid?: number, name?: string): PodMember {
   return {
     user_id: userId,
-    full_name: 'You (Current User)',
+    full_name: name || 'Roommate',
     intent_size: 1,
     campus: 'UNILAG (Main Campus)',
     major: 'Computer Science',
@@ -79,119 +80,54 @@ export async function findPodByGroupCode(code: string): Promise<Pod | undefined>
   return undefined;
 }
 
-async function insertCredit(credit: SlotCredit, userId: string): Promise<string | undefined> {
-  try {
-    const { data, error } = await supabase
-      .from('slot_credits')
-      .insert({
-        user_id: userId,
-        estate_id: credit.estate_id,
-        listing_id: credit.listing_id,
-        property_tier: credit.property_tier,
-        intent_size: credit.intent_size,
-        target_occupancy: credit.target_occupancy,
-        status: credit.status,
-        invite_code: credit.invite_code,
-        payment_deadline: credit.payment_deadline,
-        amount_paid: credit.amount_paid ?? null,
-      })
-      .select()
-      .maybeSingle();
-    if (error || !data) {
-      console.warn('[LiquidityService] Slot credit insert skipped:', error?.message ?? 'no data');
-      return undefined;
-    }
-    return data.id;
-  } catch (error) {
-    console.error('[LiquidityService] Exception during slot credit insert:', error);
-    return undefined;
-  }
-}
+export async function removeMemberFromPod(podId: string, targetUserId: string): Promise<Pod> {
+  const userId = await currentUserId();
+  const pod = getLocalPods().find((p) => p.id === podId);
+  if (!pod) throw new Error('Pod not found.');
 
-async function persistFounderCredit(credit: SlotCredit, podId: string, userId: string): Promise<boolean> {
-  const creditId = await insertCredit(credit, userId);
-  if (!creditId) return false;
-  const { error: memberError } = await supabase.from('pod_members').insert({
-    pod_id: podId,
-    user_id: userId,
-    slot_credit_id: creditId,
-    intent_size: credit.intent_size,
-    amount_paid: credit.amount_paid ?? null,
-  });
-  if (memberError) {
-    console.warn('[LiquidityService] Founder pod_members insert skipped:', memberError.message);
-    return false;
+  const founder = pod.members[0];
+  if (founder?.user_id !== userId) {
+    throw new Error('Only the group founder can remove members.');
   }
-  if (creditId !== credit.id) {
-    updateCredit(credit.id, { id: creditId });
-    credit.id = creditId;
-  }
-  return true;
-}
 
-async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: string): Promise<boolean> {
-  try {
-    const { data, error } = await supabase
-      .from('pods')
-      .insert({
-        estate_id: pod.estate_id,
-        listing_id: pod.listing_id,
-        property_tier: pod.property_tier,
-        matched_gender: pod.matched_gender,
-        target_occupancy: pod.target_occupancy,
-        group_code: pod.group_code,
-        current_total_intent: pod.current_total_intent,
-        is_finalized: pod.is_finalized,
-      })
-      .select()
-      .maybeSingle();
-    if (error || !data) {
-      console.warn('[LiquidityService] Pod insert skipped:', error?.message ?? 'no data');
-      return false;
-    }
-    return persistFounderCredit(credit, data.id, userId);
-  } catch (error) {
-    console.error('[LiquidityService] Exception during pod persistence:', error);
-    return false;
-  }
-}
+  const target = pod.members.find((m) => m.user_id === targetUserId);
+  if (!target) throw new Error('Member not found in this group.');
+  if (target.user_id === userId) throw new Error('You cannot remove yourself from the group.');
+  if (target.amount_paid) throw new Error('Paid members cannot be removed.');
 
-async function persistJoin(updatedPod: Pod, credit: SlotCredit, userId: string): Promise<boolean> {
-  try {
-    const creditId = await insertCredit(credit, userId);
-    if (!creditId) return false;
-    const { error: memberError } = await supabase.from('pod_members').insert({
-      pod_id: updatedPod.id,
-      user_id: userId,
-      slot_credit_id: creditId,
-      intent_size: credit.intent_size,
-      amount_paid: credit.amount_paid ?? null,
-    });
-    if (memberError) {
-      console.warn('[LiquidityService] Join pod_members insert skipped:', memberError.message);
-      return false;
-    }
-    const { error: podUpdateError } = await supabase
-      .from('pods')
-      .update({
-        current_total_intent: updatedPod.current_total_intent,
+  const nextMembers = pod.members.filter((m) => m.user_id !== targetUserId);
+  const removedIntent = target.intent_size ?? 1;
+  const nextIntent = Math.max(0, (pod.current_total_intent ?? 0) - removedIntent);
+  const targetOccupancy = pod.target_occupancy ?? pod.property_tier;
+
+  const updatedPod: Pod = {
+    ...pod,
+    members: nextMembers,
+    current_total_intent: nextIntent,
+    is_finalized: nextIntent >= targetOccupancy,
+    physical_room_id: nextIntent >= targetOccupancy
+      ? pod.physical_room_id ?? `room-${Math.floor(700 + Math.random() * 100)}`
+      : null,
+  };
+  upsertPod(updatedPod);
+
+  if (userId !== DEV_USER_ID) {
+    try {
+      await supabase.from('pod_members').delete().eq('pod_id', podId).eq('user_id', targetUserId);
+      await supabase.from('pods').update({
+        current_total_intent: nextIntent,
         is_finalized: updatedPod.is_finalized,
         physical_room_id: updatedPod.physical_room_id ?? null,
-      })
-      .eq('id', updatedPod.id);
-    if (podUpdateError) {
-      console.warn('[LiquidityService] Pod occupancy update skipped:', podUpdateError.message);
-      return false;
+      }).eq('id', podId);
+      if (target.slot_credit_id && target.slot_credit_id !== 'invitation') {
+        await supabase.from('slot_credits').update({ status: 'expired' }).eq('id', target.slot_credit_id);
+      }
+    } catch (error) {
+      console.error('[LiquidityService] Failed to persist member removal:', error);
     }
-    if (creditId !== credit.id) {
-      updateCredit(credit.id, { id: creditId });
-      credit.id = creditId;
-    }
-    return true;
-  } catch (error) {
-    console.error('[LiquidityService] Exception during join persistence:', error);
-    return false;
   }
+
+  return updatedPod;
 }
 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; synced: boolean };

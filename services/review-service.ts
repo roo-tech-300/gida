@@ -67,7 +67,7 @@ export async function fetchReviewsForListing(listingId: string): Promise<Review[
 
 export async function fetchReviewSummary(listingId: string): Promise<ReviewSummary> {
   const reviews = await fetchReviewsForListing(listingId);
-  const ratingCounts = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 } as const satisfies Record<1 | 2 | 3 | 4 | 5, number>;
+  const ratingCounts: Record<number, number> = { 1: 0, 2: 0, 3: 0, 4: 0, 5: 0 };
 
   reviews.forEach((review) => {
     ratingCounts[review.rating as 1 | 2 | 3 | 4 | 5] += 1;

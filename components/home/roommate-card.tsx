@@ -206,7 +206,7 @@ const styles = StyleSheet.create({
   },
   primaryBtnText: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onPrimary,
+    color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '700',
   },

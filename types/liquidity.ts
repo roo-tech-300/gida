@@ -52,6 +52,7 @@ export interface PodMember {
   sleep_schedule: string;
   slot_credit_id: string;
   amount_paid?: number;
+  profile?: { id?: string; full_name?: string | null; avatar_url?: string | null };
 }
 
 export interface Pod {
@@ -69,6 +70,16 @@ export interface Pod {
   tier?: number;
   group_code?: string | null;
   status?: 'forming' | 'finalized';
+}
+
+export interface PodInvitation {
+  id: string;
+  pod_id: string;
+  inviter_user_id: string;
+  invitee_user_id?: string | null;
+  invitee_name: string;
+  status: 'pending' | 'accepted' | 'declined';
+  created_at: string;
 }
 
 export interface PhysicalRoom {

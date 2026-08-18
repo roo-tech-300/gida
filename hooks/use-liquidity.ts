@@ -1,4 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { supabase } from '@/lib/supabase';
 import {
   fetchEstates,
   purchaseSlotCredit,
@@ -7,7 +8,7 @@ import {
 } from '@/services/liquidity-service';
 import { markSlotCreditPaid, expireSlotCredit } from '@/services/liquidity-payment-service';
 import type { PurchaseSlotCreditInput, PurchaseSlotCreditResult } from '@/services/liquidity-service';
-import type { Estate, SlotCredit, Pod } from '@/types/liquidity';
+import type { Estate, SlotCredit, Pod, PhysicalRoom } from '@/types/liquidity';
 
 export function useEstates() {
   return useQuery<Estate[], Error>({
@@ -79,5 +80,29 @@ export function useExpireSlotCredit() {
     onError: (error) => {
       console.error('[useExpireSlotCredit] Mutation failed:', error);
     },
+  });
+}
+
+async function fetchPhysicalRoom(roomId: string): Promise<PhysicalRoom | null> {
+  try {
+    const { data, error } = await supabase
+      .from('physical_rooms')
+      .select('*')
+      .eq('id', roomId)
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as PhysicalRoom;
+  } catch (error) {
+    console.error('[usePhysicalRoom] Failed to fetch physical room:', error);
+    return null;
+  }
+}
+
+export function usePhysicalRoom(roomId?: string | null) {
+  return useQuery<PhysicalRoom | null, Error>({
+    queryKey: ['physical-room', roomId],
+    queryFn: () => (roomId ? fetchPhysicalRoom(roomId) : Promise.resolve(null)),
+    enabled: !!roomId,
+    staleTime: 60_000,
   });
 }

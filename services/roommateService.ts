@@ -54,7 +54,7 @@ export function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
     id: row.id,
     name: row.full_name || 'Anonymous',
     age: calculateAge(row.birth_year ?? undefined) || 20,
-    avatar: row.avatar_url ?? null,
+    avatar: row.avatar_url ? { uri: row.avatar_url } : null,
     university: row.school || 'FUT Minna',
     level: calculateStudentLevel({
       entryYear: row.entry_year ?? undefined,

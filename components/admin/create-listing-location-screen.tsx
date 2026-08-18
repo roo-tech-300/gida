@@ -11,17 +11,23 @@ import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
+import { ListingRegionSelect } from '@/components/admin/listing-region-select';
+import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
   const { profile } = useAuth();
-  const { data, setStep2 } = useCreateListingForm();
+  const { data, setStep2, editListingId } = useCreateListingForm();
   const { step2 } = data;
   const { showToast } = useAppToast();
   const alert = useCustomAlert();
   const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
+
+  const canAssignRegion =
+    profile?.admin_role === 'super_admin' ||
+    (editListingId !== null && profile?.admin_role === 'regional_admin');
 
   const canProceed = step2.selectedSchool && step2.selectedCampus;
   const handleForward = () => {
@@ -66,7 +72,7 @@ export function CreateListingLocationScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <View />
@@ -162,11 +168,27 @@ export function CreateListingLocationScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Behind GK Main Gate, near Chapel of Grace"
-              placeholderTextColor="DesignColors.onSurfaceVariant"
+              placeholderTextColor={DesignColors.onSurfaceVariant}
               value={step2.landmark}
               onChangeText={(v) => setStep2({ landmark: v })}
             />
           </View>
+        </View>
+
+        {canAssignRegion && (
+          <View style={styles.fieldGroup}>
+            <Text style={styles.label}>Region</Text>
+            <ListingRegionSelect regionPath={step2.regionPath} onSelect={(path) => setStep2({ regionPath: path })} />
+          </View>
+        )}
+
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Transfer Property</Text>
+          <AdminTransferSelect
+            selectedAdminId={step2.transferAdminId}
+            onSelect={(adminId) => setStep2({ transferAdminId: adminId })}
+          />
+          <Text style={styles.fieldHint}>Assign this lodge to any admin, regardless of region.</Text>
         </View>
 
         <View style={styles.fieldGroup}>
@@ -188,7 +210,7 @@ export function CreateListingLocationScreen() {
               <Ionicons
                 name={lockLoading ? 'hourglass-outline' : step2.coords ? 'checkmark-circle-outline' : 'locate-outline'}
                 size={20}
-                color={step2.coords ? '#0e0e10' : DesignColors.secondary}
+                color={step2.coords ? DesignColors.surfaceContainerLowest : DesignColors.secondary}
               />
               <Text style={[styles.lockBtnText, step2.coords && styles.lockBtnTextActive]}>
                 {lockLoading ? 'Locking...' : step2.coords ? `${step2.coords.latitude.toFixed(4)}, ${step2.coords.longitude.toFixed(4)}` : 'Lock Live Location'}
@@ -220,7 +242,7 @@ export function CreateListingLocationScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 8 },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   scroll: { flex: 1 },
@@ -229,6 +251,7 @@ const styles = StyleSheet.create({
   heroTitle: { fontSize: 28, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.5 },
   heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4 },
   fieldGroup: { gap: 8 },
+  fieldHint: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: 2 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: { borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder },
   glassBlur: { ...StyleSheet.absoluteFillObject },
@@ -259,9 +282,9 @@ const styles = StyleSheet.create({
   gpsDesc: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 18 },
   lockBtn: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: 12, paddingVertical: 12, borderWidth: 1, borderColor: DesignColors.cardBorder },
   lockBtnActive: { backgroundColor: DesignColors.secondary, borderColor: DesignColors.secondary },
-  lockBtnTextActive: { color: '#0e0e10' },
+  lockBtnTextActive: { color: DesignColors.surfaceContainerLowest },
   lockBtnText: { fontSize: 15, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
-  mapDeco: { height: 96, borderRadius: 12, backgroundColor: '#0e0e10', borderWidth: 1, borderColor: DesignColors.cardBorder, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
+  mapDeco: { height: 96, borderRadius: 12, backgroundColor: DesignColors.surfaceContainerLowest, borderWidth: 1, borderColor: DesignColors.cardBorder, overflow: 'hidden', alignItems: 'center', justifyContent: 'center' },
   mapPin: { alignItems: 'center', justifyContent: 'center' },
   mapPinGlow: { position: 'absolute', width: 40, height: 40, borderRadius: 20, backgroundColor: DesignColors.primaryContainer },
   ctaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },

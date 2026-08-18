@@ -25,7 +25,7 @@ export function MessageConversationPreview({ thread }: { thread?: Conversation }
       </View>
 
       <View style={styles.messages}>
-        {thread.messages.slice(-3).map((message) => (
+        {thread.messages?.slice(-3).map((message: any) => (
           <Bubble key={message.id} message={message.text} sender={message.sender} />
         ))}
       </View>
@@ -45,9 +45,9 @@ function Bubble({ message, sender }: { message: string; sender: 'me' | 'them' })
 const styles = StyleSheet.create({
   card: {
     borderRadius: 24,
-    backgroundColor: '#1A1A1E',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
     padding: DesignSpacing.md,
     gap: DesignSpacing.md,
   },
@@ -101,11 +101,11 @@ const styles = StyleSheet.create({
   },
   bubbleThem: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: DesignColors.borderSoft,
   },
   bubbleMe: {
     alignSelf: 'flex-end',
-    backgroundColor: 'rgba(54, 71, 54, 0.3)',
+    backgroundColor: DesignColors.primaryTintStrong,
   },
   bubbleText: {
     ...DesignTypography.bodyMd,

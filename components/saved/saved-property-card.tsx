@@ -75,7 +75,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
     backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
   },
   imageWrap: {
     height: 256,
@@ -86,7 +86,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    backgroundColor: DesignColors.scrimLight,
   },
   saveButton: {
     position: 'absolute',
@@ -97,7 +97,7 @@ const styles = StyleSheet.create({
     borderRadius: 20,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(26, 26, 30, 0.72)',
+    backgroundColor: DesignColors.glassFill,
     zIndex: 2,
   },
   badge: {
@@ -107,7 +107,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: 8,
-    backgroundColor: 'rgba(54, 71, 54, 0.92)',
+    backgroundColor: DesignColors.primaryContainer,
     zIndex: 2,
   },
   badgeText: {
@@ -122,7 +122,7 @@ const styles = StyleSheet.create({
     padding: DesignSpacing.lg,
     backgroundColor: DesignColors.surfaceContainerLow,
     borderTopWidth: 1,
-    borderTopColor: 'rgba(255, 255, 255, 0.06)',
+    borderTopColor: DesignColors.borderSoft,
   },
   topRow: {
     flexDirection: 'row',
@@ -161,7 +161,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: DesignColors.borderFaint,
   },
   metaText: {
     ...DesignTypography.bodyMd,

@@ -45,9 +45,9 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
   };
 
   const themes = {
-    success: { bg: '#E6F4EA', border: DesignColors.primary || '#0F9D58', text: '#137333', icon: '✓' },
-    error: { bg: '#FCE8E6', border: '#D93025', text: '#C5221F', icon: '✕' },
-    info: { bg: '#E8F0FE', border: DesignColors.primaryBright || '#1A73E8', text: '#1C3AA9', icon: 'ℹ' },
+    success: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.success, text: DesignColors.success, badgeBg: DesignColors.successContainer, icon: '✓' },
+    error: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.error, text: DesignColors.error, badgeBg: DesignColors.dangerContainer, icon: '✕' },
+    info: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.info, text: DesignColors.info, badgeBg: DesignColors.infoContainer, icon: 'ℹ' },
   };
 
   const currentTheme = themes[toast.type];
@@ -55,8 +55,8 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ translateY }], opacity }]}>
       <Pressable onPress={handleDismiss} style={[styles.card, { backgroundColor: currentTheme.bg, borderColor: currentTheme.border }]}>
-        <View style={[styles.badge, { backgroundColor: currentTheme.border }]}>
-          <Text style={styles.badgeText}>{currentTheme.icon}</Text>
+        <View style={[styles.badge, { backgroundColor: currentTheme.badgeBg }]}>
+          <Text style={[styles.badgeText, { color: currentTheme.text }]}>{currentTheme.icon}</Text>
         </View>
         <View style={styles.textContainer}>
           <Text style={[styles.title, { color: currentTheme.text }]}>
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderRadius: DesignRadius.lg,
     padding: 12,
-    shadowColor: '#000',
+    shadowColor: DesignColors.surfaceContainerLowest,
     shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.06,
     shadowRadius: 6,
@@ -149,7 +149,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     marginRight: 12,
   },
-  badgeText: { color: '#FFF', fontSize: 12, fontWeight: 'bold' },
+  badgeText: { fontSize: 12, fontWeight: 'bold' },
   textContainer: { flex: 1 },
   title: { ...DesignTypography.bodyMd, fontWeight: '700', fontFamily, marginBottom: 2 },
   message: { ...DesignTypography.bodyMd, fontFamily, opacity: 0.9, lineHeight: 16 },

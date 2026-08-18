@@ -1,18 +1,19 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { TIME_SLOTS } from '@/dummy/tour-scheduler-mock';
 
 export function TourSlotGrid({
+  slots,
   selectedSlot,
   onSelect,
 }: {
+  slots: string[];
   selectedSlot: string | null;
   onSelect: (slot: string) => void;
 }) {
   return (
     <View style={styles.grid}>
-      {TIME_SLOTS.map((slot) => {
+      {slots.map((slot) => {
         const active = selectedSlot === slot;
         return (
           <Pressable
@@ -38,7 +39,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
-  pillActive: { backgroundColor: DesignColors.primaryContainer, borderColor: DesignColors.primary },
+  pillActive: { backgroundColor: DesignColors.primaryTint, borderColor: DesignColors.primaryBright },
   text: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
   textActive: { color: DesignColors.onPrimaryContainer },
 });

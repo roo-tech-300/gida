@@ -18,14 +18,14 @@ export function OnboardingGlassCard({ children }: OnboardingGlassCardProps) {
 
 const styles = StyleSheet.create({
   card: {
-    backgroundColor: '#1a1a1e',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderRadius: DesignRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.05)',
+    borderColor: DesignColors.borderSoft,
     padding: DesignSpacing.xl,
     gap: DesignSpacing.lg,
     overflow: 'hidden',
-    shadowColor: '#000',
+    shadowColor: DesignColors.surfaceContainerLowest,
     shadowOpacity: 0.2,
     shadowRadius: 16,
     shadowOffset: { width: 0, height: 8 },
@@ -37,6 +37,6 @@ const styles = StyleSheet.create({
     width: 160,
     height: 160,
     borderRadius: 80,
-    backgroundColor: 'rgba(54, 71, 54, 0.12)',
+    backgroundColor: DesignColors.primaryTint,
   },
 });

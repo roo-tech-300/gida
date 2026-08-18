@@ -1,4 +1,5 @@
 import { StyleSheet, View } from 'react-native';
+import { DesignColors } from '@/constants/design';
 
 export function AuthBackgroundBubbles() {
   return (
@@ -17,7 +18,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(54, 71, 54, 0.15)',
+    backgroundColor: DesignColors.primaryTintMid,
     transform: [{ scale: 1.6 }],
     filter: 'blur(120px)',
     zIndex: 0,
@@ -29,7 +30,7 @@ const styles = StyleSheet.create({
     width: 320,
     height: 320,
     borderRadius: 160,
-    backgroundColor: 'rgba(74, 225, 118, 0.05)',
+    backgroundColor: DesignColors.successContainer,
     transform: [{ scale: 1.6 }],
     filter: 'blur(120px)',
     zIndex: 0,

@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0,0,0,0.3)',
+    backgroundColor: DesignColors.scrim,
   },
   heroBadges: {
     position: 'absolute',
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: DesignColors.scrimHeavy,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: DesignRadius.sm,
@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: DesignColors.scrim,
     alignItems: 'center',
     justifyContent: 'center',
   },

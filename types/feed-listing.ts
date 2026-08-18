@@ -1,3 +1,5 @@
+import { derivePropertyTier } from '@/utils/liquidity-math';
+
 export type FeedListing = {
   id: string;
   title: string;
@@ -20,6 +22,9 @@ export type FeedListing = {
   longitude?: number;
   locationFee?: number;
   isLocationUnlocked?: boolean;
+  estateId?: string;
+  propertyTier?: number;
+  abstractSlotsAvailable?: number;
 };
 
 export type DbListing = {
@@ -57,6 +62,10 @@ export type DbListing = {
   campus: string | null;
   rules: string[];
   max_roommates: number;
+  estate_id?: string;
+  property_tier?: number;
+  abstract_slots_available?: number;
+  region_path?: string[] | null;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -102,6 +111,9 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     longitude: Number(item.longitude) || 3.3792,
     locationFee: 500,
     isLocationUnlocked: false,
+    estateId: item.estate_id,
+    propertyTier: derivePropertyTier(item.property_tier, item.max_roommates),
+    abstractSlotsAvailable: item.abstract_slots_available || ((item.units_available || 1) * derivePropertyTier(item.property_tier, item.max_roommates)),
   };
 }
 
@@ -143,6 +155,8 @@ export function dbToListingForm(item: DbListing) {
       selectedCampus: item.campus,
       landmark: item.location_landmark,
       coords: { latitude: Number(item.latitude), longitude: Number(item.longitude) },
+      regionPath: item.region_path ?? [],
+      transferAdminId: item.admin_id,
     },
     step3: {
       selectedAmenities: amenityBooleans.filter((key) => item[key]),

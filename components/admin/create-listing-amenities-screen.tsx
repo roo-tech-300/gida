@@ -67,7 +67,7 @@ export function CreateListingAmenitiesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <View />
@@ -140,7 +140,7 @@ export function CreateListingAmenitiesScreen() {
           <TextInput
             style={styles.inputBox}
             placeholder="e.g. Balcony, POP Ceiling"
-            placeholderTextColor="#64748b"
+            placeholderTextColor={DesignColors.onSurfaceVariant}
             value={inputValue}
             onChangeText={handleChange}
             onSubmitEditing={() => {
@@ -182,7 +182,7 @@ export function CreateListingAmenitiesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 8 },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   scroll: { flex: 1 },
@@ -205,12 +205,12 @@ const styles = StyleSheet.create({
   },
   tileLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },
   tileLabelActive: { color: DesignColors.onSurface },
-  inputBox: { backgroundColor: '#18181C', borderWidth: 1, borderColor: 'rgba(255,255,255,0.04)', borderRadius: 12, padding: 16, color: '#FFFFFF', fontSize: 14, fontFamily },
-  fieldHint: { fontSize: 11, color: '#64748b', marginTop: 4, paddingLeft: 4, fontFamily },
+  inputBox: { backgroundColor: DesignColors.surfaceContainerLow, borderWidth: 1, borderColor: DesignColors.borderFaint, borderRadius: 12, padding: 16, color: DesignColors.onSurface, fontSize: 14, fontFamily },
+  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, marginTop: 4, paddingLeft: 4, fontFamily },
   pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
   pill: { backgroundColor: DesignColors.primaryContainer, borderWidth: 1, borderColor: DesignColors.primaryContainer, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pillText: { fontSize: 12, fontWeight: '600', color: '#818CF8', fontFamily, letterSpacing: 0.3 },
-  pillIcon: { opacity: 0.4, fontSize: 10, color: '#818CF8' },
+  pillText: { fontSize: 12, fontWeight: '600', color: DesignColors.primaryBright, fontFamily, letterSpacing: 0.3 },
+  pillIcon: { opacity: 0.4, fontSize: 10, color: DesignColors.primaryBright },
   ctaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },
   ctaBtn: { width: 56, height: 56, borderRadius: 28, backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center', shadowColor: DesignColors.primaryContainer, shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8 },
 });

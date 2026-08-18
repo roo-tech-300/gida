@@ -33,11 +33,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    paddingHorizontal: DesignSpacing.lg,
     paddingVertical: DesignSpacing.md,
     minHeight: 56,
-    borderTopWidth: StyleSheet.hairlineWidth,
-    borderTopColor: DesignColors.cardBorder,
   },
   left: {
     flexDirection: 'row',

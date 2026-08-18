@@ -17,7 +17,7 @@ export function ListingDeleteModal({ visible, listingTitle, isDeleting, onCancel
       <Pressable style={styles.overlay} onPress={onCancel}>
         <Pressable style={styles.dialog} onPress={() => {}}>
           <View style={styles.iconWrap}>
-            <Ionicons name="warning-outline" size={32} color="#ff4d4d" />
+            <Ionicons name="warning-outline" size={32} color={DesignColors.danger} />
           </View>
           <Text style={styles.title}>Delete Listing</Text>
           <Text style={styles.message}>
@@ -30,7 +30,7 @@ export function ListingDeleteModal({ visible, listingTitle, isDeleting, onCancel
             </Pressable>
             <Pressable style={styles.deleteBtn} onPress={onConfirm} disabled={isDeleting}>
               {isDeleting ? (
-                <ActivityIndicator size="small" color="#ffffff" />
+                <ActivityIndicator size="small" color={DesignColors.onSurface} />
               ) : (
                 <Text style={styles.deleteText}>Delete</Text>
               )}
@@ -45,7 +45,7 @@ export function ListingDeleteModal({ visible, listingTitle, isDeleting, onCancel
 const styles = StyleSheet.create({
   overlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.7)',
+    backgroundColor: DesignColors.scrimHeavy,
     alignItems: 'center',
     justifyContent: 'center',
     padding: DesignSpacing.marginMobile,
@@ -53,7 +53,7 @@ const styles = StyleSheet.create({
   dialog: {
     width: '100%',
     maxWidth: 400,
-    backgroundColor: '#1a1a1e',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderRadius: DesignRadius.lg,
     padding: DesignSpacing.xl,
     alignItems: 'center',
@@ -65,7 +65,7 @@ const styles = StyleSheet.create({
     width: 64,
     height: 64,
     borderRadius: 32,
-    backgroundColor: 'rgba(255,77,77,0.12)',
+    backgroundColor: DesignColors.dangerContainer,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: DesignSpacing.sm,
@@ -98,7 +98,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: DesignRadius.lg,
     alignItems: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: DesignColors.borderSoft,
     borderWidth: 1,
     borderColor: 'DesignColors.glassBorder',
   },
@@ -113,11 +113,11 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
     borderRadius: DesignRadius.lg,
     alignItems: 'center',
-    backgroundColor: '#ff4d4d',
+    backgroundColor: DesignColors.danger,
   },
   deleteText: {
     ...DesignTypography.bodyMd,
-    color: '#ffffff',
+    color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '700',
   },

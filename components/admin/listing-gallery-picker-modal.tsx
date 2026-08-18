@@ -152,21 +152,21 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
 }
 
 const styles = StyleSheet.create({
-  backdrop: { flex: 1, backgroundColor: 'rgba(0,0,0,0.65)', justifyContent: 'flex-end' },
+  backdrop: { flex: 1, backgroundColor: DesignColors.scrimHeavy, justifyContent: 'flex-end' },
   sheet: {
     minHeight: '72%',
     borderTopLeftRadius: 24,
     borderTopRightRadius: 24,
     overflow: 'hidden',
     padding: 20,
-    backgroundColor: 'rgba(14,14,16,0.98)',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
-  handle: { width: 42, height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.22)', alignSelf: 'center', marginBottom: 14 },
+  handle: { width: 42, height: 4, borderRadius: 2, backgroundColor: DesignColors.borderStrong, alignSelf: 'center', marginBottom: 14 },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', marginBottom: 14 },
   title: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
   actions: { flexDirection: 'row', gap: 10, marginBottom: 16 },
   actionBtn: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: DesignColors.primaryContainer },
-  actionBtnSoft: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: 'rgba(94,124,94,0.12)', borderWidth: 1, borderColor: 'rgba(94,124,94,0.18)' },
+  actionBtnSoft: { flex: 1, flexDirection: 'row', gap: 8, alignItems: 'center', justifyContent: 'center', borderRadius: 14, paddingVertical: 14, backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintMid },
   actionText: { color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
   actionTextSoft: { color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   sectionLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, textTransform: 'uppercase', letterSpacing: 0.8, marginBottom: 10 },
@@ -177,14 +177,14 @@ const styles = StyleSheet.create({
   grid: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, paddingBottom: 12 },
   gridCard: {
     width: '31%', borderRadius: 12, overflow: 'hidden',
-    borderWidth: 1, borderColor: 'rgba(94,124,94,0.16)',
-    backgroundColor: 'rgba(255,255,255,0.03)',
+    borderWidth: 1, borderColor: DesignColors.primaryTintMid,
+    backgroundColor: DesignColors.borderFaint,
   },
   gridImage: { width: '100%', height: 96 },
   orderBadge: {
     position: 'absolute', top: 6, left: 6,
     paddingHorizontal: 6, paddingVertical: 2, borderRadius: 999,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: DesignColors.scrim,
   },
   orderBadgeText: { color: DesignColors.primary, fontSize: 10, fontWeight: '700', fontFamily },
   gridActions: {
@@ -193,12 +193,12 @@ const styles = StyleSheet.create({
   gridBtn: {
     width: 26, height: 26, borderRadius: 13,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(255,255,255,0.06)',
+    backgroundColor: DesignColors.borderSoft,
   },
   gridBtnDanger: {
     width: 26, height: 26, borderRadius: 13,
     alignItems: 'center', justifyContent: 'center',
-    backgroundColor: 'rgba(239,68,68,0.12)',
+    backgroundColor: DesignColors.dangerContainer,
   },
 
   emptyState: { alignItems: 'center', justifyContent: 'center', paddingVertical: 40, gap: 8 },

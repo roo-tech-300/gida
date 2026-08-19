@@ -54,7 +54,7 @@ jobs:
       - name: Stage APK
         run: |
           mkdir -p dist
-          cp android/app/build/outputs/apk/release/app-release-unsigned.apk "dist/gida-release-${{ github.run_number }}.apk"
+          cp android/app/build/outputs/apk/release/*.apk "dist/gida-release-${{ github.run_number }}.apk"
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2

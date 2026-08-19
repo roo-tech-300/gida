@@ -1,18 +1,20 @@
-import { useState } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, useCallback } from 'react';
+import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { removeMemberFromPod, inviteRoommateToPod } from '@/services/liquidity-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { SlotPass } from './slot-pass';
 import { LobbyMemberList } from './lobby-member-list';
-import { RoommateInviteCard } from './roommate-invite-card';
+import { InlineInviteSearch } from './inline-invite-search';
 import { ManageGroupModal } from './manage-group-modal';
 import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import { styles } from './lobby-screen.styles';
 
 export function LobbyScreen() {
   const router = useRouter();
@@ -21,6 +23,11 @@ export function LobbyScreen() {
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
   const { showToast } = useAppToast();
+
+  useFocusEffect(useCallback(() => {
+    refetchCredits();
+    refetchPods();
+  }, [refetchCredits, refetchPods]));
 
   const credit = credits?.[0];
   const activePod = pods?.[0];
@@ -106,6 +113,24 @@ export function LobbyScreen() {
         refreshControl={<RefreshControl refreshing={refreshing} onRefresh={handleRefresh} tintColor={DesignColors.primaryBright} />}
         bounces={false}
       >
+        {isPaid && (
+          <View style={styles.heroCard}>
+            <View style={styles.heroIconCircle}>
+              <Ionicons name="checkmark" size={28} color={DesignColors.onPrimary} />
+            </View>
+            <Text style={styles.heroTitle}>Payment confirmed</Text>
+            <Text style={styles.heroDesc}>
+              {isSolo ? 'Your spot is locked in.' : 'You have paid for your slot, waiting on your roomates.'}
+            </Text>
+            {roomLabel && (
+              <View style={styles.heroRoomRow}>
+                <Ionicons name="key-outline" size={16} color={DesignColors.primaryBright} />
+                <Text style={styles.heroRoomText}>{roomLabel}</Text>
+              </View>
+            )}
+          </View>
+        )}
+
         <View style={styles.estateCard}>
           {estateImage ? (
             <Image source={{ uri: estateImage }} style={styles.estateImage} />
@@ -120,7 +145,7 @@ export function LobbyScreen() {
           </View>
         </View>
 
-        <SlotPass credit={credit} isSolo={isSolo} />
+        <SlotPass credit={credit} isSolo={isSolo} joinedCount={currentTotalIntent} />
 
         {isPendingPayment && credit && (
           <View style={styles.bannerCard}>
@@ -152,31 +177,15 @@ export function LobbyScreen() {
           </View>
         )}
 
-        {isPaid && (
-          <View style={[styles.bannerCard, styles.bannerSuccess]}>
-            <View style={[styles.bannerIcon, styles.bannerSuccessIcon]}>
-              <Ionicons name="checkmark-circle-outline" size={18} color={DesignColors.secondary} />
-            </View>
-            <View style={styles.bannerInfo}>
-              <Text style={[styles.bannerTitle, styles.bannerSuccessTitle]}>Payment confirmed</Text>
-              <Text style={styles.bannerDesc}>{isSolo ? 'Your spot is locked in.' : 'Your group is forming — invite roommates to fill remaining slots.'}</Text>
-            </View>
-          </View>
-        )}
-
         {!isSolo && (
           <LobbyMemberList members={groupMembers} targetTier={targetTier} />
         )}
 
         {!isSolo && remainingSlots > 0 && (
-          <RoommateInviteCard
-            inviteCode={credit?.invite_code ?? ''}
-            remainingSlots={remainingSlots}
-            onOpenInviteModal={() => setManageModalVisible(true)}
-          />
+          <InlineInviteSearch remainingSlots={remainingSlots} onSelect={handleInvite} />
         )}
 
-        {(isSolo || remainingSlots === 0) && activePod?.is_finalized && roomLabel && (
+        {!isPaid && (isSolo || remainingSlots === 0) && activePod?.is_finalized && roomLabel && (
           <View style={styles.roomCard}>
             <Ionicons name="key-outline" size={20} color={isSolo ? DesignColors.primaryBright : DesignColors.secondary} />
             <View style={styles.roomInfo}>
@@ -199,37 +208,3 @@ export function LobbyScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surface },
-  topBar: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm },
-  topBarTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700', fontSize: 17 },
-  content: { padding: DesignSpacing.md, gap: DesignSpacing.md, paddingBottom: 40 },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.md },
-  errorText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily },
-  estateCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.lg, borderWidth: 1, borderColor: DesignColors.cardBorder, padding: DesignSpacing.md },
-  estateImage: { width: 56, height: 56, borderRadius: DesignRadius.md },
-  estateImagePlaceholder: { width: 56, height: 56, borderRadius: DesignRadius.md, backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder, alignItems: 'center', justifyContent: 'center' },
-  estateInfo: { flex: 1, gap: 2 },
-  estateName: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontWeight: '700', fontFamily },
-  estateMeta: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  bannerCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: DesignRadius.md, borderWidth: 1, borderColor: DesignColors.tertiary, padding: DesignSpacing.md },
-  bannerIcon: { width: 32, height: 32, borderRadius: 16, backgroundColor: DesignColors.surfaceContainerLow, alignItems: 'center', justifyContent: 'center' },
-  bannerInfo: { flex: 1, gap: 2 },
-  bannerTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily, fontSize: 13 },
-  bannerDesc: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 15 },
-  bannerAction: { backgroundColor: DesignColors.primaryContainer, paddingHorizontal: DesignSpacing.md, paddingVertical: 8, borderRadius: DesignRadius.full },
-  bannerActionText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimaryContainer, fontWeight: '700', fontFamily, fontSize: 13 },
-  bannerExpired: { borderColor: DesignColors.error, backgroundColor: DesignColors.errorContainer },
-  bannerExpiredIcon: { backgroundColor: DesignColors.errorContainer },
-  bannerExpiredTitle: { color: DesignColors.error },
-  bannerExpiredAction: { backgroundColor: DesignColors.error },
-  bannerExpiredActionText: { color: DesignColors.onError, fontWeight: '700', fontSize: 13, fontFamily },
-  bannerSuccess: { borderColor: DesignColors.secondary, backgroundColor: DesignColors.successContainer },
-  bannerSuccessIcon: { backgroundColor: DesignColors.successContainer },
-  bannerSuccessTitle: { color: DesignColors.secondary },
-  roomCard: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.md, borderWidth: 1, borderColor: DesignColors.secondary, padding: DesignSpacing.md },
-  roomInfo: { flex: 1, gap: 2 },
-  roomLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
-  roomValue: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '800' },
-});

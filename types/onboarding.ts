@@ -11,6 +11,7 @@ export type Amenity =
   | 'parking';
 
 export type OnboardingData = {
+  minBudget: string;
   maxBudget: string;
   preferredArea: string;
   preferredLayout: LayoutType | null;
@@ -81,6 +82,7 @@ export function getCampusesForSchool(school: string): { id: string; label: strin
 }
 
 export const defaultOnboardingData = (): OnboardingData => ({
+  minBudget: '100000',
   maxBudget: '250000',
   preferredArea: '',
   preferredLayout: null,

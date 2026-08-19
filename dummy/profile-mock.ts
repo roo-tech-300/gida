@@ -9,7 +9,7 @@ export interface ProfileData {
     completion: number;
     sleepSchedule: string;
     cleanlinessLevel: string;
-    maxBudget: string;
+    budgetRange: string;
   };
 }
 
@@ -24,6 +24,6 @@ export const studentProfile: ProfileData = {
     completion: 90,
     sleepSchedule: 'Night Owl (12AM - 7AM)',
     cleanlinessLevel: 'Very High / Organized',
-    maxBudget: '₦150k - ₦250k',
+    budgetRange: '₦150k – ₦250k',
   },
 };

@@ -23,26 +23,48 @@ export default function OnboardingBudgetScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
   const { data, updateData } = useOnboarding();
-  const [customBudget, setCustomBudget] = useState('');
+  const [customMin, setCustomMin] = useState('');
+  const [customMax, setCustomMax] = useState('');
 
-  const handleBudgetPreset = (value: number) => {
-    setCustomBudget('');
+  const handleMinPreset = (value: number) => {
+    setCustomMin('');
+    updateData({ minBudget: String(value) });
+  };
+
+  const handleMaxPreset = (value: number) => {
+    setCustomMax('');
     updateData({ maxBudget: String(value) });
   };
 
-  const handleCustomBudget = (text: string) => {
+  const handleCustomMin = (text: string) => {
     const digits = text.replace(/[^0-9]/g, '');
-    setCustomBudget(digits);
+    setCustomMin(digits);
+    updateData({ minBudget: digits });
+  };
+
+  const handleCustomMax = (text: string) => {
+    const digits = text.replace(/[^0-9]/g, '');
+    setCustomMax(digits);
     updateData({ maxBudget: digits });
   };
 
-  const formattedBudget = data.maxBudget
-    ? Number(data.maxBudget).toLocaleString('en-US')
-    : '';
+  const formatBudget = (value: string) =>
+    value ? Number(value).toLocaleString('en-US') : '';
 
   const handleContinue = () => {
-    if (!data.maxBudget || Number(data.maxBudget) < 100000) {
-      showToast({ type: 'error', message: 'Please select or enter a budget (min ₦100,000).' });
+    const min = Number(data.minBudget);
+    const max = Number(data.maxBudget);
+
+    if (!data.minBudget || min < 100000) {
+      showToast({ type: 'error', message: 'Minimum budget must be at least ₦100,000.' });
+      return;
+    }
+    if (!data.maxBudget || max < 100000) {
+      showToast({ type: 'error', message: 'Maximum budget must be at least ₦100,000.' });
+      return;
+    }
+    if (min > max) {
+      showToast({ type: 'error', message: 'Minimum budget cannot exceed maximum.' });
       return;
     }
     if (!data.preferredArea) {
@@ -62,13 +84,14 @@ export default function OnboardingBudgetScreen() {
           <Text style={styles.subtitle}>Choose a yearly budget range for your search.</Text>
         </View>
 
+        <Text style={styles.fieldLabel}>Minimum budget</Text>
         <View style={styles.chipRow}>
           {BUDGET_PRESETS.map((preset) => (
             <OnboardingChip
-              key={preset.value}
+              key={`min-${preset.value}`}
               label={preset.label}
-              selected={data.maxBudget === String(preset.value)}
-              onPress={() => handleBudgetPreset(preset.value)}
+              selected={data.minBudget === String(preset.value)}
+              onPress={() => handleMinPreset(preset.value)}
             />
           ))}
         </View>
@@ -77,10 +100,35 @@ export default function OnboardingBudgetScreen() {
           <Ionicons name="cash-outline" size={20} color={DesignColors.onSurfaceVariant} style={styles.inputIcon} />
           <Text style={styles.currency}>₦</Text>
           <TextInput
-            placeholder="Enter amount"
+            placeholder="Enter minimum"
             placeholderTextColor={DesignColors.textSecondary}
-            value={formattedBudget}
-            onChangeText={handleCustomBudget}
+            value={formatBudget(customMin)}
+            onChangeText={handleCustomMin}
+            keyboardType="numeric"
+            style={styles.textInput}
+          />
+        </View>
+
+        <Text style={[styles.fieldLabel, { marginTop: DesignSpacing.md }]}>Maximum budget</Text>
+        <View style={styles.chipRow}>
+          {BUDGET_PRESETS.map((preset) => (
+            <OnboardingChip
+              key={`max-${preset.value}`}
+              label={preset.label}
+              selected={data.maxBudget === String(preset.value)}
+              onPress={() => handleMaxPreset(preset.value)}
+            />
+          ))}
+        </View>
+
+        <View style={styles.inputWrap}>
+          <Ionicons name="cash-outline" size={20} color={DesignColors.onSurfaceVariant} style={styles.inputIcon} />
+          <Text style={styles.currency}>₦</Text>
+          <TextInput
+            placeholder="Enter maximum"
+            placeholderTextColor={DesignColors.textSecondary}
+            value={formatBudget(customMax)}
+            onChangeText={handleCustomMax}
             keyboardType="numeric"
             style={styles.textInput}
           />
@@ -128,6 +176,13 @@ const styles = StyleSheet.create({
     textAlign: 'center',
     lineHeight: 20,
   },
+  fieldLabel: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    marginTop: DesignSpacing.sm,
+    marginBottom: DesignSpacing.xs,
+  },
   chipRow: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -143,6 +198,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
     paddingHorizontal: DesignSpacing.md,
+    marginTop: DesignSpacing.sm,
   },
   inputIcon: {
     marginRight: DesignSpacing.xs,

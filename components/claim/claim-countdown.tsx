@@ -95,7 +95,7 @@ export function ClaimCountdown({ expiresAt, onExpired, variant = 'card' }: Props
   return (
     <View style={styles.container}>
       <Ionicons name="time-outline" size={18} color={DesignColors.secondary} />
-      <Text style={styles.label}>Expires in</Text>
+      <Text style={styles.label}>Payment required</Text>
       <Digits expiresAt={expiresAt} />
     </View>
   );

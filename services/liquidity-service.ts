@@ -75,13 +75,13 @@ export async function fetchUserSlotCredits(): Promise<SlotCredit[]> {
   }
   try {
     const { data, error } = await supabase.from('slot_credits').select('*, estate:estates(*)').eq('user_id', userId);
-    if (error || !data || data.length === 0) {
-      return getLocalCredits();
+    if (error || !data) {
+      return [];
     }
     return data as SlotCredit[];
   } catch (error) {
     console.error('[LiquidityService] Failed to fetch user slot credits:', error);
-    return getLocalCredits();
+    return [];
   }
 }
 
@@ -100,8 +100,8 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
       query = query.eq('estate_id', estateId);
     }
     const { data, error } = await query;
-    if (error || !data || data.length === 0) {
-      return filterLocal(getLocalPods());
+    if (error || !data) {
+      return [];
     }
 
     const pods = data as Pod[];

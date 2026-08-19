@@ -94,12 +94,24 @@ export function computeCompatibility(
     }
   }
 
-  const myBudget = myLp?.max_budget ?? null;
-  if (myBudget && theirs.maxBudget) {
-    const ratio = Math.min(myBudget, theirs.maxBudget) / Math.max(myBudget, theirs.maxBudget);
-    if (ratio >= 0.6) {
+  const myMin = myLp?.min_budget ?? 0;
+  const myMax = myLp?.max_budget ?? Infinity;
+  const theirMin = theirs.minBudget ?? 0;
+  const theirMax = theirs.maxBudget ?? Infinity;
+
+  const overlapMin = Math.max(myMin, theirMin);
+  const overlapMax = Math.min(myMax, theirMax);
+
+  if (overlapMin <= overlapMax) {
+    const rangeSize = Math.max(myMax, theirMax) - Math.min(myMin, theirMin) || 1;
+    const overlapSize = overlapMax - overlapMin;
+    const ratio = overlapSize / rangeSize;
+    if (ratio >= 0.5) {
       score += 6;
-      reasons.push('Your budgets align well.');
+      reasons.push('Your budgets overlap well.');
+    } else if (ratio > 0) {
+      score += 3;
+      reasons.push('Your budgets have some overlap.');
     }
   }
 

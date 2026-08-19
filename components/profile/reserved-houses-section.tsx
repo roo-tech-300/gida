@@ -1,4 +1,4 @@
-import { ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
@@ -18,13 +18,18 @@ const HOUSE_IMAGES: Record<string, ImageSourcePropType> = {
 type Props = {
   reservations: SlotCredit[];
   hasError?: boolean;
+  isLoading?: boolean;
 };
 
 const PAID_STATUSES: SlotCredit['status'][] = ['paid_unmatched', 'matched', 'subletting'];
 
-export function ReservedHousesSection({ reservations, hasError }: Props) {
+export function ReservedHousesSection({ reservations, hasError, isLoading }: Props) {
   const router = useRouter();
   const reserved = reservations.filter((credit) => credit.status !== 'expired' || credit.listing_id);
+
+  if (!isLoading && !hasError && reserved.length === 0) {
+    return null;
+  }
 
   const openReservation = (credit: SlotCredit) => {
     if (!credit.listing_id) {
@@ -48,10 +53,15 @@ export function ReservedHousesSection({ reservations, hasError }: Props) {
   return (
     <View style={styles.section}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>Reserved Houses</Text>
+        <Text style={styles.sectionTitle}>My Lodge</Text>
         <Text style={styles.sectionHint}>{reserved.length} saved</Text>
       </View>
-      {hasError ? (
+      {isLoading ? (
+        <View style={styles.stateCard}>
+          <ActivityIndicator size="small" color={DesignColors.primaryBright} />
+          <Text style={styles.stateText}>Loading your reservations...</Text>
+        </View>
+      ) : hasError ? (
         <View style={styles.stateCard}>
           <Ionicons name="alert-circle-outline" size={18} color={DesignColors.error} />
           <Text style={styles.stateText}>We could not load your reservations right now.</Text>

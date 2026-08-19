@@ -31,11 +31,17 @@ export type MyPreferences = {
   living: DbRoommateRow['living_preferences'];
 };
 
-function formatBudget(amount: number | null): string {
-  if (!amount) return 'Flexible';
-  if (amount >= 1_000_000) return `₦${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M/yr`;
-  if (amount >= 1_000) return `₦${Math.round(amount / 1_000)}k/yr`;
-  return `₦${amount}/yr`;
+function formatBudgetRange(min: number | null, max: number | null): string {
+  if (!min && !max) return 'Flexible';
+  if (min && max) return `₦${formatCompact(min)} – ₦${formatCompact(max)}/yr`;
+  if (max) return `Up to ₦${formatCompact(max)}/yr`;
+  return `From ₦${formatCompact(min!)}/yr`;
+}
+
+function formatCompact(amount: number): string {
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (amount >= 1_000) return `${Math.round(amount / 1_000)}k`;
+  return String(amount);
 }
 
 export function buildChips(prefs: DbRoommateRow['roommate_preferences']): LifestyleChip[] {
@@ -62,10 +68,11 @@ export function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
     }),
     compatibility: 0,
     moveInDate: 'Flexible',
-    budget: formatBudget(row.living_preferences?.max_budget ?? null),
+    budget: formatBudgetRange(row.living_preferences?.min_budget ?? null, row.living_preferences?.max_budget ?? null),
     bio: row.bio || 'No bio yet',
     chips: buildChips(row.roommate_preferences),
     preferredArea: row.living_preferences?.preferred_area ?? undefined,
+    minBudget: row.living_preferences?.min_budget ?? undefined,
     maxBudget: row.living_preferences?.max_budget ?? undefined,
     religion: row.religion ?? undefined,
     smokerAllowed: row.roommate_preferences?.smoker_allowed ?? undefined,

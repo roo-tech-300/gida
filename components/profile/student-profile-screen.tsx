@@ -31,7 +31,7 @@ export function StudentProfileScreen() {
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
-  const { data: reservations, isError: reservationsError } = useUserSlotCredits();
+  const { data: reservations, isError: reservationsError, isPending: reservationsPending } = useUserSlotCredits();
 
   const roommateCompletion = useMemo(() => {
     const roommate = preferences?.roommate;
@@ -42,6 +42,7 @@ export function StudentProfileScreen() {
       roommate?.guest_policy,
       roommate?.study_habitat,
       roommate?.personality_vibe,
+      living?.min_budget,
       living?.max_budget,
       living?.preferred_area,
       profile?.bio,
@@ -56,8 +57,13 @@ export function StudentProfileScreen() {
 
   const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
   const cleanlinessLevel = preferences?.roommate?.cleanliness_level ?? 'Not set yet';
+  const minBudget = preferences?.living?.min_budget;
   const maxBudget = preferences?.living?.max_budget;
-  const budgetLabel = maxBudget ? `₦${maxBudget.toLocaleString('en-US')}/yr` : 'Flexible';
+  const budgetLabel = minBudget && maxBudget
+    ? `₦${minBudget.toLocaleString('en-US')} – ₦${maxBudget.toLocaleString('en-US')}/yr`
+    : maxBudget
+      ? `Up to ₦${maxBudget.toLocaleString('en-US')}/yr`
+      : 'Flexible';
   const profileBio = profile?.bio ?? 'No bio yet';
   const schoolLabel = profile?.school ?? 'Not set yet';
 
@@ -116,7 +122,7 @@ export function StudentProfileScreen() {
           />
 
           <JoinGroupCard />
-          <ReservedHousesSection reservations={reservations ?? []} hasError={reservationsError} />
+          <ReservedHousesSection reservations={reservations ?? []} hasError={reservationsError} isLoading={reservationsPending} />
 
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Personal Information</Text>

@@ -5,13 +5,14 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { useAppToast } from '@/components/ui/toast-card';
 import type { SlotCredit } from '@/types/liquidity';
 
-export function SlotPass({ credit, isSolo }: { credit?: SlotCredit; isSolo?: boolean }) {
+export function SlotPass({ credit, isSolo, joinedCount }: { credit?: SlotCredit; isSolo?: boolean; joinedCount?: number }) {
   const { showToast } = useAppToast();
   const estateName = credit?.estate?.name || 'Gida Campus Residence';
   const inviteCode = credit?.invite_code || 'GIDA-JOIN-2026';
-  const totalSlots = credit?.property_tier || 4;
-  const reservedSlots = credit?.intent_size || 1;
-  const fillPct = Math.min(1, reservedSlots / totalSlots);
+  const groupSize = credit?.target_occupancy || 1;
+  const joined = joinedCount ?? credit?.intent_size ?? 1;
+  const remaining = Math.max(0, groupSize - joined);
+  const fillPct = Math.min(1, joined / groupSize);
 
   const handleCopyInvite = () => {
     showToast({ message: `Copied invite code: ${inviteCode}`, type: 'success' });
@@ -28,18 +29,18 @@ export function SlotPass({ credit, isSolo }: { credit?: SlotCredit; isSolo?: boo
 
       <View style={styles.statsGrid}>
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{totalSlots}</Text>
-          <Text style={styles.statLabel}>Total{'\n'}Slots</Text>
+          <Text style={styles.statNumber}>{groupSize}</Text>
+          <Text style={styles.statLabel}>Your{'\n'}Group</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{reservedSlots}</Text>
-          <Text style={styles.statLabel}>Reserved</Text>
+          <Text style={styles.statNumber}>{joined}</Text>
+          <Text style={styles.statLabel}>Joined</Text>
         </View>
         <View style={styles.statDivider} />
         <View style={styles.statBox}>
-          <Text style={styles.statNumber}>{totalSlots - reservedSlots}</Text>
-          <Text style={styles.statLabel}>Open{'\n'}Slots</Text>
+          <Text style={styles.statNumber}>{remaining}</Text>
+          <Text style={styles.statLabel}>Remaining</Text>
         </View>
       </View>
 

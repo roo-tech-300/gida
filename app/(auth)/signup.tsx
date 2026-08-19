@@ -39,7 +39,7 @@ export default function SignupScreen() {
           autoCapitalize="words"
           autoComplete="name"
           label="Full name"
-          placeholder="Random FUT Minna Student"
+          placeholder="Enter full name "
           textContentType="name"
           value={fullName}
           onChangeText={setFullName}
@@ -49,7 +49,7 @@ export default function SignupScreen() {
           autoComplete="email"
           keyboardType="email-address"
           label="Email"
-          placeholder="randomfutminna@godluzia.com"
+          placeholder="Enter your email"
           textContentType="emailAddress"
           value={email}
           onChangeText={setEmail}

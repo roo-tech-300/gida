@@ -1,4 +1,4 @@
-import { Image, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { ManageGroupMember } from '@/dummy/group-members-mock';
@@ -57,7 +57,9 @@ export function LobbyMemberList({ members, targetTier }: Props) {
       </View>
 
       <View style={styles.memberList}>
-        {members.map((member) => {
+        {members.length === 0 ? (
+          <ActivityIndicator size="small" color={DesignColors.primaryBright} style={styles.spinner} />
+        ) : members.map((member) => {
           const config = STATUS_CONFIG[member.status];
           return (
             <View key={member.id} style={styles.memberRow}>
@@ -84,7 +86,7 @@ export function LobbyMemberList({ members, targetTier }: Props) {
 }
 
 const styles = StyleSheet.create({
-  container: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.lg, borderWidth: 1, borderColor: DesignColors.cardBorder, padding: DesignSpacing.md, gap: DesignSpacing.md },
+  container: { backgroundColor: DesignColors.glassSoft, borderRadius: DesignRadius.xl, borderWidth: 1, borderColor: DesignColors.glassBorder, padding: DesignSpacing.md, gap: DesignSpacing.md },
   header: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
   title: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
   count: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontWeight: '800', fontFamily },
@@ -92,6 +94,7 @@ const styles = StyleSheet.create({
   progressFill: { height: '100%', borderRadius: 3, backgroundColor: DesignColors.primaryBright },
   progressComplete: { backgroundColor: DesignColors.secondary },
   memberList: { gap: 2 },
+  spinner: { paddingVertical: DesignSpacing.md },
   memberRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, paddingVertical: 8 },
   avatar: { width: 34, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   avatarImage: { width: 34, height: 34, borderRadius: 17 },

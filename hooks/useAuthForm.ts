@@ -22,6 +22,7 @@ export function useAuthForm() {
         try {
             const profileData: UserProfileInput = { fullName };
             await registerUserAccount(email, password, profileData);
+            await refreshProfile();
             showToast({type: 'success', message: "Registration successful!"});
             router.replace('/(onboarding)/preferences-budget');
         } catch (error) {

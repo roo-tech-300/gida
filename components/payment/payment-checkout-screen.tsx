@@ -1,10 +1,12 @@
-import { useState } from 'react';
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useState, useCallback } from 'react';
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
+import { useFocusEffect } from '@react-navigation/native';
 import { Ionicons } from '@expo/vector-icons';
+import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as WebBrowser from 'expo-web-browser';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useUserSlotCredits, useExpireSlotCredit } from '@/hooks/use-liquidity';
@@ -13,15 +15,79 @@ import { verifyLodgePayment } from '@/services/lodge-payment-service';
 import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
+import { styles } from './payment-checkout.styles';
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
+
+function TopBar({ title }: { title: string }) {
+  return (
+    <View style={styles.topBar}>
+      <BackButton hasBackground={false} />
+      <Text style={styles.topBarTitle}>{title}</Text>
+    </View>
+  );
+}
+
+function GlassHeroCard({ estateName, imageUri, intentSize, targetOccupancy }: { estateName: string; imageUri?: string | null; intentSize: number; targetOccupancy: number }) {
+  return (
+    <View style={styles.heroCard}>
+      {imageUri ? (
+        <>
+          <Image source={{ uri: imageUri }} style={styles.heroImage} />
+          <View style={styles.heroGradient}>
+            <Svg height="100%" width="100%">
+              <Defs>
+                <LinearGradient id="heroMask" x1="0" y1="0" x2="0" y2="1">
+                  <Stop offset="0%" stopColor={DesignColors.surface} stopOpacity="0" />
+                  <Stop offset="50%" stopColor={DesignColors.surface} stopOpacity="0.5" />
+                  <Stop offset="100%" stopColor={DesignColors.surface} stopOpacity="0.95" />
+                </LinearGradient>
+              </Defs>
+              <Rect width="100%" height="100%" fill="url(#heroMask)" />
+            </Svg>
+          </View>
+        </>
+      ) : (
+        <View style={styles.heroFallback}>
+          <Ionicons name="business-outline" size={28} color={DesignColors.primaryBright} />
+        </View>
+      )}
+      <View style={styles.heroInfo}>
+        <Text style={styles.heroLabel}>RESIDENCE</Text>
+        <Text style={styles.heroTitle} numberOfLines={1}>{estateName}</Text>
+        <View style={styles.heroMeta}>
+          <View style={styles.heroMetaItem}>
+            <Ionicons name="layers-outline" size={13} color={DesignColors.onSurfaceVariant} />
+            <Text style={styles.heroMetaText}>Buying {intentSize} of {targetOccupancy}</Text>
+          </View>
+        </View>
+      </View>
+    </View>
+  );
+}
+
+function GlassAmountCard({ amount }: { amount: number }) {
+  return (
+    <View style={styles.amountCard}>
+      <View style={styles.amountHeader}>
+        <View style={styles.amountBar} />
+        <Text style={styles.amountLabel}>TOTAL DUE TODAY</Text>
+      </View>
+      <Text style={styles.amountValue} testID="checkout-amount">{formatNaira(amount)}</Text>
+      <View style={styles.amountDivider} />
+      <Text style={styles.amountNote}>Covers your share of rent.</Text>
+    </View>
+  );
+}
 
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: credits, isLoading } = useUserSlotCredits();
+  const { data: credits, isLoading, refetch } = useUserSlotCredits();
   const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
+
+  useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
 
   const [isProcessing, setIsProcessing] = useState(false);
   const [locallyPaid, setLocallyPaid] = useState(false);
@@ -88,137 +154,88 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
     }
   };
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Payment</Text>
-        </View>
-        <View style={styles.center}>
-          <ActivityIndicator size="large" color={DesignColors.primary} />
-        </View>
-      </SafeAreaView>
-    );
-  }
+  if (isLoading) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center}><ActivityIndicator size="large" color={DesignColors.primary} /></View>
+    </SafeAreaView>
+  );
 
-  if (!credit) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Payment</Text>
-        </View>
-        <View style={styles.center}>
-          <View style={styles.errorBadge}>
-            <Ionicons name="alert-circle-outline" size={32} color={DesignColors.error} />
-          </View>
+  if (!credit) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center}>
+        <View style={styles.glassCenterCard}>
+          <View style={styles.errorBadge}><Ionicons name="alert-circle-outline" size={32} color={DesignColors.error} /></View>
           <Text style={styles.mutedText}>Reservation not found.</Text>
         </View>
-      </SafeAreaView>
-    );
-  }
+      </View>
+    </SafeAreaView>
+  );
 
-  if (isPaid) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Payment</Text>
-        </View>
-        <View style={styles.center} testID="checkout-success">
-          <View style={styles.successBadge}>
-            <Ionicons name="checkmark" size={40} color={DesignColors.surface} />
-          </View>
+  if (isPaid) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center} testID="checkout-success">
+        <View style={styles.glassCenterCard}>
+          <View style={styles.successBadge}><Ionicons name="checkmark" size={40} color={DesignColors.surface} /></View>
           <Text style={styles.successTitle}>Payment Successful</Text>
           <Text style={styles.successAmount}>{formatNaira(amount)}</Text>
           <View style={styles.successDivider} />
           <Text style={styles.mutedText}>{estateName}</Text>
         </View>
-        <View style={styles.footer}>
-          <Pressable style={styles.primaryButton} onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : '/property/lobby')} testID="checkout-continue">
-            <Ionicons name="arrow-forward" size={16} color={DesignColors.onPrimaryContainer} />
-            <Text style={styles.primaryText}>{credit.target_occupancy === 1 ? 'View Booking' : 'Continue to Lobby'}</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
+      </View>
+      <View style={styles.footer}>
+        <Pressable
+          style={styles.payButton}
+          onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : '/property/lobby')}
+          testID="checkout-continue"
+        >
+          <Text style={styles.payText}>{credit.target_occupancy === 1 ? 'View Booking' : 'Continue to Lobby'}</Text>
+          <Ionicons name="arrow-forward" size={16} color={DesignColors.onPrimaryContainer} />
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
 
-  if (isExpired) {
-    return (
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
-          <Text style={styles.topBarTitle}>Payment</Text>
-        </View>
-        <View style={styles.center}>
-          <View style={styles.errorBadge}>
-            <Ionicons name="time-outline" size={40} color={DesignColors.error} />
-          </View>
+  if (isExpired) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center}>
+        <View style={styles.glassCenterCard}>
+          <View style={styles.errorBadge}><Ionicons name="time-outline" size={40} color={DesignColors.error} /></View>
           <Text style={styles.expiredTitle}>Your hold expired</Text>
           <Text style={styles.mutedText}>This reservation could not be paid before the 3-day deadline. Reserve again to restart the window.</Text>
         </View>
-        <View style={styles.footer}>
-          <Pressable style={styles.primaryButton} onPress={handleRelease} testID="checkout-release-btn">
-            <Text style={styles.primaryText}>Release Hold</Text>
-          </Pressable>
-        </View>
-      </SafeAreaView>
-    );
-  }
+      </View>
+      <View style={styles.footer}>
+        <Pressable style={styles.payButton} onPress={handleRelease} testID="checkout-release-btn">
+          <Text style={styles.payText}>Release Hold</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <View style={styles.topBar}>
-        <BackButton hasBackground={false} />
-        <Text style={styles.topBarTitle}>Secure Your Spot</Text>
-      </View>
+      <TopBar title="Secure Your Spot" />
       <ScrollView bounces={false} contentContainerStyle={styles.content}>
-        <View style={styles.listingMini}>
-          {credit.estate?.primary_image ? (
-            <Image source={{ uri: credit.estate.primary_image }} style={styles.listingMiniImage} />
-          ) : (
-            <View style={styles.listingMiniIcon}>
-              <Ionicons name="business-outline" size={20} color={DesignColors.primaryBright} />
-            </View>
-          )}
-          <View style={styles.listingMiniInfo}>
-            <Text style={styles.listingMiniSub}>RESIDENCE</Text>
-            <Text style={styles.listingMiniTitle} numberOfLines={1}>{estateName}</Text>
-            <Text style={styles.listingMiniMeta}>Capacity · {credit.property_tier} slots</Text>
-          </View>
-        </View>
-
-        {!isPaid && !isExpired && (
-          <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />
-        )}
-
+        <GlassHeroCard estateName={estateName} imageUri={credit.estate?.primary_image} intentSize={credit.intent_size} targetOccupancy={credit.target_occupancy} />
+        {!isPaid && !isExpired && <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />}
         <ReservationManagementCard credit={credit} />
-
-        <View style={styles.amountCard}>
-          <View style={styles.sectionHeader}>
-            <View style={styles.sectionBar} />
-            <Text style={styles.sectionLabel}>TOTAL DUE TODAY</Text>
-          </View>
-          <Text style={styles.amountValue} testID="checkout-amount">{formatNaira(amount)}</Text>
-          <View style={styles.amountDivider} />
-          <Text style={styles.amountNote}>Covers your share of rent plus the platform service fee for this property.</Text>
-        </View>
+        <GlassAmountCard amount={amount} />
       </ScrollView>
       <View style={styles.footer}>
         <Pressable
-          style={[styles.primaryButton, (isProcessing || locallyExpired) && styles.primaryButtonDisabled]}
+          style={[styles.payButton, (isProcessing || locallyExpired) && styles.payButtonDisabled]}
           onPress={handlePay}
           disabled={isProcessing || locallyExpired}
           testID="checkout-pay-btn"
         >
-          {isProcessing ? (
-            <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
-          ) : (
+          {isProcessing ? <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} /> : (
             <>
               <Ionicons name="lock-closed" size={16} color={DesignColors.onPrimaryContainer} />
-              <Text style={styles.primaryText}>Pay {formatNaira(amount)}</Text>
+              <Text style={styles.payText}>Pay {formatNaira(amount)}</Text>
             </>
           )}
         </Pressable>
@@ -231,38 +248,3 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surface },
-  topBar: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm },
-  topBarTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700', fontSize: 17 },
-  content: { padding: DesignSpacing.md, paddingBottom: DesignSpacing.xl, gap: DesignSpacing.lg },
-  center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.md, padding: DesignSpacing.lg },
-  footer: { padding: DesignSpacing.md, paddingTop: DesignSpacing.xs, gap: DesignSpacing.sm },
-  mutedText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20, textAlign: 'center' },
-  sectionHeader: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
-  sectionBar: { width: 3, height: 14, borderRadius: 2, backgroundColor: DesignColors.primaryBright },
-  sectionLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.4 },
-  listingMini: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.lg, padding: DesignSpacing.md, borderWidth: 1, borderColor: DesignColors.borderFaint },
-  listingMiniIcon: { width: 44, height: 44, borderRadius: DesignRadius.md, backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder, alignItems: 'center', justifyContent: 'center' },
-  listingMiniImage: { width: 44, height: 44, borderRadius: DesignRadius.md },
-  listingMiniInfo: { flex: 1, gap: 2 },
-  listingMiniSub: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
-  listingMiniTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  listingMiniMeta: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
-  amountCard: { backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder, borderRadius: DesignRadius.xl, padding: DesignSpacing.lg, gap: DesignSpacing.xs },
-  amountValue: { ...DesignTypography.headlineLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '800', fontSize: 34 },
-  amountDivider: { height: 1, backgroundColor: DesignColors.primaryTintBorder, marginVertical: DesignSpacing.sm },
-  amountNote: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20 },
-  primaryButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8, backgroundColor: DesignColors.primaryContainer, borderRadius: DesignRadius.full, paddingVertical: 16 },
-  primaryButtonDisabled: { opacity: 0.6 },
-  primaryText: { ...DesignTypography.bodyLg, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
-  releaseLink: { alignItems: 'center', paddingVertical: DesignSpacing.xs },
-  releaseText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, fontWeight: '600', textDecorationLine: 'underline' },
-  successBadge: { width: 88, height: 88, borderRadius: 44, backgroundColor: DesignColors.secondary, borderWidth: 6, borderColor: DesignColors.primaryTintMid, alignItems: 'center', justifyContent: 'center' },
-  successTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '800' },
-  successAmount: { ...DesignTypography.headlineLg, color: DesignColors.secondary, fontFamily, fontWeight: '800' },
-  successDivider: { width: 48, height: 3, borderRadius: 2, backgroundColor: DesignColors.primaryBright, marginVertical: DesignSpacing.xs },
-  errorBadge: { width: 88, height: 88, borderRadius: 44, backgroundColor: DesignColors.errorContainer, alignItems: 'center', justifyContent: 'center' },
-  expiredTitle: { ...DesignTypography.headlineMd, color: DesignColors.error, fontFamily, fontWeight: '800' },
-});

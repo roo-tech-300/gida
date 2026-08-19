@@ -42,12 +42,14 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
     throw new Error(profileError.message);
   }
 
-  const budget = data.maxBudget ? parseFloat(data.maxBudget) : null;
+  const minBudget = data.minBudget ? parseFloat(data.minBudget) : null;
+  const maxBudget = data.maxBudget ? parseFloat(data.maxBudget) : null;
 
   const { error: livingError } = await supabase.from('living_preferences').upsert(
     {
       profile_id: userId,
-      max_budget: budget,
+      min_budget: minBudget,
+      max_budget: maxBudget,
       preferred_area: data.preferredArea.trim() || null,
       preferred_layout: data.preferredLayout,
       must_have_amenities: data.mustHaveAmenities,

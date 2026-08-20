@@ -13,6 +13,7 @@ import { HomeSearchBar } from '@/components/home/home-search-bar';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
+import { SearchScreen, type SearchScreenRef } from '@/components/search/search-screen';
 import { useRecommendedListings } from '@/hooks/useRecommendedListings';
 import { useListings } from '@/hooks/use-listings';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
@@ -35,15 +36,14 @@ export function DiscoverHomeScreen() {
   const isError = useRecommended ? recommended.isError : fallback.isError;
   const { data: savedIds = [] } = useSavedIds();
   const { mutate: toggleSave } = useToggleSave();
-  const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [feedHeight, setFeedHeight] = useState(0);
   const [mode, setMode] = useState<FeedMode>('listings');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [roommateQuery, setRoommateQuery] = useState('');
   const listRef = useRef<FlatList<FeedListing>>(null);
   const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
+  const searchScreenRef = useRef<SearchScreenRef>(null);
 
   const categories = useMemo(() => {
     const set = new Set(listings.map((l) => l.category).filter(Boolean));
@@ -79,16 +79,13 @@ export function DiscoverHomeScreen() {
     [router],
   );
 
+  const openSearch = useCallback(() => {
+    searchScreenRef.current?.open();
+  }, []);
+
   const filteredListings = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return listings.filter((listing) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        `${listing.title} ${listing.location} ${listing.category}`.toLowerCase().includes(normalizedQuery);
-      const matchesCategory = activeCategory === 'All' || listing.category === activeCategory;
-      return matchesQuery && matchesCategory;
-    });
-  }, [query, activeCategory, listings]);
+    return listings.filter((listing) => activeCategory === 'All' || listing.category === activeCategory);
+  }, [activeCategory, listings]);
 
   const likedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
@@ -132,8 +129,8 @@ export function DiscoverHomeScreen() {
             )}
             {mode === 'listings' && filteredListings.length === 0 && !isLoading && (
               <NoResultsFoundScreen
-                query={query}
-                onQueryChange={setQuery}
+                query=""
+                onQueryChange={() => {}}
                 onAdjustFilters={() => setFiltersOpen((open) => !open)}
                 onRefresh={onRefresh}
                 refreshing={isRefetching}
@@ -141,18 +138,17 @@ export function DiscoverHomeScreen() {
               />
             )}
             {feedHeight > 0 && mode === 'roommates' && (
-              <RoommateDeck itemHeight={feedHeight} query={roommateQuery} onQueryChange={setRoommateQuery} />
+              <RoommateDeck itemHeight={feedHeight} query="" onQueryChange={() => {}} />
             )}
           </View>
 
           {mode === 'listings' ? (
             <HomeSearchBar
-              value={query}
-              onChangeText={setQuery}
               hasFilter
               onFilterPress={() => setFiltersOpen((open) => !open)}
               currentMode={mode}
               onSwipeDown={openModeSelector}
+              onOpenSearch={openSearch}
               filtersOpen={filtersOpen}
               categories={categories}
               activeCategory={activeCategory}
@@ -160,11 +156,10 @@ export function DiscoverHomeScreen() {
             />
           ) : (
             <HomeSearchBar
-              value={roommateQuery}
-              onChangeText={setRoommateQuery}
               placeholder="Search by name, uni, or keyword..."
               currentMode={mode}
               onSwipeDown={openModeSelector}
+              onOpenSearch={openSearch}
             />
           )}
 
@@ -176,6 +171,12 @@ export function DiscoverHomeScreen() {
           currentMode={mode}
           onSelectMode={handleSelectMode}
           onDismiss={() => {}}
+        />
+
+        <SearchScreen
+          ref={searchScreenRef}
+          onPressListing={onViewListing}
+          onPressRoommate={(id) => router.push(`/roommate/${id}`)}
         />
       </SafeAreaView>
     </View>

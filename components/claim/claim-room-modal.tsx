@@ -1,18 +1,18 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Animated, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors } from '@/constants/design';
 import { RoommatePrompt } from '@/components/claim/roommate-prompt';
 import { GroupSizeSelector } from '@/components/claim/group-size-selector';
 import { ExistingFriendsSelector } from '@/components/claim/existing-friends-selector';
 import { FriendPicker, type SelectedFriend } from '@/components/claim/friend-picker';
-import { ClaimReview } from '@/components/claim/claim-review';
+import { ClaimReviewStep } from '@/components/claim/claim-review-step';
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
 import { JoinInviteCard } from '@/components/claim/join-invite-card';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
+import { StepTransition } from '@/components/claim/step-transition';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
@@ -89,23 +89,25 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const handleReserve = useCallback(async () => {
     if (!dbListing) return;
     try {
-      const { credit, synced } = await purchaseSlot({ listing: dbListing, targetOccupancy: peopleTotal, createCode: inviteCode });
+      const { credit } = await purchaseSlot({
+        listing: dbListing,
+        targetOccupancy: peopleTotal,
+        createCode: inviteCode,
+        invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
+      });
       const message = isBuyout
         ? 'Spot reserved — the whole property is yours!'
         : matchedCount > 0
           ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
           : 'Spot secured! Invite your friends to keep the group together.';
       showToast({ message, type: 'success' });
-      if (!synced) {
-        showToast({ message: "Reserved locally — couldn't sync to the server. Sign in to persist your spot.", type: 'error' });
-      }
       onClose();
       router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode]);
+  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends]);
 
   const baseRent = calculateBaseRent(priceAmount, pricingOccupancy);
   const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
@@ -130,25 +132,20 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     }
     if (isConfirmStep) {
       return (
-        <>
-          <Text style={styles.title}>{isBuyout ? 'Your private place' : 'Review & reserve'}</Text>
-          <Text style={styles.subtitle}>
-            {isBuyout ? 'You get the entire property to yourself.' : 'Lock in your group before paying.'}
-          </Text>
-          <ClaimReview
-            listingTitle={listing?.title || 'Gida Property'}
-            listingPriceLabel={`Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`}
-            listingImage={dbListing?.primary_image || listing?.image}
-            friendsCount={friends.length}
-            codeSeats={codeSeats}
-            matchedCount={matchedCount}
-            code={inviteCode}
-            roster={friends}
-            baseRent={baseRent}
-            platformFee={platformFee}
-            totalCost={totalCost}
-          />
-        </>
+        <ClaimReviewStep
+          isBuyout={isBuyout}
+          listingTitle={listing?.title || 'Gida Property'}
+          listingPriceLabel={`Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`}
+          listingImage={dbListing?.primary_image || listing?.image}
+          friendsCount={friends.length}
+          codeSeats={codeSeats}
+          matchedCount={matchedCount}
+          code={inviteCode}
+          roster={friends}
+          baseRent={baseRent}
+          platformFee={platformFee}
+          totalCost={totalCost}
+        />
       );
     }
     if (step === 2) {
@@ -164,7 +161,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       return (
         <>
           <Text style={styles.title}>Do you already have these roommates?</Text>
-          <Text style={styles.subtitle}>Tell us how many are friends — Gida fills the rest.</Text>
+          <Text style={styles.subtitle}>Tell us how many roomates you already have, and we will fill whatever space is left</Text>
           <ExistingFriendsSelector roommateCount={roommateCount} value={haveCount} onChange={changeHaveCount} />
         </>
       );
@@ -229,13 +226,15 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                   keyboardShouldPersistTaps="handled"
                   nestedScrollEnabled
                   removeClippedSubviews={false}
-                >
-                  {renderStep()}
-                </ScrollView>
+                  >
+                    <StepTransition stepKey={step} style={styles.stepContent}>
+                      {renderStep()}
+                    </StepTransition>
+                  </ScrollView>
 
                 <WizardFooter
                   label={footerLabel}
-                  icon={isConfirmStep ? 'shield-checkmark-outline' : 'arrow-forward'}
+                    icon={isConfirmStep ? undefined : 'arrow-forward'}
                   loading={isPurchasing}
                   disabled={!canContinue}
                   onPress={handleFooterPress}

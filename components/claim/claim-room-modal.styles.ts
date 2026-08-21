@@ -75,6 +75,7 @@ export const styles = StyleSheet.create({
     backgroundColor: DesignColors.cardBorder,
   },
   scroll: { flex: 1 },
+  stepContent: { gap: 14 },
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,

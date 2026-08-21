@@ -7,12 +7,14 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { useCreditForListing } from '@/hooks/use-liquidity';
+import { usePendingInvitationForListing } from '@/hooks/use-lodge-invitations';
 import { useTourBookings } from '@/hooks/use-tour-bookings';
 import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
 import { useReviewEligibility } from '@/hooks/use-review-eligibility';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
+import { InviteResponseModal } from './invite-response-modal';
 import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
@@ -30,6 +32,7 @@ const HERO_HEIGHT = 340;
 export function PropertyDetailsScreen({ property, photos, dbListing }: { property: FeedListing; photos?: string[]; dbListing?: DbListing }) {
   const queryClient = useQueryClient();
   const { data: credit, isLoading: isCheckingCredit } = useCreditForListing(property.id);
+  const { data: invitation, isLoading: isLoadingInvitation } = usePendingInvitationForListing(property.id);
   const { data: myTours = [] } = useTourBookings();
   const { data: reviews = [], isLoading: isLoadingReviews, isError: isReviewsError, error: reviewsError, refetch: refetchReviews } = useReviews(property.id);
   const { data: reviewEligibility } = useReviewEligibility(property.id);
@@ -37,6 +40,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [tourModalOpen, setTourModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
+  const [inviteModalOpen, setInviteModalOpen] = useState(false);
 
   const allPhotos = useMemo(() => {
     if (photos && photos.length > 0) return photos;
@@ -80,6 +84,10 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       ctaIcon = 'card-outline';
       onCtaPress = () => router.push(`/property/pay-slot?id=${credit.id}`);
     }
+  } else if (invitation) {
+    ctaLabel = "You're Invited";
+    ctaIcon = 'mail-open-outline';
+    onCtaPress = () => setInviteModalOpen(true);
   }
 
   const activeTour = myTours.find(
@@ -188,7 +196,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         ctaIcon={ctaIcon}
         onCtaPress={onCtaPress}
         onVisitProperty={() => setTourModalOpen(true)}
-        showSpinner={isCheckingCredit && !credit}
+        showSpinner={(isCheckingCredit || isLoadingInvitation) && !credit && !invitation}
       />
 
       <ImageGalleryModal
@@ -211,6 +219,12 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       />
 
       <ClaimRoomModal visible={claimModalOpen} listingId={property.id} onClose={() => setClaimModalOpen(false)} />
+
+      <InviteResponseModal
+        visible={inviteModalOpen}
+        invitation={invitation ?? null}
+        onClose={() => setInviteModalOpen(false)}
+      />
     </SafeAreaView>
   );
 }

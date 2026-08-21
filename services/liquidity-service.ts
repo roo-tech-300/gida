@@ -1,14 +1,13 @@
 import { supabase } from '@/lib/supabase';
-import { derivePropertyTier, isValidTargetOccupancy, verifyPodCompleteness } from '@/utils/liquidity-math';
+import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
-import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod } from '@/services/liquidity-pod-service';
-import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
-import { getLocalCredits, getLocalPods, upsertPod, resetLocalLiquidityState } from '@/services/liquidity-store';
+import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
+import type { PurchaseSlotCreditResult, InvitedFriend } from '@/services/liquidity-pod-service';
 import type { Estate, SlotCredit, Pod, PodMember, PodInvitation } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 import { MOCK_ESTATES } from '@/dummy/liquidity-mock';
 
-export { resetLocalLiquidityState, findPodByGroupCode, removeMemberFromPod };
+export { findPodByGroupCode, removeMemberFromPod };
 export type { PurchaseSlotCreditResult };
 
 export type PurchaseSlotCreditInput = {
@@ -16,12 +15,11 @@ export type PurchaseSlotCreditInput = {
   targetOccupancy: number;
   createCode?: string;
   joinCode?: string;
+  invitedFriends?: InvitedFriend[];
 };
 
-export async function findUserCreditForProperty(userId: string, listingId: string): Promise<SlotCredit | null> {
-  if (userId === 'usr-current-student') {
-    return getLocalCredits().find((c) => c.user_id === userId && c.listing_id === listingId) ?? null;
-  }
+export async function findUserCreditForProperty(userId: string | null, listingId: string): Promise<SlotCredit | null> {
+  if (!userId) return null;
   try {
     const { data, error } = await supabase
       .from('slot_credits')
@@ -33,7 +31,7 @@ export async function findUserCreditForProperty(userId: string, listingId: strin
   } catch (error) {
     console.error('[LiquidityService] Failed to look up existing credit:', error);
   }
-  return getLocalCredits().find((c) => c.user_id === userId && c.listing_id === listingId) ?? null;
+  return null;
 }
 
 export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promise<PurchaseSlotCreditResult> {
@@ -43,6 +41,8 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
   }
 
   const userId = await currentUserId();
+  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+
   const existing = await findUserCreditForProperty(userId, input.listing.id);
   if (existing && existing.status !== 'expired') {
     throw new Error('You already have a spot reserved on this property.');
@@ -52,7 +52,7 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
   if (input.joinCode && input.joinCode.trim()) {
     return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier });
   }
-  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode });
+  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode, invitedFriends: input.invitedFriends });
 }
 
 export async function fetchEstates(): Promise<Estate[]> {
@@ -70,9 +70,7 @@ export async function fetchEstates(): Promise<Estate[]> {
 
 export async function fetchUserSlotCredits(): Promise<SlotCredit[]> {
   const userId = await currentUserId();
-  if (userId === 'usr-current-student') {
-    return getLocalCredits();
-  }
+  if (!userId) return [];
   try {
     const { data, error } = await supabase.from('slot_credits').select('*, estate:estates(*)').eq('user_id', userId);
     if (error || !data) {
@@ -87,10 +85,7 @@ export async function fetchUserSlotCredits(): Promise<SlotCredit[]> {
 
 export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
   const userId = await currentUserId();
-  const filterLocal = (pods: Pod[]) => pods.filter((pod) => !estateId || pod.estate_id === estateId);
-  if (userId === 'usr-current-student') {
-    return filterLocal(getLocalPods());
-  }
+  if (!userId) return [];
   try {
     let query = supabase
       .from('pods')
@@ -141,13 +136,13 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
     return pods;
   } catch (error) {
     console.error('[LiquidityService] Failed to fetch pods:', error);
-    return filterLocal(getLocalPods());
+    return [];
   }
 }
 
 export async function fetchPodInvitations(podId: string): Promise<PodInvitation[]> {
   const userId = await currentUserId();
-  if (userId === 'usr-current-student') return [];
+  if (!userId) return [];
   try {
     const { data, error } = await supabase
       .from('pod_invitations')
@@ -164,38 +159,9 @@ export async function fetchPodInvitations(podId: string): Promise<PodInvitation[
 
 export async function inviteRoommateToPod(podId: string | undefined, inviteeName: string, inviteeUserId?: string): Promise<Pod | null> {
   const userId = await currentUserId();
-
-  if (userId === 'usr-current-student') {
-    const targetPod = getLocalPods().find((p) => !podId || p.id === podId) ?? getLocalPods()[0];
-    if (!targetPod) return null;
-    const target = targetPod.target_occupancy ?? targetPod.property_tier;
-    const newMember: PodMember = {
-      user_id: `usr-inv-${Date.now()}`,
-      full_name: inviteeName,
-      intent_size: 1,
-      campus: 'UNILAG (Main Campus)',
-      major: 'Separate Billing (Pending)',
-      cleanliness_score: 5,
-      sleep_schedule: 'Flexible',
-      slot_credit_id: 'pending-separate-billing',
-    };
-    const nextTotalIntent = targetPod.current_total_intent + 1;
-    if (nextTotalIntent > target) {
-      throw new Error('This pod is already at full occupancy. No more invites allowed.');
-    }
-    const isNowFinalized = verifyPodCompleteness(nextTotalIntent, target);
-    const updatedPod: Pod = {
-      ...targetPod,
-      members: [...targetPod.members, newMember],
-      current_total_intent: nextTotalIntent,
-      is_finalized: isNowFinalized,
-      physical_room_id: isNowFinalized ? targetPod.physical_room_id ?? `room-${Math.floor(700 + Math.random() * 100)}` : targetPod.physical_room_id,
-    };
-    upsertPod(updatedPod);
-    return updatedPod;
-  }
-
+  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
   if (!podId) throw new Error('No pod found to invite to.');
+
   const { error } = await supabase.from('pod_invitations').insert({
     pod_id: podId,
     inviter_user_id: userId,

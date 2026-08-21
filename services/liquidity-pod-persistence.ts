@@ -1,6 +1,4 @@
 import { supabase } from '@/lib/supabase';
-import { updateCredit } from '@/services/liquidity-store';
-import { assertRevenueParity } from '@/utils/liquidity-pricing';
 import type { SlotCredit, Pod } from '@/types/liquidity';
 
 export async function insertCredit(credit: SlotCredit, userId: string): Promise<string | undefined> {
@@ -47,13 +45,12 @@ export async function persistFounderCredit(credit: SlotCredit, podId: string, us
     return false;
   }
   if (creditId !== credit.id) {
-    updateCredit(credit.id, { id: creditId });
     credit.id = creditId;
   }
   return true;
 }
 
-export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: string): Promise<boolean> {
+export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: string): Promise<string | null> {
   try {
     const { data, error } = await supabase
       .from('pods')
@@ -71,12 +68,15 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
       .maybeSingle();
     if (error || !data) {
       console.warn('[LiquidityService] Pod insert skipped:', error?.message ?? 'no data');
-      return false;
+      return null;
     }
-    return persistFounderCredit(credit, data.id, userId);
+    const persisted = await persistFounderCredit(credit, data.id, userId);
+    if (!persisted) return null;
+    pod.id = data.id;
+    return data.id;
   } catch (error) {
     console.error('[LiquidityService] Exception during pod persistence:', error);
-    return false;
+    return null;
   }
 }
 
@@ -108,7 +108,6 @@ export async function persistJoin(updatedPod: Pod, credit: SlotCredit, userId: s
       return false;
     }
     if (creditId !== credit.id) {
-      updateCredit(credit.id, { id: creditId });
       credit.id = creditId;
     }
     return true;

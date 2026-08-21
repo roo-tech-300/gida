@@ -1,5 +1,4 @@
-import { purchaseSlotCredit, findUserCreditForProperty, resetLocalLiquidityState } from './liquidity-service';
-import { getLocalCredits } from './liquidity-store';
+import { purchaseSlotCredit, findUserCreditForProperty } from './liquidity-service';
 import { supabase } from '@/lib/supabase';
 import type { DbListing } from '@/types/feed-listing';
 
@@ -7,12 +6,14 @@ jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { getUser: jest.fn() },
     from: jest.fn(),
+    rpc: jest.fn(),
   },
 }));
 
 const supabaseMock = supabase as unknown as {
   auth: { getUser: jest.Mock };
   from: jest.Mock;
+  rpc: jest.Mock;
 };
 
 type Chain = Record<string, jest.Mock>;
@@ -26,6 +27,12 @@ function makeChain(): Chain {
   chain.update = jest.fn(() => chain);
   return chain;
 }
+
+const TEST_USER = 'aaaaaaaa-1111-2222-3333-444444444444';
+const CREDIT_ID = 'eeeeeeee-1111-2222-3333-444444444444';
+const SECOND_CREDIT_ID = 'f0f0f0f0-1111-2222-3333-444444444444';
+const POD_ID = 'dddddddd-1111-2222-3333-444444444444';
+const ESTATE_ID = 'ffffffff-1111-2222-3333-444444444444';
 
 const LISTING: DbListing = {
   id: '11111111-2222-3333-4444-555555555555',
@@ -66,15 +73,41 @@ const LISTING: DbListing = {
   abstract_slots_available: 4,
 };
 
+function chainFor(tables: Partial<Record<string, Chain>>): jest.Mock {
+  return jest.fn((table: string) => tables[table] ?? makeChain());
+}
+
+function successChain(data: unknown): Chain {
+  const chain = makeChain();
+  chain.maybeSingle = jest.fn(async () => ({ data, error: null }));
+  return chain;
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
-  resetLocalLiquidityState();
   supabaseMock.from.mockImplementation(() => makeChain());
-  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
+  supabaseMock.rpc.mockResolvedValue({ error: null });
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: TEST_USER } } });
 });
 
 describe('purchaseSlotCredit dedupe (one spot per user per listing)', () => {
   it('rejects a second purchase for the same listing', async () => {
+    const slotCreditsChain = makeChain();
+    const results = [
+      { data: null, error: null },
+      { data: { id: CREDIT_ID }, error: null },
+      { data: { id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id, status: 'booked_pending_claim' }, error: null },
+    ];
+    slotCreditsChain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
+
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        pods: successChain({ id: POD_ID }),
+        slot_credits: slotCreditsChain,
+      }),
+    );
+
     await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
 
     await expect(
@@ -83,27 +116,46 @@ describe('purchaseSlotCredit dedupe (one spot per user per listing)', () => {
   });
 
   it('allows a purchase for a different listing', async () => {
-    await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    const other = { ...LISTING, id: '22222222-3333-4444-5555-666666666666' };
+    const slotCreditsChain = makeChain();
+    const results = [
+      { data: null, error: null },
+      { data: { id: CREDIT_ID }, error: null },
+      { data: null, error: null },
+      { data: { id: SECOND_CREDIT_ID }, error: null },
+    ];
+    slotCreditsChain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
 
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        pods: successChain({ id: POD_ID }),
+        slot_credits: slotCreditsChain,
+      }),
+    );
+
+    const other = { ...LISTING, id: '22222222-3333-4444-5555-666666666666' };
     const { credit } = await purchaseSlotCredit({ listing: other, targetOccupancy: 2 });
     expect(credit.listing_id).toBe(other.id);
   });
 
   it('rejects joining a pod when the user already holds that listing', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        slot_credits: successChain({ id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id, status: 'booked_pending_claim' }),
+      }),
+    );
 
     await expect(
-      purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: founder.invite_code as string }),
+      purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: 'GIDA-POD-SOMECODE12' }),
     ).rejects.toThrow('already have a spot reserved');
   });
 
-  it('creates exactly one credit for the listing across repeated taps', async () => {
-    await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow('already');
+  it('surfaces the server credit through findUserCreditForProperty', async () => {
+    supabaseMock.from.mockImplementation(
+      chainFor({ slot_credits: successChain({ id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id }) }),
+    );
 
-    const matches = getLocalCredits().filter((c) => c.listing_id === LISTING.id);
-    expect(matches).toHaveLength(1);
-    expect(await findUserCreditForProperty('usr-current-student', LISTING.id)).not.toBeNull();
+    const credit = await findUserCreditForProperty(TEST_USER, LISTING.id);
+    expect(credit?.id).toBe(CREDIT_ID);
   });
 });

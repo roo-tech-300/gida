@@ -20,7 +20,10 @@ type Chain = Record<string, jest.Mock>;
 function makeChain(data?: unknown, error?: unknown): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
-  chain.eq = jest.fn(async () => ({ data, error: error ?? null }));
+  chain.eq = jest.fn(() => chain);
+  chain.maybeSingle = jest.fn(async () => ({ data, error: error ?? null }));
+  (chain as unknown as { then: (resolve: (value: { data: unknown; error: unknown }) => void) => void }).then =
+    (resolve) => resolve({ data, error: error ?? null });
   return chain;
 }
 
@@ -47,7 +50,7 @@ beforeEach(() => {
 });
 
 describe('location access payments', () => {
-  it('returns no unlocked listings for the offline DEV user', async () => {
+  it('returns no unlocked listings when signed out', async () => {
     const ids = await fetchUnlockedListingIds();
 
     expect(ids).toEqual([]);
@@ -79,10 +82,17 @@ describe('location access payments', () => {
     expect(ids).toEqual([]);
   });
 
-  it('simulates payment for the offline DEV user', async () => {
+  it('simulates payment when no worker url is configured', async () => {
     const result = await initializeLocationPayment('id-a');
 
     expect(result.simulated).toBe(true);
+    expect((global as unknown as { fetch: jest.Mock }).fetch).not.toHaveBeenCalled();
+  });
+
+  it('requires sign-in before initializing a payment session', async () => {
+    process.env.EXPO_PUBLIC_WORKER_URL = WORKER_URL;
+
+    await expect(initializeLocationPayment('id-a')).rejects.toThrow(/signed in/i);
     expect((global as unknown as { fetch: jest.Mock }).fetch).not.toHaveBeenCalled();
   });
 
@@ -170,10 +180,10 @@ describe('location access payments', () => {
     expect(supabaseMock.from).toHaveBeenCalledWith('location_access_payments');
   });
 
-  it('skips the lodge unlock insert for the offline DEV user', async () => {
+  it('refuses the lodge unlock when signed out', async () => {
     const ok = await unlockLocationForLodge({ creditId: 'credit-1', listingId: 'id-a' });
 
-    expect(ok).toBe(true);
+    expect(ok).toBe(false);
     expect(supabaseMock.from).not.toHaveBeenCalled();
   });
 });

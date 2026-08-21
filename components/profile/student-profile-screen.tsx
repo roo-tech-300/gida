@@ -16,6 +16,7 @@ import { ActiveAdminCard } from './active-admin-card';
 import { JoinGroupCard } from './join-group-card';
 import { ReservedHousesSection } from './reserved-houses-section';
 import { ProfileHeader } from './profile-header';
+import { PendingLodgeInvites } from './pending-lodge-invite-card';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
@@ -122,6 +123,7 @@ export function StudentProfileScreen() {
           />
 
           <JoinGroupCard />
+          <PendingLodgeInvites />
           <ReservedHousesSection reservations={reservations ?? []} hasError={reservationsError} isLoading={reservationsPending} />
 
           <View style={styles.sectionFlat}>

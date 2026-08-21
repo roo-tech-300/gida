@@ -71,6 +71,10 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
         return;
       }
       const userId = await currentUserId();
+      if (!userId) {
+        setError('Please sign in to join a group.');
+        return;
+      }
       const alreadyMember = found.members?.some((m) => m.user_id === userId);
       if (alreadyMember) {
         setError("You're already in this group. Head to your lobby to continue.");
@@ -90,15 +94,12 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
     if (!dbListing || !pod) return;
     const seat = pod.current_total_intent + 1;
     try {
-      const { credit, synced } = await purchaseSlot({
+      const { credit } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: pod.target_occupancy,
         joinCode: code.trim().toUpperCase(),
       });
       showToast({ message: `You're in! Seat ${seat} of ${pod.target_occupancy} is yours.`, type: 'success' });
-      if (!synced) {
-        showToast({ message: "Reserved locally — couldn't sync to the server. Sign in to persist your spot.", type: 'error' });
-      }
       onClose();
       router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
     } catch (caught) {

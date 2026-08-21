@@ -1,18 +1,19 @@
 import { purchaseSlotCredit } from './liquidity-service';
 import { supabase } from '@/lib/supabase';
-import { resetLocalLiquidityState, getLocalCredits, getLocalPods } from './liquidity-store';
 import type { DbListing } from '@/types/feed-listing';
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { getUser: jest.fn() },
     from: jest.fn(),
+    rpc: jest.fn(),
   },
 }));
 
 const supabaseMock = supabase as unknown as {
   auth: { getUser: jest.Mock };
   from: jest.Mock;
+  rpc: jest.Mock;
 };
 
 type Chain = Record<string, jest.Mock>;
@@ -28,8 +29,12 @@ function makeChain(): Chain {
   return chain;
 }
 
+const TEST_USER = 'aaaaaaaa-1111-2222-3333-444444444444';
+const JOINER_ID = 'bbbbbbbb-1111-2222-3333-444444444444';
 const CREDIT_ID = 'eeeeeeee-1111-2222-3333-444444444444';
-const JOINER_ID = 'aaaaaaaa-1111-2222-3333-444444444444';
+const JOINER_CREDIT_ID = 'f0f0f0f0-1111-2222-3333-444444444444';
+const POD_ID = 'dddddddd-1111-2222-3333-444444444444';
+const ESTATE_ID = 'ffffffff-1111-2222-3333-444444444444';
 
 const LISTING: DbListing = {
   id: '11111111-2222-3333-4444-555555555555',
@@ -74,45 +79,37 @@ function chainFor(tables: Partial<Record<string, Chain>>): jest.Mock {
   return jest.fn((table: string) => tables[table] ?? makeChain());
 }
 
-function successChain(): Chain {
+function successChain(data: unknown): Chain {
   const chain = makeChain();
-  chain.maybeSingle = jest.fn(async () => ({ data: { id: CREDIT_ID }, error: null }));
+  chain.maybeSingle = jest.fn(async () => ({ data, error: null }));
   return chain;
 }
 
-function dedupeThenInsertChain(): Chain {
+function dedupeThenInsertChain(creditId: string): Chain {
   const chain = makeChain();
   const results = [
     { data: null, error: null },
-    { data: { id: CREDIT_ID }, error: null },
+    { data: { id: creditId }, error: null },
   ];
-  chain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more' } });
+  chain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
   return chain;
 }
 
 beforeEach(() => {
   jest.clearAllMocks();
-  resetLocalLiquidityState();
   supabaseMock.from.mockImplementation(() => makeChain());
-  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
+  supabaseMock.rpc.mockResolvedValue({ error: null });
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: TEST_USER } } });
 });
 
-describe('signed-in user sync guarantees', () => {
-  it('throws and rolls back local state when the server insert fails', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: 'real-user-1' } } });
-    const creditsBefore = getLocalCredits().length;
-    const podsBefore = getLocalPods().length;
-
+describe('server sync guarantees', () => {
+  it('throws when the server inserts fail — no silent local fallback', async () => {
     await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
       /Could not persist your reservation/,
     );
-
-    expect(getLocalCredits().length).toBe(creditsBefore);
-    expect(getLocalPods().length).toBe(podsBefore);
   });
 
-  it('persists amount_paid on the pod_members row', async () => {
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: 'real-user-1' } } });
+  it('persists amount_paid on the founder pod_members row', async () => {
     const memberInserts: unknown[] = [];
     const membersChain = makeChain();
     membersChain.insert = jest.fn((payload: unknown) => {
@@ -122,9 +119,9 @@ describe('signed-in user sync guarantees', () => {
 
     supabaseMock.from.mockImplementation(
       chainFor({
-        estates: successChain(),
-        pods: successChain(),
-        slot_credits: dedupeThenInsertChain(),
+        estates: successChain({ id: ESTATE_ID }),
+        pods: successChain({ id: POD_ID }),
+        slot_credits: dedupeThenInsertChain(CREDIT_ID),
         pod_members: membersChain,
       }),
     );
@@ -135,14 +132,50 @@ describe('signed-in user sync guarantees', () => {
   });
 
   it('persists physical_room_id and the joiner share when a join finalizes a pod', async () => {
-    const founder = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: JOINER_ID } } });
     const podUpdates: unknown[] = [];
     const memberInserts: unknown[] = [];
-    const podsChain = makeChain();
-    podsChain.update = jest.fn((payload: unknown) => {
+
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        slot_credits: dedupeThenInsertChain(CREDIT_ID),
+        pods: successChain({ id: POD_ID }),
+      }),
+    );
+
+    const founder = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+
+    const joinerPodsChain = makeChain();
+    joinerPodsChain.maybeSingle = jest.fn(async () => ({
+      data: {
+        id: POD_ID,
+        estate_id: ESTATE_ID,
+        listing_id: LISTING.id,
+        property_tier: 4,
+        matched_gender: 'ANY',
+        target_occupancy: 2,
+        group_code: founder.credit.invite_code,
+        members: [{
+          user_id: TEST_USER,
+          full_name: 'Founder',
+          intent_size: 1,
+          campus: '',
+          major: '',
+          cleanliness_score: 5,
+          sleep_schedule: '',
+          slot_credit_id: CREDIT_ID,
+          amount_paid: 610000,
+        }],
+        current_total_intent: 1,
+        is_finalized: false,
+        physical_room_id: null,
+        created_at: new Date().toISOString(),
+      },
+      error: null,
+    }));
+    joinerPodsChain.update = jest.fn((payload: unknown) => {
       podUpdates.push(payload);
-      return podsChain;
+      return joinerPodsChain;
     });
     const membersChain = makeChain();
     membersChain.insert = jest.fn((payload: unknown) => {
@@ -152,12 +185,14 @@ describe('signed-in user sync guarantees', () => {
 
     supabaseMock.from.mockImplementation(
       chainFor({
-        estates: makeChain(),
-        slot_credits: dedupeThenInsertChain(),
-        pods: podsChain,
+        estates: successChain({ id: ESTATE_ID }),
+        slot_credits: dedupeThenInsertChain(JOINER_CREDIT_ID),
+        pods: joinerPodsChain,
         pod_members: membersChain,
       }),
     );
+
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: JOINER_ID } } });
 
     const { synced } = await purchaseSlotCredit({
       listing: LISTING,

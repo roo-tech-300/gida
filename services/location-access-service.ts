@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { currentUserId } from '@/services/liquidity-pod-service';
 
-const DEV_USER_ID = 'usr-current-student';
 const CALLBACK_ROUTE = 'property/location-unlock-callback';
 
 function workerUrl(): string {
@@ -35,7 +34,7 @@ export function buildCallbackUrl(listingId: string, extra: Record<string, string
 
 export async function fetchUnlockedListingIds(): Promise<string[]> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID || !workerUrl()) {
+  if (!userId || !workerUrl()) {
     return [];
   }
   try {
@@ -52,8 +51,8 @@ export async function fetchUnlockedListingIds(): Promise<string[]> {
 
 export async function unlockLocationForLodge(args: { creditId: string; listingId: string }): Promise<boolean> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID) {
-    return true;
+  if (!userId) {
+    return false;
   }
   try {
     const { error } = await supabase.from('location_access_payments').insert({
@@ -76,8 +75,11 @@ export async function unlockLocationForLodge(args: { creditId: string; listingId
 
 export async function initializeLocationPayment(listingId: string): Promise<InitializeLocationPaymentResult> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID || !workerUrl()) {
+  if (!workerUrl()) {
     return { simulated: true };
+  }
+  if (!userId) {
+    throw new Error('You must be signed in to unlock location access.');
   }
 
   const { data: existingAccess } = await supabase

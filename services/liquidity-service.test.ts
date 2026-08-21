@@ -1,17 +1,21 @@
-import { purchaseSlotCredit, findPodByGroupCode, inviteRoommateToPod, resetLocalLiquidityState } from './liquidity-service';
+import { purchaseSlotCredit, findPodByGroupCode, inviteRoommateToPod, findUserCreditForProperty } from './liquidity-service';
+import { acceptLodgeInvitation, fetchMyPendingInvitations, respondToLodgeInvitation } from './lodge-invitation-service';
 import { supabase } from '@/lib/supabase';
 import type { DbListing } from '@/types/feed-listing';
+import type { Pod, PendingLodgeInvitation } from '@/types/liquidity';
 
 jest.mock('@/lib/supabase', () => ({
   supabase: {
     auth: { getUser: jest.fn() },
     from: jest.fn(),
+    rpc: jest.fn(),
   },
 }));
 
 const supabaseMock = supabase as unknown as {
   auth: { getUser: jest.Mock };
   from: jest.Mock;
+  rpc: jest.Mock;
 };
 
 type Chain = Record<string, jest.Mock>;
@@ -20,28 +24,28 @@ function makeChain(): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
+  chain.order = jest.fn(() => chain);
   chain.single = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.maybeSingle = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.insert = jest.fn(() => chain);
   chain.update = jest.fn(() => chain);
+  chain.delete = jest.fn(() => chain);
   return chain;
 }
 
-const ESTATE_ID = 'cccccccc-1111-2222-3333-444444444444';
+function rowsChain(rows: unknown[]): Chain {
+  const chain = makeChain();
+  (chain as unknown as { then: (resolve: (value: unknown) => void) => void }).then = (resolve) => resolve({ data: rows, error: null });
+  return chain;
+}
+
+const TEST_USER = 'aaaaaaaa-1111-2222-3333-444444444444';
+const FRIEND_ID = 'bbbbbbbb-1111-2222-3333-444444444444';
+const FOUNDER_ID = 'cccccccc-1111-2222-3333-444444444444';
 const POD_ID = 'dddddddd-1111-2222-3333-444444444444';
 const CREDIT_ID = 'eeeeeeee-1111-2222-3333-444444444444';
-const JOINER_ID = 'aaaaaaaa-1111-2222-3333-444444444444';
-
-function signInAsJoiner() {
-  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: JOINER_ID } } });
-  const creditsChain = makeChain();
-  let call = 0;
-  creditsChain.maybeSingle = jest.fn(async () => ({
-    data: call++ % 2 === 0 ? null : { id: CREDIT_ID },
-    error: null,
-  }));
-  supabaseMock.from.mockImplementation((table: string) => (table === 'slot_credits' ? creditsChain : makeChain()));
-}
+const ESTATE_ID = 'ffffffff-1111-2222-3333-444444444444';
+const GROUP_CODE = 'GIDA-POD-TESTCODE12';
 
 const LISTING: DbListing = {
   id: '11111111-2222-3333-4444-555555555555',
@@ -82,166 +86,257 @@ const LISTING: DbListing = {
   abstract_slots_available: 4,
 };
 
+function chainFor(tables: Partial<Record<string, Chain>>): jest.Mock {
+  return jest.fn((table: string) => tables[table] ?? makeChain());
+}
+
+function successChain(data: unknown): Chain {
+  const chain = makeChain();
+  chain.maybeSingle = jest.fn(async () => ({ data, error: null }));
+  return chain;
+}
+
+type MaybeResult = { data: unknown; error: unknown };
+
+function sequentialChain(results: MaybeResult[]): Chain {
+  const chain = makeChain();
+  chain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
+  return chain;
+}
+
+function founderPodFixture(): Pod {
+  return {
+    id: POD_ID,
+    estate_id: ESTATE_ID,
+    listing_id: LISTING.id,
+    property_tier: 4,
+    matched_gender: 'ANY',
+    target_occupancy: 2,
+    group_code: GROUP_CODE,
+    members: [{
+      user_id: FOUNDER_ID,
+      full_name: 'Founder',
+      intent_size: 1,
+      campus: '',
+      major: '',
+      cleanliness_score: 5,
+      sleep_schedule: '',
+      slot_credit_id: 'founder-credit-id',
+      amount_paid: 610000,
+    }],
+    current_total_intent: 1,
+    is_finalized: false,
+    physical_room_id: null,
+    created_at: new Date().toISOString(),
+  };
+}
+
 beforeEach(() => {
   jest.clearAllMocks();
-  resetLocalLiquidityState();
   supabaseMock.from.mockImplementation(() => makeChain());
-  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
+  supabaseMock.rpc.mockResolvedValue({ error: null });
+  supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: TEST_USER } } });
 });
 
-describe('purchaseSlotCredit (founder + join-by-invite-code)', () => {
-  it('creates a founder credit + pod with a shareable group code and target occupancy', async () => {
-    const { credit } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+describe('reserve flow (server-backed)', () => {
+  it('rejects reserving when the user is signed out', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
 
-    expect(credit.target_occupancy).toBe(2);
-    expect(credit.invite_code).toMatch(/^GIDA-POD-[A-Z2-9]{12}$/);
-    expect(credit.estate_id).not.toBe(LISTING.id);
-
-    const pod = await findPodByGroupCode(credit.invite_code as string);
-    expect(pod).toBeDefined();
-    expect(pod?.group_code).toBe(credit.invite_code);
-    expect(pod?.current_total_intent).toBe(1);
-    expect(pod?.is_finalized).toBe(false);
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(/sign in/i);
   });
 
-  it('marks a solo occupancy (1/1) pod as finalized immediately', async () => {
-    const { credit } = await purchaseSlotCredit({ listing: { ...LISTING, max_roommates: 1, property_tier: 1 }, targetOccupancy: 1 });
-    const pod = await findPodByGroupCode(credit.invite_code as string);
-    expect(pod?.is_finalized).toBe(true);
-    expect(pod?.physical_room_id).toBeTruthy();
-  });
-
-  it('lets a joiner enter the invite code and join the same pod', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    signInAsJoiner();
-
-    const { credit: joinerCredit } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: founder.invite_code as string });
-
-    expect(joinerCredit.estate_id).toBe(founder.estate_id);
-    const pod = await findPodByGroupCode(founder.invite_code as string);
-    expect(pod?.members).toHaveLength(2);
-    expect(pod?.current_total_intent).toBe(2);
-    expect(pod?.is_finalized).toBe(true);
-  });
-
-  it('rejects a join when the pod is already at its target occupancy', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 1 });
-    signInAsJoiner();
-
-    await expect(
-      purchaseSlotCredit({ listing: LISTING, targetOccupancy: 1, joinCode: founder.invite_code as string }),
-    ).rejects.toThrow('already full');
-  });
-
-  it('rejects an unknown or invalid invite code', async () => {
-    await expect(
-      purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: 'GIDA-POD-9999' }),
-    ).rejects.toThrow('Invite code not found');
-  });
-
-  it('rejects an out-of-range target occupancy', async () => {
-    await expect(
-      purchaseSlotCredit({ listing: LISTING, targetOccupancy: 9 }),
-    ).rejects.toThrow('Invalid occupancy');
-  });
-
-  it('collects exactly rent + fee when a pod fills (no over/under-collection)', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 3 });
-    signInAsJoiner();
-    const j1 = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 3, joinCode: founder.invite_code as string });
-    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: 'bbbbbbbb-1111-2222-3333-444444444444' } } });
-    const j2 = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 3, joinCode: founder.invite_code as string });
-
-    const pod = await findPodByGroupCode(founder.invite_code as string);
-    const collected = (pod?.members ?? []).reduce((sum, m) => sum + (m.amount_paid ?? 0), 0);
-
-    expect(pod?.is_finalized).toBe(true);
-    expect(collected).toBe(LISTING.price_amount + 20000);
-    expect(founder.amount_paid).toBe(406667);
-    expect(j1.credit.amount_paid).toBe(406667);
-    expect(j2.credit.amount_paid).toBe(406666);
-  });
-
-  it('reports synced=false when the backend is unreachable', async () => {
-    const { credit, synced } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    expect(credit.target_occupancy).toBe(2);
-    expect(synced).toBe(false);
-  });
-
-  it('reports synced=true when estate, pod, and credit inserts all land', async () => {
-    const estatesChain = makeChain();
-    const estatesResults = [
-      { data: null, error: null },
-      { data: { id: ESTATE_ID, name: LISTING.title }, error: null },
-    ];
-    estatesChain.maybeSingle = jest.fn(async () => estatesResults.shift() ?? { data: null, error: { message: 'no more' } });
-    const podsChain = makeChain();
-    podsChain.maybeSingle = jest.fn(async () => ({ data: { id: POD_ID }, error: null }));
-    const creditsChain = makeChain();
-    creditsChain.maybeSingle = jest.fn(async () => ({ data: { id: CREDIT_ID }, error: null }));
-
-    supabaseMock.from.mockImplementation((table: string) => {
-      if (table === 'estates') return estatesChain;
-      if (table === 'pods') return podsChain;
-      if (table === 'slot_credits') return creditsChain;
-      return makeChain();
+  it('creates a founder reservation end-to-end and records invited friends', async () => {
+    const invitationInserts: unknown[] = [];
+    const invitationsChain = makeChain();
+    invitationsChain.insert = jest.fn((payload: unknown) => {
+      invitationInserts.push(payload);
+      return invitationsChain;
     });
 
-    const { synced } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        slot_credits: sequentialChain([
+          { data: null, error: null },
+          { data: { id: CREDIT_ID }, error: null },
+        ]),
+        pods: successChain({ id: POD_ID }),
+        pod_invitations: invitationsChain,
+      }),
+    );
+
+    const { credit, synced } = await purchaseSlotCredit({
+      listing: LISTING,
+      targetOccupancy: 2,
+      invitedFriends: [{ id: FRIEND_ID, name: 'Ada' }],
+    });
+
     expect(synced).toBe(true);
+    expect(credit.id).toBe(CREDIT_ID);
+    expect(invitationInserts[0]).toEqual([
+      expect.objectContaining({ pod_id: POD_ID, inviter_user_id: TEST_USER, invitee_user_id: FRIEND_ID, invitee_name: 'Ada' }),
+    ]);
+  });
+
+  it('throws when the server cannot persist the reservation', async () => {
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
+      /Could not persist your reservation/,
+    );
+  });
+
+  it('blocks a second reservation for the same listing', async () => {
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        slot_credits: successChain({ id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id, status: 'booked_pending_claim' }),
+      }),
+    );
+
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
+      'You already have a spot reserved on this property.',
+    );
   });
 });
 
-describe('inviteRoommateToPod', () => {
-  async function podIdFor(code: string): Promise<string> {
-    const pod = await findPodByGroupCode(code);
-    if (!pod) throw new Error('test pod not found');
-    return pod.id;
+describe('pods and invites', () => {
+  it('finds a pod by group code from the server', async () => {
+    const pod = founderPodFixture();
+    supabaseMock.from.mockImplementation(chainFor({ pods: successChain(pod) }));
+
+    const found = await findPodByGroupCode(GROUP_CODE.toLowerCase());
+    expect(found?.id).toBe(POD_ID);
+    expect(found?.group_code).toBe(GROUP_CODE);
+  });
+
+  it('inviteRoommateToPod inserts a pending invitation row', async () => {
+    const inserts: unknown[] = [];
+    const invitationsChain = makeChain();
+    invitationsChain.insert = jest.fn((payload: unknown) => {
+      inserts.push(payload);
+      return invitationsChain;
+    });
+    supabaseMock.from.mockImplementation(chainFor({ pod_invitations: invitationsChain }));
+
+    await inviteRoommateToPod(POD_ID, 'Tunde', FRIEND_ID);
+
+    expect(inserts[0]).toMatchObject({
+      pod_id: POD_ID,
+      inviter_user_id: TEST_USER,
+      invitee_user_id: FRIEND_ID,
+      invitee_name: 'Tunde',
+    });
+  });
+
+  it('inviteRoommateToPod requires a pod id', async () => {
+    await expect(inviteRoommateToPod(undefined, 'Tunde')).rejects.toThrow('No pod found to invite to.');
+  });
+});
+
+describe('lodge invitations', () => {
+  const invitationRow = {
+    id: 'inv-1',
+    pod_id: POD_ID,
+    inviter_user_id: FOUNDER_ID,
+    invitee_user_id: TEST_USER,
+    invitee_name: 'Me',
+    status: 'pending',
+    created_at: new Date().toISOString(),
+    pod: {
+      id: POD_ID,
+      group_code: GROUP_CODE,
+      listing_id: LISTING.id,
+      property_tier: 4,
+      target_occupancy: 2,
+      current_total_intent: 1,
+    },
+  };
+
+  function invitationFixture(): PendingLodgeInvitation {
+    const { pod, ...rest } = invitationRow;
+    return { ...(rest as Omit<PendingLodgeInvitation, 'pod'>), pod };
   }
 
-  it('invites into a partial pod without finalizing it', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 3 });
-    const podId = await podIdFor(founder.invite_code as string);
-    const pod = await inviteRoommateToPod(podId, 'friend@mail.com');
+  it('lists pending invitations for the signed-in invitee', async () => {
+    supabaseMock.from.mockImplementation(chainFor({ pod_invitations: rowsChain([invitationRow]) }));
 
-    expect(pod?.current_total_intent).toBe(2);
-    expect(pod?.is_finalized).toBe(false);
-    expect(pod?.members).toHaveLength(2);
+    const invitations = await fetchMyPendingInvitations();
+    expect(invitations).toHaveLength(1);
+    expect(invitations[0].pod.group_code).toBe(GROUP_CODE);
+    expect(invitations[0].pod.target_occupancy).toBe(2);
   });
 
-  it('finalizes the pod when the invite reaches the target occupancy', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    const podId = await podIdFor(founder.invite_code as string);
-    const pod = await inviteRoommateToPod(podId, 'friend@mail.com');
+  it('returns no invitations when signed out', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
 
-    expect(pod?.current_total_intent).toBe(2);
-    expect(pod?.is_finalized).toBe(true);
-    expect(pod?.physical_room_id).toBeTruthy();
+    expect(await fetchMyPendingInvitations()).toHaveLength(0);
   });
 
-  it('rejects an invite into a pod that is already at full occupancy', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
-    signInAsJoiner();
-    await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: founder.invite_code as string });
-    const podId = await podIdFor(founder.invite_code as string);
+  it('declining flips the invitation status scoped to the invitee', async () => {
+    const updates: unknown[] = [];
+    const invitationsChain = rowsChain([]);
+    invitationsChain.update = jest.fn((payload: unknown) => {
+      updates.push(payload);
+      return invitationsChain;
+    });
+    supabaseMock.from.mockImplementation(chainFor({ pod_invitations: invitationsChain }));
 
-    await expect(
-      inviteRoommateToPod(podId, 'latecomer@mail.com'),
-    ).rejects.toThrow('already at full occupancy');
+    await respondToLodgeInvitation('inv-1', 'declined');
+
+    expect(updates[0]).toEqual({ status: 'declined' });
   });
 
-  it('targets the pod matching the given pod id', async () => {
-    const { credit: founder } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 4 });
-    const { credit: other } = await purchaseSlotCredit({ listing: { ...LISTING, id: '22222222-3333-4444-5555-666666666666' }, targetOccupancy: 2 });
-    const founderPodId = await podIdFor(founder.invite_code as string);
-    const otherPodId = await podIdFor(other.invite_code as string);
+  it('accepting creates a slot credit, joins the pod, and marks the invitation accepted', async () => {
+    const updates: unknown[] = [];
+    const invitationsChain = rowsChain([]);
+    invitationsChain.update = jest.fn((payload: unknown) => {
+      updates.push(payload);
+      return invitationsChain;
+    });
 
-    await inviteRoommateToPod(founderPodId, 'friend@mail.com');
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        pods: successChain(founderPodFixture()),
+        estates: successChain({ id: ESTATE_ID }),
+        slot_credits: successChain({ id: CREDIT_ID }),
+        pod_invitations: invitationsChain,
+      }),
+    );
 
-    const founderPod = await findPodByGroupCode(founder.invite_code as string);
-    const otherPod = await findPodByGroupCode(other.invite_code as string);
-    expect(founderPod?.current_total_intent).toBe(2);
-    expect(otherPod?.current_total_intent).toBe(1);
-    expect(otherPodId).not.toBe(founderPodId);
+    const { credit } = await acceptLodgeInvitation(invitationFixture(), LISTING);
+
+    expect(credit.status).toBe('booked_pending_claim');
+    expect(credit.id).toBe(CREDIT_ID);
+    expect(updates[0]).toEqual({ status: 'accepted' });
+  });
+
+  it('rejects accepting when the group already filled up', async () => {
+    const pod = founderPodFixture();
+    pod.current_total_intent = 2;
+    supabaseMock.from.mockImplementation(chainFor({ pods: successChain(pod) }));
+
+    await expect(acceptLodgeInvitation(invitationFixture(), LISTING)).rejects.toThrow('already full');
+  });
+
+  it('rejects accepting when signed out', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
+
+    await expect(acceptLodgeInvitation(invitationFixture(), LISTING)).rejects.toThrow(/sign in/i);
+  });
+});
+
+describe('credit lookups', () => {
+  it('finds a user credit for a property from the server', async () => {
+    supabaseMock.from.mockImplementation(
+      chainFor({ slot_credits: successChain({ id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id }) }),
+    );
+
+    const credit = await findUserCreditForProperty(TEST_USER, LISTING.id);
+    expect(credit?.id).toBe(CREDIT_ID);
+  });
+
+  it('returns null lookups when signed out without touching the server', async () => {
+    supabaseMock.auth.getUser.mockResolvedValue({ data: { user: null } });
+
+    expect(await findUserCreditForProperty(null, LISTING.id)).toBeNull();
+    expect(supabaseMock.from).not.toHaveBeenCalled();
   });
 });

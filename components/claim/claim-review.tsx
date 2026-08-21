@@ -62,16 +62,6 @@ export function ClaimReview({
             ))}
           </View>
         )}
-        {(roster.length > 0 || codeSeats > 0 || matchedCount > 0) && (
-          <View style={[styles.rosterChip, styles.codeChip]}>
-            <Ionicons name="link-outline" size={14} color={DesignColors.primaryBright} />
-            <Text style={styles.rosterName} numberOfLines={1}>
-              {codeSeats > 0
-                ? `${codeSeats} friend${codeSeats === 1 ? '' : 's'} join by code · ${code}`
-                : `Your group code · ${code}`}
-            </Text>
-          </View>
-        )}
         {matchedCount > 0 && (
           <View style={styles.noteRow}>
             <Ionicons name="sparkles-outline" size={16} color={DesignColors.primaryBright} />

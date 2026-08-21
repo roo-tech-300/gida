@@ -3,11 +3,7 @@ import { buildCallbackUrl, type InitializeLocationPaymentResult } from '@/servic
 import { currentUserId } from '@/services/liquidity-pod-service';
 import type { TourBooking, TourBookingWithListing } from '@/types/tour-booking';
 
-const DEV_USER_ID = 'usr-current-student';
-
 export const GUIDED_TOUR_FEE_NGN = 2000;
-
-const devTourBookings = new Map<string, TourBookingWithListing>();
 
 function workerUrl(): string {
   return (process.env.EXPO_PUBLIC_WORKER_URL ?? '').replace(/\/$/, '');
@@ -26,7 +22,7 @@ export type ReserveTourResult = {
 
 export async function fetchTourAvailability(listingId: string): Promise<TourAvailabilityEntry[]> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID || !listingId) {
+  if (!userId || !listingId) {
     return [];
   }
   try {
@@ -53,20 +49,8 @@ export async function reserveTour(args: {
   time: string;
 }): Promise<ReserveTourResult> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID) {
-    const booking: TourBookingWithListing = {
-      id: `tour-dyn-${Date.now()}`,
-      user_id: userId,
-      listing_id: args.listingId,
-      admin_id: args.adminId,
-      scheduled_date: args.date,
-      scheduled_time: args.time,
-      status: 'booked',
-      created_at: new Date().toISOString(),
-      listings: null,
-    };
-    devTourBookings.set(args.listingId, booking);
-    return { booking };
+  if (!userId) {
+    return { booking: null, error: 'failed' };
   }
   try {
     const { data, error } = await supabase.rpc('reserve_tour', {
@@ -103,8 +87,11 @@ export async function payForTour(args: {
   time: string;
 }): Promise<InitializeLocationPaymentResult> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID || !workerUrl()) {
+  if (!workerUrl()) {
     return { simulated: true };
+  }
+  if (!userId) {
+    throw new Error('You must be signed in to book a tour.');
   }
 
   const { data: userData } = await supabase.auth.getUser();
@@ -145,8 +132,8 @@ export async function payForTour(args: {
 
 export async function fetchTourBookings(): Promise<TourBookingWithListing[]> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID) {
-    return [...devTourBookings.values()].sort((a, b) => b.created_at.localeCompare(a.created_at));
+  if (!userId) {
+    return [];
   }
   try {
     const { data, error } = await supabase
@@ -166,7 +153,7 @@ export async function fetchTourBookings(): Promise<TourBookingWithListing[]> {
 
 export async function findPendingBooking(listingId: string): Promise<TourBooking | null> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID) {
+  if (!userId) {
     return null;
   }
   try {

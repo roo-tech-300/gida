@@ -82,6 +82,23 @@ export interface PodInvitation {
   created_at: string;
 }
 
+export interface PendingLodgeInvitation {
+  id: string;
+  pod_id: string;
+  inviter_user_id: string;
+  invitee_user_id?: string | null;
+  invitee_name: string;
+  created_at: string;
+  pod: {
+    id: string;
+    group_code: string | null;
+    listing_id?: string | null;
+    property_tier: number;
+    target_occupancy: number;
+    current_total_intent: number;
+  };
+}
+
 export interface PhysicalRoom {
   id: string;
   estate_id: string;

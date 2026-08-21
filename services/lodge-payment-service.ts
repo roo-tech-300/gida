@@ -3,7 +3,6 @@ import { Platform } from 'react-native';
 import { supabase } from '@/lib/supabase';
 import { currentUserId } from '@/services/liquidity-pod-service';
 
-const DEV_USER_ID = 'usr-current-student';
 const CALLBACK_ROUTE = 'property/location-unlock-callback';
 
 function workerUrl(): string {
@@ -42,8 +41,11 @@ export async function initializeLodgePayment(
   targetOccupancy: number,
 ): Promise<InitializeLodgePaymentResult> {
   const userId = await currentUserId();
-  if (userId === DEV_USER_ID || !workerUrl()) {
+  if (!workerUrl()) {
     return { simulated: true };
+  }
+  if (!userId) {
+    throw new Error('You must be signed in to pay.');
   }
 
   const { data: userData } = await supabase.auth.getUser();

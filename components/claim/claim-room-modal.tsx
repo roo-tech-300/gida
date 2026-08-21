@@ -200,48 +200,50 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
       <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
-        <Pressable style={styles.backdrop} onPress={onClose}>
+        <View style={styles.backdrop}>
+          <Pressable style={styles.scrimSpace} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
           <Animated.View style={[styles.sheet, { height: sheetHeight }]}>
-            <Pressable style={styles.sheetBody} onPress={(e) => e.stopPropagation()}>
-              <View {...panHandlers} style={styles.handleArea}>
-                <View style={styles.handle} />
-              </View>
+            <View {...panHandlers} style={styles.handleArea}>
+              <View style={styles.handle} />
+            </View>
 
-              {joinMode ? (
-                <JoinGroupFlow onClose={onClose} onExitJoin={() => setJoinMode(false)} />
-              ) : (
-                <>
-                  <WizardHeader
-                    step={step}
-                    totalSteps={totalSteps}
-                    canGoBack={step > 1}
-                    onBack={() => setStep((current) => current - 1)}
-                    onClose={onClose}
-                  />
+            {joinMode ? (
+              <JoinGroupFlow onClose={onClose} onExitJoin={() => setJoinMode(false)} />
+            ) : (
+              <>
+                <WizardHeader
+                  step={step}
+                  totalSteps={totalSteps}
+                  canGoBack={step > 1}
+                  onBack={() => setStep((current) => current - 1)}
+                  onClose={onClose}
+                />
 
-                  <View style={styles.divider} />
+                <View style={styles.divider} />
 
-                  <ScrollView
-                    bounces={false}
-                    showsVerticalScrollIndicator={false}
-                    contentContainerStyle={styles.content}
-                    keyboardShouldPersistTaps="handled"
-                  >
-                    {renderStep()}
-                  </ScrollView>
+                <ScrollView
+                  style={styles.scroll}
+                  bounces={false}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.content}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                  removeClippedSubviews={false}
+                >
+                  {renderStep()}
+                </ScrollView>
 
-                  <WizardFooter
-                    label={footerLabel}
-                    icon={isConfirmStep ? 'shield-checkmark-outline' : 'arrow-forward'}
-                    loading={isPurchasing}
-                    disabled={!canContinue}
-                    onPress={handleFooterPress}
-                  />
-                </>
-              )}
-            </Pressable>
+                <WizardFooter
+                  label={footerLabel}
+                  icon={isConfirmStep ? 'shield-checkmark-outline' : 'arrow-forward'}
+                  loading={isPurchasing}
+                  disabled={!canContinue}
+                  onPress={handleFooterPress}
+                />
+              </>
+            )}
           </Animated.View>
-        </Pressable>
+        </View>
       </KeyboardAvoidingView>
     </Modal>
   );

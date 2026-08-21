@@ -17,7 +17,7 @@ export const styles = StyleSheet.create({
     borderColor: DesignColors.borderMedium,
     overflow: 'hidden',
   },
-  sheetBody: { flex: 1 },
+  scrimSpace: { flex: 1 },
   handleArea: {
     height: 30,
     alignItems: 'center',
@@ -74,6 +74,7 @@ export const styles = StyleSheet.create({
     height: StyleSheet.hairlineWidth,
     backgroundColor: DesignColors.cardBorder,
   },
+  scroll: { flex: 1 },
   content: {
     paddingHorizontal: 20,
     paddingTop: 20,

@@ -133,7 +133,14 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
 
       <View style={styles.divider} />
 
-      <ScrollView bounces={false} showsVerticalScrollIndicator={false} contentContainerStyle={styles.content} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        style={styles.scroll}
+        bounces={false}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.content}
+        keyboardShouldPersistTaps="handled"
+        nestedScrollEnabled
+      >
         {step === 1 ? (
           <>
             <Text style={styles.title}>Join with an invite code</Text>

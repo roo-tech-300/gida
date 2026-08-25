@@ -26,7 +26,7 @@ const OPTIONS: Option[] = [
     key: 'no',
     icon: 'person-outline',
     title: 'No, just me',
-    description: 'Take the entire property privately.',
+    description: 'Reserve a solo spot — just you, no roommates.',
   },
 ];
 

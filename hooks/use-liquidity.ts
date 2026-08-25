@@ -26,9 +26,12 @@ export function useUserSlotCredits() {
   });
 }
 
+const EXPIRED_STATUSES = new Set(['expired']);
+
 export function useCreditForListing(listingId?: string) {
   const { data: credits, isLoading } = useUserSlotCredits();
-  const credit = credits?.find((c) => c.listing_id === listingId);
+  const matches = credits?.filter((c) => c.listing_id === listingId) ?? [];
+  const credit = matches.find((c) => !EXPIRED_STATUSES.has(c.status)) ?? matches[0];
   return { data: credit, isLoading };
 }
 

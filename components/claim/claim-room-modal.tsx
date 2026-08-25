@@ -58,10 +58,10 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const hasFriendsStep = !isBuyout && haveCount > 0;
   const totalSteps = isBuyout ? 2 : hasFriendsStep ? 5 : 4;
   const isConfirmStep = step === totalSteps;
-  const peopleTotal = isBuyout ? propertyTier : 1 + roommateCount;
+  const peopleTotal = isBuyout ? 1 : 1 + roommateCount;
   const matchedCount = isBuyout ? 0 : Math.max(0, roommateCount - haveCount);
   const codeSeats = isBuyout ? 0 : Math.max(0, haveCount - friends.length);
-  const pricingOccupancy = isBuyout ? 1 : peopleTotal;
+  const pricingOccupancy = peopleTotal;
 
   useEffect(() => {
     if (!visible) {
@@ -96,7 +96,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
       });
       const message = isBuyout
-        ? 'Spot reserved — the whole property is yours!'
+        ? 'Spot reserved! You\'re all set for solo living.'
         : matchedCount > 0
           ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
           : 'Spot secured! Invite your friends to keep the group together.';

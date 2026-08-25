@@ -1,10 +1,10 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { fetchTourAvailability, fetchTourBookings, reserveTour } from '@/services/tour-booking-service';
 
-export function useTourAvailability(listingId: string) {
+export function useTourAvailability(listingId: string, adminId?: string | null) {
   return useQuery({
-    queryKey: ['tour-availability', listingId],
-    queryFn: () => fetchTourAvailability(listingId),
+    queryKey: ['tour-availability', listingId, adminId ?? null],
+    queryFn: () => fetchTourAvailability(listingId, adminId),
     enabled: !!listingId,
     staleTime: 30_000,
   });

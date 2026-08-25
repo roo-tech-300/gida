@@ -38,7 +38,7 @@ export function TourSchedulerModal({
   propertyLocation: string;
   admin?: AdminMember | null;
 }) {
-  const { data: availability = [] } = useTourAvailability(propertyId);
+  const { data: availability = [] } = useTourAvailability(propertyId, admin?.id);
   const reserveTour = useReserveTour();
   const verifyPayment = useVerifyLocationPayment();
   const queryClient = useQueryClient();
@@ -80,6 +80,11 @@ export function TourSchedulerModal({
       if (reserve.error === 'slot_full') {
         queryClient.invalidateQueries({ queryKey: ['tour-availability', propertyId] });
         showToast({ message: 'That time just filled up. Please pick another slot.', type: 'error' });
+        return;
+      }
+      if (reserve.error === 'admin_unavailable') {
+        queryClient.invalidateQueries({ queryKey: ['tour-availability', propertyId] });
+        showToast({ message: 'This admin is already guiding another tour at that time. Please pick a different slot.', type: 'error' });
         return;
       }
 

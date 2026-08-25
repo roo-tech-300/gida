@@ -13,28 +13,34 @@ export type TourAvailabilityEntry = {
   date: string;
   time: string;
   booked: number;
+  adminUnavailable: boolean;
 };
 
 export type ReserveTourResult = {
   booking: TourBooking | null;
-  error?: 'slot_full' | 'already_booked' | 'failed';
+  error?: 'slot_full' | 'already_booked' | 'admin_unavailable' | 'failed';
 };
 
-export async function fetchTourAvailability(listingId: string): Promise<TourAvailabilityEntry[]> {
+export async function fetchTourAvailability(listingId: string, adminId?: string | null): Promise<TourAvailabilityEntry[]> {
   const userId = await currentUserId();
   if (!userId || !listingId) {
     return [];
   }
   try {
-    const { data, error } = await supabase.rpc('get_tour_availability', { p_listing_id: listingId });
+    const params: Record<string, string> = { p_listing_id: listingId };
+    if (adminId) {
+      params.p_admin_id = adminId;
+    }
+    const { data, error } = await supabase.rpc('get_tour_availability', params);
     if (error || !data) {
       console.warn('[TourBooking] Availability fetch skipped:', error?.message ?? 'no data');
       return [];
     }
-    return (data as { scheduled_date: string; scheduled_time: string; booked: number }[]).map((row) => ({
+    return (data as { scheduled_date: string; scheduled_time: string; booked: number; admin_unavailable: boolean }[]).map((row) => ({
       date: row.scheduled_date,
       time: row.scheduled_time,
       booked: row.booked,
+      adminUnavailable: row.admin_unavailable,
     }));
   } catch (error) {
     console.error('[TourBooking] Failed to fetch availability:', error);
@@ -66,6 +72,9 @@ export async function reserveTour(args: {
       }
       if (message.includes('slot_full')) {
         return { booking: null, error: 'slot_full' };
+      }
+      if (message.includes('admin_unavailable')) {
+        return { booking: null, error: 'admin_unavailable' };
       }
       if (message.includes('23505') || message.includes('duplicate')) {
         return { booking: null, error: 'already_booked' };

@@ -36,9 +36,11 @@ CREATE POLICY tour_bookings_select_own
 
 -- 4) Reserve a slot for the current user. Enforces the 4-person cap atomically
 --    (advisory lock on the slot key) and inserts as 'pending_payment'.
---    Raises 'slot_full' when the slot is already at capacity, and
+--    Raises 'slot_full' when the slot is already at capacity,
 --    'already_booked' when the user already holds an active tour on this
---    listing (a user may only book one tour per property at a time).
+--    listing (a user may only book one tour per property at a time), and
+--    'admin_unavailable' when the assigned admin is already guiding a tour
+--    on another property at the same date/time.
 CREATE OR REPLACE FUNCTION public.reserve_tour(
   p_listing_id uuid,
   p_admin_id uuid,
@@ -82,6 +84,18 @@ BEGIN
     RAISE EXCEPTION 'slot_full';
   END IF;
 
+  IF p_admin_id IS NOT NULL THEN
+    SELECT count(*) INTO v_count
+    FROM public.tour_bookings
+    WHERE admin_id = p_admin_id
+      AND scheduled_date = p_scheduled_date
+      AND scheduled_time = p_scheduled_time
+      AND status NOT IN ('cancelled', 'expired');
+    IF v_count > 0 THEN
+      RAISE EXCEPTION 'admin_unavailable';
+    END IF;
+  END IF;
+
   INSERT INTO public.tour_bookings (user_id, listing_id, admin_id, scheduled_date, scheduled_time)
   VALUES (v_user_id, p_listing_id, p_admin_id, p_scheduled_date, p_scheduled_time)
   RETURNING * INTO v_row;
@@ -93,18 +107,34 @@ $$;
 GRANT EXECUTE ON FUNCTION public.reserve_tour(uuid, uuid, date, text) TO authenticated;
 
 -- 5) Capacity counts for the picker UI. Returns how many people are already
---    booked per slot for a listing (no user data — just counts).
-CREATE OR REPLACE FUNCTION public.get_tour_availability(p_listing_id uuid)
-RETURNS TABLE(scheduled_date date, scheduled_time text, booked bigint)
+--    booked per slot for a listing. When p_admin_id is provided, also returns
+--    an admin_unavailable flag for slots where that admin is already guiding
+--    a tour on a different listing at the same date/time.
+CREATE OR REPLACE FUNCTION public.get_tour_availability(
+  p_listing_id uuid,
+  p_admin_id uuid DEFAULT NULL
+)
+RETURNS TABLE(scheduled_date date, scheduled_time text, booked bigint, admin_unavailable boolean)
 LANGUAGE sql
 SECURITY DEFINER
 SET search_path = public
 AS $$
-  SELECT t.scheduled_date, t.scheduled_time, count(*) AS booked
+  SELECT
+    t.scheduled_date,
+    t.scheduled_time,
+    count(*) AS booked,
+    (p_admin_id IS NOT NULL AND EXISTS (
+      SELECT 1 FROM public.tour_bookings a
+      WHERE a.admin_id = p_admin_id
+        AND a.listing_id != p_listing_id
+        AND a.scheduled_date = t.scheduled_date
+        AND a.scheduled_time = t.scheduled_time
+        AND a.status NOT IN ('cancelled', 'expired')
+    )) AS admin_unavailable
   FROM public.tour_bookings t
   WHERE t.listing_id = p_listing_id
     AND t.status NOT IN ('cancelled', 'expired')
   GROUP BY t.scheduled_date, t.scheduled_time;
 $$;
 
-GRANT EXECUTE ON FUNCTION public.get_tour_availability(uuid) TO authenticated;
+GRANT EXECUTE ON FUNCTION public.get_tour_availability(uuid, uuid) TO authenticated;

@@ -10,6 +10,7 @@ function fullDay(iso: string): TourAvailabilityEntry[] {
     date: iso,
     time,
     booked: TOUR_CAPACITY,
+    adminUnavailable: false,
   }));
 }
 
@@ -21,8 +22,8 @@ describe('slotsForDate', () => {
 
   it('drops slots that reached capacity', () => {
     const availability: TourAvailabilityEntry[] = [
-      { date: '2026-08-17', time: '10:00 AM', booked: 4 },
-      { date: '2026-08-17', time: '04:00 PM', booked: 3 },
+      { date: '2026-08-17', time: '10:00 AM', booked: 4, adminUnavailable: false },
+      { date: '2026-08-17', time: '04:00 PM', booked: 3, adminUnavailable: false },
     ];
     const slots = slotsForDate(at('2026-08-17'), availability);
     expect(slots).not.toContain('10:00 AM');
@@ -34,6 +35,16 @@ describe('slotsForDate', () => {
     expect(friday.getDay()).toBe(5);
     const slots = slotsForDate(friday, []);
     expect(slots).toEqual(['10:00 AM', '11:30 AM', '04:00 PM', '05:30 PM']);
+  });
+
+  it('drops slots where the admin is unavailable on another listing', () => {
+    const availability: TourAvailabilityEntry[] = [
+      { date: '2026-08-17', time: '10:00 AM', booked: 1, adminUnavailable: true },
+      { date: '2026-08-17', time: '04:00 PM', booked: 1, adminUnavailable: false },
+    ];
+    const slots = slotsForDate(at('2026-08-17'), availability);
+    expect(slots).not.toContain('10:00 AM');
+    expect(slots).toContain('04:00 PM');
   });
 
   it('keeps prayer slots on other days', () => {

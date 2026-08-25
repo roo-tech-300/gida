@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
@@ -218,20 +218,16 @@ export function TourSchedulerModal({
           disabled={!selectedSlot || isConfirming}
           style={[styles.confirmButton, (!selectedSlot || isConfirming) && styles.confirmButtonDisabled]}
         >
-          <Text style={styles.confirmText}>Confirm & Pay ₦{GUIDED_TOUR_FEE_NGN.toLocaleString()}</Text>
-          <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimary} />
+          {isConfirming ? (
+            <ActivityIndicator color={DesignColors.onPrimary} />
+          ) : (
+            <>
+              <Text style={styles.confirmText}>Confirm & Pay ₦{GUIDED_TOUR_FEE_NGN.toLocaleString()}</Text>
+              <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimary} />
+            </>
+          )}
         </Pressable>
       </ScrollView>
-
-      {isConfirming && (
-        <View style={styles.loadingOverlay}>
-          <View style={styles.loadingBadge}>
-            <Ionicons name="checkmark-done" size={40} color={DesignColors.onPrimary} />
-          </View>
-          <Text style={styles.loadingTitle}>Securing your slot...</Text>
-          <Text style={styles.loadingSub}>with {admin?.full_name ?? 'your tour guide'}</Text>
-        </View>
-      )}
     </SafeAreaView>
   );
 }
@@ -298,11 +294,4 @@ const styles = StyleSheet.create({
   },
   confirmButtonDisabled: { opacity: 0.5 },
   confirmText: { ...DesignTypography.bodyLg, color: DesignColors.onPrimary, fontFamily, fontWeight: '700' },
-  loadingOverlay: { ...StyleSheet.absoluteFillObject, backgroundColor: DesignColors.surface, alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm },
-  loadingBadge: {
-    width: 72, height: 72, borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.primary, alignItems: 'center', justifyContent: 'center',
-  },
-  loadingTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, marginTop: DesignSpacing.sm },
-  loadingSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
 });

@@ -61,7 +61,11 @@ export function InviteResponseModal({ visible, invitation, onClose }: Props) {
           <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
             <View style={styles.handle} />
             <Text style={styles.title}>You&rsquo;re invited</Text>
-            <Text style={styles.subtitle}>Someone you know wants you in their lodge.</Text>
+            <Text style={styles.subtitle}>
+              {invitation.inviter_name
+                ? `${invitation.inviter_name} invited you to be roommates.`
+                : 'Someone you know wants you in their lodge.'}
+            </Text>
 
             <View style={styles.lodgeCard}>
               {cover ? <Image source={{ uri: cover }} style={styles.thumb} /> : (

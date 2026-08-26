@@ -63,6 +63,10 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const isSolo = !!credit && credit.target_occupancy === 1;
   const isClaimable = !credit || credit.status === 'expired';
 
+  // The CTA state (pending invite / unpaid reservation / paid / free to claim) is
+  // only determined once both queries settle; until then show a bare spinner.
+  const ctaPending = (isCheckingCredit || isLoadingInvitation) && !credit && !invitation;
+
   let ctaLabel = 'Claim Spot';
   let ctaIcon: keyof typeof Ionicons.glyphMap = 'enter-outline';
   const isSingleOccupancy = dbListing?.max_roommates === 1;
@@ -88,6 +92,10 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     ctaLabel = "You're Invited";
     ctaIcon = 'mail-open-outline';
     onCtaPress = () => setInviteModalOpen(true);
+  }
+
+  if (ctaPending) {
+    ctaLabel = '';
   }
 
   const activeTour = myTours.find(
@@ -196,7 +204,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         ctaIcon={ctaIcon}
         onCtaPress={onCtaPress}
         onVisitProperty={() => setTourModalOpen(true)}
-        showSpinner={(isCheckingCredit || isLoadingInvitation) && !credit && !invitation}
+        showSpinner={ctaPending}
       />
 
       <ImageGalleryModal

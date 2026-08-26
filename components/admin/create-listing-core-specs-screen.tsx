@@ -65,7 +65,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Royal Heights Apartments"
-              placeholderTextColor={DesignColors.onSurfaceVariant}
+              placeholderTextColor={DesignColors.divider}
               value={step1.title}
               onChangeText={(v) => setStep1({ title: v })}
             />
@@ -79,7 +79,7 @@ export function CreateListingCoreSpecsScreen() {
             <TextInput
               style={[styles.textInput, { minHeight: 100, textAlignVertical: 'top' }]}
               placeholder="Describe the proximity to campus, water availability, and security features..."
-              placeholderTextColor={DesignColors.onSurfaceVariant}
+              placeholderTextColor={DesignColors.divider}
               value={step1.description}
               onChangeText={(v) => setStep1({ description: v })}
               multiline
@@ -170,31 +170,20 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="250,000"
-                placeholderTextColor={DesignColors.onSurfaceVariant}
+                placeholderTextColor={DesignColors.divider}
                 value={step1.price}
                 onChangeText={(text) => setStep1({ price: formatPrice(text) })}
                 keyboardType="numeric"
               />
             </View>
-            <View style={styles.termPill}>
-              <Pressable
-                style={[styles.termOption, step1.term === 'per_semester' && styles.termActive]}
-                onPress={() => setStep1({ term: 'per_semester' })}
-              >
-                <Text style={[styles.termText, step1.term === 'per_semester' && styles.termTextActive]}>Per Semester</Text>
-              </Pressable>
-              <Pressable
-                style={[styles.termOption, step1.term === 'per_annum' && styles.termActive]}
-                onPress={() => setStep1({ term: 'per_annum' })}
-              >
-                <Text style={[styles.termText, step1.term === 'per_annum' && styles.termTextActive]}>Per Annum</Text>
-              </Pressable>
+            <View style={styles.termBadge}>
+              <Text style={styles.termBadgeText}>Per Annum</Text>
             </View>
           </View>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Size</Text>
+          <Text style={styles.label}>Size <Text style={styles.optional}>(optional)</Text></Text>
           <View style={styles.sizeRow}>
             <View style={styles.sizePills}>
               <Pressable
@@ -215,7 +204,7 @@ export function CreateListingCoreSpecsScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder={step1.sizeUnit === 'sqft' ? 'e.g. 1,200' : 'e.g. 112'}
-                placeholderTextColor={DesignColors.onSurfaceVariant}
+                placeholderTextColor={DesignColors.divider}
                 value={step1.sizeValue}
                 onChangeText={(v) => {
                   const digits = v.replace(/\D/g, '');
@@ -311,6 +300,7 @@ const styles = StyleSheet.create({
   heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4 },
   fieldGroup: { gap: 8 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
+  optional: { fontSize: 11, fontWeight: '400', color: DesignColors.divider, fontFamily },
   glassInput: {
     borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
     borderWidth: 1, borderColor: DesignColors.cardBorder,
@@ -335,15 +325,15 @@ const styles = StyleSheet.create({
   layoutLabelActive: { color: DesignColors.onSurface },
   pricingRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   currencySign: { fontSize: 20, fontWeight: '700', color: DesignColors.primary, fontFamily, paddingLeft: 16 },
-  termPill: {
-    flexDirection: 'row', borderRadius: 9999, overflow: 'hidden',
-    backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder,
-    padding: 4,
+  termBadge: {
+    borderRadius: 12,
+    backgroundColor: DesignColors.primaryContainer,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryContainer,
+    paddingHorizontal: 16,
+    paddingVertical: 14,
   },
-  termOption: { paddingHorizontal: 16, paddingVertical: 8, borderRadius: 9999 },
-  termActive: { backgroundColor: DesignColors.primaryContainer },
-  termText: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
-  termTextActive: { color: DesignColors.onSurface },
+  termBadgeText: { fontSize: 16, fontWeight: '600', color: DesignColors.onPrimaryContainer, fontFamily },
   unitCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
   unitLeft: { gap: 2 },
   unitDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },

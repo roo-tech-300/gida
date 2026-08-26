@@ -6,15 +6,15 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, fontFamily } from '@/constants/design';
+import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
 import { useLandlords } from '@/hooks/use-landlords';
-
-function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { getInitials } from '@/utils/get-initials';
+import type { LandlordWithCount } from '@/services/landlord-service';
 
 export function LandlordContractsScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const [profileLandlord, setProfileLandlord] = useState<LandlordWithCount | null>(null);
   const { data: landlords, isPending, refetch, isRefetching } = useLandlords();
 
   const filtered = useMemo(() => {
@@ -31,7 +31,7 @@ export function LandlordContractsScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <BackButton hasBackground />
-          <Text style={styles.headerTitle}>Landlord Contracts</Text>
+          <Text style={styles.headerTitle}>Landlords</Text>
         </View>
 
         <ScrollView
@@ -83,9 +83,16 @@ export function LandlordContractsScreen() {
               {filtered.map((landlord) => (
                 <Pressable key={landlord.id} style={styles.landlordCard} onPress={() => router.push(`/admin/landlord-properties/${landlord.id}` as any)}>
                   <View style={styles.cardLeft}>
-                    <View style={styles.avatar}>
+                    <Pressable
+                      style={styles.avatar}
+                      hitSlop={6}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setProfileLandlord(landlord);
+                      }}
+                    >
                       <Text style={styles.avatarText}>{getInitials(landlord.full_name)}</Text>
-                    </View>
+                    </Pressable>
                     <View style={styles.cardInfo}>
                       <Text style={styles.landlordName}>{landlord.full_name}</Text>
                       <Text style={styles.landlordEmail}>{landlord.email ?? ''}</Text>
@@ -103,6 +110,12 @@ export function LandlordContractsScreen() {
           <Ionicons name="add" size={24} color={DesignColors.onSurface} />
           <Text style={styles.fabLabel}>Add Landlord</Text>
         </Pressable>
+
+        <LandlordProfileModal
+          visible={profileLandlord !== null}
+          landlord={profileLandlord}
+          onClose={() => setProfileLandlord(null)}
+        />
       </SafeAreaView>
     </View>
   );

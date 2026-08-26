@@ -29,10 +29,11 @@ export function CreateListingLocationScreen() {
     profile?.admin_role === 'super_admin' ||
     (editListingId !== null && profile?.admin_role === 'regional_admin');
 
-  const canProceed = step2.selectedSchool && step2.selectedCampus;
+  const canProceed = !!(step2.selectedSchool && step2.selectedCampus && step2.coords);
   const handleForward = () => {
     if (!step2.selectedSchool) { showToast({ message: 'Please select a school.', type: 'error' }); return; }
     if (!step2.selectedCampus) { showToast({ message: 'Please select a campus.', type: 'error' }); return; }
+    if (!step2.coords) { showToast({ message: 'Please lock the precise layout mapping before continuing.', type: 'error' }); return; }
     router.push('/admin/create-listing-amenities');
   };
 
@@ -168,7 +169,7 @@ export function CreateListingLocationScreen() {
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Behind GK Main Gate, near Chapel of Grace"
-              placeholderTextColor={DesignColors.onSurfaceVariant}
+              placeholderTextColor={DesignColors.divider}
               value={step2.landmark}
               onChangeText={(v) => setStep2({ landmark: v })}
             />
@@ -183,7 +184,7 @@ export function CreateListingLocationScreen() {
         )}
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Transfer Property</Text>
+          <Text style={styles.label}>Assign Admin to Property</Text>
           <AdminTransferSelect
             selectedAdminId={step2.transferAdminId}
             onSelect={(adminId) => setStep2({ transferAdminId: adminId })}

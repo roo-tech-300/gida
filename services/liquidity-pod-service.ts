@@ -1,13 +1,21 @@
 import { supabase } from '@/lib/supabase';
 import { EXPECTED_TOTAL_POD_FEE, PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
 import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
-import { persistFounderPod, persistJoin } from '@/services/liquidity-pod-persistence';
+import { persistFounderPod } from '@/services/liquidity-pod-persistence';
+import {
+  PERSIST_FAILURE_MESSAGE,
+  PodJoinError,
+  applyRemoteCredit,
+  joinPodViaRpc,
+  joinPodViaWorker,
+  podJoinErrorMessage,
+} from '@/services/pod-join-remote';
 import type { Estate, SlotCredit, Pod, PodMember } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 
 export const SIGN_IN_REQUIRED_MESSAGE = 'Please sign in to continue.';
 
-const SYNC_FAILURE_MESSAGE = 'Could not persist your reservation to the server. Please try again.';
+const SYNC_FAILURE_MESSAGE = PERSIST_FAILURE_MESSAGE;
 
 const CODE_CHARS = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
 const CODE_LENGTH = 12;
@@ -105,8 +113,9 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
   if (target.amount_paid) throw new Error('Paid members cannot be removed.');
 
   const nextMembers = pod.members.filter((m) => m.user_id !== targetUserId);
-  const removedIntent = target.intent_size ?? 1;
-  const nextIntent = Math.max(0, (pod.current_total_intent ?? 0) - removedIntent);
+  // Self-healing: recompute occupancy from the members that remain, never decrement
+  // the stored counter (it can already be drifted; decrementing preserves drift).
+  const nextIntent = nextMembers.reduce((sum, m) => sum + Math.max(0, m.intent_size ?? 1), 0);
   const targetOccupancy = pod.target_occupancy ?? pod.property_tier;
 
   const updatedPod: Pod = {
@@ -140,40 +149,44 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; synced: boolean };
 
 export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number }): Promise<PurchaseSlotCreditResult> {
+  const userId = await currentUserId();
+  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+
   const pod = await findPodByGroupCode(args.code);
   if (!pod) {
     throw new Error('Invite code not found. Ask your friend to share their invite code.');
   }
 
+  // Self-healing guard: real member rows are the source of truth, never the
+  // drift-prone current_total_intent counter.
   const target = pod.target_occupancy ?? args.propertyTier;
-  if (pod.current_total_intent + 1 > target) {
+  const activeMembers = pod.members.filter((m) => (m.intent_size ?? 1) > 0);
+  if (activeMembers.length >= target) {
     throw new Error('This group is already full. Pick another invite code or a lower occupancy.');
   }
-
-  const userId = await currentUserId();
-  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+  if (activeMembers.some((m) => m.user_id === userId)) {
+    throw new PodJoinError('ALREADY_MEMBER', podJoinErrorMessage('ALREADY_MEMBER'));
+  }
 
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, pod.property_tier, target, generateInviteCode());
-  credit.amount_paid = memberAmount(args.listing.price_amount, EXPECTED_TOTAL_POD_FEE, target, pod.current_total_intent);
+  credit.amount_paid = memberAmount(args.listing.price_amount, EXPECTED_TOTAL_POD_FEE, target, activeMembers.length);
 
-  const member = buildMember(userId, credit.id, credit.amount_paid);
-  const nextTotal = pod.current_total_intent + 1;
-  const updatedPod: Pod = {
-    ...pod,
-    members: [...pod.members, member],
-    current_total_intent: nextTotal,
-    is_finalized: nextTotal >= target,
-    physical_room_id: nextTotal >= target ? pod.physical_room_id ?? `room-${Math.floor(700 + Math.random() * 100)}` : pod.physical_room_id,
-  };
-
-  if (updatedPod.is_finalized) {
-    assertRevenueParity(updatedPod.members, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
+  const outcome = await joinPodViaWorker(pod.group_code ?? args.code);
+  if (outcome.kind === 'failed') {
+    throw outcome.error;
+  }
+  if (outcome.kind === 'joined') {
+    applyRemoteCredit(credit, outcome.credit);
+  } else {
+    await joinPodViaRpc(pod.group_code ?? args.code, credit);
   }
 
-  const synced = await persistJoin(updatedPod, credit, userId);
-  if (!synced) {
-    throw new Error(SYNC_FAILURE_MESSAGE);
+  const nextTotal = activeMembers.length + 1;
+  if (nextTotal >= target) {
+    const finalizedMembers = [...activeMembers, buildMember(userId, credit.id, credit.amount_paid)];
+    assertRevenueParity(finalizedMembers, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
   }
+
   return { credit, synced: true };
 }
 

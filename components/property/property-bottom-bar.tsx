@@ -51,7 +51,7 @@ export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPr
         ) : (
           <Ionicons name={ctaIcon} size={18} color={DesignColors.onPrimary} />
         )}
-        <Text style={styles.primaryCtaText}>{ctaLabel}</Text>
+        {ctaLabel ? <Text style={styles.primaryCtaText}>{ctaLabel}</Text> : null}
       </Pressable>
     </View>
   );

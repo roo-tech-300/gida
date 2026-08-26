@@ -8,6 +8,7 @@ export type ListingSearchResult = {
   layout_type: string;
   location_landmark: string;
   city: string;
+  campus: string | null;
   price_amount: number;
   number_of_bedrooms: number;
   number_of_bathrooms: number;
@@ -30,13 +31,32 @@ function sanitizeQuery(q: string): string {
 
 export async function searchListings(query: string): Promise<ListingSearchResult[]> {
   const q = sanitizeQuery(query.trim());
+  if (!q) return [];
+
+  const filters = [
+    `title.ilike.%${q}%`,
+    `location_landmark.ilike.%${q}%`,
+    `city.ilike.%${q}%`,
+    `campus.ilike.%${q}%`
+  ];
+
+  const qNormalized = q.toLowerCase().replace(/[\s_-]/g, '');
+  const enumValues = [
+    { value: 'self_contain', normalized: 'selfcontain' },
+    { value: 'single_room', normalized: 'singleroom' },
+    { value: 'flat', normalized: 'flat' }
+  ];
+
+  for (const enumVal of enumValues) {
+    if (enumVal.normalized.includes(qNormalized) || qNormalized.includes(enumVal.normalized)) {
+      filters.push(`layout_type.eq.${enumVal.value}`);
+    }
+  }
 
   const { data, error } = await supabase
     .from('listings')
-    .select('id, title, layout_type, location_landmark, city, price_amount, number_of_bedrooms, number_of_bathrooms, primary_image, category')
-    .or(
-      `title.ilike.%${q}%,layout_type.ilike.%${q}%,location_landmark.ilike.%${q}%,city.ilike.%${q}%`,
-    )
+    .select('id, title, layout_type, location_landmark, city, campus, price_amount, number_of_bedrooms, number_of_bathrooms, primary_image, category')
+    .or(filters.join(','))
     .limit(SEARCH_LIMIT);
 
   if (error) {

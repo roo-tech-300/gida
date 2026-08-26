@@ -1,24 +1,30 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { router } from 'expo-router';
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { MetaPill } from '@/components/admin/inventory-card';
-import { LANDLORDS, type Landlord, type LandlordProperty } from '@/dummy/admin-mock';
+import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
+import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
+import { LandlordPropertyCard } from '@/components/admin/landlord-property-card';
+import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
+import { useLandlords } from '@/hooks/use-landlords';
+import { useLandlordListings } from '@/hooks/use-landlord-listings';
+import { getInitials } from '@/utils/get-initials';
+import { useState } from 'react';
 
 export function LandlordPropertiesScreen({ landlordId }: { landlordId: string }) {
-  const landlord = LANDLORDS.find((l) => l.id === landlordId);
+  const [profileOpen, setProfileOpen] = useState(false);
+  const { data: landlords } = useLandlords();
+  const { data: listings, isPending, isError, refetch, isRefetching } = useLandlordListings(landlordId);
+  const landlord = landlords?.find((l) => l.id === landlordId) ?? null;
 
-  if (!landlord) {
+  if (isError) {
     return (
       <SafeAreaView style={styles.root}>
         <View style={styles.header}>
           <BackButton hasBackground />
-          <Text style={styles.headerTitle}>Landlord not found</Text>
         </View>
+        <NetworkErrorScreen onRetry={() => refetch()} subtitle="Could not load this landlord's properties." />
       </SafeAreaView>
     );
   }
@@ -27,66 +33,50 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
     <SafeAreaView style={styles.root}>
       <View style={styles.header}>
         <BackButton hasBackground />
+        <Pressable
+          style={styles.avatar}
+          hitSlop={6}
+          onPress={() => setProfileOpen(true)}
+          disabled={!landlord}
+        >
+          <Text style={styles.avatarText}>{landlord ? getInitials(landlord.full_name) : '—'}</Text>
+        </Pressable>
         <View style={styles.headerInfo}>
-          <Text style={styles.headerTitle}>{landlord.full_name}</Text>
-          <Text style={styles.headerSub}>{landlord.properties_onboarded} Properties</Text>
+          <Text style={styles.headerTitle}>{landlord?.full_name ?? 'Landlord'}</Text>
+          <Text style={styles.headerSub}>
+            {listings ? `${listings.length} Propert${listings.length === 1 ? 'y' : 'ies'}` : 'Loading...'}
+          </Text>
         </View>
       </View>
 
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
+        refreshControl={
+          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={DesignColors.primary} />
+        }
       >
-        {landlord.properties.length === 0 ? (
+        {isPending ? (
+          <View style={styles.centered}>
+            <ActivityIndicator size="large" color={DesignColors.primary} />
+          </View>
+        ) : !listings || listings.length === 0 ? (
           <View style={styles.emptyState}>
             <Ionicons name="business-outline" size={48} color={DesignColors.onSurfaceVariant} />
             <Text style={styles.emptyText}>No properties</Text>
-            <Text style={styles.emptySub}>This landlord hasn't onboarded any properties yet</Text>
+            <Text style={styles.emptySub}>This landlord hasn&apos;t onboarded any properties yet</Text>
           </View>
         ) : (
-          landlord.properties.map((property) => (
-            <LandlordPropertyCard key={property.id} property={property} />
-          ))
+          listings.map((listing) => <LandlordPropertyCard key={listing.id} property={listing} />)
         )}
       </ScrollView>
-    </SafeAreaView>
-  );
-}
 
-function LandlordPropertyCard({ property }: { property: LandlordProperty }) {
-  return (
-    <View style={styles.card}>
-      <View style={styles.imageWrap}>
-        <Image source={property.image} style={styles.image} contentFit="cover" />
-        <View style={styles.overlay} />
-        <View style={styles.badge}>
-          <Text style={styles.badgeText}>{property.status.toUpperCase()}</Text>
-        </View>
-      </View>
-      <View style={styles.body}>
-        <View style={styles.titleBlock}>
-          <Text style={styles.title}>{property.title}</Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.location}>{property.location}</Text>
-          </View>
-        </View>
-        <View style={styles.metaRow}>
-          <MetaPill icon="bed-outline" label={property.beds} />
-          <MetaPill icon="water-outline" label={property.baths} />
-          <MetaPill icon="square-outline" label={property.size} />
-        </View>
-        <View style={styles.priceRow}>
-          <View>
-            <Text style={styles.priceLabel}>Per Academic Year</Text>
-            <Text style={styles.price}>{property.price}</Text>
-          </View>
-          <Pressable style={styles.viewButton} onPress={() => router.push(`/admin/property-contracts/${property.id}` as any)}>
-            <Text style={styles.viewButtonText}>View</Text>
-          </Pressable>
-        </View>
-      </View>
-    </View>
+      <LandlordProfileModal
+        visible={profileOpen && landlord !== null}
+        landlord={landlord}
+        onClose={() => setProfileOpen(false)}
+      />
+    </SafeAreaView>
   );
 }
 
@@ -96,113 +86,23 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,
   },
-  headerInfo: { gap: 2 },
+  headerInfo: { flex: 1, gap: 2 },
+  avatar: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: DesignColors.primaryTint,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontSize: 14, fontWeight: '700', color: DesignColors.primary, fontFamily },
   headerTitle: { fontSize: 18, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   headerSub: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, opacity: 0.7 },
 
   content: {
+    flexGrow: 1,
     paddingHorizontal: DesignSpacing.marginMobile,
     paddingBottom: DesignSpacing.xl * 5,
     gap: DesignSpacing.lg,
   },
-
-  card: {
-    borderRadius: 16,
-    overflow: 'hidden',
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  imageWrap: {
-    height: 256,
-    position: 'relative',
-  },
-  image: {
-    ...StyleSheet.absoluteFillObject,
-  },
-  overlay: {
-    ...StyleSheet.absoluteFillObject,
-    backgroundColor: DesignColors.scrimLight,
-  },
-  badge: {
-    position: 'absolute',
-    left: DesignSpacing.md,
-    bottom: DesignSpacing.md,
-    paddingHorizontal: 12,
-    paddingVertical: 8,
-    borderRadius: 8,
-    backgroundColor: DesignColors.primaryContainer,
-    zIndex: 2,
-  },
-  badgeText: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onPrimaryContainer,
-    fontFamily,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-
-  body: {
-    gap: DesignSpacing.md,
-    padding: DesignSpacing.lg,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderTopWidth: 1,
-    borderTopColor: DesignColors.borderSoft,
-  },
-  titleBlock: { gap: 6 },
-  title: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 6,
-  },
-  location: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-
-  metaRow: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: DesignSpacing.sm,
-    paddingVertical: DesignSpacing.xs,
-  },
-  priceRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: DesignSpacing.md,
-  },
-  priceLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    textTransform: 'uppercase',
-    letterSpacing: 1,
-  },
-  price: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.primaryBright,
-    fontFamily,
-    fontWeight: '800',
-  },
-  viewButton: {
-    paddingHorizontal: 18,
-    paddingVertical: 12,
-    borderRadius: DesignRadius.xl,
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  viewButtonText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onPrimaryContainer,
-    fontFamily,
-    fontWeight: '700',
-  },
+  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
 
   emptyState: {
     flex: 1,

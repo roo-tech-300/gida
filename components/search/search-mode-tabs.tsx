@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignTypography, fontFamily } from '@/constants/design';
 
 export type SearchMode = 'listings' | 'roommates';
 
@@ -28,24 +28,28 @@ function Tab({ label, isActive, onPress }: { label: string; isActive: boolean; o
 const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
-    gap: DesignSpacing.sm,
-  },
-  tab: {
-    paddingHorizontal: 20,
-    paddingVertical: 10,
+    backgroundColor: 'rgba(255, 255, 255, 0.03)',
     borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.surfaceContainer,
+    padding: 4,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
+    alignSelf: 'stretch',
+  },
+  tab: {
+    flex: 1,
+    paddingVertical: 10,
+    borderRadius: DesignRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   tabActive: {
-    backgroundColor: DesignColors.primaryContainer,
-    borderColor: DesignColors.primaryBright,
+    backgroundColor: DesignColors.primary,
   },
   tabText: {
     ...DesignTypography.labelLg,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+    fontWeight: '600',
   },
   tabTextActive: {
     color: DesignColors.onPrimary,

@@ -1,26 +1,27 @@
-import { useCallback, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
 import {
   Animated,
+  BackHandler,
   Easing,
   KeyboardAvoidingView,
   PanResponder,
   Platform,
   Pressable,
+  ScrollView,
   StyleSheet,
-  Text,
   TextInput,
   View,
 } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useEscapeKey } from '@/components/claim/use-escape-key';
+import { SearchHeader } from '@/components/search/search-header';
 import { SearchModeTabs, type SearchMode } from '@/components/search/search-mode-tabs';
 import { SearchRecent, getRecents, saveRecent, clearRecents } from '@/components/search/search-recent';
 import { SearchSuggestions } from '@/components/search/search-suggestions';
 import { SearchResultsList } from '@/components/search/search-results-list';
 import { useListingSearch, useRoommateSearch } from '@/hooks/use-search';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing } from '@/constants/design';
 
 export type SearchScreenRef = {
   open: () => void;
@@ -59,7 +60,9 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
         easing: Easing.bezier(0.4, 0, 0.2, 1),
         useNativeDriver: true,
       }).start(() => {
-        if (open) setTimeout(() => inputRef.current?.focus(), 100);
+        if (open) {
+          setTimeout(() => inputRef.current?.focus(), 100);
+        }
       });
     },
     [anim],
@@ -72,6 +75,20 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
 
   useImperativeHandle(ref, () => ({ open: () => animateTo(true) }), [animateTo]);
   useEscapeKey(close, isOpen);
+
+  useEffect(() => {
+    if (!isOpen) return;
+
+    const handleBackPress = () => {
+      close();
+      return true;
+    };
+
+    const subscription = BackHandler.addEventListener('hardwareBackPress', handleBackPress);
+    return () => {
+      subscription.remove();
+    };
+  }, [isOpen, close]);
 
   const overlayPan = useRef(
     PanResponder.create({
@@ -107,6 +124,14 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
     setRecentTerms([]);
   }, []);
 
+  const handleSearchSubmit = useCallback(() => {
+    const t = query.trim();
+    if (t.length >= 2) {
+      saveRecent(t);
+      refreshRecents();
+    }
+  }, [query, refreshRecents]);
+
   const slideY = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [800, 0],
@@ -136,44 +161,28 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
             <View style={styles.dragHandle} />
           </View>
 
-          <View style={styles.inputRow}>
-            <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
-            <TextInput
-              ref={inputRef}
-              placeholder="Search listings, locations..."
-              placeholderTextColor={DesignColors.outline}
-              returnKeyType="search"
-              style={styles.input}
-              value={query}
-              onChangeText={setQuery}
-              onSubmitEditing={() => {
-                const t = query.trim();
-                if (t.length >= 2) {
-                  saveRecent(t);
-                  refreshRecents();
-                }
-              }}
-            />
-            {query.length > 0 && (
-              <Pressable onPress={() => setQuery('')} style={styles.clearBtn}>
-                <Ionicons name="close-circle" size={18} color={DesignColors.onSurfaceVariant} />
-              </Pressable>
-            )}
-          </View>
+          <SearchHeader
+            ref={inputRef}
+            value={query}
+            onChangeText={setQuery}
+            onCancel={close}
+            onSubmit={handleSearchSubmit}
+          />
 
-          <View style={styles.topRow}>
+          <View style={styles.tabsRow}>
             <SearchModeTabs active={mode} onChange={setMode} />
-            <Pressable onPress={close} style={styles.cancelBtn}>
-              <Text style={styles.cancelText}>Cancel</Text>
-            </Pressable>
           </View>
 
           <View style={styles.body}>
             {!hasQuery ? (
-              <>
+              <ScrollView
+                showsVerticalScrollIndicator={false}
+                keyboardShouldPersistTaps="handled"
+                contentContainerStyle={styles.scrollBody}
+              >
                 <SearchRecent terms={recentTerms} onSelect={handleSelectTerm} onClear={handleClearRecents} />
                 <SearchSuggestions onSelect={handleSelectTerm} />
-              </>
+              </ScrollView>
             ) : (
               <SearchResultsList
                 mode={mode}
@@ -233,47 +242,14 @@ const styles = StyleSheet.create({
     borderRadius: 2,
     backgroundColor: DesignColors.outlineVariant,
   },
-  inputRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 10,
-    marginBottom: DesignSpacing.sm,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.surfaceContainer,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  input: {
-    flex: 1,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    paddingVertical: 0,
-  },
-  clearBtn: {
-    width: 28,
-    height: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+  tabsRow: {
     marginBottom: DesignSpacing.md,
-  },
-  cancelBtn: {
-    paddingVertical: 8,
-    paddingHorizontal: 4,
-  },
-  cancelText: {
-    ...DesignTypography.labelLg,
-    color: DesignColors.primaryBright,
-    fontFamily,
   },
   body: {
     flex: 1,
+  },
+  scrollBody: {
+    paddingBottom: DesignSpacing.xl * 2,
+    gap: DesignSpacing.lg,
   },
 });

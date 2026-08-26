@@ -42,19 +42,6 @@ export function CreateListingAmenitiesScreen() {
     setStep3({ selectedAmenities: Array.from(next) });
   };
 
-  const handleChange = (val: string) => {
-    if (!val.includes(',')) {
-      setInputValue(val);
-      return;
-    }
-    const parts = val.split(',');
-    const newToken = parts[0].trim();
-    if (newToken.length > 0) {
-      setStep3({ featuresList: [...step3.featuresList, newToken] });
-    }
-    setInputValue(parts.slice(1).join(',').trimStart());
-  };
-
   const handlePillPress = (pill: string) => {
     setStep3({ featuresList: step3.featuresList.filter((p) => p !== pill) });
     setInputValue(pill + ' ');
@@ -140,9 +127,9 @@ export function CreateListingAmenitiesScreen() {
           <TextInput
             style={styles.inputBox}
             placeholder="e.g. Balcony, POP Ceiling"
-            placeholderTextColor={DesignColors.onSurfaceVariant}
+            placeholderTextColor={DesignColors.divider}
             value={inputValue}
-            onChangeText={handleChange}
+            onChangeText={setInputValue}
             onSubmitEditing={() => {
               const trimmed = inputValue.trim();
               if (trimmed.length > 0) {
@@ -151,8 +138,9 @@ export function CreateListingAmenitiesScreen() {
               }
             }}
             returnKeyType="done"
+            blurOnSubmit={false}
           />
-          <Text style={styles.fieldHint}>Comma-separated list</Text>
+          <Text style={styles.fieldHint}>Press enter to add a feature</Text>
 
           {step3.featuresList.length > 0 && (
             <View style={styles.pillWrap}>

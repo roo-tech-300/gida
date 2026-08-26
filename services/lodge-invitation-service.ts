@@ -17,6 +17,23 @@ async function fetchDbListing(listingId: string): Promise<DbListing> {
   return data as DbListing;
 }
 
+async function attachInviterNames(rows: PendingLodgeInvitation[]): Promise<PendingLodgeInvitation[]> {
+  const inviterIds = [...new Set(rows.map((row) => row.inviter_user_id).filter((id) => Boolean(id)))];
+  if (inviterIds.length === 0) return rows;
+  try {
+    const { data, error } = await supabase.from('profiles').select('id, full_name').in('id', inviterIds);
+    if (error) {
+      console.error('[LodgeInvitations] Failed to load inviter profiles:', error);
+      return rows;
+    }
+    const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
+    return rows.map((row) => ({ ...row, inviter_name: names.get(row.inviter_user_id) ?? null }));
+  } catch (error) {
+    console.error('[LodgeInvitations] Exception while loading inviter profiles:', error);
+    return rows;
+  }
+}
+
 export async function fetchMyPendingInvitations(): Promise<PendingLodgeInvitation[]> {
   const userId = await currentUserId();
   if (!userId) return [];
@@ -31,7 +48,7 @@ export async function fetchMyPendingInvitations(): Promise<PendingLodgeInvitatio
       console.error('[LodgeInvitations] Failed to fetch invitations:', error);
       return [];
     }
-    return (data ?? []) as PendingLodgeInvitation[];
+    return await attachInviterNames((data ?? []) as PendingLodgeInvitation[]);
   } catch (error) {
     console.error('[LodgeInvitations] Exception while fetching invitations:', error);
     return [];
@@ -61,13 +78,12 @@ export async function acceptLodgeInvitation(invitation: PendingLodgeInvitation, 
   if (!listingId) throw new Error('This invite is missing its lodge details.');
   if (!invitation.pod.group_code) throw new Error('This invite is missing its group code.');
 
-  const target = invitation.pod.target_occupancy || invitation.pod.property_tier;
-  if (invitation.pod.current_total_intent + 1 > target) {
-    throw new Error('This group is already full.');
-  }
+  // Occupancy/fullness checks live in joinPodByCode + the join_pod RPC, which
+  // derive truth from real members (the stored counter can be drifted).
 
   const dbListing = listing ?? (await fetchDbListing(listingId));
   const propertyTier = derivePropertyTier(dbListing.property_tier, dbListing.max_roommates);
+  const target = invitation.pod.target_occupancy || invitation.pod.property_tier;
   if (!isValidTargetOccupancy(propertyTier, target)) {
     throw new Error(`Invalid occupancy ${target} for a ${propertyTier}-slot property.`);
   }

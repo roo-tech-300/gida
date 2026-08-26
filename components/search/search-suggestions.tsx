@@ -4,14 +4,9 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 const SUGGESTIONS = [
   'Self Contain',
   'Flat',
-  '2 Bedroom',
-  'Single Room',
-  'Ikeja',
-  'Lagos',
   'Minna',
-  'Generator',
-  'Internet',
-  'FUTA',
+  'GK',
+  'Dama',
   'FUT Minna',
 ];
 
@@ -40,14 +35,12 @@ export function SearchSuggestions({ onSelect }: Props) {
 
 const styles = StyleSheet.create({
   section: {
-    gap: 8,
+    gap: 12,
   },
   label: {
-    ...DesignTypography.labelSm,
+    ...DesignTypography.labelCaps,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
   },
   grid: {
     flexDirection: 'row',
@@ -56,9 +49,9 @@ const styles = StyleSheet.create({
   },
   chip: {
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 8,
     borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.surfaceContainer,
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -68,7 +61,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
+    color: DesignColors.onSurface,
     fontFamily,
   },
 });

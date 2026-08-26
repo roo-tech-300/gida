@@ -14,8 +14,8 @@ import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
 import { SearchScreen, type SearchScreenRef } from '@/components/search/search-screen';
-import { useRecommendedListings } from '@/hooks/useRecommendedListings';
-import { useListings } from '@/hooks/use-listings';
+import { useInfiniteRecommendedListings } from '@/hooks/useRecommendedListings';
+import { useInfiniteListings } from '@/hooks/use-listings';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { useAuth } from '@/context/auth-context';
 import type { FeedListing } from '@/types/feed-listing';
@@ -25,11 +25,16 @@ type FeedMode = 'listings' | 'roommates';
 export function DiscoverHomeScreen() {
   const router = useRouter();
   const { profile } = useAuth();
-  const recommended = useRecommendedListings(profile?.id);
-  const fallback = useListings();
+  const recommended = useInfiniteRecommendedListings(profile?.id);
+  const fallback = useInfiniteListings();
 
-  const useRecommended = recommended.data && recommended.data.length > 0;
-  const listings = useRecommended ? recommended.data! : fallback.data ?? [];
+  const useRecommended = !!(recommended.data && recommended.data.pages[0]?.length > 0);
+
+  const listings = useMemo(() => {
+    const pages = useRecommended ? recommended.data?.pages : fallback.data?.pages;
+    return pages ? pages.flat() : [];
+  }, [useRecommended, recommended.data?.pages, fallback.data?.pages]);
+
   const isLoading = useRecommended ? recommended.isLoading : fallback.isLoading;
   const isRefetching = useRecommended ? recommended.isRefetching : fallback.isRefetching;
   const refetch = useRecommended ? recommended.refetch : fallback.refetch;
@@ -83,6 +88,18 @@ export function DiscoverHomeScreen() {
     searchScreenRef.current?.open();
   }, []);
 
+  const loadMore = useCallback(() => {
+    if (useRecommended) {
+      if (recommended.hasNextPage && !recommended.isFetchingNextPage) {
+        recommended.fetchNextPage();
+      }
+    } else {
+      if (fallback.hasNextPage && !fallback.isFetchingNextPage) {
+        fallback.fetchNextPage();
+      }
+    }
+  }, [useRecommended, recommended, fallback]);
+
   const filteredListings = useMemo(() => {
     return listings.filter((listing) => activeCategory === 'All' || listing.category === activeCategory);
   }, [activeCategory, listings]);
@@ -120,6 +137,8 @@ export function DiscoverHomeScreen() {
                 onRefresh={onRefresh}
                 onIndexChange={setCurrentIndex}
                 onScrollOffsetChange={(offset) => { scrollOffsetRef.current = offset; }}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
               />
             )}
             {isLoading && mode === 'listings' && (
@@ -144,8 +163,6 @@ export function DiscoverHomeScreen() {
 
           {mode === 'listings' ? (
             <HomeSearchBar
-              hasFilter
-              onFilterPress={() => setFiltersOpen((open) => !open)}
               currentMode={mode}
               onSwipeDown={openModeSelector}
               onOpenSearch={openSearch}

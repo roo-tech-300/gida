@@ -10,7 +10,7 @@ CREATE TABLE IF NOT EXISTS pod_invitations (
   status TEXT NOT NULL DEFAULT 'pending' CHECK (status IN ('pending', 'accepted', 'declined')),
   created_at TIMESTAMPTZ DEFAULT NOW(),
   UNIQUE(pod_id, invitee_user_id)
-);
+); 
 
 ALTER TABLE public.pod_invitations ENABLE ROW LEVEL SECURITY;
 

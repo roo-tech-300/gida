@@ -64,15 +64,18 @@ function LodgeInviteCard({ invitation }: { invitation: PendingLodgeInvitation })
     <View style={styles.card}>
       <View style={styles.headerRow}>
         <View style={styles.iconWrap}>
-          <Ionicons name="home-outline" size={20} color={DesignColors.primaryBright} />
+        {cover ? <Image source={{ uri: cover }} style={styles.thumb} /> : null}
         </View>
         <View style={styles.copy}>
-          <Text style={styles.title}>{invitation.invitee_name ? `${invitation.invitee_name}, you're invited` : "You're invited"}</Text>
+          <Text style={styles.title}>
+            {invitation.inviter_name
+              ? `${invitation.inviter_name} invited you to be roommates`
+              : "You're invited"}
+          </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {lodgeTitle} · {seatsLeft} seat{seatsLeft === 1 ? '' : 's'} left
           </Text>
         </View>
-        {cover ? <Image source={{ uri: cover }} style={styles.thumb} /> : null}
       </View>
       <View style={styles.actions}>
         <Pressable

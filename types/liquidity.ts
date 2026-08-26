@@ -86,6 +86,7 @@ export interface PendingLodgeInvitation {
   id: string;
   pod_id: string;
   inviter_user_id: string;
+  inviter_name?: string | null;
   invitee_user_id?: string | null;
   invitee_name: string;
   created_at: string;

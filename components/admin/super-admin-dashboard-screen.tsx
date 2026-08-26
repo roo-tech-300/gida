@@ -21,7 +21,7 @@ type ActionItem = {
 const ACTIONS: ActionItem[] = [
   { key: 'teams', title: 'Teams', icon: 'people-outline' },
   { key: 'inventory', title: 'Inventory', icon: 'map-outline' },
-  { key: 'contracts', title: 'Contracts', icon: 'document-text-outline' },
+  { key: 'landlords', title: 'Landlords', icon: 'people-outline' },
   { key: 'regions', title: 'Regions', icon: 'globe-outline' },
   { key: 'tours', title: 'Tour Requests', icon: 'calendar-outline' },
 ];
@@ -61,7 +61,7 @@ export function SuperAdminDashboardScreen() {
   const handleActionPress = (key: string) => {
     if (key === 'teams') router.push('/admin/manage-teams');
     if (key === 'inventory') router.push('/admin/total-inventory');
-    if (key === 'contracts') router.push('/admin/landlord-contracts');
+    if (key === 'landlords') router.push('/admin/landlord-contracts');
     if (key === 'regions') router.push('/admin/regions');
     if (key === 'tours') {
       clearUnread();

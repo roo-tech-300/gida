@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { DesignColors, DesignRadius, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 const RECENT_KEY = 'gida_recent_searches';
 const MAX_RECENT = 8;
@@ -44,24 +44,30 @@ export function SearchRecent({ terms, onSelect, onClear }: Props) {
   return (
     <View style={styles.section}>
       <View style={styles.header}>
-        <Text style={styles.label}>Recent</Text>
-        <Pressable onPress={onClear}>
-          <Text style={styles.clearAll}>Clear</Text>
+        <Text style={styles.label}>Recent Searches</Text>
+        <Pressable onPress={onClear} style={styles.clearBtn} hitSlop={8}>
+          <Text style={styles.clearAll}>Clear All</Text>
         </Pressable>
       </View>
-      {terms.map((term) => (
-        <Pressable key={term} style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]} onPress={() => onSelect(term)}>
-          <Ionicons name="time-outline" size={14} color={DesignColors.outline} />
-          <Text style={styles.chipText}>{term}</Text>
-        </Pressable>
-      ))}
+      <View style={styles.grid}>
+        {terms.map((term) => (
+          <Pressable
+            key={term}
+            style={({ pressed }) => [styles.chip, pressed && styles.chipPressed]}
+            onPress={() => onSelect(term)}
+          >
+            <Ionicons name="time-outline" size={14} color={DesignColors.outline} />
+            <Text style={styles.chipText}>{term}</Text>
+          </Pressable>
+        ))}
+      </View>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
   section: {
-    gap: 6,
+    gap: 12,
   },
   header: {
     flexDirection: 'row',
@@ -69,26 +75,33 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   label: {
-    ...DesignTypography.labelSm,
+    ...DesignTypography.labelCaps,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
+  },
+  clearBtn: {
+    paddingVertical: 4,
+    paddingHorizontal: 8,
   },
   clearAll: {
     ...DesignTypography.labelSm,
     color: DesignColors.primaryBright,
     fontFamily,
+    fontWeight: '600',
+  },
+  grid: {
+    flexDirection: 'row',
+    flexWrap: 'wrap',
+    gap: DesignSpacing.sm,
   },
   chip: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
-    backgroundColor: DesignColors.surfaceContainer,
-    borderRadius: DesignRadius.sm,
+    gap: 6,
+    backgroundColor: DesignColors.glassFill,
+    borderRadius: DesignRadius.full,
     paddingHorizontal: 14,
-    paddingVertical: 10,
-    alignSelf: 'flex-start',
+    paddingVertical: 8,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -98,7 +111,7 @@ const styles = StyleSheet.create({
   },
   chipText: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
+    color: DesignColors.onSurface,
     fontFamily,
   },
 });

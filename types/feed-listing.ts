@@ -165,7 +165,6 @@ export function dbToListingForm(item: DbListing) {
     step4: {
       rulesList: item.rules || [],
       maxRoommates: item.max_roommates,
-      noLimit: item.max_roommates >= 999,
     },
     step5: {
       heroImage: item.primary_image,

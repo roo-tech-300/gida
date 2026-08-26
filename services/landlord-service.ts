@@ -45,3 +45,30 @@ export async function fetchLandlords(): Promise<LandlordWithCount[]> {
   if (error) throw error;
   return data as LandlordWithCount[];
 }
+
+export type LandlordListing = {
+  id: string;
+  title: string;
+  status: string | null;
+  price_amount: number;
+  lease_term: string;
+  location_landmark: string;
+  city: string;
+  number_of_bedrooms: number;
+  number_of_bathrooms: number;
+  size_sqft: number | null;
+  primary_image: string | null;
+};
+
+export async function fetchListingsByLandlord(landlordId: string): Promise<LandlordListing[]> {
+  const { data, error } = await supabase
+    .from('listings')
+    .select(
+      'id, title, status, price_amount, lease_term, location_landmark, city, number_of_bedrooms, number_of_bathrooms, size_sqft, primary_image',
+    )
+    .eq('landlord_id', landlordId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as LandlordListing[];
+}

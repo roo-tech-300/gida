@@ -9,8 +9,6 @@ type FeedMode = 'listings' | 'roommates';
 
 export type HomeSearchBarProps = {
   placeholder?: string;
-  hasFilter?: boolean;
-  onFilterPress?: () => void;
   currentMode: FeedMode;
   onSwipeDown: () => void;
   onOpenSearch: () => void;
@@ -22,8 +20,6 @@ export type HomeSearchBarProps = {
 
 export function HomeSearchBar({
   placeholder = 'Search...',
-  hasFilter,
-  onFilterPress,
   currentMode,
   onSwipeDown,
   onOpenSearch,
@@ -51,17 +47,6 @@ export function HomeSearchBar({
         >
           <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
           <Text style={styles.placeholder} numberOfLines={1}>{placeholder}</Text>
-          {hasFilter && (
-            <Pressable
-              style={styles.filterButton}
-              onPress={(e) => {
-                e.stopPropagation?.();
-                onFilterPress?.();
-              }}
-            >
-              <Ionicons name="options-outline" size={20} color={DesignColors.onSurfaceVariant} />
-            </Pressable>
-          )}
           <View style={styles.divider} />
           <Pressable
             style={styles.modeArea}
@@ -146,13 +131,6 @@ const styles = StyleSheet.create({
     ...DesignTypography.bodyMd,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-  },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   divider: {
     width: 1,

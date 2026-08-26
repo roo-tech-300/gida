@@ -1,5 +1,6 @@
 import type { Env } from './env';
 import { handlePaystackRequest } from './paystack';
+import { handlePodJoinRequest } from './pod-join';
 
 export type { Env };
 
@@ -117,6 +118,10 @@ export default {
     const url = new URL(request.url);
     if (url.pathname.startsWith('/api/paystack/')) {
       return handlePaystackRequest(request, env);
+    }
+
+    if (url.pathname.startsWith('/api/pods/')) {
+      return handlePodJoinRequest(request, env);
     }
 
     if (request.method !== 'POST') {

@@ -131,10 +131,7 @@ describe('server sync guarantees', () => {
     expect(memberInserts[0]).toMatchObject({ amount_paid: 610000 });
   });
 
-  it('persists physical_room_id and the joiner share when a join finalizes a pod', async () => {
-    const podUpdates: unknown[] = [];
-    const memberInserts: unknown[] = [];
-
+  it('delegates a pod-finalizing join to the atomic join_pod RPC', async () => {
     supabaseMock.from.mockImplementation(
       chainFor({
         estates: successChain({ id: ESTATE_ID }),
@@ -145,65 +142,52 @@ describe('server sync guarantees', () => {
 
     const founder = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
 
-    const joinerPodsChain = makeChain();
-    joinerPodsChain.maybeSingle = jest.fn(async () => ({
-      data: {
-        id: POD_ID,
-        estate_id: ESTATE_ID,
-        listing_id: LISTING.id,
-        property_tier: 4,
-        matched_gender: 'ANY',
-        target_occupancy: 2,
-        group_code: founder.credit.invite_code,
-        members: [{
-          user_id: TEST_USER,
-          full_name: 'Founder',
-          intent_size: 1,
-          campus: '',
-          major: '',
-          cleanliness_score: 5,
-          sleep_schedule: '',
-          slot_credit_id: CREDIT_ID,
-          amount_paid: 610000,
-        }],
-        current_total_intent: 1,
-        is_finalized: false,
-        physical_room_id: null,
-        created_at: new Date().toISOString(),
-      },
-      error: null,
-    }));
-    joinerPodsChain.update = jest.fn((payload: unknown) => {
-      podUpdates.push(payload);
-      return joinerPodsChain;
-    });
-    const membersChain = makeChain();
-    membersChain.insert = jest.fn((payload: unknown) => {
-      memberInserts.push(payload);
-      return membersChain;
-    });
-
     supabaseMock.from.mockImplementation(
       chainFor({
         estates: successChain({ id: ESTATE_ID }),
-        slot_credits: dedupeThenInsertChain(JOINER_CREDIT_ID),
-        pods: joinerPodsChain,
-        pod_members: membersChain,
+        pods: successChain({
+          id: POD_ID,
+          estate_id: ESTATE_ID,
+          listing_id: LISTING.id,
+          property_tier: 4,
+          matched_gender: 'ANY',
+          target_occupancy: 2,
+          group_code: founder.credit.invite_code,
+          members: [{
+            user_id: TEST_USER,
+            full_name: 'Founder',
+            intent_size: 1,
+            campus: '',
+            major: '',
+            cleanliness_score: 5,
+            sleep_schedule: '',
+            slot_credit_id: CREDIT_ID,
+            amount_paid: 610000,
+          }],
+          current_total_intent: 1,
+          is_finalized: false,
+          physical_room_id: null,
+          created_at: new Date().toISOString(),
+        }),
       }),
     );
-
     supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: JOINER_ID } } });
+    supabaseMock.rpc.mockResolvedValue({
+      data: { creditId: JOINER_CREDIT_ID, podId: POD_ID, amountPaid: 610000, isFinalized: true },
+      error: null,
+    });
 
-    const { synced } = await purchaseSlotCredit({
+    const { credit, synced } = await purchaseSlotCredit({
       listing: LISTING,
       targetOccupancy: 2,
       joinCode: founder.credit.invite_code as string,
     });
 
     expect(synced).toBe(true);
-    expect(podUpdates).toHaveLength(1);
-    expect(podUpdates[0]).toMatchObject({ is_finalized: true });
-    expect((podUpdates[0] as Record<string, unknown>).physical_room_id).toBeTruthy();
-    expect(memberInserts[0]).toMatchObject({ amount_paid: 610000 });
+    expect(credit.id).toBe(JOINER_CREDIT_ID);
+    expect(credit.amount_paid).toBe(610000);
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('join_pod', {
+      p_group_code: founder.credit.invite_code,
+    });
   });
 });

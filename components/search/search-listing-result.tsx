@@ -28,7 +28,7 @@ export function SearchListingResult({ listing, onPress }: Props) {
         <View style={styles.locationRow}>
           <Ionicons name="location-outline" size={12} color={DesignColors.onSurfaceVariant} />
           <Text style={styles.location} numberOfLines={1}>
-            {[listing.location_landmark, listing.city].filter(Boolean).join(', ')}
+            {[listing.location_landmark, listing.campus, listing.city].filter(Boolean).join(', ')}
           </Text>
         </View>
         <View style={styles.metaRow}>

@@ -16,7 +16,6 @@ import { useCreateListing } from '@/hooks/use-create-listing';
 import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, deleteListing } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
-import { NO_LIMIT_TIER } from '@/utils/liquidity-math';
 import { supabase } from '@/lib/supabase';
 
 function isRemoteUrl(str: string) {
@@ -76,12 +75,12 @@ export function CreateListingMediaScreen() {
       category: 'student_housing',
       layout_type: step1.layoutType,
       price_amount: parseFloat(step1.price.replace(/,/g, '')),
-      lease_term: step1.term,
+      lease_term: 'per_annum',
       units_available: step1.units,
       number_of_bedrooms: bedroomCount,
       number_of_bathrooms: bathroomCount,
-      max_roommates: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
-      property_tier: step4.noLimit ? NO_LIMIT_TIER : step4.maxRoommates,
+      max_roommates: step4.maxRoommates,
+      property_tier: step4.maxRoommates,
       rules: step4.rulesList,
       location_landmark: step2.landmark.trim(),
       city: profile?.city || 'Minna',
@@ -229,8 +228,8 @@ export function CreateListingMediaScreen() {
       showToast({ message: 'Please enter a price in step 1.', type: 'error' });
       return;
     }
-    if (!step4.noLimit && (step4.maxRoommates < 1 || step4.maxRoommates > 10)) {
-      showToast({ message: 'Max roommates must be between 1 and 10 in step 4.', type: 'error' });
+    if (step4.maxRoommates < 1 || step4.maxRoommates > 4) {
+      showToast({ message: 'Max roommates must be between 1 and 4 in step 4.', type: 'error' });
       return;
     }
     if (!step2.coords) {

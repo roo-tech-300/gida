@@ -88,6 +88,7 @@ BEGIN
     SELECT count(*) INTO v_count
     FROM public.tour_bookings
     WHERE admin_id = p_admin_id
+      AND listing_id != p_listing_id
       AND scheduled_date = p_scheduled_date
       AND scheduled_time = p_scheduled_time
       AND status NOT IN ('cancelled', 'expired');

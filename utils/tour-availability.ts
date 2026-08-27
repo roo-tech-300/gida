@@ -30,19 +30,28 @@ export function dateKey(date: Date): string {
 }
 
 export function slotsForDate(date: Date, availability: TourAvailabilityEntry[]): string[] {
+  return allSlotsForDate(date, availability)
+    .filter((slot) => slot.available)
+    .map((slot) => slot.time);
+}
+
+export type SlotOption = {
+  time: string;
+  available: boolean;
+};
+
+export function allSlotsForDate(date: Date, availability: TourAvailabilityEntry[]): SlotOption[] {
   const key = dateKey(date);
-  const bookedBySlot = new Map(
+  const entryBySlot = new Map(
     availability.filter((entry) => entry.date === key).map((entry) => [entry.time, entry]),
   );
-  return TIME_SLOTS.filter((slot) => {
-    if (date.getDay() === FRIDAY && PRAYER_SLOTS.has(slot)) {
-      return false;
+  return TIME_SLOTS.map((time) => {
+    if (date.getDay() === FRIDAY && PRAYER_SLOTS.has(time)) {
+      return { time, available: false };
     }
-    const entry = bookedBySlot.get(slot);
-    if (entry?.adminUnavailable) {
-      return false;
-    }
-    return (entry?.booked ?? 0) < TOUR_CAPACITY;
+    const entry = entryBySlot.get(time);
+    const available = !entry?.adminUnavailable && (entry?.booked ?? 0) < TOUR_CAPACITY;
+    return { time, available };
   });
 }
 

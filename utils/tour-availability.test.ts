@@ -1,5 +1,5 @@
 import type { TourAvailabilityEntry } from '@/services/tour-booking-service';
-import { TOUR_CAPACITY, buildDatePills, dateKey, slotsForDate } from './tour-availability';
+import { TOUR_CAPACITY, allSlotsForDate, buildDatePills, dateKey, slotsForDate } from './tour-availability';
 
 function at(iso: string): Date {
   return new Date(`${iso}T00:00:00`);
@@ -51,6 +51,33 @@ describe('slotsForDate', () => {
     const slots = slotsForDate(at('2026-08-18'), []);
     expect(slots).toContain('01:00 PM');
     expect(slots).toContain('02:30 PM');
+  });
+});
+
+describe('allSlotsForDate', () => {
+  it('returns every slot with availability flags', () => {
+    const availability: TourAvailabilityEntry[] = [
+      { date: '2026-08-17', time: '10:00 AM', booked: 4, adminUnavailable: false },
+      { date: '2026-08-17', time: '11:30 AM', booked: 1, adminUnavailable: true },
+    ];
+    const all = allSlotsForDate(at('2026-08-17'), availability);
+    expect(all).toHaveLength(6);
+
+    const capFull = all.find((s) => s.time === '10:00 AM');
+    const adminBusy = all.find((s) => s.time === '11:30 AM');
+    const free = all.find((s) => s.time === '04:00 PM');
+
+    expect(capFull?.available).toBe(false);
+    expect(adminBusy?.available).toBe(false);
+    expect(free?.available).toBe(true);
+  });
+
+  it('marks Friday prayer slots unavailable but keeps them visible', () => {
+    const all = allSlotsForDate(at('2026-08-21'), []);
+    expect(all.find((s) => s.time === '01:00 PM')?.available).toBe(false);
+    expect(all.find((s) => s.time === '02:30 PM')?.available).toBe(false);
+    expect(all.find((s) => s.time === '10:00 AM')?.available).toBe(true);
+    expect(all).toHaveLength(6);
   });
 });
 

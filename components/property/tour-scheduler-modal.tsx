@@ -13,7 +13,7 @@ import { useVerifyLocationPayment } from '@/hooks/use-location-access';
 import { GUIDED_TOUR_FEE_NGN, payForTour, findPendingBooking } from '@/services/tour-booking-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { extractReference } from '@/utils/paystack';
-import { buildDatePills, dateKey, formatTourDate, slotsForDate } from '@/utils/tour-availability';
+import { buildDatePills, dateKey, formatTourDate, allSlotsForDate } from '@/utils/tour-availability';
 import { TourDatePicker } from './tour-date-picker';
 import { TourSlotGrid } from './tour-slot-grid';
 
@@ -57,12 +57,15 @@ export function TourSchedulerModal({
 
   const selectedDate = datePills[selectedDateIndex]?.date ?? null;
   const slots = useMemo(
-    () => (selectedDate ? slotsForDate(selectedDate, availability) : []),
+    () => (selectedDate ? allSlotsForDate(selectedDate, availability) : []),
     [selectedDate, availability],
   );
 
   useEffect(() => {
-    if (selectedSlot && !slots.includes(selectedSlot)) {
+    if (
+      selectedSlot &&
+      !slots.some((slot) => slot.time === selectedSlot && slot.available)
+    ) {
       setSelectedSlot(null);
     }
   }, [slots, selectedSlot]);

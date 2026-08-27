@@ -1,5 +1,7 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View, Dimensions, Pressable, SafeAreaView } from 'react-native';
+import { BlurView } from 'expo-blur';
+import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 // ==========================================
@@ -18,51 +20,61 @@ interface ToastContextType {
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
 
+const TOAST_DURATION = 4000;
+
 // ==========================================
 // 2. ANIMATED TOAST CARD (INTERNAL COMPONENT)
 // ==========================================
 function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string) => void }) {
-  const translateY = useRef(new Animated.Value(-100)).current;
+  const translateY = useRef(new Animated.Value(-80)).current;
   const opacity = useRef(new Animated.Value(0)).current;
+  const progress = useRef(new Animated.Value(1)).current;
+
+  const handleDismiss = useCallback(() => {
+    Animated.parallel([
+      Animated.timing(translateY, { toValue: -32, duration: 220, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
+    ]).start(() => onDismiss(toast.id));
+  }, [onDismiss, toast.id, translateY, opacity]);
 
   useEffect(() => {
-    // Smooth slide down & fade in
     Animated.parallel([
-      Animated.timing(translateY, { toValue: 0, duration: 300, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 1, duration: 250, useNativeDriver: true }),
+      Animated.spring(translateY, { toValue: 0, damping: 18, stiffness: 260, mass: 0.9, useNativeDriver: true }),
+      Animated.timing(opacity, { toValue: 1, duration: 240, useNativeDriver: true }),
     ]).start();
 
-    // Auto-dismiss safety timer (4 seconds)
-    const timer = setTimeout(() => handleDismiss(), 4000);
-    return () => clearTimeout(timer);
-  }, []);
+    Animated.timing(progress, { toValue: 0, duration: TOAST_DURATION, useNativeDriver: true }).start();
 
-  const handleDismiss = () => {
-    Animated.parallel([
-      Animated.timing(translateY, { toValue: -40, duration: 250, useNativeDriver: true }),
-      Animated.timing(opacity, { toValue: 0, duration: 200, useNativeDriver: true }),
-    ]).start(() => onDismiss(toast.id));
-  };
+    const timer = setTimeout(handleDismiss, TOAST_DURATION);
+    return () => clearTimeout(timer);
+  }, [handleDismiss, translateY, opacity, progress]);
 
   const themes = {
-    success: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.success, text: DesignColors.success, badgeBg: DesignColors.successContainer, icon: '✓' },
-    error: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.error, text: DesignColors.error, badgeBg: DesignColors.dangerContainer, icon: '✕' },
-    info: { bg: DesignColors.surfaceContainerHigh, border: DesignColors.info, text: DesignColors.info, badgeBg: DesignColors.infoContainer, icon: 'ℹ' },
-  };
+    success: { accent: DesignColors.success, icon: 'checkmark-circle', label: 'Success' },
+    error: { accent: DesignColors.danger, icon: 'alert-circle', label: 'Error' },
+    info: { accent: DesignColors.info, icon: 'information-circle', label: 'Heads up' },
+  } as const;
 
-  const currentTheme = themes[toast.type];
+  const theme = themes[toast.type];
+  const title = toast.title ?? theme.label;
 
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ translateY }], opacity }]}>
-      <Pressable onPress={handleDismiss} style={[styles.card, { backgroundColor: currentTheme.bg, borderColor: currentTheme.border }]}>
-        <View style={[styles.badge, { backgroundColor: currentTheme.badgeBg }]}>
-          <Text style={[styles.badgeText, { color: currentTheme.text }]}>{currentTheme.icon}</Text>
+      <Pressable onPress={handleDismiss} style={styles.card}>
+        <BlurView intensity={28} tint="dark" style={styles.blur} />
+        <View style={[styles.accentBar, { backgroundColor: theme.accent }]} />
+        <View style={[styles.iconWrap, { backgroundColor: theme.accent }]}>
+          <Ionicons name={theme.icon} size={18} color={DesignColors.surfaceContainerLowest} />
         </View>
         <View style={styles.textContainer}>
-          <Text style={[styles.title, { color: currentTheme.text }]}>
-            {toast.title || (toast.type.charAt(0).toUpperCase() + toast.type.slice(1))}
-          </Text>
-          <Text style={[styles.message, { color: currentTheme.text }]}>{toast.message}</Text>
+          <Text style={styles.title} numberOfLines={1}>{title}</Text>
+          <Text style={styles.message} numberOfLines={2}>{toast.message}</Text>
+        </View>
+        <Ionicons name="close" size={18} color={DesignColors.outline} />
+        <View style={styles.progressTrack}>
+          <Animated.View
+            style={[styles.progressBar, { backgroundColor: theme.accent, transform: [{ scaleX: progress }] }]}
+          />
         </View>
       </Pressable>
     </Animated.View>
@@ -132,25 +144,62 @@ const styles = StyleSheet.create({
   card: {
     flexDirection: 'row',
     alignItems: 'center',
-    borderWidth: 1,
+    overflow: 'hidden',
     borderRadius: DesignRadius.lg,
-    padding: 12,
+    borderWidth: 1,
+    borderColor: DesignColors.glassBorder,
+    backgroundColor: DesignColors.glassFill,
+    paddingVertical: 14,
+    paddingHorizontal: DesignSpacing.md,
     shadowColor: DesignColors.surfaceContainerLowest,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 6,
-    elevation: 3,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 8,
   },
-  badge: {
-    width: 24,
-    height: 24,
-    borderRadius: 12,
+  blur: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  accentBar: {
+    position: 'absolute',
+    left: 0,
+    top: 0,
+    bottom: 0,
+    width: 4,
+  },
+  iconWrap: {
+    width: 34,
+    height: 34,
+    borderRadius: DesignRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    marginRight: 12,
+    marginRight: DesignSpacing.md,
   },
-  badgeText: { fontSize: 12, fontWeight: 'bold' },
-  textContainer: { flex: 1 },
-  title: { ...DesignTypography.bodyMd, fontWeight: '700', fontFamily, marginBottom: 2 },
-  message: { ...DesignTypography.bodyMd, fontFamily, opacity: 0.9, lineHeight: 16 },
+  textContainer: { flex: 1, paddingRight: DesignSpacing.sm },
+  title: {
+    ...DesignTypography.labelCaps,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    letterSpacing: 1.4,
+    marginBottom: 2,
+  },
+  message: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    lineHeight: 18,
+  },
+  progressTrack: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    bottom: 0,
+    height: 2,
+    overflow: 'hidden',
+  },
+  progressBar: {
+    width: '100%',
+    height: '100%',
+    transformOrigin: 'left',
+  },
 });

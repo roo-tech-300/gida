@@ -22,6 +22,7 @@ export const styles = StyleSheet.create({
   content: { padding: DesignSpacing.md, gap: DesignSpacing.md, paddingBottom: 40 },
   center: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.md },
   errorText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily },
+  loadingText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
 
   estateCard: {
     flexDirection: 'row',

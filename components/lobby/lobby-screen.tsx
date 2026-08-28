@@ -1,5 +1,5 @@
 import { useState, useCallback } from 'react';
-import { Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import { useFocusEffect } from '@react-navigation/native';
@@ -18,8 +18,17 @@ import { styles } from './lobby-screen.styles';
 
 export function LobbyScreen() {
   const router = useRouter();
-  const { data: credits, refetch: refetchCredits, isError } = useUserSlotCredits();
-  const { data: pods, refetch: refetchPods } = useActivePods();
+  const {
+    data: credits,
+    refetch: refetchCredits,
+    isLoading: creditsLoading,
+    isError: creditsError,
+  } = useUserSlotCredits();
+  const {
+    data: pods,
+    refetch: refetchPods,
+    isLoading: podsLoading,
+  } = useActivePods();
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
   const { showToast } = useAppToast();
@@ -82,7 +91,24 @@ export function LobbyScreen() {
     }
   };
 
-  if (isError) {
+  if (creditsLoading || podsLoading) {
+    return (
+      <SafeAreaView style={styles.safe} edges={['top']}>
+        <View style={styles.topBar}>
+          <Pressable onPress={() => router.back()} hitSlop={10}>
+            <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />
+          </Pressable>
+          <Text style={styles.topBarTitle}>Your Lobby</Text>
+        </View>
+        <View style={styles.center}>
+          <ActivityIndicator size="large" color={DesignColors.primaryBright} />
+          <Text style={styles.loadingText}>Loading your lobby…</Text>
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  if (creditsError && !credits?.length) {
     return (
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.topBar}>

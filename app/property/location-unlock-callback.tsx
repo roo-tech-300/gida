@@ -43,10 +43,11 @@ export default function LocationUnlockCallbackScreen() {
 
     if (kind === 'lodge') {
       verifyLodgePayment(reference)
-        .then((result) => {
+        .then(async (result) => {
           if (cancelled) return;
           if (result.verified) {
-            queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
+            await queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
+            if (cancelled) return;
             if (targetOccupancy === 1) {
               router.replace(`/property/booking?id=${encodeURIComponent(creditId)}`);
             } else {

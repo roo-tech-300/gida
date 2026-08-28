@@ -11,6 +11,7 @@ export type AuthProfile = {
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  gender: 'MALE' | 'FEMALE' | null;
   is_student: boolean | null;
   is_admin: boolean | null;
   admin_role: AdminRole | null;

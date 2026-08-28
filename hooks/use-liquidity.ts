@@ -5,6 +5,7 @@ import {
   purchaseSlotCredit,
   fetchUserSlotCredits,
   fetchActivePods,
+  fetchOpenPodsForListing,
 } from '@/services/liquidity-service';
 import { markSlotCreditPaid, expireSlotCredit } from '@/services/liquidity-payment-service';
 import type { PurchaseSlotCreditInput, PurchaseSlotCreditResult } from '@/services/liquidity-service';
@@ -39,6 +40,15 @@ export function useActivePods(estateId?: string) {
   return useQuery<Pod[], Error>({
     queryKey: ['active-pods', estateId],
     queryFn: () => fetchActivePods(estateId),
+    staleTime: 30_000,
+  });
+}
+
+export function useOpenPodsForListing(listingId?: string, enabled = true) {
+  return useQuery<Pod[], Error>({
+    queryKey: ['open-pods', listingId],
+    queryFn: () => fetchOpenPodsForListing(listingId ?? ''),
+    enabled: !!listingId && enabled,
     staleTime: 30_000,
   });
 }

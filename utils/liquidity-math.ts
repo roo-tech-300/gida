@@ -170,3 +170,52 @@ export function calculateTotalUserCost(totalRent: number, totalPodFee: number, t
 export function verifyPodCompleteness(currentTotalIntent: number, targetOccupancy: number): boolean {
   return currentTotalIntent === targetOccupancy && targetOccupancy > 0;
 }
+
+export type PodGender = 'MALE' | 'FEMALE' | 'MIXED' | 'ANY';
+
+type GenderAwareMember = { user_id: string; profile?: { gender?: 'MALE' | 'FEMALE' | null } | null };
+type GenderAwarePod = { members: GenderAwareMember[] };
+
+export function podEffectiveGender(pod: GenderAwarePod): PodGender {
+  const genders = new Set<'MALE' | 'FEMALE'>();
+  for (const member of pod.members) {
+    if (member.user_id.startsWith('inv-')) continue;
+    const gender = member.profile?.gender;
+    if (gender === 'MALE' || gender === 'FEMALE') {
+      genders.add(gender);
+    }
+  }
+  if (genders.size === 1) return [...genders][0];
+  if (genders.size > 1) return 'MIXED';
+  return 'ANY';
+}
+
+export function isGenderCompatible(podGender: PodGender, myGender?: 'MALE' | 'FEMALE' | null): boolean {
+  if (podGender === 'MIXED') return false;
+  if (!myGender) return true;
+  if (podGender === 'ANY') return true;
+  return podGender === myGender;
+}
+
+export type OpenSlotStatus = {
+  open: boolean;
+  occupied: number;
+  available: number;
+  target: number;
+};
+
+type SlotAwareMember = { slot_credit_id?: string | null };
+type SlotAwarePod = { members?: SlotAwareMember[]; target_occupancy?: number };
+
+export function countRealMembers(pod: SlotAwarePod | undefined): number {
+  return (pod?.members ?? []).filter((m) => m.slot_credit_id !== 'invitation').length;
+}
+
+export function podOpenSlotStatus(pod: SlotAwarePod): OpenSlotStatus {
+  const realMembers = countRealMembers(pod);
+  const reservedInvites = (pod.members ?? []).filter((m) => m.slot_credit_id === 'invitation').length;
+  const target = pod.target_occupancy ?? 0;
+  const occupied = realMembers + reservedInvites;
+  const available = Math.max(0, target - occupied);
+  return { open: available > 0, occupied, available, target };
+}

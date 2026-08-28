@@ -32,6 +32,7 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
     .from('profiles')
     .update({
       city: 'Minna',
+      gender: data.gender || null,
       is_student: true,
       school: 'Federal University of Technology, Minna (FUT Minna)',
       onboarded: true,

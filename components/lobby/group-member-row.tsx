@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -37,22 +38,24 @@ const STATUS_CONFIG: Record<ManageGroupMember['status'], { label: string; bg: st
 
 interface Props {
   member: ManageGroupMember;
-  onKick: (member: ManageGroupMember) => void;
+  onKick?: (member: ManageGroupMember) => void;
 }
+
 
 export function GroupMemberRow({ member, onKick }: Props) {
   const config = STATUS_CONFIG[member.status];
-  const kickable = member.status !== 'you' && member.status !== 'paid';
-
+  const kickable = !!onKick && member.status !== 'you' && member.status !== 'paid';``
   return (
     <View style={styles.row}>
-      {member.avatar_url ? (
-        <Image source={{ uri: member.avatar_url }} style={styles.avatarImage} />
-      ) : (
+      {!member.avatar_url || member.avatar_url === undefined? (
+        (
         <View style={[styles.avatar, { backgroundColor: getAvatarColor(member.name) }]}>
           <Text style={styles.initials}>{getInitials(member.name)}</Text>
         </View>
-      )}
+      )
+    ) :
+        <Image source={{ uri: member.avatar_url }} style={styles.avatarImage} />
+    }
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>{member.name}</Text>
         <View style={styles.meta}>
@@ -75,7 +78,7 @@ const styles = StyleSheet.create({
   row: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, paddingVertical: DesignSpacing.sm + 2, borderBottomWidth: 1, borderBottomColor: DesignColors.borderFaint },
   avatar: { width: 38, height: 38, borderRadius: 19, alignItems: 'center', justifyContent: 'center' },
   avatarImage: { width: 38, height: 38, borderRadius: 19 },
-  initials: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '700', fontFamily, fontSize: 13 },
+  initials: { ...DesignTypography.bodyMd, color: DesignColors.surfaceContainer, fontWeight: '700', fontFamily, fontSize: 13 },
   info: { flex: 1, gap: 3 },
   name: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontWeight: '600', fontFamily },
   meta: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },

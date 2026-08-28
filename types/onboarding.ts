@@ -1,3 +1,5 @@
+export type Gender = 'MALE' | 'FEMALE';
+
 export type LayoutType = 'self_contain' | 'single_room' | 'flat' | 'any';
 
 export type Amenity =
@@ -11,6 +13,7 @@ export type Amenity =
   | 'parking';
 
 export type OnboardingData = {
+  gender: Gender | '';
   minBudget: string;
   maxBudget: string;
   preferredArea: string;
@@ -18,7 +21,7 @@ export type OnboardingData = {
   mustHaveAmenities: Amenity[];
 };
 
-export const ONBOARDING_STEPS = 2;
+export const ONBOARDING_STEPS = 3;
 
 export const BUDGET_PRESETS = [
   { label: '₦100k', value: 100000 },
@@ -39,6 +42,11 @@ export const FUT_MINNA_AREAS = [
   'Talba Road',
   'KFF',
 ] as const;
+
+export const GENDER_OPTIONS: { id: Gender; label: string; icon: string; description: string }[] = [
+  { id: 'MALE', label: 'Male', icon: 'male-outline', description: 'Used to pair you with compatible roommates.' },
+  { id: 'FEMALE', label: 'Female', icon: 'female-outline', description: 'Used to pair you with compatible roommates.' },
+];
 
 export const LAYOUT_OPTIONS: { id: LayoutType; label: string; icon: string }[] = [
   { id: 'self_contain', label: 'Self Contain', icon: 'home-outline' },
@@ -82,6 +90,7 @@ export function getCampusesForSchool(school: string): { id: string; label: strin
 }
 
 export const defaultOnboardingData = (): OnboardingData => ({
+  gender: '',
   minBudget: '100000',
   maxBudget: '250000',
   preferredArea: '',

@@ -15,18 +15,19 @@ interface Props {
 
 export function ReservationManagementCard({ credit }: Props) {
   const { showToast } = useAppToast();
-  const { data: pods, refetch: refetchPods } = useActivePods();
+  const { data: pods, isLoading: podsLoading, refetch: refetchPods } = useActivePods();
   const [manageVisible, setManageVisible] = useState(false);
 
-  const activePod = pods?.[0];
-  const targetTier = credit.target_occupancy;
-  const filled = activePod?.current_total_intent ?? 1;
+  const activePod = pods?.[0];  const targetTier = credit.target_occupancy;
+  const realMembers = (activePod?.members ?? []).filter((m) => m.slot_credit_id !== 'invitation');
+  const filled = realMembers.length;
   const remaining = Math.max(0, targetTier - filled);
   const inviteCode = credit.invite_code ?? 'GIDA-GRP-DEV';
+  const isCreator = !!activePod && activePod.members[0]?.user_id === credit.user_id;
 
   const groupMembers: ManageGroupMember[] = (activePod?.members ?? []).map((m) => ({
     id: m.user_id,
-    name: m.user_id === credit.user_id ? 'You' : (m.profile?.full_name || m.full_name || 'Roommate'),
+    name: m.profile?.full_name || m.full_name || 'Roommate',
     status: (m.user_id === credit.user_id
       ? 'you'
       : m.slot_credit_id === 'invitation'
@@ -70,8 +71,8 @@ export function ReservationManagementCard({ credit }: Props) {
         </View>
 
         <Pressable style={styles.manageBtn} onPress={() => setManageVisible(true)} testID="manage-group-btn">
-          <Ionicons name="settings-outline" size={15} color={DesignColors.onPrimaryContainer} />
-          <Text style={styles.manageBtnText}>Manage Group</Text>
+          <Ionicons name={isCreator ? 'settings-outline' : 'eye-outline'} size={15} color={DesignColors.onPrimaryContainer} />
+          <Text style={styles.manageBtnText}>{isCreator ? 'Manage Group' : 'See Group'}</Text>
           <Ionicons name="chevron-forward" size={14} color={DesignColors.onSurfaceVariant} />
         </Pressable>
       </View>
@@ -81,7 +82,9 @@ export function ReservationManagementCard({ credit }: Props) {
         groupCode={inviteCode}
         members={groupMembers}
         maxCapacity={targetTier}
-        onInvite={handleInvite}
+        editable={isCreator}
+        loading={podsLoading}
+        onInvite={isCreator ? handleInvite : undefined}
         onClose={() => setManageVisible(false)}
       />
     </>

@@ -7,6 +7,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors } from '@/constants/design';
 import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { removeMemberFromPod, inviteRoommateToPod } from '@/services/liquidity-service';
+import { countRealMembers } from '@/utils/liquidity-math';
 import { useAppToast } from '@/components/ui/toast-card';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { SlotPass } from './slot-pass';
@@ -29,6 +30,7 @@ export function LobbyScreen() {
     refetch: refetchPods,
     isLoading: podsLoading,
   } = useActivePods();
+
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
   const { showToast } = useAppToast();
@@ -42,11 +44,12 @@ export function LobbyScreen() {
   const activePod = pods?.[0];
   const targetTier = credit?.target_occupancy ?? 1;
   const isSolo = targetTier === 1;
-  const currentTotalIntent = activePod?.current_total_intent ?? credit?.intent_size ?? 1;
+  const currentTotalIntent = activePod ? countRealMembers(activePod) : credit?.intent_size ?? 1;
   const remainingSlots = Math.max(0, targetTier - currentTotalIntent);
   const isPendingPayment = credit?.status === 'booked_pending_claim';
   const isExpiredCredit = credit?.status === 'expired';
   const isPaid = credit?.status === 'paid_unmatched' || credit?.status === 'matched';
+  const isCreator = !!activePod && activePod.members[0]?.user_id === credit?.user_id;
 
   const { data: physicalRoom } = usePhysicalRoom(activePod?.physical_room_id);
   const roomLabel = physicalRoom?.physical_door_number ?? activePod?.physical_room_id ?? null;
@@ -56,7 +59,7 @@ export function LobbyScreen() {
 
   const groupMembers: ManageGroupMember[] = (activePod?.members ?? []).map((member) => ({
     id: member.user_id,
-    name: member.user_id === credit?.user_id ? 'You' : (member.profile?.full_name || member.full_name || 'Roommate'),
+    name: member.profile?.full_name || member.full_name || 'Roommate',
     status: (member.user_id === credit?.user_id
       ? 'you'
       : member.slot_credit_id === 'invitation'
@@ -207,7 +210,7 @@ export function LobbyScreen() {
           <LobbyMemberList members={groupMembers} targetTier={targetTier} />
         )}
 
-        {!isSolo && remainingSlots > 0 && (
+        {!isSolo && isCreator && remainingSlots > 0 && (
           <InlineInviteSearch remainingSlots={remainingSlots} onSelect={handleInvite} />
         )}
 
@@ -227,8 +230,10 @@ export function LobbyScreen() {
         groupCode={credit?.invite_code ?? ''}
         members={groupMembers}
         maxCapacity={targetTier}
-        onInvite={handleInvite}
-        onKick={handleKickMember}
+        editable={isCreator}
+        loading={podsLoading}
+        onInvite={isCreator ? handleInvite : undefined}
+        onKick={isCreator ? handleKickMember : undefined}
         onClose={() => setManageModalVisible(false)}
       />
     </SafeAreaView>

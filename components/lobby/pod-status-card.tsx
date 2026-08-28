@@ -3,6 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
+import { countRealMembers } from '@/utils/liquidity-math';
 import type { Pod } from '@/types/liquidity';
 
 interface PodStatusCardProps {
@@ -13,7 +14,7 @@ interface PodStatusCardProps {
 }
 
 export function PodStatusCard({ pod, targetTier, physicalDoor, paymentDeadline }: PodStatusCardProps) {
-  const filled = pod?.current_total_intent ?? 1;
+  const filled = countRealMembers(pod) || 1;
   const isComplete = filled >= targetTier || !!physicalDoor;
   const percentage = Math.min(Math.round((filled / targetTier) * 100), 100);
 

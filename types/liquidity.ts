@@ -52,7 +52,7 @@ export interface PodMember {
   sleep_schedule: string;
   slot_credit_id: string;
   amount_paid?: number;
-  profile?: { id?: string; full_name?: string | null; avatar_url?: string | null };
+  profile?: { id?: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null };
 }
 
 export interface Pod {

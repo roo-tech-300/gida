@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
+import { derivePropertyTier, isValidTargetOccupancy, podOpenSlotStatus } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult, InvitedFriend } from '@/services/liquidity-pod-service';
@@ -87,10 +87,18 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
   const userId = await currentUserId();
   if (!userId) return [];
   try {
+    const { data: memberships } = await supabase
+      .from('pod_members')
+      .select('pod_id')
+      .eq('user_id', userId);
+
+    const podIds = [...new Set((memberships ?? []).map((m) => m.pod_id))];
+    if (podIds.length === 0) return [];
+
     let query = supabase
       .from('pods')
-      .select('*, members:pod_members!inner(*)')
-      .eq('members.user_id', userId);
+      .select('*, members:pod_members(*)')
+      .in('id', podIds);
     if (estateId) {
       query = query.eq('estate_id', estateId);
     }
@@ -99,45 +107,75 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
       return [];
     }
 
-    const pods = data as Pod[];
-    const allUserIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user_id)))];
-    if (allUserIds.length > 0) {
-      const { data: profiles } = await supabase
-        .from('profiles')
-        .select('id, full_name, avatar_url')
-        .in('id', allUserIds);
-      if (profiles) {
-        const profileMap = new Map(profiles.map((p) => [p.id, p]));
-        for (const pod of pods) {
-          for (const member of pod.members) {
-            const profile = profileMap.get(member.user_id);
-            if (profile) {
-              (member as PodMember & { profile?: { id: string; full_name?: string | null; avatar_url?: string | null } }).profile = profile as { id: string; full_name?: string | null; avatar_url?: string | null };
-            }
-          }
-        }
-      }
-    }
-    for (const pod of pods) {
-      const invitations = await fetchPodInvitations(pod.id);
-      const inviteMembers: PodMember[] = invitations.map((inv) => ({
-        user_id: `inv-${inv.id}`,
-        full_name: inv.invitee_name,
-        intent_size: 1,
-        campus: '',
-        major: '',
-        cleanliness_score: 0,
-        sleep_schedule: '',
-        slot_credit_id: 'invitation',
-      }));
-      pod.members = [...pod.members, ...inviteMembers];
-    }
-
+    const pods = await enrichPods(data as Pod[]);
     return pods;
   } catch (error) {
     console.error('[LiquidityService] Failed to fetch pods:', error);
     return [];
   }
+}
+
+export async function fetchOpenPodsForListing(listingId: string): Promise<Pod[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('pods')
+      .select('*, members:pod_members(*)')
+      .eq('listing_id', listingId)
+      .eq('is_finalized', false);
+    if (error || !data) {
+      return [];
+    }
+
+    const pods = await enrichPods(data as Pod[]);
+    return pods.filter(
+      (pod) =>
+        podOpenSlotStatus(pod).open &&
+        !pod.members.some((m) => m.user_id === userId && m.slot_credit_id !== 'invitation'),
+    );
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch open pods:', error);
+    return [];
+  }
+}
+
+async function enrichPods(pods: Pod[]): Promise<Pod[]> {
+  const allUserIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user_id)))];
+  if (allUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, gender')
+      .in('id', allUserIds);
+    if (profiles) {
+      const profileMap = new Map(profiles.map((p) => [p.id, p]));
+      for (const pod of pods) {
+        for (const member of pod.members) {
+          const profile = profileMap.get(member.user_id);
+          if (profile) {
+            (member as PodMember & { profile?: { id: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null } }).profile = profile as { id: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null };
+            if (!member.full_name) member.full_name = profile.full_name ?? '';
+            if (!member.avatar_url) member.avatar_url = profile.avatar_url ?? undefined;
+          }
+        }
+      }
+    }
+  }
+  for (const pod of pods) {
+    const invitations = await fetchPodInvitations(pod.id);
+    const inviteMembers: PodMember[] = invitations.map((inv) => ({
+      user_id: `inv-${inv.id}`,
+      full_name: inv.invitee_name,
+      intent_size: 1,
+      campus: '',
+      major: '',
+      cleanliness_score: 0,
+      sleep_schedule: '',
+      slot_credit_id: 'invitation',
+    }));
+    pod.members = [...pod.members, ...inviteMembers];
+  }
+  return pods;
 }
 
 export async function fetchPodInvitations(podId: string): Promise<PodInvitation[]> {

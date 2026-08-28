@@ -24,7 +24,7 @@ export function useAuthForm() {
             await registerUserAccount(email, password, profileData);
             await refreshProfile();
             showToast({type: 'success', message: "Registration successful!"});
-            router.replace('/(onboarding)/preferences-budget');
+            router.replace('/(onboarding)');
         } catch (error) {
             setLoading(false);
             showToast({type: 'error', message: "Registration failed. Please try again."});

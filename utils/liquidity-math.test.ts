@@ -15,6 +15,10 @@ import {
   calculatePlatformFee,
   calculateTotalUserCost,
   verifyPodCompleteness,
+  podEffectiveGender,
+  isGenderCompatible,
+  podOpenSlotStatus,
+  countRealMembers,
 } from './liquidity-math';
 
 describe('Dynamic Target Occupancy Math', () => {
@@ -210,5 +214,119 @@ describe('Legacy Intent Math & Revenue Parity', () => {
     it('is never parity for a non-positive expected total', () => {
       expect(verifyRevenueParity(0, [1, 1]).isParity).toBe(false);
     });
+  });
+});
+
+describe('Gender Compatibility (UI-only roommate policy)', () => {
+  const maleMember = (userId: string) => ({ user_id: userId, profile: { gender: 'MALE' as const } });
+  const femaleMember = (userId: string) => ({ user_id: userId, profile: { gender: 'FEMALE' as const } });
+  const undecidedMember = (userId: string) => ({ user_id: userId, profile: { gender: null } });
+  const invitedMember = (userId: string) => ({ user_id: `inv-${userId}`, profile: { gender: 'FEMALE' as const } });
+  const noProfileMember = (userId: string) => ({ user_id: userId, profile: null });
+
+  describe('podEffectiveGender', () => {
+    it('derives a single resident gender when all real members share it', () => {
+      expect(podEffectiveGender({ members: [maleMember('a')] })).toBe('MALE');
+      expect(podEffectiveGender({ members: [maleMember('a'), maleMember('b')] })).toBe('MALE');
+      expect(podEffectiveGender({ members: [femaleMember('a'), femaleMember('b')] })).toBe('FEMALE');
+    });
+
+    it('marks a pod as MIXED when both genders are present', () => {
+      expect(podEffectiveGender({ members: [maleMember('a'), femaleMember('b')] })).toBe('MIXED');
+    });
+
+    it('returns ANY for an empty or all-undecided pod', () => {
+      expect(podEffectiveGender({ members: [] })).toBe('ANY');
+      expect(podEffectiveGender({ members: [undecidedMember('a'), noProfileMember('b')] })).toBe('ANY');
+    });
+
+    it('ignores pending/invited members when deriving the gender', () => {
+      expect(podEffectiveGender({ members: [maleMember('a'), invitedMember('999')] })).toBe('MALE');
+    });
+  });
+
+  describe('isGenderCompatible', () => {
+    it('never auto-pairs a male with a female pod or vice versa', () => {
+      expect(isGenderCompatible('FEMALE', 'MALE')).toBe(false);
+      expect(isGenderCompatible('MALE', 'FEMALE')).toBe(false);
+    });
+
+    it('allows a same-gender match', () => {
+      expect(isGenderCompatible('MALE', 'MALE')).toBe(true);
+      expect(isGenderCompatible('FEMALE', 'FEMALE')).toBe(true);
+    });
+
+    it('never auto-offers a MIXED pod to anyone', () => {
+      expect(isGenderCompatible('MIXED', 'MALE')).toBe(false);
+      expect(isGenderCompatible('MIXED', 'FEMALE')).toBe(false);
+      expect(isGenderCompatible('MIXED', null)).toBe(false);
+    });
+
+    it('offers an undecided ANY pod to any viewer', () => {
+      expect(isGenderCompatible('ANY', 'MALE')).toBe(true);
+      expect(isGenderCompatible('ANY', 'FEMALE')).toBe(true);
+    });
+
+    it('treats an undecided viewer as compatible with everything except MIXED', () => {
+      expect(isGenderCompatible('MALE', null)).toBe(true);
+      expect(isGenderCompatible('FEMALE', null)).toBe(true);
+      expect(isGenderCompatible('ANY', null)).toBe(true);
+      expect(isGenderCompatible('MIXED', null)).toBe(false);
+    });
+  });
+});
+
+describe('Open Slot Status (empty slot a user can fill)', () => {
+  const real = (userId: string) => ({ user_id: userId, slot_credit_id: `credit-${userId}` as const });
+  const invited = (id: string) => ({ user_id: `inv-${id}`, slot_credit_id: 'invitation' as const });
+
+  it('reports an open pod when there is a free seat', () => {
+    expect(podOpenSlotStatus({ target_occupancy: 3, members: [real('a')] })).toEqual({
+      open: true,
+      occupied: 1,
+      available: 2,
+      target: 3,
+    });
+  });
+
+  it('counts a friend-assigned slot (pending invite) as already occupied', () => {
+    expect(podOpenSlotStatus({ target_occupancy: 2, members: [real('a'), invited('9')] })).toEqual({
+      open: false,
+      occupied: 2,
+      available: 0,
+      target: 2,
+    });
+  });
+
+  it('exposes one remaining seat when a friend invite leaves a single slot', () => {
+    expect(podOpenSlotStatus({ target_occupancy: 3, members: [real('a'), invited('9')] })).toEqual({
+      open: true,
+      occupied: 2,
+      available: 1,
+      target: 3,
+    });
+  });
+
+  it('treats an empty pod as fully open', () => {
+    expect(podOpenSlotStatus({ target_occupancy: 3, members: [] })).toEqual({
+      open: true,
+      occupied: 0,
+      available: 3,
+      target: 3,
+    });
+  });
+});
+
+describe('countRealMembers (real member count, ignores pending invites)', () => {
+  const real = (userId: string) => ({ user_id: userId, slot_credit_id: `credit-${userId}` as const });
+  const invited = (id: string) => ({ user_id: `inv-${id}`, slot_credit_id: 'invitation' as const });
+
+  it('counts only real members, excluding pending invites', () => {
+    expect(countRealMembers({ members: [real('founder'), real('joiner'), invited('9')] })).toBe(2);
+  });
+
+  it('returns 0 for an empty or absent member list', () => {
+    expect(countRealMembers({ members: [] })).toBe(0);
+    expect(countRealMembers(undefined)).toBe(0);
   });
 });

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -15,12 +15,14 @@ type Props = {
   groupCode: string;
   members: ManageGroupMember[];
   maxCapacity?: number;
+  editable?: boolean;
+  loading?: boolean;
   onInvite?: (name: string, userId?: string) => void;
   onKick?: (member: ManageGroupMember) => Promise<void>;
   onClose: () => void;
 };
 
-export function ManageGroupModal({ visible, groupCode, members, maxCapacity, onInvite, onKick, onClose }: Props) {
+export function ManageGroupModal({ visible, groupCode, members, maxCapacity, editable = true, loading = false, onInvite, onKick, onClose }: Props) {
   const [code, setCode] = useState(groupCode);
   const [roster, setRoster] = useState<ManageGroupMember[]>(members);
   const { showToast } = useAppToast();
@@ -74,7 +76,7 @@ export function ManageGroupModal({ visible, groupCode, members, maxCapacity, onI
                 <Ionicons name="people-outline" size={20} color={DesignColors.primaryBright} />
               </View>
               <View>
-                <Text style={styles.title}>Manage Group</Text>
+                <Text style={styles.title}>{editable ? 'Manage Group' : 'Your Group'}</Text>
                 <Text style={styles.subtitle}>{roster.length} member{roster.length === 1 ? '' : 's'}</Text>
               </View>
             </View>
@@ -83,33 +85,42 @@ export function ManageGroupModal({ visible, groupCode, members, maxCapacity, onI
             </Pressable>
           </View>
 
-          <View style={styles.codeCard}>
-            <View style={styles.codeTop}>
-              <Text style={styles.codeLabel}>GROUP CODE</Text>
-              <Pressable onPress={handleRegenerate} hitSlop={8}>
-                <Text style={styles.regenerateText}>Regenerate</Text>
-              </Pressable>
+          {editable && (
+            <View style={styles.codeCard}>
+              <View style={styles.codeTop}>
+                <Text style={styles.codeLabel}>GROUP CODE</Text>
+                <Pressable onPress={handleRegenerate} hitSlop={8}>
+                  <Text style={styles.regenerateText}>Regenerate</Text>
+                </Pressable>
+              </View>
+              <View style={styles.codeRow}>
+                <Text style={styles.codeValue} numberOfLines={1}>{code}</Text>
+                <Pressable style={styles.copyBtn} onPress={handleCopy}>
+                  <Ionicons name="copy-outline" size={14} color={DesignColors.onPrimary} />
+                  <Text style={styles.copyText}>Copy</Text>
+                </Pressable>
+              </View>
             </View>
-            <View style={styles.codeRow}>
-              <Text style={styles.codeValue} numberOfLines={1}>{code}</Text>
-              <Pressable style={styles.copyBtn} onPress={handleCopy}>
-                <Ionicons name="copy-outline" size={14} color={DesignColors.onPrimary} />
-                <Text style={styles.copyText}>Copy</Text>
-              </Pressable>
-            </View>
-          </View>
+          )}
 
           <Text style={styles.sectionLabel}>MEMBERS</Text>
           <ScrollView style={styles.memberList} bounces={false} showsVerticalScrollIndicator={false}>
-            {roster.map((member) => (
-              <GroupMemberRow key={member.id} member={member} onKick={handleKick} />
-            ))}
-            {roster.length === 0 && (
+            {loading && roster.length === 0 ? (
+              <View style={styles.loadingBox}>
+                <ActivityIndicator size="small" color={DesignColors.primaryBright} />
+                <Text style={styles.loadingText}>Loading members…</Text>
+              </View>
+            ) : (
+              roster.map((member) => (
+                <GroupMemberRow key={member.id} member={member} onKick={editable ? handleKick : () => {}} />
+              ))
+            )}
+            {!loading && roster.length === 0 && (
               <Text style={styles.emptyText}>No members yet. Share your group code to get started.</Text>
             )}
           </ScrollView>
 
-          {remainingSlots > 0 && onInvite && (
+          {editable && remainingSlots > 0 && onInvite && (
             <InlineInviteSearch
               remainingSlots={remainingSlots}
               onSelect={(name, userId) => {
@@ -119,7 +130,7 @@ export function ManageGroupModal({ visible, groupCode, members, maxCapacity, onI
             />
           )}
 
-          <Text style={styles.lockHint}>Paid members are locked in and cannot be removed.</Text>
+          {editable && <Text style={styles.lockHint}>Paid members are locked in and cannot be removed.</Text>}
         </Pressable>
       </Pressable>
     </Modal>
@@ -147,4 +158,6 @@ const styles = StyleSheet.create({
   memberList: { paddingHorizontal: DesignSpacing.lg, maxHeight: 300 },
   lockHint: { ...DesignTypography.labelSm, color: DesignColors.outline, fontFamily, textAlign: 'center', paddingHorizontal: DesignSpacing.lg, paddingVertical: DesignSpacing.md },
   emptyText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center', paddingVertical: DesignSpacing.lg, fontStyle: 'italic' },
+  loadingBox: { alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, paddingVertical: DesignSpacing.lg },
+  loadingText: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
 });

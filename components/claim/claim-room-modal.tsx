@@ -10,12 +10,16 @@ import { FriendPicker, type SelectedFriend } from '@/components/claim/friend-pic
 import { ClaimReviewStep } from '@/components/claim/claim-review-step';
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
 import { JoinInviteCard } from '@/components/claim/join-invite-card';
+import { OpenPodStep } from '@/components/claim/open-pod-step';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import { StepTransition } from '@/components/claim/step-transition';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
-import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { useCreateSlotCredit, useOpenPodsForListing } from '@/hooks/use-liquidity';
+import { useAuth } from '@/context/auth-context';
+import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus } from '@/utils/liquidity-math';
+import type { Pod } from '@/types/liquidity';
 import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
 import { generateInviteCode } from '@/services/liquidity-pod-service';
 import { useDraggableSheet } from './use-draggable-sheet';
@@ -31,6 +35,7 @@ type Props = {
 export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
+  const { profile } = useAuth();
   const { showToast } = useAppToast();
   const { panHandlers, sheetHeight } = useDraggableSheet();
   useEscapeKey(onClose, visible);
@@ -42,11 +47,31 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const [friends, setFriends] = useState<SelectedFriend[]>([]);
   const [inviteCode, setInviteCode] = useState(generateInviteCode);
   const [joinMode, setJoinMode] = useState(false);
+  const [showOpenPods, setShowOpenPods] = useState(false);
 
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
   const priceAmount = dbListing?.price_amount ?? 1200000;
   const propertyTier: number = derivePropertyTier(dbListing?.property_tier, dbListing?.max_roommates);
+
+  const { data: openPods, isLoading: openPodsLoading } = useOpenPodsForListing(dbListing?.id, visible && wantsRoommates === true && !showOpenPods);
+  const compatibleOpenPods = (openPods ?? []).filter((pod) => isGenderCompatible(podEffectiveGender(pod), profile?.gender));
+  const hasOpenPods = compatibleOpenPods.length > 0;
+
+  useEffect(() => {
+    if (wantsRoommates !== true || openPodsLoading || !openPods) return;
+    console.log('[OpenPods] Checking whether this lodge has an empty slot this user can fill.');
+    if (compatibleOpenPods.length === 0) {
+      console.log('[OpenPods] No — this lodge has no pods that are looking for roommates for this user.');
+      return;
+    }
+    for (const pod of compatibleOpenPods) {
+      const s = podOpenSlotStatus(pod);
+      console.log(
+        `[OpenPods] Yes — this lodge has a pod that has ${s.occupied}/${s.target} member(s), so ${s.available} seat(s) are still free for this user.`,
+      );
+    }
+  }, [wantsRoommates, openPodsLoading, openPods, compatibleOpenPods]);
 
   useEffect(() => {
     if (!listingLoading && propertyTier <= 1 && wantsRoommates === null) {
@@ -72,6 +97,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       setFriends([]);
       setInviteCode(generateInviteCode());
       setJoinMode(false);
+      setShowOpenPods(false);
     }
   }, [visible]);
 
@@ -108,6 +134,26 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       showToast({ message, type: 'error' });
     }
   }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends]);
+
+  const handleJoinOpenPod = useCallback(
+    async (pod: Pod) => {
+      if (!dbListing || !pod.group_code) return;
+      try {
+        const { credit } = await purchaseSlot({
+          listing: dbListing,
+          targetOccupancy: pod.target_occupancy,
+          joinCode: pod.group_code,
+        });
+        showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
+        onClose();
+        router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to join the group.';
+        showToast({ message, type: 'error' });
+      }
+    },
+    [dbListing, purchaseSlot, showToast, onClose],
+  );
 
   const baseRent = calculateBaseRent(priceAmount, pricingOccupancy);
   const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
@@ -183,12 +229,17 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     );
   };
 
-  const canContinue = step === 1 ? wantsRoommates !== null : true;
+  const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;
+  const footerLoading = isPurchasing || (step === 1 && wantsRoommates === true && openPodsLoading);
   const footerLabel = isConfirmStep ? 'Reserve My Spot' : 'Continue';
 
   const handleFooterPress = () => {
     if (isConfirmStep) {
       handleReserve();
+      return;
+    }
+    if (step === 1 && wantsRoommates === true && hasOpenPods) {
+      setShowOpenPods(true);
       return;
     }
     setStep((current) => current + 1);
@@ -206,6 +257,18 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
 
             {joinMode ? (
               <JoinGroupFlow onClose={onClose} onExitJoin={() => setJoinMode(false)} />
+            ) : showOpenPods && dbListing ? (
+              <OpenPodStep
+                listing={dbListing}
+                myGender={profile?.gender}
+                joining={isPurchasing}
+                onJoin={handleJoinOpenPod}
+                onDecline={() => {
+                  setShowOpenPods(false);
+                  setStep(2);
+                }}
+                onClose={onClose}
+              />
             ) : (
               <>
                 <WizardHeader
@@ -235,7 +298,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 <WizardFooter
                   label={footerLabel}
                     icon={isConfirmStep ? undefined : 'arrow-forward'}
-                  loading={isPurchasing}
+                  loading={footerLoading}
                   disabled={!canContinue}
                   onPress={handleFooterPress}
                 />

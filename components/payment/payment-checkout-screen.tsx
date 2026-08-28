@@ -83,7 +83,7 @@ function GlassAmountCard({ amount }: { amount: number }) {
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: credits, isLoading, isFetching, refetch } = useUserSlotCredits();
+  const { data: credits, isLoading, isFetching, status, refetch } = useUserSlotCredits();
   const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
 
@@ -154,7 +154,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
     }
   };
 
-  const waitingOnFetch = isLoading || (!credit && isFetching);
+  const waitingOnFetch = isLoading || status === 'pending' || (!credit && isFetching);
 
   if (waitingOnFetch) return (
     <SafeAreaView style={styles.safe} edges={['top']}>

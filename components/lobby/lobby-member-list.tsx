@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { ActivityIndicator, Image, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -40,8 +41,20 @@ interface Props {
   targetTier: number;
 }
 
+function MemberAvatar({ member }: { member: ManageGroupMember }) {
+  const [imgFailed, setImgFailed] = useState(false);
+  const showAvatar = !!member.avatar_url && !imgFailed;
+  return showAvatar ? (
+    <Image source={{ uri: member.avatar_url ?? undefined }} style={styles.avatarImage} onError={() => setImgFailed(true)} />
+  ) : (
+    <View style={[styles.avatar, { backgroundColor: getAvatarColor(member.name) }]}>
+      <Text style={styles.initials}>{getInitials(member.name)}</Text>
+    </View>
+  );
+}
+
 export function LobbyMemberList({ members, targetTier }: Props) {
-  const filled = members.length;
+  const filled = members.filter((m) => m.status !== 'pending').length;
   const percentage = Math.min(Math.round((filled / targetTier) * 100), 100);
   const isComplete = filled >= targetTier;
 
@@ -63,13 +76,7 @@ export function LobbyMemberList({ members, targetTier }: Props) {
           const config = STATUS_CONFIG[member.status];
           return (
             <View key={member.id} style={styles.memberRow}>
-              {member.avatar_url ? (
-                <Image source={{ uri: member.avatar_url }} style={styles.avatarImage} />
-              ) : (
-                <View style={[styles.avatar, { backgroundColor: getAvatarColor(member.name) }]}>
-                  <Text style={styles.initials}>{getInitials(member.name)}</Text>
-                </View>
-              )}
+              <MemberAvatar member={member} />
               <View style={styles.memberInfo}>
                 <Text style={styles.memberName} numberOfLines={1}>{member.name}</Text>
               </View>

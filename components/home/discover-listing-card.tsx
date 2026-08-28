@@ -49,9 +49,9 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
         <Svg height="100%" width="100%">
           <Defs>
             <LinearGradient id="cardGradient" x1="0" y1="0" x2="0" y2="1">
-              <Stop offset="0%" stopColor="rgba(0,0,0,0)" stopOpacity="0" />
-              <Stop offset="50%" stopColor="rgba(0,0,0,0.2)" stopOpacity="0.2" />
-              <Stop offset="100%" stopColor="rgba(0,0,0,1)" stopOpacity="1" />
+              <Stop offset="0%" stopColor={DesignColors.transparent} stopOpacity="0" />
+              <Stop offset="50%" stopColor={DesignColors.scrimLight} stopOpacity="0.2" />
+              <Stop offset="100%" stopColor={DesignColors.surfaceContainerLowest} stopOpacity="1" />
             </LinearGradient>
           </Defs>
           <Rect width="100%" height="100%" fill="url(#cardGradient)" />
@@ -200,7 +200,7 @@ const styles = StyleSheet.create({
   metaDivider: {
     borderTopWidth: 1,
     borderBottomWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: DesignColors.glassBorder,
     paddingVertical: DesignSpacing.md,
   },
   metaRow: {

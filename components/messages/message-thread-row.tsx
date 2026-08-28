@@ -66,7 +66,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: DesignSpacing.marginMobile,
   },
   rowUnread: {
-    backgroundColor: 'rgba(210, 187, 255, 0.05)',
+    backgroundColor: DesignColors.primaryTint,
   },
   avatarWrap: {
     position: 'relative',
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
   },
   verifiedIcon: {
     fontSize: 11,
-    color: '#fff',
+    color: DesignColors.onSurface,
     fontWeight: '800',
   },
   body: {

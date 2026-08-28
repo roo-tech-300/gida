@@ -93,7 +93,7 @@ export function CreateListingEntryScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
     paddingHorizontal: 20, paddingVertical: 8, zIndex: 20,
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
   },
   glowBottomLeft: {
     position: 'absolute', bottom: '25%', left: -80, width: 256, height: 256,
-    borderRadius: 128, backgroundColor: 'rgba(0,165,114,0.04)',
+    borderRadius: 128, backgroundColor: DesignColors.successContainer,
   },
   center: { flex: 1, justifyContent: 'center', paddingHorizontal: 24 },
   hero: { alignItems: 'center' },
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     position: 'absolute', top: -16, right: -16, zIndex: 20,
     width: 64, height: 64, borderRadius: 16, overflow: 'hidden',
     backgroundColor: DesignColors.cardBorder,
-    borderWidth: 1, borderColor: 'rgba(78,222,163,0.2)',
+    borderWidth: 1, borderColor: DesignColors.successContainer,
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },
@@ -135,7 +135,7 @@ const styles = StyleSheet.create({
     position: 'absolute', bottom: -24, left: -24, zIndex: 20,
     width: 56, height: 56, borderRadius: 28, overflow: 'hidden',
     backgroundColor: DesignColors.cardBorder,
-    borderWidth: 1, borderColor: 'rgba(255,182,149,0.2)',
+    borderWidth: 1, borderColor: DesignColors.warningContainer,
     alignItems: 'center', justifyContent: 'center',
     shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 12, elevation: 6,
   },

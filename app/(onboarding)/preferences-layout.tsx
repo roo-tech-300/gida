@@ -64,7 +64,7 @@ export default function OnboardingLayoutScreen() {
 
   return (
     <OnboardingLayout>
-      <OnboardingProgress step={2} label="Layout & Amenities" />
+      <OnboardingProgress step={3} label="Layout & Amenities" />
 
       <OnboardingGlassCard>
         <View style={styles.header}>

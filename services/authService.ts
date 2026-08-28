@@ -20,13 +20,14 @@ export async function registerUserAccount(email: string, password: string, profi
 
     const { error: profileError } = await supabase
     .from('profiles')
-    .insert([
+    .upsert(
         {
             id: authData.user.id,
             full_name: profile.fullName,
             onboarded: false,
-        }
-    ]);
+        },
+        { onConflict: 'id' }
+    );
 
     if (profileError) {
         console.error("Error creating user profile:", profileError.message);

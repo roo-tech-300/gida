@@ -39,7 +39,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     if (isAuthenticated && !profile?.onboarded && !inOnboardingGroup) {
-      router.replace('/(onboarding)/preferences-budget');
+      router.replace('/(onboarding)');
       return;
     }
 
@@ -69,10 +69,12 @@ export default function RootLayout() {
                     <Stack.Screen name="(tabs)" />
                     <Stack.Screen name="property/[id]" />
                     <Stack.Screen name="property/claim-room" />
-                    <Stack.Screen name="property/claim-receipt" />
+                    <Stack.Screen name="property/lobby" />
                     <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="property/tour-history" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="messages/[id]" />
+                    <Stack.Screen name="roommate/[id]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>
                 </ThemeProvider>

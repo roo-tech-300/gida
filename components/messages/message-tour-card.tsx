@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     borderRadius: DesignRadius.lg,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
     backgroundColor: DesignColors.surfaceContainerLow,
     marginBottom: DesignSpacing.md,
   },
@@ -50,7 +50,7 @@ const styles = StyleSheet.create({
   },
   overlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(0, 0, 0, 0.55)',
+    backgroundColor: DesignColors.scrim,
   },
   imageLabel: {
     position: 'absolute',
@@ -74,7 +74,7 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.lg,
     paddingHorizontal: DesignSpacing.md,
     paddingVertical: DesignSpacing.md,
-    backgroundColor: 'rgba(42, 42, 44, 0.6)',
+    backgroundColor: DesignColors.glassStrong,
   },
   footerRow: {
     flexDirection: 'row',

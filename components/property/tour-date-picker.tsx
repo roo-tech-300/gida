@@ -1,18 +1,17 @@
 import { Pressable, ScrollView, StyleSheet, Text } from 'react-native';
-import { useMemo } from 'react';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { getDatePills } from '@/dummy/tour-scheduler-mock';
+import type { DatePill } from '@/utils/tour-availability';
 
 export function TourDatePicker({
+  pills,
   selectedIndex,
   onSelect,
 }: {
+  pills: DatePill[];
   selectedIndex: number;
   onSelect: (index: number) => void;
 }) {
-  const pills = useMemo(() => getDatePills(7), []);
-
   return (
     <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.row}>
       {pills.map((pill, i) => {
@@ -45,9 +44,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 4,
   },
-  pillActive: { backgroundColor: DesignColors.primaryContainer, borderColor: DesignColors.primary },
+  pillActive: { backgroundColor: DesignColors.primaryTint, borderColor: DesignColors.primaryBright },
   day: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  dayActive: { color: DesignColors.onPrimaryContainer },
+  dayActive: { color: DesignColors.primaryBright },
   number: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   numberActive: { color: DesignColors.onPrimaryContainer },
 });

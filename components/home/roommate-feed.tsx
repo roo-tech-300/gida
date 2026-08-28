@@ -1,5 +1,6 @@
 import { useCallback, useMemo, useState } from 'react';
 import { FlatList, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { SearchBar } from '@/components/ui/search-bar';
@@ -19,6 +20,7 @@ const TAGS: Tag[] = [
 ];
 
 export function RoommateFeed() {
+  const router = useRouter();
   const [query, setQuery] = useState('');
   const [activeTags, setActiveTags] = useState<Set<string>>(new Set());
   const [sort, setSort] = useState<SortMode>('best-match');
@@ -64,11 +66,11 @@ export function RoommateFeed() {
     ({ item }: { item: RoommateProfile }) => (
       <RoommateCard
         roommate={item}
-        onViewProfile={(id) => {}}
-        onSayHello={(id) => {}}
+        onViewProfile={(id) => router.push(`/roommate/${id}`)}
+        onSayHello={(id) => router.push(`/messages/${id}`)}
       />
     ),
-    [],
+    [router],
   );
 
   return (
@@ -135,12 +137,12 @@ const styles = StyleSheet.create({
   tag: {
     borderRadius: DesignRadius.full,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.12)',
+    borderColor: DesignColors.borderMedium,
     paddingHorizontal: 14,
     paddingVertical: 6,
   },
   tagActive: {
-    backgroundColor: 'rgba(210,187,255,0.15)',
+    backgroundColor: DesignColors.primaryTint,
     borderColor: DesignColors.primary,
   },
   tagText: {
@@ -160,10 +162,10 @@ const styles = StyleSheet.create({
     borderRadius: DesignRadius.full,
     paddingHorizontal: 14,
     paddingVertical: 6,
-    backgroundColor: 'rgba(255,255,255,0.05)',
+    backgroundColor: DesignColors.borderSoft,
   },
   sortPillActive: {
-    backgroundColor: 'rgba(210,187,255,0.15)',
+    backgroundColor: DesignColors.primaryTint,
   },
   sortText: {
     ...DesignTypography.labelSm,

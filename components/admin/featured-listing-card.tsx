@@ -56,9 +56,9 @@ export function FeaturedListingCard({ listing }: Props) {
               <Svg width="100%" height="100%" style={styles.gradientSvg}>
                 <Defs>
                   <LinearGradient id="featuredGrad" x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0%" stopColor="rgba(0,0,0,0)" stopOpacity="0" />
-                    <Stop offset="50%" stopColor="rgba(0,0,0,0.6)" stopOpacity="0.6" />
-                    <Stop offset="100%" stopColor="rgba(0,0,0,0.85)" stopOpacity="0.85" />
+                    <Stop offset="0%" stopColor={DesignColors.transparent} stopOpacity="0" />
+                    <Stop offset="50%" stopColor={DesignColors.scrimHeavy} stopOpacity="0.6" />
+                    <Stop offset="100%" stopColor={DesignColors.scrimDeep} stopOpacity="0.85" />
                   </LinearGradient>
                 </Defs>
                 <Rect width="100%" height="100%" fill="url(#featuredGrad)" />
@@ -71,7 +71,7 @@ export function FeaturedListingCard({ listing }: Props) {
               <View>
                 <Text style={styles.listingTitle}>{listing.title}</Text>
                 <View style={styles.locationRow}>
-                  <Ionicons name="location-outline" size={14} color="rgba(255,255,255,0.6)" />
+                  <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
                   <Text style={styles.locationText}>
                     {listing.location_landmark}, {listing.city}
                   </Text>
@@ -97,8 +97,8 @@ const styles = StyleSheet.create({
     borderRadius: 32,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
-    backgroundColor: 'rgba(24,24,28,0.6)',
+    borderColor: DesignColors.borderSoft,
+    backgroundColor: DesignColors.glassStrong,
     padding: 8,
   },
   glassBlur: {
@@ -173,18 +173,18 @@ const styles = StyleSheet.create({
   },
   locationText: {
     fontSize: 14,
-    color: 'rgba(255,255,255,0.6)',
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
   },
   pricePill: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.cardBorder,
     paddingHorizontal: 12,
     paddingVertical: 8,
     borderRadius: DesignRadius.lg,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: DesignColors.glassBorder,
     gap: 2,
   },
   priceText: {
@@ -195,15 +195,15 @@ const styles = StyleSheet.create({
   },
   priceUnit: {
     fontSize: 10,
-    color: 'rgba(255,255,255,0.4)',
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
   },
   promptCard: {
     borderRadius: DesignRadius.xl,
     overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.6)',
+    backgroundColor: DesignColors.glassStrong,
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.05)',
+    borderColor: DesignColors.borderSoft,
   },
   promptContent: {
     padding: DesignSpacing.xl,
@@ -214,11 +214,11 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    backgroundColor: 'rgba(54,71,54,0.15)',
+    backgroundColor: DesignColors.primaryTintMid,
     alignItems: 'center',
     justifyContent: 'center',
     borderWidth: 1,
-    borderColor: 'rgba(94,124,94,0.2)',
+    borderColor: DesignColors.primaryTintMid,
   },
   promptTitle: {
     ...DesignTypography.headlineMd,

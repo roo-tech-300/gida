@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
   },
   fieldError: {
-    backgroundColor: 'rgba(147, 0, 10, 0.15)',
+    backgroundColor: DesignColors.dangerContainer,
   },
   input: {
     flex: 1,

@@ -1,5 +1,6 @@
-import { useCallback, useMemo, useRef, useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { useCallback, useMemo, useRef } from 'react';
+import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
+import { useRouter } from 'expo-router';
 
 import { RoommateDeckCard } from '@/components/home/roommate-deck-card';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
@@ -8,6 +9,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { useRoommates } from '@/hooks/useRoommates';
 import type { RoommateProfile } from '@/types/roommates';
+import { DesignColors } from '@/constants/design';
 
 type Props = {
   itemHeight: number;
@@ -16,12 +18,12 @@ type Props = {
 };
 
 export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
+  const router = useRouter();
   const { needsOnboarding } = useRoommateVisibility();
   const { profile } = useAuth();
-  const [sheetVisible, setSheetVisible] = useState(true);
   const listRef = useRef<FlatList<RoommateProfile>>(null);
 
-  const { data: allRoommates = [], isRefetching, refetch } = useRoommates();
+  const { data: allRoommates = [], isLoading, isRefetching, refetch } = useRoommates();
 
   const filtered = useMemo(() => {
     const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
@@ -34,13 +36,19 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
     );
   }, [query, allRoommates, profile?.id]);
 
-  const onViewProfile = useCallback((id: string) => {
-    // TODO: navigate to profile detail
-  }, []);
+  const onViewProfile = useCallback(
+    (id: string) => {
+      router.push(`/roommate/${id}`);
+    },
+    [router],
+  );
 
-  const onSayHello = useCallback((id: string) => {
-    // TODO: open chat or message composer
-  }, []);
+  const onSayHello = useCallback(
+    (id: string) => {
+      router.push(`/messages/${id}`);
+    },
+    [router],
+  );
 
   const renderItem = useCallback(
     ({ item }: { item: RoommateProfile }) => (
@@ -63,7 +71,15 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
   );
 
   if (needsOnboarding) {
-    return <RoommateOnboardingSheet visible={sheetVisible} onDismiss={() => setSheetVisible(false)} />;
+    return <RoommateOnboardingSheet visible onDismiss={() => {}} />;
+  }
+
+  if (isLoading) {
+    return (
+      <View style={styles.loadingWrap}>
+        <ActivityIndicator size="large" color={DesignColors.primaryBright} />
+      </View>
+    );
   }
 
   if (allRoommates.length === 0 && !isRefetching) {
@@ -101,6 +117,11 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#0e0e10',
+    backgroundColor: DesignColors.surfaceContainerLowest,
+  },
+  loadingWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

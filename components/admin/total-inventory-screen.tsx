@@ -108,7 +108,7 @@ export function TotalInventoryScreen() {
         </ScrollView>
 
         <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => router.push('/admin/create-listing')}>
-          <Ionicons name="add" size={28} color="#ffffff" />
+          <Ionicons name="add" size={28} color={DesignColors.onSurface} />
         </Pressable>
       </SafeAreaView>
     </View>
@@ -116,7 +116,7 @@ export function TotalInventoryScreen() {
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
 
   header: {
@@ -132,16 +132,16 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1, borderRadius: 16, padding: 14,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
-  metricValue: { fontSize: 20, fontWeight: '800', color: '#ffffff', fontFamily },
+  metricValue: { fontSize: 20, fontWeight: '800', color: DesignColors.onSurface, fontFamily },
   metricLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.primary, fontFamily, marginTop: 4 },
 
   searchRow: {
     flexDirection: 'row', alignItems: 'center', gap: 8,
     borderRadius: 9999, paddingHorizontal: 16, height: 44,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
     marginBottom: 16,
   },
   searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
@@ -150,12 +150,12 @@ const styles = StyleSheet.create({
   tab: {
     paddingHorizontal: 18, paddingVertical: 8,
     borderRadius: 999,
-    backgroundColor: 'rgba(26,26,30,0.82)',
+    backgroundColor: DesignColors.glassFill,
     marginRight: 8,
   },
   tabActive: { backgroundColor: DesignColors.primaryContainer },
   tabText: { fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
-  tabTextActive: { color: '#ffffff' },
+  tabTextActive: { color: DesignColors.onSurface },
 
   list: { gap: 16 },
 

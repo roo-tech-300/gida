@@ -87,7 +87,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(26, 26, 30, 0.82)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },

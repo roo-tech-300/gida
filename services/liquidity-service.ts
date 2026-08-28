@@ -1,0 +1,211 @@
+import { supabase } from '@/lib/supabase';
+import { derivePropertyTier, isValidTargetOccupancy, podOpenSlotStatus } from '@/utils/liquidity-math';
+import { resolveEstateForListing } from '@/utils/liquidity-estate';
+import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
+import type { PurchaseSlotCreditResult, InvitedFriend } from '@/services/liquidity-pod-service';
+import type { Estate, SlotCredit, Pod, PodMember, PodInvitation } from '@/types/liquidity';
+import type { DbListing } from '@/types/feed-listing';
+import { MOCK_ESTATES } from '@/dummy/liquidity-mock';
+
+export { findPodByGroupCode, removeMemberFromPod };
+export type { PurchaseSlotCreditResult };
+
+export type PurchaseSlotCreditInput = {
+  listing: DbListing;
+  targetOccupancy: number;
+  createCode?: string;
+  joinCode?: string;
+  invitedFriends?: InvitedFriend[];
+};
+
+export async function findUserCreditForProperty(userId: string | null, listingId: string): Promise<SlotCredit | null> {
+  if (!userId) return null;
+  try {
+    const { data, error } = await supabase
+      .from('slot_credits')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('listing_id', listingId)
+      .maybeSingle();
+    if (!error && data) return data as SlotCredit;
+  } catch (error) {
+    console.error('[LiquidityService] Failed to look up existing credit:', error);
+  }
+  return null;
+}
+
+export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promise<PurchaseSlotCreditResult> {
+  const propertyTier = derivePropertyTier(input.listing.property_tier, input.listing.max_roommates);
+  if (!isValidTargetOccupancy(propertyTier, input.targetOccupancy)) {
+    throw new Error(`Invalid occupancy ${input.targetOccupancy} for a ${propertyTier}-slot property.`);
+  }
+
+  const userId = await currentUserId();
+  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+
+  const existing = await findUserCreditForProperty(userId, input.listing.id);
+  if (existing && existing.status !== 'expired') {
+    throw new Error('You already have a spot reserved on this property.');
+  }
+
+  const { estateId, estate } = await resolveEstateForListing(input.listing);
+  if (input.joinCode && input.joinCode.trim()) {
+    return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier });
+  }
+  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode, invitedFriends: input.invitedFriends });
+}
+
+export async function fetchEstates(): Promise<Estate[]> {
+  try {
+    const { data, error } = await supabase.from('estates').select('*');
+    if (error || !data || data.length === 0) {
+      return MOCK_ESTATES;
+    }
+    return data as Estate[];
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch estates from Supabase, using fallback:', error);
+    return MOCK_ESTATES;
+  }
+}
+
+export async function fetchUserSlotCredits(): Promise<SlotCredit[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase.from('slot_credits').select('*, estate:estates(*)').eq('user_id', userId);
+    if (error || !data) {
+      return [];
+    }
+    return data as SlotCredit[];
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch user slot credits:', error);
+    return [];
+  }
+}
+
+export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  try {
+    const { data: memberships } = await supabase
+      .from('pod_members')
+      .select('pod_id')
+      .eq('user_id', userId);
+
+    const podIds = [...new Set((memberships ?? []).map((m) => m.pod_id))];
+    if (podIds.length === 0) return [];
+
+    let query = supabase
+      .from('pods')
+      .select('*, members:pod_members(*)')
+      .in('id', podIds);
+    if (estateId) {
+      query = query.eq('estate_id', estateId);
+    }
+    const { data, error } = await query;
+    if (error || !data) {
+      return [];
+    }
+
+    const pods = await enrichPods(data as Pod[]);
+    return pods;
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch pods:', error);
+    return [];
+  }
+}
+
+export async function fetchOpenPodsForListing(listingId: string): Promise<Pod[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('pods')
+      .select('*, members:pod_members(*)')
+      .eq('listing_id', listingId)
+      .eq('is_finalized', false);
+    if (error || !data) {
+      return [];
+    }
+
+    const pods = await enrichPods(data as Pod[]);
+    return pods.filter(
+      (pod) =>
+        podOpenSlotStatus(pod).open &&
+        !pod.members.some((m) => m.user_id === userId && m.slot_credit_id !== 'invitation'),
+    );
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch open pods:', error);
+    return [];
+  }
+}
+
+async function enrichPods(pods: Pod[]): Promise<Pod[]> {
+  const allUserIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user_id)))];
+  if (allUserIds.length > 0) {
+    const { data: profiles } = await supabase
+      .from('profiles')
+      .select('id, full_name, avatar_url, gender')
+      .in('id', allUserIds);
+    if (profiles) {
+      const profileMap = new Map(profiles.map((p) => [p.id, p]));
+      for (const pod of pods) {
+        for (const member of pod.members) {
+          const profile = profileMap.get(member.user_id);
+          if (profile) {
+            (member as PodMember & { profile?: { id: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null } }).profile = profile as { id: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null };
+            if (!member.full_name) member.full_name = profile.full_name ?? '';
+            if (!member.avatar_url) member.avatar_url = profile.avatar_url ?? undefined;
+          }
+        }
+      }
+    }
+  }
+  for (const pod of pods) {
+    const invitations = await fetchPodInvitations(pod.id);
+    const inviteMembers: PodMember[] = invitations.map((inv) => ({
+      user_id: `inv-${inv.id}`,
+      full_name: inv.invitee_name,
+      intent_size: 1,
+      campus: '',
+      major: '',
+      cleanliness_score: 0,
+      sleep_schedule: '',
+      slot_credit_id: 'invitation',
+    }));
+    pod.members = [...pod.members, ...inviteMembers];
+  }
+  return pods;
+}
+
+export async function fetchPodInvitations(podId: string): Promise<PodInvitation[]> {
+  const userId = await currentUserId();
+  if (!userId) return [];
+  try {
+    const { data, error } = await supabase
+      .from('pod_invitations')
+      .select('*')
+      .eq('pod_id', podId)
+      .eq('status', 'pending');
+    if (error || !data) return [];
+    return data as PodInvitation[];
+  } catch (error) {
+    console.error('[LiquidityService] Failed to fetch pod invitations:', error);
+    return [];
+  }
+}
+
+export async function inviteRoommateToPod(podId: string | undefined, inviteeName: string, inviteeUserId?: string): Promise<Pod | null> {
+  const userId = await currentUserId();
+  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+  if (!podId) throw new Error('No pod found to invite to.');
+
+  const { error } = await supabase.from('pod_invitations').insert({
+    pod_id: podId,
+    inviter_user_id: userId,
+    invitee_user_id: inviteeUserId ?? null,
+    invitee_name: inviteeName,
+  });
+  if (error) throw new Error(error.message);
+  return null;
+}

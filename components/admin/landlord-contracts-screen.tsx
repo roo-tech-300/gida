@@ -6,15 +6,15 @@ import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context'
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, fontFamily } from '@/constants/design';
+import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
 import { useLandlords } from '@/hooks/use-landlords';
-
-function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { getInitials } from '@/utils/get-initials';
+import type { LandlordWithCount } from '@/services/landlord-service';
 
 export function LandlordContractsScreen() {
   const insets = useSafeAreaInsets();
   const [query, setQuery] = useState('');
+  const [profileLandlord, setProfileLandlord] = useState<LandlordWithCount | null>(null);
   const { data: landlords, isPending, refetch, isRefetching } = useLandlords();
 
   const filtered = useMemo(() => {
@@ -31,7 +31,7 @@ export function LandlordContractsScreen() {
       <SafeAreaView style={styles.safe} edges={['top']}>
         <View style={styles.header}>
           <BackButton hasBackground />
-          <Text style={styles.headerTitle}>Landlord Contracts</Text>
+          <Text style={styles.headerTitle}>Landlords</Text>
         </View>
 
         <ScrollView
@@ -83,9 +83,16 @@ export function LandlordContractsScreen() {
               {filtered.map((landlord) => (
                 <Pressable key={landlord.id} style={styles.landlordCard} onPress={() => router.push(`/admin/landlord-properties/${landlord.id}` as any)}>
                   <View style={styles.cardLeft}>
-                    <View style={styles.avatar}>
+                    <Pressable
+                      style={styles.avatar}
+                      hitSlop={6}
+                      onPress={(e) => {
+                        e.stopPropagation();
+                        setProfileLandlord(landlord);
+                      }}
+                    >
                       <Text style={styles.avatarText}>{getInitials(landlord.full_name)}</Text>
-                    </View>
+                    </Pressable>
                     <View style={styles.cardInfo}>
                       <Text style={styles.landlordName}>{landlord.full_name}</Text>
                       <Text style={styles.landlordEmail}>{landlord.email ?? ''}</Text>
@@ -100,16 +107,22 @@ export function LandlordContractsScreen() {
         </ScrollView>
 
         <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => router.push('/admin/create-landlord')}>
-          <Ionicons name="add" size={24} color="#ffffff" />
+          <Ionicons name="add" size={24} color={DesignColors.onSurface} />
           <Text style={styles.fabLabel}>Add Landlord</Text>
         </Pressable>
+
+        <LandlordProfileModal
+          visible={profileLandlord !== null}
+          landlord={profileLandlord}
+          onClose={() => setProfileLandlord(null)}
+        />
       </SafeAreaView>
     </View>
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   safe: { flex: 1 },
 
   header: {
@@ -125,7 +138,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: 8,
     borderRadius: 9999, paddingHorizontal: 16, height: 44,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
     marginBottom: 20,
   },
   searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
@@ -134,11 +147,11 @@ const styles = StyleSheet.create({
   metricCard: {
     flex: 1, borderRadius: 16, padding: 16,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
     gap: 8,
   },
   metricTop: { flexDirection: 'row', alignItems: 'center' },
-  metricValue: { fontSize: 22, fontWeight: '800', color: '#ffffff', fontFamily },
+  metricValue: { fontSize: 22, fontWeight: '800', color: DesignColors.onSurface, fontFamily },
   metricLabel: { fontSize: 11, fontWeight: '700', color: DesignColors.primaryContainer, fontFamily, letterSpacing: 0.5 },
 
   sectionTitle: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily, marginBottom: 16 },
@@ -150,12 +163,12 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center',
     borderRadius: 16, padding: 14,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
   cardLeft: { flex: 1, flexDirection: 'row', alignItems: 'center', gap: 12 },
   avatar: {
     width: 44, height: 44, borderRadius: 22,
-    backgroundColor: 'rgba(54,71,54,0.12)',
+    backgroundColor: DesignColors.primaryTint,
     alignItems: 'center', justifyContent: 'center',
   },
   avatarText: { fontSize: 14, fontWeight: '700', color: DesignColors.primary, fontFamily },
@@ -170,5 +183,5 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.primaryContainer,
     flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 8,
   },
-  fabLabel: { fontSize: 14, fontWeight: '700', color: '#ffffff', fontFamily },
+  fabLabel: { fontSize: 14, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
 });

@@ -85,14 +85,14 @@ export function AdminDashboardScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   loadingWrap: { flex: 1, alignItems: 'center', justifyContent: 'center' },
   content: { padding: 20, gap: 32, paddingBottom: 128 },
   header: { flexDirection: 'row', alignItems: 'center', gap: 20, paddingTop: 24 },
   avatarSection: { position: 'relative' },
   avatarWrap: {
     width: 64, height: 64, borderRadius: 22, overflow: 'hidden',
-    backgroundColor: 'rgba(24,24,28,0.6)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: DesignColors.glassStrong, borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
     transform: [{ rotate: '6deg' }],
     shadowColor: DesignColors.primary, shadowOffset: { width: 0, height: 4 },

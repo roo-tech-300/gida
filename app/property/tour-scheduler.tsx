@@ -1,17 +1,43 @@
-import { View } from 'react-native';
+import { ActivityIndicator, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
 import { TourSchedulerModal } from '@/components/property/tour-scheduler-modal';
-import { discoverListings } from '@/dummy/listings-mock';
+import { useListing } from '@/hooks/use-listing';
+import { useAdminProfile } from '@/hooks/use-admin-profile';
 import { DesignColors } from '@/constants/design';
 
 export default function TourSchedulerRoute() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const property = discoverListings.find((p) => p.id === id);
+  const { data, isLoading } = useListing(String(id));
+  const { data: admin } = useAdminProfile(data?.dbListing.admin_id);
 
-  if (!property) {
-    return <View style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }} />;
+  if (isLoading) {
+    return (
+      <View style={styles.center}>
+        <ActivityIndicator size="large" color={DesignColors.primary} />
+      </View>
+    );
   }
 
-  return <TourSchedulerModal propertyId={property.id} propertyTitle={property.title} propertyLocation={property.location} />;
+  if (!data) {
+    return <View style={styles.center} />;
+  }
+
+  return (
+    <TourSchedulerModal
+      propertyId={data.listing.id}
+      propertyTitle={data.listing.title}
+      propertyLocation={data.listing.location}
+      admin={admin ?? null}
+    />
+  );
 }
+
+const styles = {
+  center: {
+    flex: 1,
+    alignItems: 'center' as const,
+    justifyContent: 'center' as const,
+    backgroundColor: DesignColors.surfaceContainerLowest,
+  },
+};

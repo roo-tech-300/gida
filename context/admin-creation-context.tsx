@@ -1,31 +1,25 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-import type { RoommateProfile } from '@/types/roommates';
+import type { AdminCandidate, AdminRole } from '@/types/admin';
 
-type AdminCandidate = {
-  user: RoommateProfile | null;
-  role: 'super_admin' | 'regional_admin' | 'field_admin' | 'independent_field_admin' | null;
+type AdminCreationState = {
+  user: AdminCandidate | null;
+  role: AdminRole | null;
   regionId: string | null;
-  supervisorId: string | null;
-  allocatedHouses: string[];
 };
 
 type AdminCreationContextType = {
-  data: AdminCandidate;
-  setUser: (user: RoommateProfile) => void;
-  setRole: (role: AdminCandidate['role']) => void;
-  setRegionId: (id: string | null) => void;
-  setSupervisorId: (id: string | null) => void;
-  setAllocatedHouses: (ids: string[]) => void;
+  data: AdminCreationState;
+  setUser: (user: AdminCandidate) => void;
+  setRole: (role: AdminRole) => void;
+  setRegionId: (regionId: string | null) => void;
   reset: () => void;
 };
 
-const defaultValue: AdminCandidate = {
+const defaultValue: AdminCreationState = {
   user: null,
   role: null,
   regionId: null,
-  supervisorId: null,
-  allocatedHouses: [],
 };
 
 const AdminCreationContext = createContext<AdminCreationContextType>({
@@ -33,38 +27,34 @@ const AdminCreationContext = createContext<AdminCreationContextType>({
   setUser: () => {},
   setRole: () => {},
   setRegionId: () => {},
-  setSupervisorId: () => {},
-  setAllocatedHouses: () => {},
   reset: () => {},
 });
 
 export function AdminCreationProvider({ children }: { children: ReactNode }) {
-  const [data, setData] = useState<AdminCandidate>(defaultValue);
+  const [data, setData] = useState<AdminCreationState>(defaultValue);
 
-  const setUser = (user: RoommateProfile) =>
+  const setUser = (user: AdminCandidate) =>
     setData((prev) => ({ ...prev, user }));
 
-  const setRole = (role: AdminCandidate['role']) =>
+  const setRole = (role: AdminRole) =>
     setData((prev) => ({ ...prev, role }));
 
-  const setRegionId = (id: string | null) =>
-    setData((prev) => ({ ...prev, regionId: id }));
-
-  const setSupervisorId = (id: string | null) =>
-    setData((prev) => ({ ...prev, supervisorId: id }));
-
-  const setAllocatedHouses = (ids: string[]) =>
-    setData((prev) => ({ ...prev, allocatedHouses: ids }));
+  const setRegionId = (regionId: string | null) =>
+    setData((prev) => ({ ...prev, regionId }));
 
   const reset = () => setData(defaultValue);
 
   return (
-    <AdminCreationContext.Provider value={{ data, setUser, setRole, setRegionId, setSupervisorId, setAllocatedHouses, reset }}>
+    <AdminCreationContext.Provider value={{ data, setUser, setRole, setRegionId, reset }}>
       {children}
     </AdminCreationContext.Provider>
   );
 }
 
 export function useAdminCreation() {
-  return useContext(AdminCreationContext);
+  const context = useContext(AdminCreationContext);
+  if (!context) {
+    throw new Error('useAdminCreation must be used within an AdminCreationProvider');
+  }
+  return context;
 }

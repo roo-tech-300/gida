@@ -43,9 +43,9 @@ const styles = StyleSheet.create({
     borderRadius: DesignRadius.full,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#1A1A1E',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
+    borderColor: DesignColors.cardBorder,
   },
   pillActive: {
     backgroundColor: DesignColors.primaryContainer,

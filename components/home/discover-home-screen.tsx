@@ -10,10 +10,12 @@ import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DiscoverListingFeed } from '@/components/home/discover-listing-feed';
 import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/feed-mode-selector';
 import { HomeSearchBar } from '@/components/home/home-search-bar';
+import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
-import { useRecommendedListings } from '@/hooks/useRecommendedListings';
-import { useListings } from '@/hooks/use-listings';
+import { SearchScreen, type SearchScreenRef } from '@/components/search/search-screen';
+import { useInfiniteRecommendedListings } from '@/hooks/useRecommendedListings';
+import { useInfiniteListings } from '@/hooks/use-listings';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { useAuth } from '@/context/auth-context';
 import type { FeedListing } from '@/types/feed-listing';
@@ -23,25 +25,30 @@ type FeedMode = 'listings' | 'roommates';
 export function DiscoverHomeScreen() {
   const router = useRouter();
   const { profile } = useAuth();
-  const recommended = useRecommendedListings(profile?.id);
-  const fallback = useListings();
+  const recommended = useInfiniteRecommendedListings(profile?.id);
+  const fallback = useInfiniteListings();
 
-  const useRecommended = recommended.data && recommended.data.length > 0;
-  const listings = useRecommended ? recommended.data! : fallback.data ?? [];
+  const useRecommended = !!(recommended.data && recommended.data.pages[0]?.length > 0);
+
+  const listings = useMemo(() => {
+    const pages = useRecommended ? recommended.data?.pages : fallback.data?.pages;
+    return pages ? pages.flat() : [];
+  }, [useRecommended, recommended.data?.pages, fallback.data?.pages]);
+
   const isLoading = useRecommended ? recommended.isLoading : fallback.isLoading;
   const isRefetching = useRecommended ? recommended.isRefetching : fallback.isRefetching;
   const refetch = useRecommended ? recommended.refetch : fallback.refetch;
+  const isError = useRecommended ? recommended.isError : fallback.isError;
   const { data: savedIds = [] } = useSavedIds();
   const { mutate: toggleSave } = useToggleSave();
-  const [query, setQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [feedHeight, setFeedHeight] = useState(0);
   const [mode, setMode] = useState<FeedMode>('listings');
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [roommateQuery, setRoommateQuery] = useState('');
   const listRef = useRef<FlatList<FeedListing>>(null);
   const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
+  const searchScreenRef = useRef<SearchScreenRef>(null);
 
   const categories = useMemo(() => {
     const set = new Set(listings.map((l) => l.category).filter(Boolean));
@@ -77,16 +84,25 @@ export function DiscoverHomeScreen() {
     [router],
   );
 
+  const openSearch = useCallback(() => {
+    searchScreenRef.current?.open();
+  }, []);
+
+  const loadMore = useCallback(() => {
+    if (useRecommended) {
+      if (recommended.hasNextPage && !recommended.isFetchingNextPage) {
+        recommended.fetchNextPage();
+      }
+    } else {
+      if (fallback.hasNextPage && !fallback.isFetchingNextPage) {
+        fallback.fetchNextPage();
+      }
+    }
+  }, [useRecommended, recommended, fallback]);
+
   const filteredListings = useMemo(() => {
-    const normalizedQuery = query.trim().toLowerCase();
-    return listings.filter((listing) => {
-      const matchesQuery =
-        normalizedQuery.length === 0 ||
-        `${listing.title} ${listing.location} ${listing.category}`.toLowerCase().includes(normalizedQuery);
-      const matchesCategory = activeCategory === 'All' || listing.category === activeCategory;
-      return matchesQuery && matchesCategory;
-    });
-  }, [query, activeCategory, listings]);
+    return listings.filter((listing) => activeCategory === 'All' || listing.category === activeCategory);
+  }, [activeCategory, listings]);
 
   const likedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
@@ -98,6 +114,10 @@ export function DiscoverHomeScreen() {
   const handleSelectMode = useCallback((m: FeedMode) => {
     setMode(m);
   }, []);
+
+  if (isError && !isLoading && mode === 'listings') {
+    return <NetworkErrorScreen onRetry={onRefresh} />;
+  }
 
   return (
     <View style={styles.container}>
@@ -117,6 +137,8 @@ export function DiscoverHomeScreen() {
                 onRefresh={onRefresh}
                 onIndexChange={setCurrentIndex}
                 onScrollOffsetChange={(offset) => { scrollOffsetRef.current = offset; }}
+                onEndReached={loadMore}
+                onEndReachedThreshold={0.5}
               />
             )}
             {isLoading && mode === 'listings' && (
@@ -126,8 +148,8 @@ export function DiscoverHomeScreen() {
             )}
             {mode === 'listings' && filteredListings.length === 0 && !isLoading && (
               <NoResultsFoundScreen
-                query={query}
-                onQueryChange={setQuery}
+                query=""
+                onQueryChange={() => {}}
                 onAdjustFilters={() => setFiltersOpen((open) => !open)}
                 onRefresh={onRefresh}
                 refreshing={isRefetching}
@@ -135,18 +157,15 @@ export function DiscoverHomeScreen() {
               />
             )}
             {feedHeight > 0 && mode === 'roommates' && (
-              <RoommateDeck itemHeight={feedHeight} query={roommateQuery} onQueryChange={setRoommateQuery} />
+              <RoommateDeck itemHeight={feedHeight} query="" onQueryChange={() => {}} />
             )}
           </View>
 
           {mode === 'listings' ? (
             <HomeSearchBar
-              value={query}
-              onChangeText={setQuery}
-              hasFilter
-              onFilterPress={() => setFiltersOpen((open) => !open)}
               currentMode={mode}
               onSwipeDown={openModeSelector}
+              onOpenSearch={openSearch}
               filtersOpen={filtersOpen}
               categories={categories}
               activeCategory={activeCategory}
@@ -154,11 +173,10 @@ export function DiscoverHomeScreen() {
             />
           ) : (
             <HomeSearchBar
-              value={roommateQuery}
-              onChangeText={setRoommateQuery}
               placeholder="Search by name, uni, or keyword..."
               currentMode={mode}
               onSwipeDown={openModeSelector}
+              onOpenSearch={openSearch}
             />
           )}
 
@@ -170,6 +188,12 @@ export function DiscoverHomeScreen() {
           currentMode={mode}
           onSelectMode={handleSelectMode}
           onDismiss={() => {}}
+        />
+
+        <SearchScreen
+          ref={searchScreenRef}
+          onPressListing={onViewListing}
+          onPressRoommate={(id) => router.push(`/roommate/${id}`)}
         />
       </SafeAreaView>
     </View>
@@ -183,7 +207,7 @@ const styles = StyleSheet.create({
   },
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   flex: {
     flex: 1,

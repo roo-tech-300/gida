@@ -8,22 +8,18 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 
+const MAX_ROOMMATES = 4;
+const ROOMMATE_OPTIONS = [1, 2, 3, 4];
+
 export function CreateListingRulesScreen() {
   const { data, setStep4 } = useCreateListingForm();
   const { step4 } = data;
   const [inputValue, setInputValue] = useState('');
 
-  const handleChange = (val: string) => {
-    if (!val.includes(',')) {
-      setInputValue(val);
-      return;
-    }
-    const parts = val.split(',');
-    const newToken = parts[0].trim();
-    if (newToken.length > 0) {
-      setStep4({ rulesList: [...step4.rulesList, newToken] });
-    }
-    setInputValue(parts.slice(1).join(',').trimStart());
+  const addRule = (rule: string) => {
+    const trimmed = rule.trim();
+    if (!trimmed) return;
+    setStep4({ rulesList: [...step4.rulesList, trimmed] });
   };
 
   const handlePillPress = (pill: string) => {
@@ -35,7 +31,7 @@ export function CreateListingRulesScreen() {
     <SafeAreaView style={styles.safe} edges={['top']}>
       <KeyboardAvoidingView
         behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-        style={{ flex: 1, backgroundColor: '#0e0e10' }}
+        style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
           <View />
@@ -60,27 +56,29 @@ export function CreateListingRulesScreen() {
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. No pets allowed, Quiet hours after 10pm"
-                placeholderTextColor={DesignColors.onSurfaceVariant}
+                placeholderTextColor={DesignColors.divider}
                 value={inputValue}
-                onChangeText={handleChange}
+                onChangeText={setInputValue}
                 onSubmitEditing={() => {
-                  const trimmed = inputValue.trim();
-                  if (trimmed.length > 0) {
-                    setStep4({ rulesList: [...step4.rulesList, trimmed] });
-                    setInputValue('');
-                  }
+                  addRule(inputValue);
+                  setInputValue('');
                 }}
                 returnKeyType="done"
+                blurOnSubmit={false}
               />
             </View>
-            <Text style={styles.fieldHint}>Type a rule and press comma or enter to add</Text>
+            <Text style={styles.fieldHint}>Type a rule and press enter to add</Text>
 
             {step4.rulesList.length > 0 && (
               <View style={styles.pillWrap}>
                 {step4.rulesList.map((pill, i) => (
-                  <Pressable key={`${pill}-${i}`} style={styles.pill} onPress={() => handlePillPress(pill)}>
+                  <Pressable
+                    key={`${pill}-${i}`}
+                    style={({ pressed }) => [styles.pill, pressed && styles.pillPressed]}
+                    onPress={() => handlePillPress(pill)}
+                  >
                     <Text style={styles.pillText}>{pill}</Text>
-                    <Text style={styles.pillIcon}>✎</Text>
+                    <Ionicons name="close" size={13} color={DesignColors.primaryBright} />
                   </Pressable>
                 ))}
               </View>
@@ -88,39 +86,29 @@ export function CreateListingRulesScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Max Roommates Per Room</Text>
+            <Text style={styles.label}>Roommates / Slots</Text>
             <View style={[styles.glassInput, styles.roommateCard]}>
               <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <View style={styles.roommateLeft}>
-                <Text style={styles.roommateTitle}>Roommates</Text>
-                <Text style={styles.roommateDesc}>How many people per room?</Text>
+                <Text style={styles.roommateTitle}>Max Roommates</Text>
+                <Text style={styles.roommateDesc}>Rent splits into this many equal shares</Text>
               </View>
-              <View style={[styles.stepper, step4.noLimit && styles.stepperDimmed]}>
-                <Pressable
-                  style={styles.stepperBtn}
-                  onPress={() => setStep4({ maxRoommates: Math.max(1, step4.maxRoommates - 1) })}
-                  disabled={step4.noLimit}
-                >
-                  <Ionicons name="remove" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
-                </Pressable>
-                <Text style={[styles.roommateCount, step4.noLimit && styles.roommateCountDimmed]}>
-                  {step4.noLimit ? '--' : String(step4.maxRoommates).padStart(2, '0')}
-                </Text>
-                <Pressable
-                  style={styles.stepperBtn}
-                  onPress={() => setStep4({ maxRoommates: step4.maxRoommates + 1 })}
-                  disabled={step4.noLimit}
-                >
-                  <Ionicons name="add" size={20} color={step4.noLimit ? DesignColors.onSurfaceVariant : DesignColors.primary} />
-                </Pressable>
+              <View style={styles.chipRow}>
+                {ROOMMATE_OPTIONS.map((n) => {
+                  const active = step4.maxRoommates === n;
+                  return (
+                    <Pressable
+                      key={n}
+                      style={({ pressed }) => [styles.chip, active && styles.chipActive, pressed && styles.chipPressed]}
+                      onPress={() => setStep4({ maxRoommates: n })}
+                    >
+                      <Text style={[styles.chipText, active && styles.chipTextActive]}>{n}</Text>
+                    </Pressable>
+                  );
+                })}
               </View>
             </View>
-            <Pressable style={styles.checkRow} onPress={() => setStep4({ noLimit: !step4.noLimit })}>
-              <View style={[styles.checkbox, step4.noLimit && styles.checkboxActive]}>
-                {step4.noLimit && <Ionicons name="checkmark" size={14} color={DesignColors.onPrimary} />}
-              </View>
-              <Text style={styles.checkLabel}>No limit — landlord doesn't mind</Text>
-            </Pressable>
+            <Text style={styles.fieldHint}>Reserve 1, several, or all slots for roommates.</Text>
           </View>
         </ScrollView>
 
@@ -138,48 +126,53 @@ export function CreateListingRulesScreen() {
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: '#0e0e10' },
+  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   topBar: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 8 },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 12 },
-  textInput: {
-    paddingHorizontal: 16, paddingVertical: 14,
-    color: DesignColors.onSurface, fontSize: 16, fontFamily,
-  },
-  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4, paddingLeft: 4, opacity: 0.6 },
-  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 12 },
-  pill: { backgroundColor: DesignColors.primaryContainer, borderWidth: 1, borderColor: DesignColors.primaryContainer, borderRadius: 12, paddingHorizontal: 12, paddingVertical: 6, flexDirection: 'row', alignItems: 'center', gap: 6 },
-  pillText: { fontSize: 12, fontWeight: '600', color: DesignColors.onPrimaryContainer, fontFamily, letterSpacing: 0.3 },
-  pillIcon: { opacity: 0.6, fontSize: 10, color: DesignColors.onPrimaryContainer },
   scroll: { flex: 1 },
-  content: { paddingHorizontal: 24, gap: 24, paddingBottom: 24 },
-  hero: { paddingTop: 8 },
+  content: { paddingHorizontal: 24, gap: 28, paddingBottom: 24 },
+  hero: { paddingTop: 8, gap: 4 },
   heroTitle: { fontSize: 28, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.5 },
-  heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4 },
-  fieldGroup: { gap: 8 },
+  heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
+  fieldGroup: { gap: 10 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: {
     borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
     borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
+  glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 12 },
+  textInput: {
+    paddingHorizontal: 16, paddingVertical: 14,
+    color: DesignColors.onSurface, fontSize: 16, fontFamily,
+  },
+  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily, paddingLeft: 4, opacity: 0.6 },
 
-  roommateCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
+  pillWrap: { flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 4 },
+  pill: {
+    flexDirection: 'row', alignItems: 'center', gap: 6,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
+    borderRadius: 999, paddingHorizontal: 12, paddingVertical: 7,
+  },
+  pillPressed: { opacity: 0.6 },
+  pillText: { fontSize: 12, fontWeight: '600', color: DesignColors.primaryBright, fontFamily },
+
+  roommateCard: { borderRadius: 16, padding: 16, gap: 16 },
   roommateLeft: { gap: 2 },
   roommateTitle: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
-  roommateDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
-  stepperDimmed: { opacity: 0.4 },
-  stepperBtn: {
-    width: 40, height: 40, borderRadius: 20,
-    borderWidth: 1, borderColor: DesignColors.glassBorder,
+  roommateDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flexShrink: 1 },
+  chipRow: { flexDirection: 'row', gap: 10 },
+  chip: {
+    flex: 1, height: 46, borderRadius: 12,
     alignItems: 'center', justifyContent: 'center',
+    backgroundColor: DesignColors.glassBg,
+    borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
-  roommateCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 32, textAlign: 'center' },
-  roommateCountDimmed: { color: DesignColors.onSurfaceVariant },
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 4 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
-  checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },
-  checkLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flex: 1 },
+  chipActive: { backgroundColor: DesignColors.primaryContainer, borderColor: DesignColors.primaryContainer },
+  chipPressed: { opacity: 0.7 },
+  chipText: { fontSize: 15, fontWeight: '700', color: DesignColors.onSurfaceVariant, fontFamily },
+  chipTextActive: { color: DesignColors.onPrimaryContainer },
+
   ctaRow: { flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },
   ctaBtn: {
     width: 56, height: 56, borderRadius: 28,

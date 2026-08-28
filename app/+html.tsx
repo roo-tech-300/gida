@@ -1,5 +1,7 @@
 import { ScrollViewStyleReset } from 'expo-router/html';
 
+import { DesignColors } from '@/constants/design';
+
 export default function Root({ children }: { children: React.ReactNode }) {
   return (
     <html lang="en">
@@ -17,7 +19,7 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <style>{`
           html, body, #root {
             height: 100%;
-            background-color: #0e0e10;
+            background-color: ${DesignColors.surfaceContainerLowest};
           }
           body {
             font-family: Inter, system-ui, -apple-system, sans-serif;

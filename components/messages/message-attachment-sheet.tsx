@@ -60,7 +60,7 @@ const styles = StyleSheet.create({
   backdrop: {
     flex: 1,
     justifyContent: 'flex-end',
-    backgroundColor: 'rgba(0, 0, 0, 0.45)',
+    backgroundColor: DesignColors.scrim,
   },
   sheet: {
     paddingHorizontal: DesignSpacing.md,
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     width: 42,
     height: 5,
     borderRadius: 999,
-    backgroundColor: 'rgba(255, 255, 255, 0.22)',
+    backgroundColor: DesignColors.borderStrong,
     marginBottom: DesignSpacing.md,
   },
   title: {
@@ -100,7 +100,7 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.md,
     padding: DesignSpacing.md,
     borderRadius: 22,
-    backgroundColor: 'rgba(255, 255, 255, 0.03)',
+    backgroundColor: DesignColors.borderFaint,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
     borderRadius: 14,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: DesignColors.borderSoft,
   },
   optionText: {
     flex: 1,

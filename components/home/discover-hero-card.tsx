@@ -125,14 +125,14 @@ const styles = StyleSheet.create({
   heroImage: {
     minHeight: 610,
     justifyContent: 'space-between',
-    backgroundColor: 'rgba(54, 71, 54, 0.12)',
+    backgroundColor: DesignColors.primaryTint,
   },
   imageFill: {
     ...StyleSheet.absoluteFillObject,
   },
   heroOverlay: {
     ...StyleSheet.absoluteFillObject,
-    backgroundColor: 'rgba(19, 19, 21, 0.18)',
+    backgroundColor: DesignColors.scrimLight,
   },
   heroTopRow: {
     flexDirection: 'row',
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    backgroundColor: 'rgba(74, 225, 118, 0.12)',
+    backgroundColor: DesignColors.successContainer,
     paddingHorizontal: 14,
     paddingVertical: 8,
     borderRadius: 999,
@@ -183,7 +183,7 @@ const styles = StyleSheet.create({
   },
   heroTitle: {
     ...DesignTypography.headlineLg,
-    color: '#ffffff',
+    color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '800',
     letterSpacing: -0.4,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
     paddingVertical: 10,
     borderRadius: 14,
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: DesignColors.borderSoft,
   },
   statText: {
     ...DesignTypography.bodyMd,

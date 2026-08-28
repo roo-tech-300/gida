@@ -2,7 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { calculateAge, calculateStudentLevel } from '@/utils/academicLevel';
 import type { LifestyleChip, RoommateProfile } from '@/types/roommates';
 
-type DbRoommateRow = {
+export type DbRoommateRow = {
   id: string;
   full_name: string | null;
   avatar_url: string | null;
@@ -11,12 +11,14 @@ type DbRoommateRow = {
   program_duration: number | null;
   bio: string | null;
   school: string | null;
+  religion: string | null;
   roommate_preferences: {
     sleep_schedule: string | null;
     cleanliness_level: string | null;
     guest_policy: string | null;
     study_habitat: string | null;
     personality_vibe: string | null;
+    smoker_allowed: boolean | null;
   } | null;
   living_preferences: {
     max_budget: number | null;
@@ -24,14 +26,25 @@ type DbRoommateRow = {
   } | null;
 };
 
-function formatBudget(amount: number | null): string {
-  if (!amount) return 'Flexible';
-  if (amount >= 1_000_000) return `₦${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M/yr`;
-  if (amount >= 1_000) return `₦${Math.round(amount / 1_000)}k/yr`;
-  return `₦${amount}/yr`;
+export type MyPreferences = {
+  roommate: DbRoommateRow['roommate_preferences'];
+  living: DbRoommateRow['living_preferences'];
+};
+
+function formatBudgetRange(min: number | null, max: number | null): string {
+  if (!min && !max) return 'Flexible';
+  if (min && max) return `₦${formatCompact(min)} – ₦${formatCompact(max)}/yr`;
+  if (max) return `Up to ₦${formatCompact(max)}/yr`;
+  return `From ₦${formatCompact(min!)}/yr`;
 }
 
-function buildChips(prefs: DbRoommateRow['roommate_preferences']): LifestyleChip[] {
+function formatCompact(amount: number): string {
+  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M`;
+  if (amount >= 1_000) return `${Math.round(amount / 1_000)}k`;
+  return String(amount);
+}
+
+export function buildChips(prefs: DbRoommateRow['roommate_preferences']): LifestyleChip[] {
   if (!prefs) return [];
   const chips: LifestyleChip[] = [];
   if (prefs.cleanliness_level) chips.push({ label: 'Clean', value: prefs.cleanliness_level });
@@ -42,12 +55,12 @@ function buildChips(prefs: DbRoommateRow['roommate_preferences']): LifestyleChip
   return chips;
 }
 
-function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
+export function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
   return {
     id: row.id,
     name: row.full_name || 'Anonymous',
     age: calculateAge(row.birth_year ?? undefined) || 20,
-    avatar: row.avatar_url ?? null,
+    avatar: row.avatar_url ? { uri: row.avatar_url } : null,
     university: row.school || 'FUT Minna',
     level: calculateStudentLevel({
       entryYear: row.entry_year ?? undefined,
@@ -55,9 +68,14 @@ function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
     }),
     compatibility: 0,
     moveInDate: 'Flexible',
-    budget: formatBudget(row.living_preferences?.max_budget ?? null),
+    budget: formatBudgetRange(row.living_preferences?.min_budget ?? null, row.living_preferences?.max_budget ?? null),
     bio: row.bio || 'No bio yet',
     chips: buildChips(row.roommate_preferences),
+    preferredArea: row.living_preferences?.preferred_area ?? undefined,
+    minBudget: row.living_preferences?.min_budget ?? undefined,
+    maxBudget: row.living_preferences?.max_budget ?? undefined,
+    religion: row.religion ?? undefined,
+    smokerAllowed: row.roommate_preferences?.smoker_allowed ?? undefined,
   };
 }
 
@@ -72,4 +90,43 @@ export async function fetchRoommates(): Promise<RoommateProfile[]> {
   if (error) throw error;
 
   return (data || []).map(mapRowToProfile);
+}
+
+export async function fetchRoommateById(id: string): Promise<RoommateProfile | null> {
+  const { data, error } = await supabase
+    .from('profiles')
+    .select('*, roommate_preferences(*), living_preferences(*)')
+    .eq('id', id)
+    .single();
+
+  if (error) {
+    console.error('[RoommateService] Failed to fetch roommate:', error.message);
+    return null;
+  }
+
+  return mapRowToProfile(data);
+}
+
+export async function fetchMyRoommatePreferences(userId: string): Promise<MyPreferences | null> {
+  const { data: roommate, error: roommateError } = await supabase
+    .from('roommate_preferences')
+    .select('*')
+    .eq('profile_id', userId)
+    .maybeSingle();
+
+  if (roommateError) {
+    console.error('[RoommateService] Failed to fetch my roommate preferences:', roommateError.message);
+  }
+
+  const { data: living, error: livingError } = await supabase
+    .from('living_preferences')
+    .select('*')
+    .eq('profile_id', userId)
+    .maybeSingle();
+
+  if (livingError) {
+    console.error('[RoommateService] Failed to fetch my living preferences:', livingError.message);
+  }
+
+  return { roommate, living };
 }

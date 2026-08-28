@@ -2,6 +2,7 @@ import { StyleSheet, View } from 'react-native';
 
 import { MessageThreadRow } from '@/components/messages/message-thread-row';
 import { type Conversation } from '@/dummy/messages-mock';
+import { DesignColors } from '@/constants/design';
 
 export function MessageThreadList({
   threads,
@@ -28,6 +29,6 @@ const styles = StyleSheet.create({
   list: {},
   itemWrap: {
     borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: 'rgba(255, 255, 255, 0.05)',
+    borderBottomColor: DesignColors.borderSoft,
   },
 });

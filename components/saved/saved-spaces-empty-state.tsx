@@ -139,9 +139,9 @@ const styles = StyleSheet.create({
     borderRadius: 40,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(27, 27, 29, 0.7)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.1)',
+    borderColor: DesignColors.glassBorder,
   },
   title: {
     ...DesignTypography.headlineMd,

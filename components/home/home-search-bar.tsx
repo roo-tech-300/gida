@@ -1,19 +1,17 @@
 import { useRef } from 'react';
-import { Ionicons } from '@expo/vector-icons';
-import { PanResponder, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 
-import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { Ionicons } from '@expo/vector-icons';
+import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type FeedMode = 'listings' | 'roommates';
 
 export type HomeSearchBarProps = {
-  value: string;
-  onChangeText: (text: string) => void;
   placeholder?: string;
-  hasFilter?: boolean;
-  onFilterPress?: () => void;
   currentMode: FeedMode;
   onSwipeDown: () => void;
+  onOpenSearch: () => void;
   filtersOpen?: boolean;
   categories?: readonly string[];
   activeCategory?: string;
@@ -21,13 +19,10 @@ export type HomeSearchBarProps = {
 };
 
 export function HomeSearchBar({
-  value,
-  onChangeText,
   placeholder = 'Search...',
-  hasFilter,
-  onFilterPress,
   currentMode,
   onSwipeDown,
+  onOpenSearch,
   filtersOpen,
   categories,
   activeCategory,
@@ -46,26 +41,23 @@ export function HomeSearchBar({
   return (
     <View style={styles.wrap}>
       <View style={styles.row} {...pan.panHandlers}>
-        <View style={styles.field}>
+        <Pressable
+          style={({ pressed }) => [styles.field, pressed && styles.fieldPressed]}
+          onPress={onOpenSearch}
+        >
           <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
-          <TextInput
-            placeholder={placeholder}
-            placeholderTextColor={DesignColors.onSurfaceVariant}
-            returnKeyType="search"
-            style={styles.input}
-            value={value}
-            onChangeText={onChangeText}
-          />
-          {hasFilter && (
-            <Pressable style={styles.filterButton} onPress={onFilterPress}>
-              <Ionicons name="options-outline" size={20} color={DesignColors.onSurfaceVariant} />
-            </Pressable>
-          )}
+          <Text style={styles.placeholder} numberOfLines={1}>{placeholder}</Text>
           <View style={styles.divider} />
-          <Pressable style={styles.modeArea} onPress={onSwipeDown}>
-            <Ionicons name="swap-vertical-outline" size={18} color="#ffffff" />
+          <Pressable
+            style={styles.modeArea}
+            onPress={(e) => {
+              e.stopPropagation?.();
+              onSwipeDown();
+            }}
+          >
+            <Ionicons name="swap-vertical-outline" size={18} color={DesignColors.onSurface} />
           </Pressable>
-        </View>
+        </Pressable>
       </View>
 
       {filtersOpen && categories && (
@@ -126,27 +118,24 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     paddingVertical: 14,
-    borderRadius: 32,
-    backgroundColor: 'rgba(0, 0, 0, 0.75)',
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.glassFill,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
   },
-  input: {
+  fieldPressed: {
+    opacity: 0.7,
+  },
+  placeholder: {
     flex: 1,
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
-    paddingVertical: 0,
-  },
-  filterButton: {
-    width: 36,
-    height: 36,
-    borderRadius: 12,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   divider: {
     width: 1,
     height: 24,
-    backgroundColor: 'rgba(255,255,255,0.08)',
+    backgroundColor: DesignColors.cardBorder,
   },
   modeArea: {
     flexDirection: 'row',
@@ -168,7 +157,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 14,
     paddingVertical: 10,
     borderRadius: 999,
-    backgroundColor: 'rgba(26, 26, 30, 0.82)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },

@@ -95,7 +95,7 @@ export function ClaimCountdown({ expiresAt, onExpired, variant = 'card' }: Props
   return (
     <View style={styles.container}>
       <Ionicons name="time-outline" size={18} color={DesignColors.secondary} />
-      <Text style={styles.label}>Expires in</Text>
+      <Text style={styles.label}>Payment required</Text>
       <Digits expiresAt={expiresAt} />
     </View>
   );
@@ -106,16 +106,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: DesignSpacing.sm,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
+    backgroundColor: DesignColors.primaryTint,
+    borderRadius: DesignRadius.lg,
     borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
+    borderColor: DesignColors.primaryTintBorder,
     padding: DesignSpacing.md,
   },
   label: {
-    ...DesignTypography.labelSm,
+    ...DesignTypography.labelCaps,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+    letterSpacing: 1.4,
     marginRight: 'auto',
   },
   digits: {

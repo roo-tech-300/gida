@@ -8,10 +8,10 @@ import { DesignColors, fontFamily } from '@/constants/design';
 import { CONTRACTS, LANDLORDS } from '@/dummy/admin-mock';
 
 const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }> = {
-  active: { bg: 'rgba(74,225,115,0.12)', color: '#4ae176', label: 'Active' },
-  expired: { bg: 'rgba(255,180,171,0.12)', color: '#ffb4ab', label: 'Expired' },
-  pending_renewal: { bg: 'rgba(255,183,132,0.12)', color: '#ffb784', label: 'Pending Renewal' },
-  terminated: { bg: 'rgba(255,180,171,0.12)', color: '#ffb4ab', label: 'Terminated' },
+  active: { bg: DesignColors.successContainer, color: DesignColors.success, label: 'Active' },
+  expired: { bg: DesignColors.dangerContainer, color: DesignColors.error, label: 'Expired' },
+  pending_renewal: { bg: DesignColors.warningContainer, color: DesignColors.warning, label: 'Pending Renewal' },
+  terminated: { bg: DesignColors.dangerContainer, color: DesignColors.error, label: 'Terminated' },
 };
 
 export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
@@ -109,7 +109,7 @@ export function PropertyContractsScreen({ propertyId }: { propertyId: string }) 
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: '#000000' },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
     paddingHorizontal: 16, paddingVertical: 12,
@@ -124,7 +124,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', gap: 20,
     backgroundColor: DesignColors.surface,
     borderRadius: 16, padding: 16,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: 6 },
   infoText: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, opacity: 0.8 },
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
   contractCard: {
     borderRadius: 16, padding: 16,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)',
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
   contractTop: {
     flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
@@ -141,7 +141,7 @@ const styles = StyleSheet.create({
   tenantInfo: { flexDirection: 'row', alignItems: 'center', gap: 10, flex: 1 },
   tenantAvatar: {
     width: 40, height: 40, borderRadius: 20,
-    backgroundColor: 'rgba(54,71,54,0.12)',
+    backgroundColor: DesignColors.primaryTint,
     alignItems: 'center', justifyContent: 'center',
   },
   tenantInitials: { fontSize: 13, fontWeight: '700', color: DesignColors.primary, fontFamily },
@@ -154,7 +154,7 @@ const styles = StyleSheet.create({
   statusText: { fontSize: 11, fontWeight: '700', fontFamily },
 
   contractDivider: {
-    height: 1, backgroundColor: 'rgba(255,255,255,0.05)',
+    height: 1, backgroundColor: DesignColors.borderSoft,
     marginVertical: 14,
   },
 

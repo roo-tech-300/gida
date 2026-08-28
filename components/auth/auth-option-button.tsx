@@ -38,7 +38,7 @@ export function AuthOptionButton({ label, variant, disabled, style, ...props }: 
       ]}
       {...props}>
       {isApple ? (
-        <Ionicons name="logo-apple" size={20} color="#000000" />
+        <Ionicons name="logo-apple" size={20} color={DesignColors.surfaceContainerLowest} />
       ) : null}
       {isPhone ? (
         <Ionicons name="phone-portrait-outline" size={22} color={DesignColors.onSurface} />
@@ -68,10 +68,10 @@ const styles = StyleSheet.create({
     width: '100%',
   },
   apple: {
-    backgroundColor: '#ffffff',
+    backgroundColor: DesignColors.onSurface,
   },
   phone: {
-    backgroundColor: 'rgba(26, 26, 30, 0.8)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -93,7 +93,7 @@ const styles = StyleSheet.create({
     fontFamily,
   },
   appleLabel: {
-    color: '#000000',
+    color: DesignColors.surfaceContainerLowest,
     fontWeight: '700',
   },
   phoneLabel: {

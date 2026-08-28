@@ -128,7 +128,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
 
 const styles = StyleSheet.create({
   wrapper: { ...StyleSheet.absoluteFillObject, zIndex: 200 },
-  overlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 200, overflow: 'hidden', backgroundColor: '#000000' },
+  overlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 200, overflow: 'hidden', backgroundColor: DesignColors.surfaceContainerLowest },
   overlayContent: { flex: 1, paddingHorizontal: DesignSpacing.marginMobile, justifyContent: 'center', gap: 32 },
   headerSection: { gap: 8 },
   heading: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
@@ -136,11 +136,11 @@ const styles = StyleSheet.create({
   cardsSection: { gap: DesignSpacing.md },
   card: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: DesignSpacing.lg, borderRadius: DesignRadius.lg },
   cardActive: { backgroundColor: DesignColors.primaryContainer },
-  cardInactive: { backgroundColor: 'rgba(53, 52, 55, 0.2)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.05)' },
+  cardInactive: { backgroundColor: DesignColors.borderSoft, borderWidth: 1, borderColor: DesignColors.borderSoft },
   cardLeft: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.md, flex: 1 },
   cardIconWrap: { width: 56, height: 56, borderRadius: DesignRadius.lg, alignItems: 'center', justifyContent: 'center' },
-  iconWrapActive: { backgroundColor: 'rgba(255,255,255,0.1)' },
-  iconWrapInactive: { backgroundColor: 'rgba(195, 192, 255, 0.1)' },
+  iconWrapActive: { backgroundColor: DesignColors.glassBorder },
+  iconWrapInactive: { backgroundColor: DesignColors.primaryTint },
   cardText: { gap: 2 },
   cardTitle: { fontSize: 18, fontWeight: '700', fontFamily },
   titleActive: { color: DesignColors.onPrimaryContainer },
@@ -149,6 +149,6 @@ const styles = StyleSheet.create({
   subActive: { color: DesignColors.onPrimaryContainer, opacity: 0.8 },
   subInactive: { color: DesignColors.onSurfaceVariant, opacity: 0.6 },
   closeArea: { alignItems: 'center', paddingBottom: 40, paddingTop: 24, gap: 6 },
-  closeLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.5, color: 'rgba(255,255,255,0.3)', fontFamily, textTransform: 'uppercase' },
-  closePill: { width: 32, height: 3, borderRadius: 1.5, backgroundColor: 'rgba(255,255,255,0.2)' },
+  closeLabel: { fontSize: 9, fontWeight: '600', letterSpacing: 1.5, color: DesignColors.onSurfaceVariant, fontFamily, textTransform: 'uppercase' },
+  closePill: { width: 32, height: 3, borderRadius: 1.5, backgroundColor: DesignColors.borderStrong },
 });

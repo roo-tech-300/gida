@@ -66,8 +66,8 @@ const styles = StyleSheet.create({
     borderRadius: 28,
     backgroundColor: DesignColors.surfaceContainer,
     borderWidth: 1,
-    borderColor: 'rgba(255, 255, 255, 0.08)',
-    boxShadow: '0 10px 24px rgba(0, 0, 0, 0.28)',
+    borderColor: DesignColors.cardBorder,
+    boxShadow: `0 10px 24px ${DesignColors.scrim}`,
     borderCurve: 'continuous',
   },
   iconButton: {
@@ -76,7 +76,7 @@ const styles = StyleSheet.create({
     borderRadius: 21,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: DesignColors.borderFaint,
   },
   input: {
     flex: 1,
@@ -98,6 +98,6 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.primaryContainer,
   },
   sendButtonDisabled: {
-    backgroundColor: 'rgba(255, 255, 255, 0.06)',
+    backgroundColor: DesignColors.borderSoft,
   },
 });

@@ -40,7 +40,7 @@ const styles = StyleSheet.create({
     gap: 12,
     paddingHorizontal: 16,
     borderRadius: 32,
-    backgroundColor: 'rgba(26, 26, 30, 0.45)',
+    backgroundColor: DesignColors.glassSoft,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -57,6 +57,6 @@ const styles = StyleSheet.create({
     borderRadius: 12,
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: 'rgba(255, 255, 255, 0.04)',
+    backgroundColor: DesignColors.borderFaint,
   },
 });

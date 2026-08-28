@@ -33,7 +33,7 @@ export default function LoginScreen() {
           autoComplete="email"
           keyboardType="email-address"
           label="Email"
-          placeholder="randomfutminna@godluzia.com"
+          placeholder="Enter your email"
           textContentType="emailAddress"
           value={email}
           onChangeText={setEmail}

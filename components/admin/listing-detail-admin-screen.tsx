@@ -70,7 +70,6 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
         </View>
 
         <View style={styles.priceSection}>
-          <Text style={styles.priceLabel}>ASKING PRICE</Text>
           <Text style={styles.price}>{property.price}</Text>
         </View>
 
@@ -107,7 +106,7 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
           <Text style={styles.editText}>Edit</Text>
         </Pressable>
         <Pressable style={styles.deleteBtn} onPress={() => setShowDelete(true)}>
-          <Ionicons name="trash-outline" size={20} color="#ff4d4d" />
+          <Ionicons name="trash-outline" size={20} color={DesignColors.danger} />
           <Text style={styles.deleteText}>Delete</Text>
         </Pressable>
       </View>
@@ -142,11 +141,11 @@ function StatItem({ label, value }: { label: string; value: string }) {
 const styles = StyleSheet.create({
   safe: {
     flex: 1,
-    backgroundColor: '#000000',
+    backgroundColor: DesignColors.surfaceContainerLowest,
   },
   statusBadge: {
     alignSelf: 'flex-start',
-    backgroundColor: 'rgba(74, 225, 118, 0.12)',
+    backgroundColor: DesignColors.successContainer,
     paddingHorizontal: 14,
     paddingVertical: 6,
     borderRadius: 999,
@@ -266,7 +265,7 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.sm,
     paddingHorizontal: DesignSpacing.marginMobile,
     paddingVertical: DesignSpacing.md,
-    backgroundColor: '#1a1a1e',
+    backgroundColor: DesignColors.surfaceContainerLow,
     borderTopWidth: 1,
     borderTopColor: 'DesignColors.cardBorder',
   },
@@ -294,13 +293,13 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.sm,
     paddingVertical: 14,
     borderRadius: DesignRadius.lg,
-    backgroundColor: 'rgba(255,77,77,0.12)',
+    backgroundColor: DesignColors.dangerContainer,
     borderWidth: 1,
-    borderColor: 'rgba(255,77,77,0.3)',
+    borderColor: DesignColors.dangerContainer,
   },
   deleteText: {
     ...DesignTypography.bodyMd,
-    color: '#ff4d4d',
+    color: DesignColors.danger,
     fontFamily,
     fontWeight: '700',
   },

@@ -21,6 +21,8 @@ type CreateListingData = {
     selectedCampus: string | null;
     landmark: string;
     coords: { latitude: number; longitude: number } | null;
+    regionPath: string[];
+    transferAdminId: string | null;
   };
   step3: {
     selectedAmenities: string[];
@@ -29,7 +31,6 @@ type CreateListingData = {
   step4: {
     rulesList: string[];
     maxRoommates: number;
-    noLimit: boolean;
   };
   step5: {
     heroImage: string | null;
@@ -51,9 +52,9 @@ type CreateListingContextType = {
 
 const defaultValue: CreateListingData = {
   step1: { title: '', description: '', landlordId: null, layoutType: null, price: '', term: 'per_annum', units: 1, bedrooms: 2, bathrooms: 1, isStoreyBuilding: false, totalFloors: 2, sizeValue: '', sizeUnit: 'sqft' },
-  step2: { selectedSchool: null, selectedCampus: null, landmark: '', coords: null },
+  step2: { selectedSchool: null, selectedCampus: null, landmark: '', coords: null, regionPath: [], transferAdminId: null },
   step3: { selectedAmenities: [], featuresList: [] },
-  step4: { rulesList: [], maxRoommates: 1, noLimit: false },
+  step4: { rulesList: [], maxRoommates: 1 },
   step5: { heroImage: null, galleryImages: [] },
 };
 

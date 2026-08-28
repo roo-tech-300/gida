@@ -35,7 +35,7 @@ export function OnboardingPriorityCard({
         pressed && styles.pressed,
       ]}>
       <View style={[styles.iconWrap, selected && styles.iconWrapSelected]}>
-        <Ionicons name={icon} size={22} color={selected ? '#ffffff' : DesignColors.primary} />
+        <Ionicons name={icon} size={22} color={selected ? DesignColors.onSurface : DesignColors.primary} />
       </View>
       <View style={styles.copy}>
         <Text style={[styles.title, selected && styles.titleSelected]}>{title}</Text>
@@ -52,7 +52,7 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.md,
     padding: DesignSpacing.lg,
     borderRadius: DesignRadius.lg,
-    backgroundColor: 'rgba(26, 26, 30, 0.8)',
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
@@ -72,7 +72,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   iconWrapSelected: {
-    backgroundColor: 'rgba(255, 255, 255, 0.2)',
+    backgroundColor: DesignColors.borderStrong,
   },
   copy: {
     flex: 1,
@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     fontFamily,
   },
   titleSelected: {
-    color: '#ffffff',
+    color: DesignColors.onSurface,
   },
   description: {
     ...DesignTypography.bodyMd,
@@ -92,6 +92,6 @@ const styles = StyleSheet.create({
     fontFamily,
   },
   descriptionSelected: {
-    color: 'rgba(255, 255, 255, 0.8)',
+    color: DesignColors.onSurface,
   },
 });

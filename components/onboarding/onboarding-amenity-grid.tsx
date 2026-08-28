@@ -34,7 +34,7 @@ export function AmenityGrid({ options, selected, onToggle }: AmenityGridProps) {
               <Ionicons
                 name={opt.icon as keyof typeof Ionicons.glyphMap}
                 size={22}
-                color={isSelected ? '#ffffff' : DesignColors.onSurfaceVariant}
+                color={isSelected ? DesignColors.onSurface : DesignColors.onSurfaceVariant}
               />
             </View>
             <Text style={[styles.label, isSelected && styles.labelSelected]}>{opt.label}</Text>
@@ -63,7 +63,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
   },
   cellSelected: {
-    backgroundColor: 'rgba(78, 222, 163, 0.1)',
+    backgroundColor: DesignColors.successContainer,
     borderColor: DesignColors.secondary,
   },
   pressed: {

@@ -48,8 +48,8 @@ const styles = StyleSheet.create({
   roleRow: { flexDirection: 'row', alignItems: 'center', gap: 8 },
   roleBadge: {
     paddingHorizontal: 8, paddingVertical: 3, borderRadius: 9999,
-    backgroundColor: 'rgba(195, 192, 255, 0.1)',
-    borderWidth: 1, borderColor: 'rgba(195, 192, 255, 0.2)',
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1, borderColor: DesignColors.primaryTintMid,
   },
   roleBadgeText: { fontSize: 10, fontWeight: '700', color: DesignColors.primary, fontFamily, letterSpacing: 0.8, textTransform: 'uppercase' },
   globalLabel: { fontSize: 11, fontWeight: '500', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 0.5 },

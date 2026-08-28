@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
-import { mapDbToFeedListing, type DbListing } from '@/types/feed-listing';
+import { mapDbToFeedListing, type DbListing, type FeedListing } from '@/types/feed-listing';
 
 export type ListingDetail = {
-  listing: ReturnType<typeof mapDbToFeedListing>;
+  listing: FeedListing;
   photos: string[];
   dbListing: DbListing;
 };
@@ -12,26 +12,26 @@ export function useListing(id: string) {
   return useQuery({
     queryKey: ['listing', id],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('listings')
-        .select('*')
-        .eq('id', id)
-        .single();
+      const { data, error } = await supabase.from('listings').select('*').eq('id', id).single();
 
-      if (error) throw error;
+      if (error || !data) {
+        console.error('[useListing] Failed to fetch listing:', error?.message ?? 'Not found');
+        throw new Error(error?.message ?? 'Listing not found.');
+      }
 
-      const dbListing = data as DbListing;
-      const listing = mapDbToFeedListing(dbListing);
-
-      const { data: photoRows } = await supabase
+      const listing = mapDbToFeedListing(data as DbListing);
+      const { data: photoRows, error: photoError } = await supabase
         .from('listing_photos')
         .select('image_url')
         .eq('listing_id', id)
         .order('display_order', { ascending: true });
 
-      const photos = (photoRows || []).map((p) => p.image_url).filter(Boolean);
+      if (photoError) {
+        console.error('[useListing] Failed to fetch listing photos:', photoError.message);
+      }
 
-      return { listing, photos, dbListing } as ListingDetail;
+      const photos = (photoRows ?? []).map((p) => p.image_url).filter(Boolean);
+      return { listing, photos, dbListing: data } as ListingDetail;
     },
     enabled: !!id,
   });

@@ -1,7 +1,7 @@
 import { StyleSheet, View } from 'react-native';
 
 import { MessageThreadRow } from '@/components/messages/message-thread-row';
-import { type Conversation } from '@/dummy/messages-mock';
+import { type Conversation } from '@/types/messages';
 import { DesignColors } from '@/constants/design';
 
 export function MessageThreadList({
@@ -9,7 +9,7 @@ export function MessageThreadList({
   onSelectThread,
 }: {
   threads: readonly Conversation[];
-  onSelectThread: (id: string) => void;
+  onSelectThread: (thread: Conversation) => void;
 }) {
   return (
     <View style={styles.list}>
@@ -17,7 +17,7 @@ export function MessageThreadList({
         <View key={thread.id} style={styles.itemWrap}>
           <MessageThreadRow
             thread={thread}
-            onPress={() => onSelectThread(thread.id)}
+            onPress={() => onSelectThread(thread)}
           />
         </View>
       ))}

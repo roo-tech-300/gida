@@ -1,18 +1,15 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { messageFilters } from '@/dummy/messages-mock';
-
-type MessageFilter = (typeof messageFilters)[number];
 
 export function MessageThreadFilters({
   filters,
   activeFilter,
   onFilterChange,
 }: {
-  filters: readonly MessageFilter[];
-  activeFilter: MessageFilter;
-  onFilterChange: (value: MessageFilter) => void;
+  filters: readonly string[];
+  activeFilter: string;
+  onFilterChange: (value: string) => void;
 }) {
   return (
     <View style={styles.row}>

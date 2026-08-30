@@ -1,5 +1,17 @@
 import { supabase } from '@/lib/supabase';
 import * as FileSystem from 'expo-file-system/legacy';
+import { mapDbToFeedListing, type DbListing, type FeedListing } from '@/types/feed-listing';
+
+export async function fetchMyAdminListings(adminId: string): Promise<FeedListing[]> {
+  const { data, error } = await supabase
+    .from('listings')
+    .select('*')
+    .eq('admin_id', adminId)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return (data ?? []).map((row) => mapDbToFeedListing(row as DbListing));
+}
 
 export type CreateListingInput = {
   admin_id: string;

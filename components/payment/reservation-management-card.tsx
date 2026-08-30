@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -15,8 +15,10 @@ interface Props {
 
 export function ReservationManagementCard({ credit }: Props) {
   const { showToast } = useAppToast();
-  const { data: pods, isLoading: podsLoading, refetch: refetchPods } = useActivePods();
+  const { data: pods, isLoading: podsLoading, isError: podsError, refetch: refetchPods } = useActivePods();
   const [manageVisible, setManageVisible] = useState(false);
+
+  const groupLoading = podsLoading || pods === undefined;
 
   const activePod = pods?.[0];  const targetTier = credit.target_occupancy;
   const realMembers = (activePod?.members ?? []).filter((m) => m.slot_credit_id !== 'invitation');
@@ -53,6 +55,12 @@ export function ReservationManagementCard({ credit }: Props) {
   const isSolo = credit.target_occupancy === 1;
   if (isSolo) return null;
 
+  const countText = groupLoading
+    ? null
+    : podsError
+      ? 'Could not load group'
+      : `${filled} of ${targetTier} slots${remaining > 0 ? ` — ${remaining} left` : ''}`;
+
   return (
     <>
       <View style={styles.card}>
@@ -61,13 +69,20 @@ export function ReservationManagementCard({ credit }: Props) {
             <Ionicons name="people-outline" size={16} color={DesignColors.primaryBright} />
             <Text style={styles.label}>Your Group</Text>
           </View>
-          <Text style={styles.slotCount}>
-            {filled} of {targetTier} slots{remaining > 0 ? ` — ${remaining} left` : ''}
-          </Text>
+          {groupLoading ? (
+            <View style={styles.countLoading}>
+              <ActivityIndicator size="small" color={DesignColors.primary} />
+              <Text style={styles.slotCount}>Loading group…</Text>
+            </View>
+          ) : (
+            <Text style={[styles.slotCount, podsError && styles.slotCountError]}>{countText}</Text>
+          )}
         </View>
 
         <View style={styles.progressTrack}>
-          <View style={[styles.progressFill, { width: `${Math.min(100, (filled / targetTier) * 100)}%` }]} />
+          {!groupLoading && !podsError ? (
+            <View style={[styles.progressFill, { width: `${Math.min(100, (filled / targetTier) * 100)}%` }]} />
+          ) : null}
         </View>
 
         <Pressable style={styles.manageBtn} onPress={() => setManageVisible(true)} testID="manage-group-btn">
@@ -120,6 +135,14 @@ const styles = StyleSheet.create({
     ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+  },
+  slotCountError: {
+    color: DesignColors.error,
+  },
+  countLoading: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.xs,
   },
   progressTrack: {
     height: 4,

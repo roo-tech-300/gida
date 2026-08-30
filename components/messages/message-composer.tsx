@@ -18,7 +18,7 @@ export function MessageComposer({
   onOpenAttachments,
   selectedAttachmentLabel,
 }: MessageComposerProps) {
-  const canSend = draft.trim().length > 0;
+  const canSend = draft.trim().length > 0 || Boolean(selectedAttachmentLabel);
 
   return (
     <View style={styles.composerShell}>

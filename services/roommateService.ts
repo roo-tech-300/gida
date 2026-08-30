@@ -21,6 +21,7 @@ export type DbRoommateRow = {
     smoker_allowed: boolean | null;
   } | null;
   living_preferences: {
+    min_budget: number | null;
     max_budget: number | null;
     preferred_area: string | null;
   } | null;

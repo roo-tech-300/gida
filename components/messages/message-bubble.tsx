@@ -1,28 +1,53 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
-import { StyleSheet, Text, View } from 'react-native';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type MessageItem } from '@/dummy/messages-mock';
+import { MESSAGE_STATUS_ICON, MESSAGE_STATUS_LABEL, type ChatMessage } from '@/types/messages';
+import { formatRelativeTime } from '@/utils/format-relative-time';
+import { MessageListingCard } from '@/components/messages/message-listing-card';
 
 export function MessageBubble({
   message,
   avatar,
   isMe,
+  onRetry,
 }: {
-  message: MessageItem;
-  avatar?: number;
+  message: ChatMessage;
+  avatar?: string | null;
   isMe: boolean;
+  onRetry?: (messageId: string) => void;
 }) {
+  const status = message.status ?? null;
   return (
     <View style={[styles.row, isMe && styles.rowMe]}>
       {!isMe && avatar ? (
-        <Image source={avatar} style={styles.avatar} contentFit="cover" />
+        <Image source={{ uri: avatar }} style={styles.avatar} contentFit="cover" />
       ) : null}
-      <View style={styles.bubbleWrap}>
-        <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-          <Text style={[styles.text, isMe && styles.textMe]}>{message.text}</Text>
+      <View style={[styles.bubbleWrap, isMe && styles.bubbleWrapRight]}>
+        {message.attachment ? (
+          <MessageListingCard attachment={message.attachment} isMe={isMe} />
+        ) : null}
+        {message.body ? (
+          <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
+            <Text style={[styles.text, isMe && styles.textMe]}>{message.body}</Text>
+          </View>
+        ) : null}
+        <View style={[styles.footerRow, isMe && styles.footerRowMe]}>
+          {status ? (
+            <Pressable
+              disabled={status === 'outbox'}
+              onPress={() => onRetry?.(message.id)}
+              style={styles.statusPill}
+            >
+              <Ionicons name={MESSAGE_STATUS_ICON[status]} size={12} color={DesignColors.outlineVariant} />
+              <Text style={styles.statusText}>{MESSAGE_STATUS_LABEL[status]}</Text>
+            </Pressable>
+          ) : null}
+          <Text style={[styles.time, isMe && styles.timeMe]}>
+            {message.readAt ? 'Read' : 'Delivered'} • {formatRelativeTime(message.clientSentAt)}
+          </Text>
         </View>
-        <Text style={[styles.time, isMe && styles.timeMe]}>Delivered • {message.time}</Text>
       </View>
     </View>
   );
@@ -48,7 +73,11 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerHigh,
   },
   bubbleWrap: {
-    maxWidth: '72%',
+    maxWidth: '82%',
+    alignItems: 'flex-start',
+  },
+  bubbleWrapRight: {
+    alignItems: 'flex-end',
   },
   bubble: {
     paddingHorizontal: DesignSpacing.md,
@@ -72,11 +101,34 @@ const styles = StyleSheet.create({
   textMe: {
     color: DesignColors.onPrimaryContainer,
   },
+  footerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.xs,
+    marginTop: 4,
+  },
+  footerRowMe: {
+    justifyContent: 'flex-end',
+  },
+  statusPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: DesignRadius.full,
+    borderWidth: 1,
+    borderColor: DesignColors.borderFaint,
+  },
+  statusText: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+  },
   time: {
     ...DesignTypography.labelSm,
     color: DesignColors.outlineVariant,
     fontFamily,
-    marginTop: 4,
     marginLeft: 4,
   },
   timeMe: {

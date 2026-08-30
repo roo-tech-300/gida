@@ -1,43 +1,54 @@
-import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { StyleSheet, Text, View } from 'react-native';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { type Conversation } from '@/dummy/messages-mock';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { type ChatMessage, type Conversation } from '@/types/messages';
+import { getInitials } from '@/utils/initials';
 
-export function MessageConversationPreview({ thread }: { thread?: Conversation }) {
-  if (!thread) return null;
-
+export function MessageConversationPreview({
+  thread,
+  messages,
+}: {
+  thread: Conversation;
+  messages?: readonly ChatMessage[];
+}) {
   return (
     <View style={styles.card}>
       <View style={styles.header}>
         <View style={styles.imageWrap}>
-          <Image source={thread.image} style={styles.image} contentFit="cover" />
+          {thread.participant.avatarUrl ? (
+            <Image source={{ uri: thread.participant.avatarUrl }} style={styles.image} contentFit="cover" />
+          ) : (
+            <View style={[styles.image, styles.imageFallback]}>
+              <Text style={styles.imageInitials}>{getInitials(thread.participant.name)}</Text>
+            </View>
+          )}
         </View>
         <View style={styles.headerText}>
-          <Text style={styles.name}>{thread.name}</Text>
-          <Text style={styles.role}>{thread.role}</Text>
-          <View style={styles.locationRow}>
-            <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.location}>{thread.propertyLocation}</Text>
-          </View>
+          <Text style={styles.name}>{thread.participant.name}</Text>
+          <Text style={styles.role}>Verified roommate on Gida</Text>
         </View>
       </View>
 
-      <View style={styles.messages}>
-        {thread.messages?.slice(-3).map((message: any) => (
-          <Bubble key={message.id} message={message.text} sender={message.sender} />
-        ))}
-      </View>
+      {messages?.length ? (
+        <View style={styles.messages}>
+          {messages.slice(-3).map((message) => (
+            <Bubble
+              key={message.id}
+              text={message.body || 'Shared a listing'}
+              isMe={message.senderId === thread.participant.id}
+            />
+          ))}
+        </View>
+      ) : null}
     </View>
   );
 }
 
-function Bubble({ message, sender }: { message: string; sender: 'me' | 'them' }) {
-  const isMe = sender === 'me';
+function Bubble({ text, isMe }: { text: string; isMe: boolean }) {
   return (
     <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
-      <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{message}</Text>
+      <Text style={[styles.bubbleText, isMe && styles.bubbleTextMe]}>{text}</Text>
     </View>
   );
 }
@@ -64,7 +75,19 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerHigh,
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    width: '100%',
+    height: '100%',
+  },
+  imageFallback: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.primary,
+  },
+  imageInitials: {
+    fontSize: 24,
+    color: DesignColors.onPrimary,
+    fontFamily,
+    fontWeight: '800',
   },
   headerText: {
     flex: 1,
@@ -77,16 +100,6 @@ const styles = StyleSheet.create({
   },
   role: {
     ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-  },
-  location: {
-    ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
   },

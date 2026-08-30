@@ -2,16 +2,14 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
 
-export function PropertyHeroHeader({ property, photoCount, onHeroPress }: { property: FeedListing; photoCount?: number; onHeroPress?: () => void }) {
+export function PropertyHeroHeader({ property, photoCount, onHeroPress, onShare }: { property: FeedListing; photoCount?: number; onHeroPress?: () => void; onShare?: () => void }) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const router = useRouter();
   const insets = useSafeAreaInsets();
 
   return (
@@ -48,7 +46,7 @@ export function PropertyHeroHeader({ property, photoCount, onHeroPress }: { prop
       <View style={[styles.header, { top: insets.top }]}>
         <BackButton />
         <Text style={styles.headerTitle}>GIDA</Text>
-        <Pressable style={styles.headerBtn}>
+        <Pressable style={styles.headerBtn} onPress={onShare} hitSlop={8}>
           <Ionicons name="share-outline" size={22} color={DesignColors.onSurface} />
         </Pressable>
       </View>

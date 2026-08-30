@@ -14,6 +14,7 @@ import { useReviewEligibility } from '@/hooks/use-review-eligibility';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
+import { ShareListingModal } from '@/components/messages/share-listing-modal';
 import { InviteResponseModal } from './invite-response-modal';
 import { ImageGalleryModal } from './image-gallery-modal';
 import { PropertyHeroHeader } from './property-hero-header';
@@ -41,6 +42,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const [tourModalOpen, setTourModalOpen] = useState(false);
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
+  const [shareModalOpen, setShareModalOpen] = useState(false);
 
   const allPhotos = useMemo(() => {
     if (photos && photos.length > 0) return photos;
@@ -115,7 +117,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   return (
     <SafeAreaView style={styles.safe}>
-      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} />
+      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} onShare={() => setShareModalOpen(true)} />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
         <View style={styles.statusBadge}>
@@ -233,6 +235,8 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         invitation={invitation ?? null}
         onClose={() => setInviteModalOpen(false)}
       />
+
+      <ShareListingModal visible={shareModalOpen} listing={property} onClose={() => setShareModalOpen(false)} />
     </SafeAreaView>
   );
 }

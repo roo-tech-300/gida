@@ -1,9 +1,10 @@
 import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { useEscapeKey } from '@/components/claim/use-escape-key';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
-export type AttachmentSource = 'listings' | 'saved' | 'photos';
+export type AttachmentSource = 'listings' | 'saved';
 
 type AttachmentOption = {
   key: AttachmentSource;
@@ -17,12 +18,12 @@ const adminOptions: AttachmentOption[] = [
 ];
 
 const sharedOptions: AttachmentOption[] = [
-  { key: 'saved', title: 'Saved listings', subtitle: 'Pick from homes you already liked', icon: 'heart-outline' },
-  { key: 'photos', title: 'Photos', subtitle: 'Attach from your gallery', icon: 'image-outline' },
+  { key: 'saved', title: 'Saved listings', subtitle: 'Pick from homes you already liked', icon: 'heart-outline' as const },
 ];
 
 export function MessageAttachmentSheet({ visible, onClose, onSelectSource, isAdmin }: { visible: boolean; onClose: () => void; onSelectSource: (source: AttachmentSource) => void; isAdmin: boolean }) {
   const options = isAdmin ? [...adminOptions, ...sharedOptions] : sharedOptions;
+  useEscapeKey(onClose, visible);
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>

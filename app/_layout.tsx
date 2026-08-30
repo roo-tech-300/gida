@@ -7,6 +7,7 @@ import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { ToastProvider } from '@/components/ui/toast-card';
 import { SplashScreen } from '@/components/splash/splash-screen';
+import { DownloadApkButton } from '@/components/web/download-apk-button';
 import { DesignColors } from '@/constants/design';
 
 import { DarkTheme, ThemeProvider } from '@react-navigation/native';
@@ -77,6 +78,7 @@ export default function RootLayout() {
                     <Stack.Screen name="roommate/[id]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>
+                  <DownloadApkButton />
                 </ThemeProvider>
               </AuthGate>
             </ToastProvider>

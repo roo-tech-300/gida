@@ -72,7 +72,10 @@ export async function fetchAdminProfile(adminId: string): Promise<AdminMember | 
     return null;
   }
 
-  if (!data) return null;
+  if (!data) {
+    console.warn('[AdminService] Admin profile not found (row missing or blocked by RLS):', adminId);
+    return null;
+  }
 
   const row = data as unknown as AdminProfileRow;
   return {

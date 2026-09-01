@@ -7,7 +7,19 @@ export type ListingAttachment = {
   location: string;
 };
 
-export type MessageAttachment = ListingAttachment;
+export type TourAttachment = {
+  type: 'tour';
+  bookingId: string;
+  listingId: string;
+  title: string;
+  image: string | null;
+  location: string;
+  date: string;
+  time: string;
+  reference: string;
+};
+
+export type MessageAttachment = ListingAttachment | TourAttachment;
 
 /** A message as it exists on the server (no device-local ordering fields). */
 export type ServerChatMessage = {

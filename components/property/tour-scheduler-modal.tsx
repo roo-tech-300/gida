@@ -10,7 +10,7 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import type { AdminMember } from '@/types/admin';
 import { useReserveTour, useTourAvailability } from '@/hooks/use-tour-bookings';
 import { useVerifyLocationPayment } from '@/hooks/use-location-access';
-import { GUIDED_TOUR_FEE_NGN, payForTour, findPendingBooking } from '@/services/tour-booking-service';
+import { GUIDED_TOUR_FEE_NGN, payForTour, findPendingBooking, notifyAdminOfTourBooking } from '@/services/tour-booking-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { extractReference } from '@/utils/paystack';
 import { buildDatePills, dateKey, formatTourDate, allSlotsForDate } from '@/utils/tour-availability';
@@ -70,13 +70,26 @@ export function TourSchedulerModal({
     }
   }, [slots, selectedSlot]);
 
+  const notifyAdmin = useCallback(
+    (listingId: string, bookingId: string, date: string, time: string, adminId: string | null) => {
+      void notifyAdminOfTourBooking({ listingId, bookingId, adminId, date, time }).catch((error) => {
+        console.error('[TourScheduler] Failed to notify admin:', error);
+      });
+    },
+    [],
+  );
+
   const handleConfirm = useCallback(async () => {
     if (!selectedDate || !selectedSlot || isConfirming) return;
+    if (!admin) {
+      showToast({ message: 'This tour needs a house admin. Please try again.', type: 'error' });
+      return;
+    }
     setIsConfirming(true);
     try {
       const reserve = await reserveTour.mutateAsync({
         listingId: propertyId,
-        adminId: admin?.id ?? null,
+        adminId: admin.id,
         date: dateKey(selectedDate),
         time: selectedSlot,
       });
@@ -126,6 +139,7 @@ export function TourSchedulerModal({
       });
       if (init.simulated) {
         await new Promise((resolve) => setTimeout(resolve, 1300));
+        notifyAdmin(propertyId, bookingId, bookingDate, bookingTime, admin?.id ?? null);
         router.replace(`/property/tour-pass?${passParams}`);
         return;
       }
@@ -150,6 +164,7 @@ export function TourSchedulerModal({
       }
       const verified = await verifyPayment.mutateAsync(reference);
       if (verified.unlocked) {
+        notifyAdmin(propertyId, bookingId, bookingDate, bookingTime, admin?.id ?? null);
         router.replace(`/property/tour-pass?${passParams}`);
       } else {
         showToast({
@@ -163,7 +178,7 @@ export function TourSchedulerModal({
     } finally {
       setIsConfirming(false);
     }
-  }, [selectedDate, selectedSlot, isConfirming, propertyId, admin?.id, reserveTour, verifyPayment, queryClient, showToast]);
+  }, [selectedDate, selectedSlot, isConfirming, propertyId, admin, reserveTour, verifyPayment, queryClient, showToast, notifyAdmin]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

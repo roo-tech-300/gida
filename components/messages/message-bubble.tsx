@@ -6,6 +6,7 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { MESSAGE_STATUS_ICON, MESSAGE_STATUS_LABEL, type ChatMessage } from '@/types/messages';
 import { formatRelativeTime } from '@/utils/format-relative-time';
 import { MessageListingCard } from '@/components/messages/message-listing-card';
+import { MessageTourCard } from '@/components/messages/message-tour-card';
 
 export function MessageBubble({
   message,
@@ -25,8 +26,10 @@ export function MessageBubble({
         <Image source={{ uri: avatar }} style={styles.avatar} contentFit="cover" />
       ) : null}
       <View style={[styles.bubbleWrap, isMe && styles.bubbleWrapRight]}>
-        {message.attachment ? (
+        {message.attachment?.type === 'listing' ? (
           <MessageListingCard attachment={message.attachment} isMe={isMe} />
+        ) : message.attachment?.type === 'tour' ? (
+          <MessageTourCard attachment={message.attachment} isMe={isMe} />
         ) : null}
         {message.body ? (
           <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>

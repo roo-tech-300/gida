@@ -2,7 +2,6 @@ import { createContext, useCallback, useContext, useEffect, useState, type React
 import { useQueryClient } from '@tanstack/react-query';
 
 import { supabase } from '@/lib/supabase';
-import { useAppToast } from '@/components/ui/toast-card';
 
 type TourAlertsContextType = {
   unread: number;
@@ -12,7 +11,6 @@ type TourAlertsContextType = {
 const TourAlertsContext = createContext<TourAlertsContextType | undefined>(undefined);
 
 export function TourAlertsProvider({ children }: { children: ReactNode }) {
-  const { showToast } = useAppToast();
   const queryClient = useQueryClient();
   const [unread, setUnread] = useState(0);
 
@@ -23,7 +21,6 @@ export function TourAlertsProvider({ children }: { children: ReactNode }) {
         'postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'tour_bookings' },
         () => {
-          showToast({ title: 'New tour booked', message: 'A resident booked a guided tour.', type: 'info' });
           setUnread((count) => count + 1);
           queryClient.invalidateQueries({ queryKey: ['admin-tours'] });
         },
@@ -33,7 +30,7 @@ export function TourAlertsProvider({ children }: { children: ReactNode }) {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [showToast, queryClient]);
+  }, [queryClient]);
 
   const clearUnread = useCallback(() => setUnread(0), []);
 

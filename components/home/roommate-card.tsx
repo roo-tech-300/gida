@@ -49,6 +49,7 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
           )}
           <View style={styles.nameBlock}>
             <Text style={styles.name}>{roommate.name}, {roommate.age}</Text>
+            {roommate.username ? <Text style={styles.username}>@{roommate.username}</Text> : null}
             <Text style={styles.logistics}>Move-in: {roommate.moveInDate} | Budget: {roommate.budget}</Text>
           </View>
         </View>
@@ -125,6 +126,12 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '700',
+  },
+  username: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.primaryBright,
+    fontFamily,
+    fontWeight: '600',
   },
   logistics: {
     ...DesignTypography.labelSm,

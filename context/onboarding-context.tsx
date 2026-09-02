@@ -5,6 +5,7 @@ import { defaultOnboardingData, type OnboardingData } from '@/types/onboarding';
 type OnboardingContextValue = {
   data: OnboardingData;
   updateData: (patch: Partial<OnboardingData>) => void;
+  prefillData: (patch: Partial<OnboardingData>) => void;
   resetData: () => void;
 };
 
@@ -17,6 +18,12 @@ export function OnboardingProvider({ children }: { children: ReactNode }) {
     () => ({
       data,
       updateData: (patch: Partial<OnboardingData>) => setData((current) => ({ ...current, ...patch })),
+      prefillData: (patch: Partial<OnboardingData>) =>
+        setData((current) => ({
+          ...current,
+          ...patch,
+          username: patch.username !== undefined ? patch.username : current.username,
+        })),
       resetData: () => setData(defaultOnboardingData()),
     }),
     [data],

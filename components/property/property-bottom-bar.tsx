@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,17 +10,18 @@ type Props = {
   onCtaPress?: () => void;
   onVisitProperty?: () => void;
   showSpinner?: boolean;
+  liked?: boolean;
+  onToggleSave?: () => void;
 };
 
-export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, showSpinner = false }: Props) {
+export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, showSpinner = false, liked = false, onToggleSave }: Props) {
   const insets = useSafeAreaInsets();
-  const [liked, setLiked] = useState(false);
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
       <Pressable
         accessibilityRole="button"
-        onPress={() => setLiked((v) => !v)}
+        onPress={onToggleSave}
         style={[styles.favButton, liked && styles.favButtonActive]}
       >
         <Ionicons

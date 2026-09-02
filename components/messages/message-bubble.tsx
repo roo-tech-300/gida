@@ -7,19 +7,23 @@ import { MESSAGE_STATUS_ICON, MESSAGE_STATUS_LABEL, type ChatMessage } from '@/t
 import { formatRelativeTime } from '@/utils/format-relative-time';
 import { MessageListingCard } from '@/components/messages/message-listing-card';
 import { MessageTourCard } from '@/components/messages/message-tour-card';
+import { MessageRoommateInviteCard } from '@/components/messages/message-roommate-invite-card';
 
 export function MessageBubble({
   message,
   avatar,
+  participantName,
   isMe,
   onRetry,
 }: {
   message: ChatMessage;
   avatar?: string | null;
+  participantName?: string | null;
   isMe: boolean;
   onRetry?: (messageId: string) => void;
 }) {
   const status = message.status ?? null;
+  const isRoommateInvite = message.attachment?.type === 'roommate_invite';
   return (
     <View style={[styles.row, isMe && styles.rowMe]}>
       {!isMe && avatar ? (
@@ -30,8 +34,10 @@ export function MessageBubble({
           <MessageListingCard attachment={message.attachment} isMe={isMe} />
         ) : message.attachment?.type === 'tour' ? (
           <MessageTourCard attachment={message.attachment} isMe={isMe} />
+        ) : message.attachment?.type === 'roommate_invite' ? (
+          <MessageRoommateInviteCard attachment={message.attachment} isMe={isMe} participantName={participantName} />
         ) : null}
-        {message.body ? (
+        {message.body && !isRoommateInvite ? (
           <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
             <Text style={[styles.text, isMe && styles.textMe]}>{message.body}</Text>
           </View>

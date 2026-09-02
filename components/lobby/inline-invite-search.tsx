@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
-import { Image, KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-profile-search';
+import { Avatar } from '@/components/ui/avatar';
 
 interface Props {
   remainingSlots: number;
@@ -62,14 +63,13 @@ export function InlineInviteSearch({ remainingSlots, onSelect }: Props) {
           <View style={styles.suggestionList}>
             {results.slice(0, 5).map((item) => (
               <Pressable key={item.id} style={styles.suggestionRow} onPress={() => handleSelectProfile(item.full_name ?? 'Roommate', item.id)}>
-                {item.avatar_url ? (
-                  <Image source={{ uri: item.avatar_url }} style={styles.suggestionAvatarImage} />
-                ) : (
-                  <View style={styles.suggestionAvatar}>
-                    <Text style={styles.suggestionInitial}>{(item.full_name ?? 'R')[0]?.toUpperCase()}</Text>
-                  </View>
-                )}
-                <Text style={styles.suggestionName} numberOfLines={1}>{item.full_name}</Text>
+                <Avatar imageUrl={item.avatar_url} name={item.full_name} size={30} />
+                <View style={styles.suggestionCopy}>
+                  <Text style={styles.suggestionName} numberOfLines={1}>{item.full_name}</Text>
+                  {item.username ? (
+                    <Text style={styles.suggestionUsername} numberOfLines={1}>@{item.username}</Text>
+                  ) : null}
+                </View>
                 <Ionicons name="person-add-outline" size={16} color={DesignColors.primaryBright} />
               </Pressable>
             ))}
@@ -124,17 +124,16 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderBottomColor: DesignColors.borderFaint,
   },
-  suggestionAvatar: {
-    width: 30,
-    height: 30,
-    borderRadius: 15,
-    backgroundColor: DesignColors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
+  suggestionCopy: {
+    flex: 1,
+    gap: 1,
   },
-  suggestionAvatarImage: { width: 30, height: 30, borderRadius: 15 },
-  suggestionInitial: { fontSize: 13, fontWeight: '700', color: DesignColors.onPrimaryContainer, fontFamily },
-  suggestionName: { flex: 1, ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
+  suggestionName: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
+  suggestionUsername: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+  },
   inviteRawBtn: {
     flexDirection: 'row',
     alignItems: 'center',

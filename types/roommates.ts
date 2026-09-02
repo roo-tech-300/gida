@@ -8,6 +8,7 @@ export type LifestyleChip = {
 export type RoommateProfile = {
   id: string;
   name: string;
+  username?: string;
   age: number;
   avatar: ImageSourcePropType | { uri: string } | null;
   university: string;

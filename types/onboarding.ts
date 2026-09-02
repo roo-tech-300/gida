@@ -13,6 +13,7 @@ export type Amenity =
   | 'parking';
 
 export type OnboardingData = {
+  username: string;
   gender: Gender | '';
   minBudget: string;
   maxBudget: string;
@@ -21,7 +22,7 @@ export type OnboardingData = {
   mustHaveAmenities: Amenity[];
 };
 
-export const ONBOARDING_STEPS = 3;
+export const ONBOARDING_STEPS = 4;
 
 export const BUDGET_PRESETS = [
   { label: '₦100k', value: 100000 },
@@ -90,6 +91,7 @@ export function getCampusesForSchool(school: string): { id: string; label: strin
 }
 
 export const defaultOnboardingData = (): OnboardingData => ({
+  username: '',
   gender: '',
   minBudget: '100000',
   maxBudget: '250000',

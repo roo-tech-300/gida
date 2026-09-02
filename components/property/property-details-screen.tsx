@@ -11,6 +11,8 @@ import { usePendingInvitationForListing } from '@/hooks/use-lodge-invitations';
 import { useTourBookings } from '@/hooks/use-tour-bookings';
 import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
 import { useReviewEligibility } from '@/hooks/use-review-eligibility';
+import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
+import { useAppToast } from '@/components/ui/toast-card';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
@@ -32,6 +34,9 @@ const HERO_HEIGHT = 340;
 
 export function PropertyDetailsScreen({ property, photos, dbListing }: { property: FeedListing; photos?: string[]; dbListing?: DbListing }) {
   const queryClient = useQueryClient();
+  const { showToast } = useAppToast();
+  const { data: savedIds = [] } = useSavedIds();
+  const toggleSave = useToggleSave();
   const { data: credit, isLoading: isCheckingCredit } = useCreditForListing(property.id);
   const { data: invitation, isLoading: isLoadingInvitation } = usePendingInvitationForListing(property.id);
   const { data: myTours = [] } = useTourBookings();
@@ -113,6 +118,23 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       return;
     }
     router.push(`/property/tour-scheduler?id=${property.id}`);
+  };
+
+  const isSaved = savedIds.includes(property.id);
+
+  const handleToggleSave = () => {
+    toggleSave.mutate(property.id, {
+      onSuccess: () => {
+        showToast({
+          message: isSaved ? 'Removed from your saved listings.' : 'Saved to your listings.',
+          type: 'success',
+        });
+      },
+      onError: (error) => {
+        console.error('[PropertyDetails] Failed to toggle save:', error);
+        showToast({ message: 'Could not update saved listings. Please try again.', type: 'error' });
+      },
+    });
   };
 
   return (
@@ -207,6 +229,8 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         onCtaPress={onCtaPress}
         onVisitProperty={() => setTourModalOpen(true)}
         showSpinner={ctaPending}
+        liked={isSaved}
+        onToggleSave={handleToggleSave}
       />
 
       <ImageGalleryModal

@@ -1,9 +1,9 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useAuth } from '@/context/auth-context';
-import { getMessagesForConversation, saveIncomingMessages, upsertThreadFromConversation } from '@/services/offline-message-store';
+import { getMessagesForConversation, markLocalMessagesRead, saveIncomingMessages, upsertThreadFromConversation } from '@/services/offline-message-store';
 import { createOutboxMessage, markMessageFailed, markOutboxSynced } from '@/services/offline-outbox-store';
 import {
   fetchConversationMessages,
@@ -30,6 +30,9 @@ export function useConversationThread(otherId: string) {
   const queryClient = useQueryClient();
   const { isConnected } = useNetInfo();
 
+  const [unreadBoundaryId, setUnreadBoundaryId] = useState<string | null>(null);
+  const boundaryCaptured = useRef(false);
+
   const conversationQuery = useQuery({
     queryKey: ['conversation-pair', myId, otherId],
     queryFn: () => getOrCreateConversation(myId!, otherId),
@@ -50,6 +53,13 @@ export function useConversationThread(otherId: string) {
       const stored = getMessagesForConversation(conversationId);
       try {
         const server = await fetchConversationMessages(conversationId);
+        if (!boundaryCaptured.current && myId) {
+          const firstUnread = server.find((message) => message.senderId !== myId && !message.readAt);
+          if (firstUnread) {
+            boundaryCaptured.current = true;
+            setUnreadBoundaryId(firstUnread.id);
+          }
+        }
         return saveIncomingMessages(conversationId, server);
       } catch (error) {
         console.error('[MessageThread] Failed to fetch messages:', error);
@@ -64,6 +74,8 @@ export function useConversationThread(otherId: string) {
   useEffect(() => {
     if (!conversationId || !myId) return;
     void markConversationRead(conversationId, myId).then(() => {
+      markLocalMessagesRead(conversationId, myId);
+      refreshThreadCache(queryClient, conversationId);
       queryClient.invalidateQueries({ queryKey: ['conversations', myId] });
     });
   }, [conversationId, myId, queryClient]);
@@ -121,6 +133,7 @@ export function useConversationThread(otherId: string) {
     conversation: conversationQuery.data,
     participant: conversationQuery.data?.participant,
     messages: messagesQuery.data ?? [],
+    unreadBoundaryId,
     isConversationLoading: conversationQuery.isLoading,
     isConversationError: conversationQuery.isError,
     isMessagesLoading: messagesQuery.isLoading,

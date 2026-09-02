@@ -174,6 +174,17 @@ export function saveIncomingMessages(conversationId: string, incoming: ServerCha
   return getMessagesForConversation(conversationId);
 }
 
+export function markLocalMessagesRead(conversationId: string, readerId: string): void {
+  const database = getDb();
+  database.runSync(
+    `UPDATE local_messages
+        SET read_at = COALESCE(read_at, ?)
+      WHERE conversation_id = ? AND sender_id <> ? AND read_at IS NULL`,
+    [new Date().toISOString(), conversationId, readerId],
+  );
+  database.runSync(`UPDATE local_threads SET unread = 0 WHERE conversation_id = ?`, [conversationId]);
+}
+
 export function upsertThreadFromConversation(conversation: Conversation): void {
   const database = getDb();
   const serverTime = Date.parse(conversation.lastMessageAt) || Date.now();

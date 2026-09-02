@@ -65,6 +65,7 @@ export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) 
           <BlurView intensity={90} tint="dark" style={styles.glassBlur} />
           <View style={styles.glassInner}>
             <Text style={styles.nameText}>{profile.name}, {profile.age}</Text>
+            {profile.username ? <Text style={styles.usernameText}>@{profile.username}</Text> : null}
 
             <View style={styles.metaRow}>
               <View style={styles.metaItem}>
@@ -155,6 +156,13 @@ const styles = StyleSheet.create({
     ...DesignTypography.headlineMd,
     color: DesignColors.onSurface,
     fontFamily,
+  },
+  usernameText: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.primaryBright,
+    fontFamily,
+    fontWeight: '600',
+    marginTop: 2,
   },
   metaRow: {
     flexDirection: 'row',

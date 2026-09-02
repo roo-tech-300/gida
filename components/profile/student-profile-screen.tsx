@@ -129,7 +129,11 @@ export function StudentProfileScreen() {
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Personal Information</Text>
             <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} />
+            <ProfileRow icon="at-outline" label="Username" value={profile?.username ? `@${profile.username}` : 'Not set yet'} />
             <ProfileRow icon="mail-outline" label="Email Address" value={profile?.email ?? 'Not available'} />
+            <Pressable style={styles.changeUsernameRow} onPress={() => showToast({ message: 'Changing your username is coming soon.', type: 'info' })}>
+              <Text style={styles.changeUsernameText}>Change username</Text>
+            </Pressable>
           </View>
 
           <View style={styles.sectionFlat}>
@@ -195,6 +199,8 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: DesignSpacing.lg },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingTop: 2, paddingBottom: 2 },
   sectionTitleFlat: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingBottom: DesignSpacing.sm },
+  changeUsernameRow: { paddingVertical: DesignSpacing.sm },
+  changeUsernameText: { ...DesignTypography.labelLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
   completionBadge: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '700', paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
   logoutSection: { marginHorizontal: DesignSpacing.marginMobile, paddingTop: DesignSpacing.sm },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: DesignColors.dangerContainer },

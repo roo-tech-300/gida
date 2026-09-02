@@ -19,7 +19,17 @@ export type TourAttachment = {
   reference: string;
 };
 
-export type MessageAttachment = ListingAttachment | TourAttachment;
+export type RoommateInviteAttachment = {
+  type: 'roommate_invite';
+  listingId: string;
+  title: string;
+  image: string | null;
+  price: string;
+  location: string;
+  inviterName: string;
+};
+
+export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment;
 
 /** A message as it exists on the server (no device-local ordering fields). */
 export type ServerChatMessage = {

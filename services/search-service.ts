@@ -19,10 +19,24 @@ export type ListingSearchResult = {
 export type RoommateSearchResult = {
   id: string;
   full_name: string | null;
+  username: string | null;
   avatar_url: string | null;
   school: string | null;
   bio: string | null;
   preferred_area: string | null;
+};
+
+type RoommateSearchRow = {
+  id: string;
+  full_name: string | null;
+  username: string | null;
+  avatar_url: string | null;
+  school: string | null;
+  bio: string | null;
+  living_preferences:
+    | { preferred_area: string | null }[]
+    | { preferred_area: string | null }
+    | null;
 };
 
 function sanitizeQuery(q: string): string {
@@ -70,24 +84,32 @@ export async function searchListings(query: string): Promise<ListingSearchResult
 export async function searchRoommates(query: string): Promise<RoommateSearchResult[]> {
   const q = sanitizeQuery(query.trim());
 
-  const { data, error } = await supabase
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id ?? null;
+
+  let builder = supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, school, bio, living_preferences(preferred_area)')
-    .or(`full_name.ilike.%${q}%,school.ilike.%${q}%,bio.ilike.%${q}%`)
+    .select('id, full_name, username, avatar_url, school, bio, living_preferences(preferred_area)')
+    .or(`full_name.ilike.%${q}%,username.ilike.%${q}%,school.ilike.%${q}%,bio.ilike.%${q}%`)
     .eq('show_in_roommate_feed', true)
-    .eq('onboarded', true)
-    .limit(SEARCH_LIMIT);
+    .eq('onboarded', true);
+  if (userId) {
+    builder = builder.neq('id', userId);
+  }
+
+  const { data, error } = await builder.limit(SEARCH_LIMIT);
 
   if (error) {
     console.error('[searchService] Failed to search roommates:', error.message);
     throw new Error(error.message);
   }
 
-  const rows = data ?? [];
+  const rows = (data ?? []) as RoommateSearchRow[];
 
-  return rows.map((row: any) => ({
+  return rows.map((row) => ({
     id: row.id,
     full_name: row.full_name,
+    username: row.username,
     avatar_url: row.avatar_url,
     school: row.school,
     bio: row.bio,

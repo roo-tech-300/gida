@@ -1,8 +1,8 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { RoommateSearchResult } from '@/services/search-service';
+import { Avatar } from '@/components/ui/avatar';
 
 type Props = {
   roommate: RoommateSearchResult;
@@ -15,15 +15,12 @@ export function SearchRoommateResult({ roommate, onPress }: Props) {
 
   return (
     <Pressable style={styles.card} onPress={() => onPress(roommate.id)}>
-      {roommate.avatar_url ? (
-        <Image source={{ uri: roommate.avatar_url }} style={styles.avatar} contentFit="cover" cachePolicy="disk" />
-      ) : (
-        <View style={[styles.avatar, styles.avatarFallback]}>
-          <Ionicons name="person-outline" size={20} color={DesignColors.onSurfaceVariant} />
-        </View>
-      )}
+      <Avatar imageUrl={roommate.avatar_url} name={name} size={48} />
       <View style={styles.info}>
         <Text style={styles.name} numberOfLines={1}>{name}</Text>
+        {roommate.username ? (
+          <Text style={styles.username} numberOfLines={1}>@{roommate.username}</Text>
+        ) : null}
         {school ? (
           <View style={styles.schoolRow}>
             <Ionicons name="school-outline" size={12} color={DesignColors.onSurfaceVariant} />
@@ -45,16 +42,6 @@ const styles = StyleSheet.create({
     gap: DesignSpacing.md,
     paddingVertical: DesignSpacing.sm,
   },
-  avatar: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-  },
-  avatarFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
   info: {
     flex: 1,
     gap: 2,
@@ -62,6 +49,12 @@ const styles = StyleSheet.create({
   name: {
     ...DesignTypography.labelLg,
     color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '600',
+  },
+  username: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '600',
   },

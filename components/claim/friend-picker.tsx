@@ -4,6 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-profile-search';
+import { Avatar } from '@/components/ui/avatar';
 import { SlotDiagram } from '@/components/claim/slot-diagram';
 import { InviteCodeModal } from '@/components/claim/invite-code-modal';
 
@@ -96,10 +97,13 @@ export function FriendPicker({ allowed, selected, code, codeSeats, matchedCount,
                 onPress={() => handleAdd(profile)}
                 disabled={alreadyAdded || isFull}
               >
-                <View style={styles.resultAvatar}>
-                  <Ionicons name="person" size={16} color={DesignColors.primaryBright} />
+                <Avatar imageUrl={profile.avatar_url} name={profile.full_name} size={32} />
+                <View style={styles.resultCopy}>
+                  <Text style={styles.resultName} numberOfLines={1}>{profile.full_name || 'Unknown'}</Text>
+                  {profile.username ? (
+                    <Text style={styles.resultUsername} numberOfLines={1}>@{profile.username}</Text>
+                  ) : null}
                 </View>
-                <Text style={styles.resultName}>{profile.full_name || 'Unknown'}</Text>
                 <Ionicons
                   name={alreadyAdded ? 'checkmark-circle' : 'add-circle-outline'}
                   size={20}
@@ -114,9 +118,7 @@ export function FriendPicker({ allowed, selected, code, codeSeats, matchedCount,
         <View style={styles.roster}>
           {selected.map((friend) => (
             <View key={friend.id} style={styles.rosterChip}>
-              <View style={styles.rosterAvatar}>
-                <Ionicons name="person" size={14} color={DesignColors.primaryBright} />
-              </View>
+              <Avatar name={friend.name} size={26} />
               <Text style={styles.rosterName} numberOfLines={1}>
                 {friend.name}
               </Text>
@@ -202,20 +204,20 @@ const styles = StyleSheet.create({
     borderBottomColor: DesignColors.cardBorder,
   },
   resultItemDisabled: { opacity: 0.45 },
-  resultAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: DesignColors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
+  resultCopy: {
+    flex: 1,
+    gap: 1,
   },
   resultName: {
-    flex: 1,
     ...DesignTypography.bodyMd,
     color: DesignColors.onSurface,
     fontFamily,
     fontWeight: '600',
+  },
+  resultUsername: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
   },
   roster: { gap: DesignSpacing.xs + 2 },
   rosterChip: {
@@ -228,14 +230,6 @@ const styles = StyleSheet.create({
     borderRadius: DesignRadius.md,
     paddingHorizontal: DesignSpacing.sm + 2,
     paddingVertical: DesignSpacing.sm,
-  },
-  rosterAvatar: {
-    width: 26,
-    height: 26,
-    borderRadius: 13,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-    alignItems: 'center',
-    justifyContent: 'center',
   },
   rosterName: {
     flex: 1,

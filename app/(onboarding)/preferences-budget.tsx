@@ -76,7 +76,7 @@ export default function OnboardingBudgetScreen() {
 
   return (
     <OnboardingLayout>
-      <OnboardingProgress step={2} label="Budget & Area" />
+      <OnboardingProgress step={3} label="Budget & Area" />
 
       <OnboardingGlassCard>
         <View style={styles.header}>

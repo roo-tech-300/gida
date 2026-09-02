@@ -32,7 +32,7 @@ export default function OnboardingGenderScreen() {
 
   return (
     <OnboardingLayout>
-      <OnboardingProgress step={1} label="About You" />
+      <OnboardingProgress step={2} label="About You" />
 
       <OnboardingGlassCard>
         <View style={styles.header}>

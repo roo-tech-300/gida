@@ -20,12 +20,15 @@ import { MessageBubble } from '@/components/messages/message-bubble';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
 import { MessageComposer } from '@/components/messages/message-composer';
 import { ListingPickerModal, type PickerSource } from '@/components/messages/listing-picker-modal';
+import { UnreadDivider } from '@/components/messages/unread-divider';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
-import type { ListingAttachment } from '@/types/messages';
+import type { ChatMessage, ListingAttachment } from '@/types/messages';
 import { getInitials } from '@/utils/initials';
+
+const UNREAD_DIVIDER_KEY = '__unread_divider__';
 
 export function MessageChatScreen() {
   const router = useRouter();
@@ -45,6 +48,7 @@ export function MessageChatScreen() {
   const {
     participant,
     messages,
+    unreadBoundaryId,
     isConversationLoading,
     isConversationError,
     isMessagesLoading,
@@ -61,6 +65,15 @@ export function MessageChatScreen() {
   }, [isConversationError, showToast]);
 
   const reversed = useMemo(() => [...messages].reverse(), [messages]);
+
+  const listItems = useMemo(() => {
+    if (!unreadBoundaryId) return reversed;
+    const boundaryIndex = reversed.findIndex((message) => message.id === unreadBoundaryId);
+    if (boundaryIndex === -1) return reversed;
+    const items: (string | ChatMessage)[] = [...reversed];
+    items.splice(boundaryIndex + 1, 0, UNREAD_DIVIDER_KEY);
+    return items;
+  }, [reversed, unreadBoundaryId]);
 
   const handleSend = async () => {
     const text = draft.trim();
@@ -118,22 +131,27 @@ export function MessageChatScreen() {
         ) : (
           <FlatList
             inverted
-            data={reversed}
-            keyExtractor={(item) => item.id}
+            data={listItems}
+            keyExtractor={(item) => (typeof item === 'string' ? item : item.id)}
             showsVerticalScrollIndicator={false}
             contentContainerStyle={styles.listContent}
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetchMessages()} tintColor={DesignColors.primary} />}
-            renderItem={({ item }) => (
-              <MessageBubble
-                message={item}
-                avatar={participant?.avatarUrl}
-                isMe={item.senderId === myId}
-                onRetry={() => {
-                  void flushOutbox();
-                  showToast({ message: 'Retrying queued message…', type: 'info' });
-                }}
-              />
-            )}
+            renderItem={({ item }) =>
+              typeof item === 'string' ? (
+                <UnreadDivider />
+              ) : (
+                <MessageBubble
+                  message={item}
+                  avatar={participant?.avatarUrl}
+                  participantName={participant?.name}
+                  isMe={item.senderId === myId}
+                  onRetry={() => {
+                    void flushOutbox();
+                    showToast({ message: 'Retrying queued message…', type: 'info' });
+                  }}
+                />
+              )
+            }
             ListEmptyComponent={
               <View style={styles.empty}>
                 <Ionicons name="hand-left-outline" size={34} color={DesignColors.onSurfaceVariant} />

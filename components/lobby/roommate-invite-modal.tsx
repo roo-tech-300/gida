@@ -3,6 +3,7 @@ import { StyleSheet, Text, View, Modal, TextInput, Pressable, KeyboardAvoidingVi
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-profile-search';
+import { Avatar } from '@/components/ui/avatar';
 
 interface Props {
   visible: boolean;
@@ -70,10 +71,13 @@ export function RoommateInviteModal({ visible, onClose, onSubmitInvite }: Props)
                 style={styles.suggestionList}
                 renderItem={({ item }) => (
                   <Pressable style={styles.suggestionRow} onPress={() => handleSend(item.full_name ?? 'Roommate', item.id)}>
-                    <View style={styles.suggestionAvatar}>
-                      <Text style={styles.suggestionInitial}>{(item.full_name ?? 'R')[0]?.toUpperCase()}</Text>
+                    <Avatar imageUrl={item.avatar_url} name={item.full_name} size={30} />
+                    <View style={styles.suggestionCopy}>
+                      <Text style={styles.suggestionName} numberOfLines={1}>{item.full_name}</Text>
+                      {item.username ? (
+                        <Text style={styles.suggestionUsername} numberOfLines={1}>@{item.username}</Text>
+                      ) : null}
                     </View>
-                    <Text style={styles.suggestionName} numberOfLines={1}>{item.full_name}</Text>
                     <Ionicons name="person-add-outline" size={16} color={DesignColors.primaryBright} />
                   </Pressable>
                 )}
@@ -109,9 +113,9 @@ const styles = StyleSheet.create({
   input: { backgroundColor: DesignColors.surfaceContainerLowest, borderWidth: 1, borderColor: DesignColors.cardBorder, borderRadius: DesignRadius.md, paddingHorizontal: DesignSpacing.md, paddingVertical: 12, color: DesignColors.onSurface, ...DesignTypography.bodyMd },
   suggestionList: { maxHeight: 160, borderRadius: DesignRadius.sm, backgroundColor: DesignColors.surfaceContainerLow },
   suggestionRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md, paddingVertical: 10, borderBottomWidth: 1, borderBottomColor: DesignColors.borderFaint },
-  suggestionAvatar: { width: 30, height: 30, borderRadius: 15, backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center' },
-  suggestionInitial: { fontSize: 13, fontWeight: '700', color: DesignColors.onPrimaryContainer, fontFamily },
-  suggestionName: { flex: 1, ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
+  suggestionCopy: { flex: 1, gap: 1 },
+  suggestionName: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
+  suggestionUsername: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   footer: { flexDirection: 'row', justifyContent: 'flex-end', gap: DesignSpacing.md, marginTop: 4 },
   cancelBtn: { paddingHorizontal: DesignSpacing.md, paddingVertical: 10, borderRadius: DesignRadius.sm, justifyContent: 'center' },
   cancelText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontWeight: '600' },

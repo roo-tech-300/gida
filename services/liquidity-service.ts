@@ -3,6 +3,7 @@ import { derivePropertyTier, isValidTargetOccupancy, podOpenSlotStatus } from '@
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult, InvitedFriend } from '@/services/liquidity-pod-service';
+import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import type { Estate, SlotCredit, Pod, PodMember, PodInvitation } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 import { MOCK_ESTATES } from '@/dummy/liquidity-mock';
@@ -207,5 +208,24 @@ export async function inviteRoommateToPod(podId: string | undefined, inviteeName
     invitee_name: inviteeName,
   });
   if (error) throw new Error(error.message);
+
+  if (inviteeUserId) {
+    try {
+      const { data: pod } = await supabase.from('pods').select('listing_id').eq('id', podId).maybeSingle();
+      if (pod?.listing_id) {
+        const { data: listing } = await supabase.from('listings').select('*').eq('id', pod.listing_id).maybeSingle();
+        if (listing) {
+          await sendRoommateInviteDm({
+            inviterUserId: userId,
+            inviteeUserId,
+            listing: listing as DbListing,
+          });
+        }
+      }
+    } catch (dmError) {
+      console.error('[LiquidityService] Failed to send roommate invite DM:', dmError);
+    }
+  }
+
   return null;
 }

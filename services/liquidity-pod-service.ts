@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { EXPECTED_TOTAL_POD_FEE, PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
 import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
+import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import {
   PERSIST_FAILURE_MESSAGE,
   PodJoinError,
@@ -192,7 +193,13 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
 
 export type InvitedFriend = { id: string; name: string };
 
-async function createPodInvitations(podId: string, inviterId: string, friends: InvitedFriend[]): Promise<void> {
+async function createPodInvitations(
+  podId: string,
+  inviterId: string,
+  friends: InvitedFriend[],
+  listing?: DbListing,
+  inviterName?: string,
+): Promise<void> {
   if (friends.length === 0) return;
   try {
     const rows = friends.map((friend) => ({
@@ -203,6 +210,17 @@ async function createPodInvitations(podId: string, inviterId: string, friends: I
     }));
     const { error } = await supabase.from('pod_invitations').insert(rows);
     if (error) console.error('[LiquidityService] Failed to create pod invitations:', error);
+    if (listing) {
+      for (const friend of friends) {
+        if (!friend.id) continue;
+        await sendRoommateInviteDm({
+          inviterUserId: inviterId,
+          inviteeUserId: friend.id,
+          inviterName: inviterName || 'Someone',
+          listing,
+        });
+      }
+    }
   } catch (error) {
     console.error('[LiquidityService] Exception while creating pod invitations:', error);
   }
@@ -239,6 +257,6 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
   if (!realPodId) {
     throw new Error(SYNC_FAILURE_MESSAGE);
   }
-  await createPodInvitations(pod.id, userId, args.invitedFriends ?? []);
+  await createPodInvitations(pod.id, userId, args.invitedFriends ?? [], args.listing);
   return { credit, synced: true };
 }

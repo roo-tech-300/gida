@@ -5,6 +5,7 @@ import type { LifestyleChip, RoommateProfile } from '@/types/roommates';
 export type DbRoommateRow = {
   id: string;
   full_name: string | null;
+  username: string | null;
   avatar_url: string | null;
   birth_year: number | null;
   entry_year: number | null;
@@ -60,6 +61,7 @@ export function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
   return {
     id: row.id,
     name: row.full_name || 'Anonymous',
+    username: row.username ?? undefined,
     age: calculateAge(row.birth_year ?? undefined) || 20,
     avatar: row.avatar_url ? { uri: row.avatar_url } : null,
     university: row.school || 'FUT Minna',
@@ -81,12 +83,19 @@ export function mapRowToProfile(row: DbRoommateRow): RoommateProfile {
 }
 
 export async function fetchRoommates(): Promise<RoommateProfile[]> {
-  const { data, error } = await supabase
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id ?? null;
+
+  let builder = supabase
     .from('profiles')
     .select('*, roommate_preferences(*), living_preferences(*)')
     .eq('show_in_roommate_feed', true)
-    .eq('onboarded', true)
-    .order('full_name');
+    .eq('onboarded', true);
+  if (userId) {
+    builder = builder.neq('id', userId);
+  }
+
+  const { data, error } = await builder.order('full_name');
 
   if (error) throw error;
 

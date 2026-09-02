@@ -17,6 +17,15 @@ type Props = {
 
 type SlideProps = { uri: string; isZoomed: boolean; onZoomChange: (zoomed: boolean) => void };
 
+function getSlideIndex(nativeEvent: {
+  contentOffset: { x: number };
+  layoutMeasurement: { width: number };
+}): number {
+  if (!nativeEvent.layoutMeasurement.width) return 0;
+  const idx = Math.round(nativeEvent.contentOffset.x / nativeEvent.layoutMeasurement.width);
+  return Math.max(0, idx);
+}
+
 function GallerySlide({ uri, isZoomed, onZoomChange }: SlideProps) {
   const [loaded, setLoaded] = useState(false);
   const [showSpinner, setShowSpinner] = useState(false);
@@ -104,7 +113,7 @@ function GallerySlide({ uri, isZoomed, onZoomChange }: SlideProps) {
 
 export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Props) {
   const insets = useSafeAreaInsets();
-  const { width: screenWidth } = useWindowDimensions();
+  const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
   const listRef = useRef<FlatList<string>>(null);
@@ -121,8 +130,14 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
 
   const handleMomentumEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { x: number }; layoutMeasurement: { width: number } } }) => {
-      const idx = Math.round(e.nativeEvent.contentOffset.x / e.nativeEvent.layoutMeasurement.width);
-      setCurrentIndex(idx);
+      setCurrentIndex(getSlideIndex(e.nativeEvent));
+    },
+    [],
+  );
+
+  const handleScroll = useCallback(
+    (e: { nativeEvent: { contentOffset: { x: number }; layoutMeasurement: { width: number } } }) => {
+      setCurrentIndex(getSlideIndex(e.nativeEvent));
     },
     [],
   );
@@ -155,15 +170,18 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
             decelerationRate="fast"
             scrollEnabled={!isZoomed}
             initialScrollIndex={validInitialIndex}
+            style={styles.list}
             getItemLayout={(_, index) => ({
               length: screenWidth,
               offset: screenWidth * index,
               index,
             })}
             onMomentumScrollEnd={handleMomentumEnd}
+            onScroll={handleScroll}
+            scrollEventThrottle={16}
             onScrollToIndexFailed={handleScrollToIndexFailed}
             renderItem={({ item }) => (
-              <View style={[styles.item, { width: screenWidth }]}>
+              <View style={[styles.item, { width: screenWidth, height: screenHeight }]}>
                 <GallerySlide uri={item} isZoomed={isZoomed} onZoomChange={setIsZoomed} />
               </View>
             )}
@@ -202,6 +220,7 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
 const styles = StyleSheet.create({
   root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   backdrop: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  list: { flex: 1 },
   item: { flex: 1 },
   slide: {
     flex: 1,

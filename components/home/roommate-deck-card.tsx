@@ -1,4 +1,4 @@
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -62,7 +62,7 @@ export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) 
 
       <View style={styles.bottomSection}>
         <View style={styles.glassCard}>
-          <BlurView intensity={90} tint="dark" style={styles.glassBlur} />
+          <WebBlurView intensity={90} tint="dark" style={styles.glassBlur} />
           <View style={styles.glassInner}>
             <Text style={styles.nameText}>{profile.name}, {profile.age}</Text>
             {profile.username ? <Text style={styles.usernameText}>@{profile.username}</Text> : null}

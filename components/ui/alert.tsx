@@ -1,4 +1,3 @@
-import * as Burnt from 'burnt';
 import { useAppToast } from './toast-card';
 
 export interface AlertPayload {

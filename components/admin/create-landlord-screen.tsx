@@ -1,11 +1,12 @@
 import { useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { ActivityIndicator, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateLandlord } from '@/hooks/use-create-landlord';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -61,8 +62,7 @@ export function CreateLandlordScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
@@ -85,7 +85,7 @@ export function CreateLandlordScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Full Name</Text>
             <View style={styles.glassInput}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. John Doe"
@@ -100,7 +100,7 @@ export function CreateLandlordScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Email Address <Text style={styles.optional}>(Optional)</Text></Text>
             <View style={styles.glassInput}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. john@example.com"
@@ -116,7 +116,7 @@ export function CreateLandlordScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Phone Number</Text>
             <View style={styles.glassInput}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. +234 800 000 0000"
@@ -143,7 +143,7 @@ export function CreateLandlordScreen() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.subLabel}>Bank Name</Text>
                   <View style={styles.glassInput}>
-                    <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                    <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. GTBank"
@@ -156,7 +156,7 @@ export function CreateLandlordScreen() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.subLabel}>Account Number</Text>
                   <View style={styles.glassInput}>
-                    <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                    <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                     <TextInput
                       style={styles.textInput}
                         placeholder="e.g. 0123456789"
@@ -170,7 +170,7 @@ export function CreateLandlordScreen() {
                 <View style={styles.fieldGroup}>
                   <Text style={styles.subLabel}>Account Name</Text>
                   <View style={styles.glassInput}>
-                    <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                    <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                     <TextInput
                       style={styles.textInput}
                       placeholder="e.g. John Doe"
@@ -195,7 +195,7 @@ export function CreateLandlordScreen() {
             )}
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

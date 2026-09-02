@@ -1,11 +1,12 @@
 import { useEffect, useState, type ComponentProps } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { BackButton } from '@/components/ui/back-button';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminCreation } from '@/context/admin-creation-context';
@@ -157,7 +158,7 @@ export function AssignRoleScreen() {
     <View style={styles.root}>
       <AuthBackgroundBubbles />
       <SafeAreaView style={styles.safe} edges={['top']}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
+        <SafeKeyboardView style={styles.kav}>
           <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
             <View style={styles.headerRow}>
               <View style={styles.backAbs}>
@@ -241,7 +242,7 @@ export function AssignRoleScreen() {
               )}
             </Pressable>
           </View>
-        </KeyboardAvoidingView>
+        </SafeKeyboardView>
       </SafeAreaView>
     </View>
   );

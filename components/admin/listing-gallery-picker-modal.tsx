@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as ImagePicker from 'expo-image-picker';
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/utils/web-image-picker';
 import { Ionicons } from '@expo/vector-icons';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
@@ -50,7 +50,7 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
   const pickFromDevice = async () => {
     setLoading(true);
     try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      const permission = await requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
         permissionAlert.showAlert({
           title: 'Permission required',
@@ -60,7 +60,7 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
         return;
       }
 
-      const result = await ImagePicker.launchImageLibraryAsync({
+      const result = await launchImageLibraryAsync({
         mediaTypes: ['images'],
         allowsMultipleSelection: true,
         quality: 0.9,
@@ -83,7 +83,7 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
       <View style={styles.backdrop}>
         <Pressable style={StyleSheet.absoluteFill} onPress={close} />
         <View style={styles.sheet}>
-          <BlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
+          <WebBlurView intensity={35} tint="dark" style={StyleSheet.absoluteFill} />
           <View style={styles.handle} />
           <View style={styles.header}>
             <Text style={styles.title}>Gallery Photos</Text>

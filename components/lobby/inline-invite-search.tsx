@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-profile-search';
 import { Avatar } from '@/components/ui/avatar';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 interface Props {
   remainingSlots: number;
@@ -33,7 +34,7 @@ export function InlineInviteSearch({ remainingSlots, onSelect }: Props) {
   };
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
+    <SafeKeyboardView>
       <View style={styles.section}>
         <View style={styles.sectionHeader}>
           <View style={styles.sectionBar} />
@@ -83,7 +84,7 @@ export function InlineInviteSearch({ remainingSlots, onSelect }: Props) {
           </Pressable>
         )}
       </View>
-    </KeyboardAvoidingView>
+    </SafeKeyboardView>
   );
 }
 

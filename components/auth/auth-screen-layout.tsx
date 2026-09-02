@@ -1,6 +1,5 @@
 import { type ReactNode } from 'react';
 import {
-  KeyboardAvoidingView,
   Platform,
   ScrollView,
   StyleSheet,
@@ -12,6 +11,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { AuthBrandHeader } from '@/components/auth/auth-brand-header';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import {
   DesignColors,
   DesignRadius,
@@ -34,9 +34,7 @@ export function AuthScreenLayout({ title, subtitle, children, footer }: AuthScre
   return (
     <SafeAreaView style={styles.safe}>
       <AuthBackgroundBubbles />
-      <KeyboardAvoidingView
-        behavior= {Platform.OS === 'ios' ? 'padding' : undefined}
-        keyboardVerticalOffset={0}
+      <SafeKeyboardView
         style={styles.flex}>
         <ScrollView
           bounces={false}
@@ -69,7 +67,7 @@ export function AuthScreenLayout({ title, subtitle, children, footer }: AuthScre
             </View>
           </View>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

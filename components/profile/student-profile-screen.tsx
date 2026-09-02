@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/utils/web-image-picker';
 import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '@/context/auth-context';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
@@ -79,12 +79,12 @@ export function StudentProfileScreen() {
   };
 
   const handleAvatarPress = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       showToast({ message: 'Photo access is required to change your avatar.', type: 'error' });
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],

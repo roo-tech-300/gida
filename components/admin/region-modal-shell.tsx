@@ -1,8 +1,9 @@
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { Modal, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignTypography } from '@/constants/design';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 type Props = {
   visible: boolean;
@@ -16,7 +17,7 @@ export function RegionModalShell({ visible, title, onClose, children, footer }: 
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.overlay} onPress={onClose}>
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
+        <SafeKeyboardView style={styles.kav}>
           <Pressable style={styles.dialog} onPress={() => {}}>
             <View style={styles.header}>
               <Text style={styles.title}>{title}</Text>
@@ -34,7 +35,7 @@ export function RegionModalShell({ visible, title, onClose, children, footer }: 
             </ScrollView>
             {footer ? <View style={styles.footer}>{footer}</View> : null}
           </Pressable>
-        </KeyboardAvoidingView>
+        </SafeKeyboardView>
       </Pressable>
     </Modal>
   );

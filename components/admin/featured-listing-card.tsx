@@ -1,5 +1,5 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
@@ -20,7 +20,7 @@ export function FeaturedListingCard({ listing }: Props) {
   if (!listing) {
     return (
       <Pressable style={styles.promptCard}>
-        <BlurView intensity={20} tint="dark" style={styles.glassBlur} />
+        <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
         <View style={styles.promptContent}>
           <View style={styles.promptIconWrap}>
             <Ionicons name="star-outline" size={28} color={DesignColors.primary} />
@@ -41,7 +41,7 @@ export function FeaturedListingCard({ listing }: Props) {
   return (
     <View style={styles.container}>
       <View style={styles.cardOuter}>
-        <BlurView intensity={20} tint="dark" style={styles.glassBlur} />
+        <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
         <View style={styles.cardInner}>
           <View style={styles.imageWrap}>
             <Image

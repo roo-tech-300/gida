@@ -1,9 +1,10 @@
-import { KeyboardAvoidingView, Platform, StyleSheet } from 'react-native';
+import { StyleSheet } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
 import { useEscapeKey } from '@/components/claim/use-escape-key';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors } from '@/constants/design';
 
 export function JoinWithCodeScreen() {
@@ -12,9 +13,9 @@ export function JoinWithCodeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <SafeKeyboardView style={styles.flex}>
         <JoinGroupFlow onClose={close} onExitJoin={close} />
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

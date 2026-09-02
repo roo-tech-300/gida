@@ -3,9 +3,7 @@ import {
   Animated,
   BackHandler,
   Easing,
-  KeyboardAvoidingView,
   PanResponder,
-  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -20,6 +18,7 @@ import { SearchModeTabs, type SearchMode } from '@/components/search/search-mode
 import { SearchRecent, getRecents, saveRecent, clearRecents } from '@/components/search/search-recent';
 import { SearchSuggestions } from '@/components/search/search-suggestions';
 import { SearchResultsList } from '@/components/search/search-results-list';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useListingSearch, useRoommateSearch } from '@/hooks/use-search';
 import { DesignColors, DesignRadius, DesignSpacing } from '@/constants/design';
 
@@ -38,6 +37,7 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
 ) {
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const isOpenRef = useRef(false);
   const anim = useRef(new Animated.Value(0)).current;
   const inputRef = useRef<TextInput>(null);
@@ -53,15 +53,18 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
   const animateTo = useCallback(
     (open: boolean) => {
       isOpenRef.current = open;
+      if (open) setMounted(true);
       setIsOpen(open);
       Animated.timing(anim, {
         toValue: open ? 1 : 0,
         duration: 350,
         easing: Easing.bezier(0.4, 0, 0.2, 1),
-        useNativeDriver: true,
+        useNativeDriver: false,
       }).start(() => {
         if (open) {
           setTimeout(() => inputRef.current?.focus(), 100);
+        } else {
+          setMounted(false);
         }
       });
     },
@@ -134,7 +137,7 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
 
   const slideY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [800, 0],
+    outputRange: [1200, 0],
   });
 
   const backdropOpacity = anim.interpolate({
@@ -144,65 +147,69 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
 
   return (
     <View style={styles.wrapper} pointerEvents={isOpen ? 'box-none' : 'none'}>
-      <Animated.View
-        style={[styles.backdrop, { opacity: backdropOpacity }]}
-        pointerEvents={isOpen ? 'auto' : 'none'}
-      >
-        <Pressable style={StyleSheet.absoluteFill} onPress={close} />
-      </Animated.View>
+      {mounted ? (
+        <>
+          <Animated.View
+            style={[styles.backdrop, { opacity: backdropOpacity }]}
+            pointerEvents={isOpen ? 'auto' : 'none'}
+          >
+            <Pressable style={StyleSheet.absoluteFill} onPress={close} />
+          </Animated.View>
 
-      <Animated.View
-        style={[styles.sheet, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
-        pointerEvents={isOpen ? 'auto' : 'none'}
-        {...overlayPan.panHandlers}
-      >
-        <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.sheetContent}>
-          <View style={styles.dragHandleRow}>
-            <View style={styles.dragHandle} />
-          </View>
+          <Animated.View
+            style={[styles.sheet, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
+            pointerEvents={isOpen ? 'auto' : 'none'}
+            {...overlayPan.panHandlers}
+          >
+            <SafeKeyboardView style={styles.sheetContent}>
+              <View style={styles.dragHandleRow}>
+                <View style={styles.dragHandle} />
+              </View>
 
-          <SearchHeader
-            ref={inputRef}
-            value={query}
-            onChangeText={setQuery}
-            onCancel={close}
-            onSubmit={handleSearchSubmit}
-          />
-
-          <View style={styles.tabsRow}>
-            <SearchModeTabs active={mode} onChange={setMode} />
-          </View>
-
-          <View style={styles.body}>
-            {!hasQuery ? (
-              <ScrollView
-                showsVerticalScrollIndicator={false}
-                keyboardShouldPersistTaps="handled"
-                contentContainerStyle={styles.scrollBody}
-              >
-                <SearchRecent terms={recentTerms} onSelect={handleSelectTerm} onClear={handleClearRecents} />
-                <SearchSuggestions onSelect={handleSelectTerm} />
-              </ScrollView>
-            ) : (
-              <SearchResultsList
-                mode={mode}
-                query={query}
-                isLoading={mode === 'listings' ? listingSearch.isLoading : roommateSearch.isLoading}
-                listings={listingSearch.data ?? []}
-                roommates={roommateSearch.data ?? []}
-                onPressListing={(id) => {
-                  close();
-                  onPressListing(id);
-                }}
-                onPressRoommate={(id) => {
-                  close();
-                  onPressRoommate(id);
-                }}
+              <SearchHeader
+                ref={inputRef}
+                value={query}
+                onChangeText={setQuery}
+                onCancel={close}
+                onSubmit={handleSearchSubmit}
               />
-            )}
-          </View>
-        </KeyboardAvoidingView>
-      </Animated.View>
+
+              <View style={styles.tabsRow}>
+                <SearchModeTabs active={mode} onChange={setMode} />
+              </View>
+
+              <View style={styles.body}>
+                {!hasQuery ? (
+                  <ScrollView
+                    showsVerticalScrollIndicator={false}
+                    keyboardShouldPersistTaps="handled"
+                    contentContainerStyle={styles.scrollBody}
+                  >
+                    <SearchRecent terms={recentTerms} onSelect={handleSelectTerm} onClear={handleClearRecents} />
+                    <SearchSuggestions onSelect={handleSelectTerm} />
+                  </ScrollView>
+                ) : (
+                  <SearchResultsList
+                    mode={mode}
+                    query={query}
+                    isLoading={mode === 'listings' ? listingSearch.isLoading : roommateSearch.isLoading}
+                    listings={listingSearch.data ?? []}
+                    roommates={roommateSearch.data ?? []}
+                    onPressListing={(id) => {
+                      close();
+                      onPressListing(id);
+                    }}
+                    onPressRoommate={(id) => {
+                      close();
+                      onPressRoommate(id);
+                    }}
+                  />
+                )}
+              </View>
+            </SafeKeyboardView>
+          </Animated.View>
+        </>
+      ) : null}
     </View>
   );
 });

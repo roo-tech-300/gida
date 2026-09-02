@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import * as ImagePicker from 'expo-image-picker';
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/utils/web-image-picker';
 
 import { useAuth } from '@/context/auth-context';
 import { uploadAvatar } from '@/services/profileService';
@@ -21,12 +21,12 @@ export function RoommateAvatarSection() {
   const [uploading, setUploading] = useState(false);
 
   const handlePress = async () => {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       showToast({ message: 'Photo access is required to set your profile picture.', type: 'error' });
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: true,
       aspect: [1, 1],

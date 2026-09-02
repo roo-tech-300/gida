@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import * as FileSystem from 'expo-file-system/legacy';
+import { resolveImageArrayBuffer } from '@/utils/image-buffer';
 import { mapDbToFeedListing, type DbListing, type FeedListing } from '@/types/feed-listing';
 
 export async function fetchMyAdminListings(adminId: string): Promise<FeedListing[]> {
@@ -66,17 +66,6 @@ function getContentType(fileName: string, uri: string): string {
   return 'image/jpeg';
 }
 
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = globalThis.atob(base64);
-  const bytes = new Uint8Array(binary.length);
-
-  for (let index = 0; index < binary.length; index += 1) {
-    bytes[index] = binary.charCodeAt(index);
-  }
-
-  return bytes.buffer;
-}
-
 export async function createListing(input: CreateListingInput): Promise<{ id: string }> {
   const { data, error } = await supabase
     .from('listings')
@@ -129,10 +118,7 @@ export async function uploadListingImage(
 ): Promise<string> {
   const filePath = `${listingId}/${fileName}`;
   const contentType = getContentType(fileName, localUri);
-  const base64Data = await FileSystem.readAsStringAsync(localUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const fileBuffer = base64ToArrayBuffer(base64Data);
+  const fileBuffer = await resolveImageArrayBuffer(localUri);
 
   const { error: uploadError } = await supabase.storage
     .from(STORAGE_BUCKET)

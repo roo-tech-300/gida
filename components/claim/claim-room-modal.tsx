@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { DesignColors } from '@/constants/design';
@@ -14,6 +14,7 @@ import { OpenPodStep } from '@/components/claim/open-pod-step';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import { StepTransition } from '@/components/claim/step-transition';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit, useOpenPodsForListing } from '@/hooks/use-liquidity';
@@ -247,7 +248,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <SafeKeyboardView style={styles.flex}>
         <View style={styles.backdrop}>
           <Pressable style={styles.scrimSpace} onPress={onClose} accessibilityLabel="Close" accessibilityRole="button" />
           <Animated.View style={[styles.sheet, { height: sheetHeight }]}>
@@ -306,7 +307,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
             )}
           </Animated.View>
         </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </Modal>
   );
 }

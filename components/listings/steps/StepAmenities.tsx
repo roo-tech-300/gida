@@ -1,7 +1,8 @@
 import { useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -61,8 +62,7 @@ export function StepAmenities() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={styles.kav}
       >
         <View style={styles.topBar}>
@@ -177,7 +177,7 @@ export function StepAmenities() {
             <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
           </View>
         </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

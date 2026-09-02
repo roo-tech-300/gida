@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
 import { Animated, StyleSheet, Text, View, Dimensions, Pressable, SafeAreaView } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -60,8 +60,8 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
 
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ translateY }], opacity }]}>
-      <Pressable onPress={handleDismiss} style={styles.card}>
-        <BlurView intensity={28} tint="dark" style={styles.blur} />
+      <Pressable onPress={handleDismiss} style={styles.card} focusable={false} accessible={false}>
+        <WebBlurView intensity={28} tint="dark" style={styles.blur} />
         <View style={[styles.accentBar, { backgroundColor: theme.accent }]} />
         <View style={[styles.iconWrap, { backgroundColor: theme.accent }]}>
           <Ionicons name={theme.icon} size={18} color={DesignColors.surfaceContainerLowest} />

@@ -1,8 +1,9 @@
 import { type ReactNode } from 'react';
-import { KeyboardAvoidingView, ScrollView, StyleSheet, View } from 'react-native';
+import { ScrollView, StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, DesignSpacing } from '@/constants/design';
 import { useResponsive } from '@/hooks/use-responsive';
 
@@ -17,7 +18,7 @@ export function OnboardingLayout({ children, footer }: OnboardingLayoutProps) {
   return (
     <SafeAreaView style={styles.safe}>
       <AuthBackgroundBubbles />
-      <KeyboardAvoidingView behavior="padding" keyboardVerticalOffset={0} style={styles.flex}>
+      <SafeKeyboardView style={styles.flex}>
         <ScrollView
           bounces={false}
           contentContainerStyle={[
@@ -32,7 +33,7 @@ export function OnboardingLayout({ children, footer }: OnboardingLayoutProps) {
           <View style={[styles.inner, isDesktop && styles.innerDesktop]}>{children}</View>
           {footer}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

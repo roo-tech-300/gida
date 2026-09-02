@@ -1,9 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import { StyleSheet, Text, View, Modal, TextInput, Pressable, KeyboardAvoidingView, Platform, FlatList } from 'react-native';
+import { StyleSheet, Text, View, Modal, TextInput, Pressable, FlatList } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSearchProfiles } from '@/hooks/use-profile-search';
 import { Avatar } from '@/components/ui/avatar';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 interface Props {
   visible: boolean;
@@ -37,12 +38,9 @@ export function RoommateInviteModal({ visible, onClose, onSubmitInvite }: Props)
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={styles.backdrop} onPress={onClose} testID="modal-backdrop">
-        <KeyboardAvoidingView
-          behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-          style={styles.keyboardWrap}
-          pointerEvents="box-none"
-        >
-          <Pressable style={styles.dialog} onPress={(e) => e.stopPropagation()}>
+        <View style={styles.keyboardWrap} pointerEvents="box-none">
+          <SafeKeyboardView style={styles.keyboardWrap}>
+            <Pressable style={styles.dialog} onPress={(e) => e.stopPropagation()}>
             <View style={styles.header}>
               <Text style={styles.title}>Invite Roommate</Text>
               <Pressable onPress={onClose} hitSlop={10}>
@@ -97,7 +95,8 @@ export function RoommateInviteModal({ visible, onClose, onSubmitInvite }: Props)
               </Pressable>
             </View>
           </Pressable>
-        </KeyboardAvoidingView>
+          </SafeKeyboardView>
+        </View>
       </Pressable>
     </Modal>
   );

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import * as FileSystem from 'expo-file-system/legacy';
+import { resolveImageArrayBuffer } from '@/utils/image-buffer';
 import type { OnboardingData } from '@/types/onboarding';
 
 export type ProfileRecord = {
@@ -68,15 +68,6 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
 
 const AVATAR_BUCKET = 'avatars';
 
-function base64ToArrayBuffer(base64: string): ArrayBuffer {
-  const binary = globalThis.atob(base64);
-  const bytes = new Uint8Array(binary.length);
-  for (let i = 0; i < binary.length; i += 1) {
-    bytes[i] = binary.charCodeAt(i);
-  }
-  return bytes.buffer;
-}
-
 function getContentType(uri: string): string {
   const lower = uri.toLowerCase();
   if (lower.endsWith('.png')) return 'image/png';
@@ -92,10 +83,7 @@ export async function uploadAvatar(
 ): Promise<string> {
   const filePath = `${userId}/avatar.jpg`;
   const contentType = getContentType(localUri);
-  const base64Data = await FileSystem.readAsStringAsync(localUri, {
-    encoding: FileSystem.EncodingType.Base64,
-  });
-  const fileBuffer = base64ToArrayBuffer(base64Data);
+  const fileBuffer = await resolveImageArrayBuffer(localUri);
 
   const { error: uploadError } = await supabase.storage
     .from(AVATAR_BUCKET)

@@ -1,13 +1,14 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
-import * as ImagePicker from 'expo-image-picker';
+import { ActivityIndicator, Image, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { WebBlurView } from '@/components/ui/web-blur-view';
+import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/utils/web-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useQueryClient } from '@tanstack/react-query';
 
 import { BackButton } from '@/components/ui/back-button';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-picker-modal';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
@@ -39,7 +40,7 @@ export function CreateListingMediaScreen() {
   const pickHero = async () => {
     setHeroLoading(true);
     try {
-    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    const permission = await requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
       permissionAlert.showAlert({
         title: 'Permission required',
@@ -48,7 +49,7 @@ export function CreateListingMediaScreen() {
       });
       return;
     }
-    const result = await ImagePicker.launchImageLibraryAsync({
+    const result = await launchImageLibraryAsync({
       mediaTypes: ['images'],
       allowsEditing: false,
       quality: 0.9,
@@ -262,8 +263,7 @@ export function CreateListingMediaScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
@@ -291,7 +291,7 @@ export function CreateListingMediaScreen() {
               </View>
             ) : (
               <Pressable style={styles.heroUpload} onPress={pickHero} disabled={heroLoading}>
-                <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                 {heroLoading ? (
                   <ActivityIndicator size="large" color={DesignColors.primary} />
                 ) : (
@@ -317,7 +317,7 @@ export function CreateListingMediaScreen() {
 
             <View style={styles.galleryGrid}>
               <Pressable style={styles.galleryAddSlot} onPress={() => setPickerOpen(true)}>
-                <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                 <View style={styles.placeholderBody}>
                   <View style={styles.placeholderIconWrap}>
                     <Ionicons name="camera-outline" size={26} color={DesignColors.primary} />
@@ -358,7 +358,7 @@ export function CreateListingMediaScreen() {
             )}
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
       <ListingGalleryPickerModal
         visible={pickerOpen}
         selectedImages={step5.galleryImages}

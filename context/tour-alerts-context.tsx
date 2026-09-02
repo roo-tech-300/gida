@@ -24,8 +24,12 @@ export function TourAlertsProvider({ children }: { children: ReactNode }) {
           setUnread((count) => count + 1);
           queryClient.invalidateQueries({ queryKey: ['admin-tours'] });
         },
-      )
-      .subscribe();
+      );
+    channel.subscribe((status, err) => {
+      if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        console.log(`[TourAlerts] Realtime channel status: ${status}`, err ?? '');
+      }
+    });
 
     return () => {
       supabase.removeChannel(channel);

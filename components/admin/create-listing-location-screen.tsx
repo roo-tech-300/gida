@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BlurView } from 'expo-blur';
-import * as Location from 'expo-location';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -13,6 +12,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingRegionSelect } from '@/components/admin/listing-region-select';
 import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
 export function CreateListingLocationScreen() {
@@ -45,8 +45,17 @@ export function CreateListingLocationScreen() {
   const campuses = step2.selectedSchool ? getCampusesForSchool(step2.selectedSchool) : [];
 
   const lockLocation = async () => {
+    if (Platform.OS === 'web') {
+      alert.showAlert({
+        title: 'Not Available on Web',
+        message: 'GPS location locking is not available on the web version. You can manually enter coordinates or skip this step.',
+        buttons: [{ label: 'OK', style: 'primary' }],
+      });
+      return;
+    }
     setLockLoading(true);
     try {
+      const Location = await import('expo-location');
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
         alert.showAlert({
@@ -71,8 +80,7 @@ export function CreateListingLocationScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
@@ -137,7 +145,7 @@ export function CreateListingLocationScreen() {
                     style={[styles.campusCard, active && styles.campusCardActive]}
                     onPress={() => setStep2({ selectedCampus: c.id })}
                   >
-                    <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                    <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                     <View style={styles.campusLeft}>
                       <View style={[styles.schoolIconWrap, active && styles.schoolIconWrapActive]}>
                         <Ionicons
@@ -165,7 +173,7 @@ export function CreateListingLocationScreen() {
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Nearest Landmark</Text>
           <View style={styles.glassInput}>
-            <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Behind GK Main Gate, near Chapel of Grace"
@@ -194,7 +202,7 @@ export function CreateListingLocationScreen() {
 
         <View style={styles.fieldGroup}>
           <View style={styles.gpsCard}>
-            <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <View style={styles.gpsHeader}>
               <View style={styles.gpsIconWrap}>
                 <Ionicons name="globe-outline" size={32} color={DesignColors.secondary} />
@@ -236,7 +244,7 @@ export function CreateListingLocationScreen() {
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
       <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} buttons={alert.buttons} onDismiss={alert.hideAlert} />
     </SafeAreaView>
   );

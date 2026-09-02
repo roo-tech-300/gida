@@ -82,8 +82,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             console.log('[Auth] Profile updated on the server — refreshing.');
             void fetchProfile(userId, profile?.email ?? null);
           },
-        )
-        .subscribe();
+        );
+      channel.subscribe((status, err) => {
+        if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+          console.log(`[Auth] Realtime channel status: ${status} (switching to manual refresh only)`, err ?? '');
+        }
+      });
       realtimeCleanup = () => void supabase.removeChannel(channel);
     };
 

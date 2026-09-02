@@ -1,6 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -57,17 +57,17 @@ export function CreateListingEntryScreen() {
             ]}
           >
             <View style={styles.mainCard}>
-              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.cardBlur} />
               <Ionicons name="business-outline" size={64} color={DesignColors.primary} style={styles.mainIcon} />
             </View>
 
             <View style={styles.accentTopRight}>
-              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.cardBlur} />
               <Ionicons name="location-outline" size={28} color={DesignColors.secondary} />
             </View>
 
             <View style={styles.accentBottomLeft}>
-              <BlurView intensity={25} tint="dark" style={styles.cardBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.cardBlur} />
               <Ionicons name="camera-outline" size={24} color={DesignColors.tertiary} />
             </View>
           </Animated.View>

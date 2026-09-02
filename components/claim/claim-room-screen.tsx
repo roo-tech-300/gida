@@ -1,5 +1,5 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
@@ -10,6 +10,7 @@ import { ClaimSplitSummary } from '@/components/claim/claim-split-summary';
 import { IntentSelector } from '@/components/claim/intent-selector';
 import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
@@ -83,7 +84,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+      <SafeKeyboardView style={{ flex: 1 }}>
         <View style={styles.topBar}>
           <BackButton hasBackground={false} />
           <Text style={styles.topBarTitle}>Reserve Space & Join Roommate Matching</Text>
@@ -134,7 +135,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             )}
           </Pressable>
         </ScrollView>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

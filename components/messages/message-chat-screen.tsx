@@ -1,11 +1,7 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import {
   ActivityIndicator,
-  FlatList,
-  KeyboardAvoidingView,
-  Platform,
   Pressable,
-  RefreshControl,
   StyleSheet,
   Text,
   View,
@@ -16,19 +12,17 @@ import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { MessageAttachmentSheet, type AttachmentSource } from '@/components/messages/message-attachment-sheet';
-import { MessageBubble } from '@/components/messages/message-bubble';
+import { MessageChatList } from '@/components/messages/message-chat-list';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
 import { MessageComposer } from '@/components/messages/message-composer';
 import { ListingPickerModal, type PickerSource } from '@/components/messages/listing-picker-modal';
-import { UnreadDivider } from '@/components/messages/unread-divider';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
-import type { ChatMessage, ListingAttachment } from '@/types/messages';
+import type { ListingAttachment } from '@/types/messages';
 import { getInitials } from '@/utils/initials';
-
-const UNREAD_DIVIDER_KEY = '__unread_divider__';
 
 export function MessageChatScreen() {
   const router = useRouter();
@@ -64,17 +58,6 @@ export function MessageChatScreen() {
     }
   }, [isConversationError, showToast]);
 
-  const reversed = useMemo(() => [...messages].reverse(), [messages]);
-
-  const listItems = useMemo(() => {
-    if (!unreadBoundaryId) return reversed;
-    const boundaryIndex = reversed.findIndex((message) => message.id === unreadBoundaryId);
-    if (boundaryIndex === -1) return reversed;
-    const items: (string | ChatMessage)[] = [...reversed];
-    items.splice(boundaryIndex + 1, 0, UNREAD_DIVIDER_KEY);
-    return items;
-  }, [reversed, unreadBoundaryId]);
-
   const handleSend = async () => {
     const text = draft.trim();
     if ((!text && !attachment) || isSending) return;
@@ -100,9 +83,8 @@ export function MessageChatScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <KeyboardAvoidingView
+      <SafeKeyboardView
         style={styles.flex}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
       >
         <View style={styles.header}>
           <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={8}>
@@ -128,37 +110,27 @@ export function MessageChatScreen() {
           <View style={styles.center}>
             <ActivityIndicator size="large" color={DesignColors.primary} />
           </View>
+        ) : messages.length === 0 ? (
+          <View style={styles.emptyWrap}>
+            <View style={styles.empty}>
+              <Ionicons name="hand-left-outline" size={34} color={DesignColors.onSurfaceVariant} />
+              <Text style={styles.emptyTitle}>No messages yet</Text>
+              <Text style={styles.emptyHint}>Say hello below to break the ice.</Text>
+            </View>
+          </View>
         ) : (
-          <FlatList
-            inverted
-            data={listItems}
-            keyExtractor={(item) => (typeof item === 'string' ? item : item.id)}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={styles.listContent}
-            refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => void refetchMessages()} tintColor={DesignColors.primary} />}
-            renderItem={({ item }) =>
-              typeof item === 'string' ? (
-                <UnreadDivider />
-              ) : (
-                <MessageBubble
-                  message={item}
-                  avatar={participant?.avatarUrl}
-                  participantName={participant?.name}
-                  isMe={item.senderId === myId}
-                  onRetry={() => {
-                    void flushOutbox();
-                    showToast({ message: 'Retrying queued message…', type: 'info' });
-                  }}
-                />
-              )
-            }
-            ListEmptyComponent={
-              <View style={styles.empty}>
-                <Ionicons name="hand-left-outline" size={34} color={DesignColors.onSurfaceVariant} />
-                <Text style={styles.emptyTitle}>No messages yet</Text>
-                <Text style={styles.emptyHint}>Say hello below to break the ice.</Text>
-              </View>
-            }
+          <MessageChatList
+            messages={messages}
+            unreadBoundaryId={unreadBoundaryId}
+            myId={myId}
+            participantName={participant?.name}
+            participantAvatar={participant?.avatarUrl}
+            isRefetching={isRefetching}
+            onRefresh={() => void refetchMessages()}
+            onRetry={() => {
+              void flushOutbox();
+              showToast({ message: 'Retrying queued message…', type: 'info' });
+            }}
           />
         )}
 
@@ -169,7 +141,7 @@ export function MessageChatScreen() {
           onOpenAttachments={() => setAttachSheetVisible(true)}
           selectedAttachmentLabel={attachment?.title}
         />
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
 
       <MessageAttachmentSheet
         visible={attachSheetVisible}
@@ -254,14 +226,14 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
   },
-  listContent: {
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.md,
-    paddingBottom: DesignSpacing.sm,
+  emptyWrap: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'flex-start',
+    paddingTop: DesignSpacing.xl,
   },
   empty: {
     alignItems: 'center',
-    alignSelf: 'center',
     gap: DesignSpacing.sm,
     paddingTop: DesignSpacing.xl,
   },

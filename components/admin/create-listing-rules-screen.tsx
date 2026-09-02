@@ -1,9 +1,10 @@
 import { useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
@@ -29,8 +30,7 @@ export function CreateListingRulesScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
@@ -52,7 +52,7 @@ export function CreateListingRulesScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>House Rules</Text>
             <View style={styles.glassInput}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <TextInput
                 style={styles.textInput}
                 placeholder="e.g. No pets allowed, Quiet hours after 10pm"
@@ -88,7 +88,7 @@ export function CreateListingRulesScreen() {
           <View style={styles.fieldGroup}>
             <Text style={styles.label}>Roommates / Slots</Text>
             <View style={[styles.glassInput, styles.roommateCard]}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <View style={styles.roommateLeft}>
                 <Text style={styles.roommateTitle}>Max Roommates</Text>
                 <Text style={styles.roommateDesc}>Rent splits into this many equal shares</Text>
@@ -120,7 +120,7 @@ export function CreateListingRulesScreen() {
             <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
           </Pressable>
         </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

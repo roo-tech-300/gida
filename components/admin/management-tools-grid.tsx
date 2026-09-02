@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -10,7 +10,7 @@ export function ManagementToolsGrid() {
     <View style={styles.grid}>
       <View style={styles.row}>
         <Pressable style={[styles.card, styles.cardTall, styles.indigoCard]} onPress={() => router.push('/admin/create-listing')}>
-          <BlurView intensity={30} tint="dark" style={styles.glassBlur} />
+          <WebBlurView intensity={30} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <View style={styles.primaryIconWrap}>
               <Ionicons name="add-circle-outline" size={24} color={DesignColors.onPrimary} />
@@ -20,7 +20,7 @@ export function ManagementToolsGrid() {
         </Pressable>
 
         <Pressable style={[styles.card, styles.cardTall, styles.glassCard]}>
-          <BlurView intensity={20} tint="dark" style={styles.glassBlur} />
+          <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <View style={styles.cardTopRow}>
               <Ionicons name="business-outline" size={22} color={DesignColors.primary} />
@@ -35,7 +35,7 @@ export function ManagementToolsGrid() {
 
       <View style={styles.row}>
         <Pressable style={[styles.card, styles.cardShort, styles.glassCard]}>
-          <BlurView intensity={20} tint="dark" style={styles.glassBlur} />
+          <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <Ionicons name="document-text-outline" size={22} color={DesignColors.onSurfaceVariant} />
             <Text style={styles.cardTitle}>Tenant{'\n'}Applications</Text>
@@ -43,7 +43,7 @@ export function ManagementToolsGrid() {
         </Pressable>
 
         <Pressable style={[styles.card, styles.cardShort, styles.glassCard]}>
-          <BlurView intensity={20} tint="dark" style={styles.glassBlur} />
+          <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <Ionicons name="calendar-outline" size={22} color={DesignColors.onSurfaceVariant} />
             <Text style={styles.cardTitle}>Scheduled{'\n'}Tours</Text>

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { ActivityIndicator, Image, KeyboardAvoidingView, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Image, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
@@ -7,6 +7,7 @@ import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constan
 import { useListing } from '@/hooks/use-listing';
 import { useRespondToLodgeInvitation } from '@/hooks/use-lodge-invitations';
 import { useAppToast } from '@/components/ui/toast-card';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useEscapeKey } from '@/components/claim/use-escape-key';
 import type { PendingLodgeInvitation } from '@/types/liquidity';
 
@@ -56,7 +57,7 @@ export function InviteResponseModal({ visible, invitation, onClose }: Props) {
 
   return (
     <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-      <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
+      <SafeKeyboardView style={styles.flex}>
         <Pressable style={styles.backdrop} onPress={onClose}>
           <Pressable style={styles.sheet} onPress={(event) => event.stopPropagation()}>
             <View style={styles.handle} />
@@ -115,7 +116,7 @@ export function InviteResponseModal({ visible, invitation, onClose }: Props) {
             </Pressable>
           </Pressable>
         </Pressable>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </Modal>
   );
 }

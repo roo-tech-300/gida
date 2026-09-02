@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
@@ -61,7 +61,7 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
       <View style={styles.content}>
         <View style={styles.badgeRow}>
           <View style={styles.badge}>
-            <BlurView intensity={20} tint="dark" style={styles.badgeBlur} />
+            <WebBlurView intensity={20} tint="dark" style={styles.badgeBlur} />
             <Text style={styles.badgeText}>{listing.status}</Text>
           </View>
         </View>
@@ -97,7 +97,7 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
             onPress={() => onToggleLike(listing.id)}
             style={styles.likeButton}
           >
-            <BlurView intensity={20} tint="dark" style={styles.likeBlur} />
+            <WebBlurView intensity={20} tint="dark" style={styles.likeBlur} />
             <Ionicons
               name={liked ? 'heart' : 'heart-outline'}
               size={22}

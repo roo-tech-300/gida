@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -12,6 +12,7 @@ import { RegionTreeNode } from '@/components/admin/region-tree-node';
 import { BackButton } from '@/components/ui/back-button';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { SearchBar } from '@/components/ui/search-bar';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useRegionActions, useRegionHierarchy } from '@/hooks/use-regions-page';
 import { filterRegionTree } from '@/utils/region-tree';
@@ -49,7 +50,7 @@ export function RegionsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
+      <SafeKeyboardView style={styles.kav}>
         <View style={styles.header}>
           <BackButton hasBackground />
           <Text style={styles.headerTitle}>Regions</Text>
@@ -101,7 +102,7 @@ export function RegionsScreen() {
             </View>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
 
       <Pressable style={styles.fab} onPress={() => openCreate(null)}>
         <Ionicons name="add" size={28} color={DesignColors.onSurface} />

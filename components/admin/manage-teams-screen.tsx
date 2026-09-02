@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, KeyboardAvoidingView, Platform, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SearchBar } from '@/components/ui/search-bar';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminProfiles } from '@/hooks/use-admin-profiles';
@@ -55,7 +56,7 @@ export function ManageTeamsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={styles.kav}>
+      <SafeKeyboardView style={styles.kav}>
         <ScrollView
           style={styles.scroll}
           contentContainerStyle={styles.content}
@@ -113,7 +114,7 @@ export function ManageTeamsScreen() {
             </View>
           )}
         </ScrollView>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
 
       <Pressable style={styles.fab} onPress={() => router.push('/admin/add-admin')}>
         <Ionicons name="add" size={28} color={DesignColors.onSurface} />

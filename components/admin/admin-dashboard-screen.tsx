@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
@@ -50,7 +50,7 @@ export function AdminDashboardScreen() {
         <View style={styles.header}>
           <View style={styles.avatarSection}>
             <View style={styles.avatarWrap}>
-              <BlurView intensity={20} tint="dark" style={styles.avatarBlur} />
+              <WebBlurView intensity={20} tint="dark" style={styles.avatarBlur} />
               <Text style={styles.avatarText}>{businessName ? initials(businessName) : '?'}</Text>
             </View>
             <View style={styles.backBtnWrap}>

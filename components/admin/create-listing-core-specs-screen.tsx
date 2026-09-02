@@ -1,10 +1,11 @@
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
-import { BlurView } from 'expo-blur';
+import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { LandlordSearch } from '@/components/admin/landlord-search';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
@@ -38,8 +39,7 @@ export function CreateListingCoreSpecsScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <SafeKeyboardView
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
@@ -61,7 +61,7 @@ export function CreateListingCoreSpecsScreen() {
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Listing Title Name</Text>
           <View style={[styles.glassInput, styles.inputRounded]}>
-            <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <TextInput
               style={styles.textInput}
               placeholder="e.g. Royal Heights Apartments"
@@ -75,7 +75,7 @@ export function CreateListingCoreSpecsScreen() {
         <View style={styles.fieldGroup}>
           <Text style={styles.label}>Description</Text>
           <View style={[styles.glassInput, styles.inputRounded]}>
-            <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <TextInput
               style={[styles.textInput, { minHeight: 100, textAlignVertical: 'top' }]}
               placeholder="Describe the proximity to campus, water availability, and security features..."
@@ -109,7 +109,7 @@ export function CreateListingCoreSpecsScreen() {
                     setStep1(updates);
                   }}
                 >
-                  <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+                  <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
                   <Ionicons name={opt.icon} size={24} color={active ? DesignColors.primary : DesignColors.onSurfaceVariant} />
                   <Text style={[styles.layoutLabel, active && styles.layoutLabelActive]}>{opt.label}</Text>
                 </Pressable>
@@ -121,7 +121,7 @@ export function CreateListingCoreSpecsScreen() {
         {step1.layoutType === 'flat' && (
           <View style={styles.roomRow}>
             <View style={[styles.roomCard, { flex: 1 }]}>
-              <BlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
               <Text style={styles.roomLabel}>Bedrooms</Text>
               <View style={styles.roomStepper}>
                 <Pressable
@@ -140,7 +140,7 @@ export function CreateListingCoreSpecsScreen() {
               </View>
             </View>
             <View style={[styles.roomCard, { flex: 1 }]}>
-              <BlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
               <Text style={styles.roomLabel}>Bathrooms</Text>
               <View style={styles.roomStepper}>
                 <Pressable
@@ -165,7 +165,7 @@ export function CreateListingCoreSpecsScreen() {
           <Text style={styles.label}>Pricing & Terms</Text>
           <View style={styles.pricingRow}>
             <View style={[styles.glassInput, { flex: 1, flexDirection: 'row', alignItems: 'center' }]}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <Text style={styles.currencySign}>₦</Text>
               <TextInput
                 style={styles.textInput}
@@ -200,7 +200,7 @@ export function CreateListingCoreSpecsScreen() {
               </Pressable>
             </View>
             <View style={[styles.glassInput, { flex: 1 }]}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <TextInput
                 style={styles.textInput}
                 placeholder={step1.sizeUnit === 'sqft' ? 'e.g. 1,200' : 'e.g. 112'}
@@ -224,7 +224,7 @@ export function CreateListingCoreSpecsScreen() {
 
         <View style={styles.fieldGroup}>
           <View style={[styles.glassInput, styles.unitCard, styles.inputRounded]}>
-            <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <View style={styles.unitLeft}>
               <Text style={styles.label}>Units Available</Text>
               <Text style={styles.unitDesc}>How many rooms are left?</Text>
@@ -253,7 +253,7 @@ export function CreateListingCoreSpecsScreen() {
           </Pressable>
           {step1.isStoreyBuilding && (
             <View style={[styles.glassInput, styles.unitCard, { padding: 16 }]}>
-              <BlurView intensity={25} tint="dark" style={styles.glassBlur} />
+              <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <Text style={styles.roomLabel}>Total Floors</Text>
               <View style={styles.stepper}>
                 <Pressable
@@ -281,7 +281,7 @@ export function CreateListingCoreSpecsScreen() {
           <Ionicons name="arrow-forward" size={24} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>
-      </KeyboardAvoidingView>
+      </SafeKeyboardView>
     </SafeAreaView>
   );
 }

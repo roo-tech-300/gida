@@ -202,6 +202,14 @@ function uniqueChannelName(prefix: string): string {
   return `${prefix}:${Date.now().toString(36)}-${channelSeq}`;
 }
 
+function attachSafeSubscribe(channel: ReturnType<typeof supabase.channel>): void {
+  channel.subscribe((status, err) => {
+    if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+      console.log(`[Messages] Realtime channel status: ${status}`, err ?? '');
+    }
+  });
+}
+
 export function subscribeToConversationMessages(
   conversationId: string,
   onInsert: (message: ServerChatMessage) => void,
@@ -212,8 +220,8 @@ export function subscribeToConversationMessages(
       'postgres_changes',
       { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
       (payload) => onInsert(mapMessageRow(payload.new as MessageRow)),
-    )
-    .subscribe();
+    );
+  attachSafeSubscribe(channel);
 
   return () => {
     void supabase.removeChannel(channel);
@@ -224,8 +232,8 @@ export function subscribeToConversationChanges(onChange: () => void): () => void
   const channel = supabase
     .channel(uniqueChannelName('conversations-feed'))
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'conversations' }, onChange)
-    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, onChange)
-    .subscribe();
+    .on('postgres_changes', { event: 'UPDATE', schema: 'public', table: 'conversations' }, onChange);
+  attachSafeSubscribe(channel);
 
   return () => {
     void supabase.removeChannel(channel);

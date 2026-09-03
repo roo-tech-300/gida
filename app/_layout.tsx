@@ -1,4 +1,5 @@
 import React, { useEffect } from 'react';
+import { Platform } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-clients';
@@ -31,10 +32,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (isLoading) return;
 
+    const isWeb = Platform.OS === 'web';
     const inAuthGroup = segments[0] === '(auth)';
+    const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
 
     if (!isAuthenticated) {
+      if (isWeb) {
+        if (!inLandingGroup && !inAuthGroup) {
+          router.replace('/(landing)');
+        }
+        return;
+      }
       if (!inAuthGroup) {
         router.replace('/(auth)/welcome');
       }
@@ -46,7 +55,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isAuthenticated && profile?.onboarded && (inAuthGroup || inOnboardingGroup)) {
+    if (isAuthenticated && profile?.onboarded && (inAuthGroup || inOnboardingGroup || inLandingGroup)) {
       router.replace('/(tabs)');
     }
   }, [isLoading, isAuthenticated, profile, segments, router]);

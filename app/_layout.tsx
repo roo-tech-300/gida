@@ -34,8 +34,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
 
-    if (!isAuthenticated && !inAuthGroup) {
-      router.replace('/(auth)/login');
+    if (!isAuthenticated) {
+      if (!inAuthGroup) {
+        router.replace('/(auth)/welcome');
+      }
       return;
     }
 
@@ -66,6 +68,7 @@ export default function RootLayout() {
                   <ThemeProvider value={customTheme}>
                     <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
                       <Stack.Screen name="index" />
+                      <Stack.Screen name="(landing)" />
                       <Stack.Screen name="(auth)" />
                       <Stack.Screen name="(onboarding)" />
                       <Stack.Screen name="(tabs)" />

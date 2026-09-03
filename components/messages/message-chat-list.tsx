@@ -41,7 +41,7 @@ export function MessageChatList({
   const listItems = useMemo(() => {
     const items: (string | ChatMessage)[] = [...messages];
     if (!unreadBoundaryId) return items;
-    const boundaryIndex = items.findIndex((message) => message.id === unreadBoundaryId);
+    const boundaryIndex = items.findIndex((message) => typeof message !== 'string' && message.id === unreadBoundaryId);
     if (boundaryIndex === -1) return items;
     items.splice(boundaryIndex, 0, UNREAD_DIVIDER_KEY);
     return items;

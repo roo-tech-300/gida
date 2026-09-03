@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gida Privacy Policy</title>
+    <link rel="icon" type="image/png" href="gida.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --color-surface: #131315;
+            --color-surface-container-lowest: #0e0e10;
+            --color-on-surface: #e5e1e4;
+            --color-on-surface-variant: #c7c4d8;
+            --color-primary: #9D7E43;
+            --color-primary-bright: #b8944f;
+            --color-primary-fixed: #5c3c01;
+            --color-background: #09090b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: var(--font-family);
+            background: radial-gradient(circle at top, rgba(157,126,67,0.12), transparent 28%),
+                        linear-gradient(180deg, var(--color-surface-container-lowest) 0%, var(--color-background) 100%);
+            color: var(--color-on-surface);
+            line-height: 1.75;
+        }
+
+        .page-shell {
+            max-width: 940px;
+            margin: 0 auto;
+            padding: 48px 24px 72px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .brand-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .brand-heading h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 5vw, 3.8rem);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-primary-bright);
+        }
+
+        .brand-heading p {
+            color: var(--color-on-surface-variant);
+            max-width: 560px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 12px 18px;
+            border-radius: 9999px;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link::before {
+            content: '←';
+            display: inline-block;
+            margin-right: 0.65rem;
+            transform: translateY(-1px);
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.08);
+            color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .content {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+        }
+
+        .content h2,
+        .content h3 {
+            color: #ffffff;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .content h2 {
+            font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        }
+
+        .content p,
+        .content li {
+            color: var(--color-on-surface);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .content a {
+            color: #ffffff;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.25s ease, transform 0.25s ease;
+        }
+
+        .content a:hover,
+        .content a:focus-visible {
+            color: #000000;
+            transform: translateX(1px);
+        }
+
+        .content ul {
+            padding-left: 1.25rem;
+            margin-bottom: 1rem;
+            list-style: disc;
+        }
+
+        .content li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content blockquote {
+            border-left: 3px solid var(--color-primary-bright);
+            padding-left: 18px;
+            color: var(--color-on-surface-variant);
+            margin: 1.5rem 0;
+        }
+
+        .footer-note {
+            margin-top: 3rem;
+            color: var(--color-on-surface-variant);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                padding: 32px 18px 48px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .back-link {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <header class="page-header">
+            <div class="brand-heading">
+                <h1>Gida Privacy Policy</h1>
+                <p>Effective Date: August 8, 2026 • Last Updated: August 8, 2026</p>
+            </div>
+            <a class="back-link" href="index.html">Home</a>
+        </header>
+
+        <article class="content">
+            <p>At <strong>Gida</strong> ("we," "our," or "us"), operated under <strong>Gida Apartments</strong>, we respect your privacy and are committed to protecting the personal data you share with us. This Privacy Policy explains how we collect, use, disclose, and safeguard your information when you visit our website (<strong>gida.apartments</strong>) or use our application services.</p>
+
+            <p>By using Gida, you agree to the collection and use of information in accordance with this Privacy Policy and the <strong>Nigeria Data Protection Act (NDPA)</strong>.</p>
+
+            <h2>1. Information We Collect</h2>
+            <p>To help you find lodges and match with compatible roommates, we collect information that you provide directly to us:</p>
+            <ul>
+                <li><strong>Account &amp; Contact Information:</strong> Your full name, email address (<a href="mailto:help@gida.apartments">help@gida.apartments</a>), phone number, WhatsApp contact details, and student status/university campus (e.g., FUT Minna).</li>
+                <li><strong>Roommate Preference &amp; Lifestyle Data:</strong> Answers you provide during the roommate matching quiz—including daily routines, study habits, noise tolerance, sleep schedules, visitor preferences, and budget limits.</li>
+                <li><strong>Property &amp; Listing Data:</strong> Photos, videos, room specifications, rent prices, and contact details provided if you list or submit a lodge on the platform.</li>
+                <li><strong>Technical &amp; Usage Data:</strong> Basic device information, IP addresses, browser types, and app usage activity collected automatically to keep the platform running smoothly and securely.</li>
+            </ul>
+
+            <h2>2. How We Use Your Information</h2>
+            <p>We use the collected information for the following purposes:</p>
+            <ul>
+                <li><strong>To Run The Algorithm:</strong> Pairing you with prospective roommates based on lifestyle compatibility scores.</li>
+                <li><strong>To Connect Users:</strong> Facilitating communication between students looking for roommates or inspecting lodges.</li>
+                <li><strong>To Improve Service:</strong> Verifying listings, preventing fake pictures, and eliminating scam accounts.</li>
+                <li><strong>Support &amp; Communication:</strong> Sending waitlist updates, app notifications, and answering your requests via email or WhatsApp support (<a href="https://wa.me/2348061186486" target="_blank" rel="noopener">+234 806 118 6486</a>).</li>
+                <li><strong>Legal &amp; Safety:</strong> Complying with Nigerian laws and ensuring platform security.</li>
+            </ul>
+
+            <h2>3. How Your Information Is Shared</h2>
+            <ul>
+                <li><strong>With Other Users:</strong> When using the Roommate Matching feature, your public profile (first name, compatibility score, and lifestyle tags) is visible to potential matches. Direct contact information is only shared when you choose to connect.</li>
+                <li><strong>Service Providers:</strong> We may share data with trusted third-party service providers (such as web hosting, analytics, or WhatsApp messaging tools) strictly to operate our platform.</li>
+                <li><strong>Legal Obligations:</strong> We may disclose your information if required to do so by Nigerian law enforcement, court order, or to protect the rights, safety, and property of Gida and its users.</li>
+            </ul>
+
+            <blockquote><strong>We do not sell, rent, or trade your personal information to third parties or advertisers.</strong></blockquote>
+
+            <h2>4. Data Retention &amp; Security</h2>
+            <ul>
+                <li>We retain your personal information for as long as your account is active or as needed to provide you with our services.</li>
+                <li>We implement appropriate technical and organizational security measures to protect your data against unauthorized access, alteration, disclosure, or destruction.</li>
+            </ul>
+
+            <h2>5. Your Rights Under NDPA</h2>
+            <p>Under the Nigeria Data Protection Act, you have the right to:</p>
+            <ul>
+                <li><strong>Access:</strong> Request a copy of the personal data we hold about you.</li>
+                <li><strong>Correction:</strong> Request that we update or correct inaccurate profile details.</li>
+                <li><strong>Deletion:</strong> Request the permanent deletion of your account and associated profile data.</li>
+                <li><strong>Withdraw Consent:</strong> Withdraw your consent for data processing at any time by contacting support.</li>
+            </ul>
+
+            <h2>6. Third-Party Links</h2>
+            <p>Our website or app may contain links to third-party services (such as WhatsApp). We are not responsible for the privacy practices or content of these external sites. We encourage you to read their respective privacy policies.</p>
+
+            <h2>7. Changes to This Privacy Policy</h2>
+            <p>We may update our Privacy Policy from time to time. Any changes will be posted on this page with an updated "Last Updated" date. Continued use of Gida after updates indicates acceptance of the revised policy.</p>
+
+            <h2>8. Contact Us</h2>
+            <p>If you have any questions, concerns, or requests regarding this Privacy Policy, please contact us at:</p>
+            <ul>
+                <li><strong>Email:</strong> <a href="mailto:help@gida.apartments">help@gida.apartments</a></li>
+                <li><strong>WhatsApp Support:</strong> <a href="https://wa.me/2348061186486" target="_blank" rel="noopener">+234 806 118 6486</a></li>
+                <li><strong>Campus Coverage:</strong> FUT Minna, Niger State, Nigeria</li>
+            </ul>
+
+            <p class="footer-note">Thank you for trusting Gida with your housing and roommate search. Your privacy matters to us.</p>
+        </article>
+    </main>
+</body>
+</html>

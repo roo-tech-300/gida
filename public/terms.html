@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Gida Terms of Service</title>
+    <link rel="icon" type="image/png" href="gida.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-family: 'Inter', sans-serif;
+            --color-surface: #131315;
+            --color-surface-container-lowest: #0e0e10;
+            --color-on-surface: #e5e1e4;
+            --color-on-surface-variant: #c7c4d8;
+            --color-primary: #9D7E43;
+            --color-primary-bright: #b8944f;
+            --color-background: #09090b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            min-height: 100vh;
+            font-family: var(--font-family);
+            background: radial-gradient(circle at top, rgba(157,126,67,0.12), transparent 28%),
+                        linear-gradient(180deg, var(--color-surface-container-lowest) 0%, var(--color-background) 100%);
+            color: var(--color-on-surface);
+            line-height: 1.75;
+        }
+
+        .page-shell {
+            max-width: 940px;
+            margin: 0 auto;
+            padding: 48px 24px 72px;
+        }
+
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 2rem;
+        }
+
+        .brand-heading {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .brand-heading h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: clamp(2.8rem, 5vw, 3.8rem);
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--color-primary-bright);
+        }
+
+        .brand-heading p {
+            color: var(--color-on-surface-variant);
+            max-width: 560px;
+        }
+
+        .back-link {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            color: #ffffff;
+            text-decoration: none;
+            font-weight: 600;
+            border: 1px solid rgba(255,255,255,0.15);
+            padding: 12px 18px;
+            border-radius: 9999px;
+            transition: background 0.25s ease, color 0.25s ease, transform 0.25s ease;
+            z-index: 10;
+            background: rgba(0, 0, 0, 0.28);
+            backdrop-filter: blur(10px);
+        }
+
+        .back-link::before {
+            content: '←';
+            display: inline-block;
+            margin-right: 0.65rem;
+            transform: translateY(-1px);
+        }
+
+        .back-link:hover {
+            background: rgba(255,255,255,0.08);
+            color: #000000;
+            transform: translateY(-1px);
+        }
+
+        .content {
+            background: rgba(255,255,255,0.03);
+            border: 1px solid rgba(255,255,255,0.08);
+            border-radius: 24px;
+            padding: 40px;
+            box-shadow: 0 24px 80px rgba(0,0,0,0.35);
+        }
+
+        .content h2,
+        .content h3 {
+            color: #ffffff;
+            margin-top: 2rem;
+            margin-bottom: 1rem;
+            line-height: 1.2;
+        }
+
+        .content h2 {
+            font-size: clamp(1.8rem, 3.2vw, 2.4rem);
+        }
+
+        .content p,
+        .content li {
+            color: var(--color-on-surface);
+            margin-bottom: 1rem;
+            font-size: 1rem;
+        }
+
+        .content a {
+            color: #ffffff;
+            text-decoration: underline;
+            text-underline-offset: 4px;
+            transition: color 0.25s ease, transform 0.25s ease;
+        }
+
+        .content a:hover,
+        .content a:focus-visible {
+            color: #000000;
+            transform: translateX(1px);
+        }
+
+        .content ul {
+            padding-left: 1.25rem;
+            margin-bottom: 1rem;
+            list-style: disc;
+        }
+
+        .content li {
+            margin-bottom: 0.75rem;
+        }
+
+        .content blockquote {
+            border-left: 3px solid var(--color-primary-bright);
+            padding-left: 18px;
+            color: var(--color-on-surface-variant);
+            margin: 1.5rem 0;
+        }
+
+        .footer-note {
+            margin-top: 3rem;
+            color: var(--color-on-surface-variant);
+            font-size: 0.95rem;
+        }
+
+        @media (max-width: 720px) {
+            .page-shell {
+                padding: 32px 18px 48px;
+            }
+
+            .page-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .back-link {
+                width: 100%;
+                text-align: center;
+            }
+        }
+    </style>
+</head>
+<body>
+    <main class="page-shell">
+        <header class="page-header">
+            <div class="brand-heading">
+                <h1>Gida Terms of Service</h1>
+                <p>Effective Date: August 8, 2026 • Last Updated: August 8, 2026</p>
+            </div>
+            <a class="back-link" href="index.html">Home</a>
+        </header>
+
+        <article class="content">
+            <p>Welcome to <strong>Gida</strong>! These Terms of Service ("Terms") govern your access to and use of the website (<strong>gida.apartments</strong>), mobile applications, and services provided by <strong>Gida Apartments</strong> ("Gida," "we," "our," or "us").</p>
+
+            <p>By accessing or using Gida, you agree to be bound by these Terms. If you do not agree to these Terms, please do not use our services.</p>
+
+            <h2>1. Eligibility &amp; Account Registration</h2>
+            <ul>
+                <li><strong>Eligibility:</strong> You must be at least 18 years old or an enrolled student at a recognized tertiary institution (e.g., FUT Minna) to create an account or use Gida.</li>
+                <li><strong>Account Accuracy:</strong> You agree to provide accurate, current, and complete information during registration and to update your details to keep them accurate.</li>
+                <li><strong>Account Security:</strong> You are responsible for safeguarding your login credentials and for all activities that occur under your account.</li>
+            </ul>
+
+            <h2>2. Nature of Gida's Service (Platform Role)</h2>
+            <ul>
+                <li><strong>Intermediary Only:</strong> Gida is an online platform that connects students with verified lodge listings and potential roommates. <strong>Gida is not a real estate agency, landlord, property manager, or legal representative of any property owner.</strong></li>
+                <li><strong>No Property Ownership:</strong> We do not own, lease, manage, or inspect properties on behalf of landlords or agents beyond our standard platform verification procedures.</li>
+                <li><strong>Off-Platform Transactions:</strong> Any tenancy agreements, rent payments, caution fees, utility contributions, or agreements made between users, landlords, or agents are strictly between those parties. <strong>Gida is not a party to any rental contract.</strong></li>
+            </ul>
+
+            <h2>3. Roommate Matching Disclaimer</h2>
+            <ul>
+                <li><strong>Algorithmic Suggestions:</strong> Roommate matching compatibility scores are generated based on self-reported user data and preferences. Compatibility scores are suggestions, not guarantees of living harmony.</li>
+                <li><strong>User Vetting:</strong> Gida does not conduct formal criminal background checks on users. You are solely responsible for exercising caution, communicating ("cagreeing" on ground rules), and verifying the identity and suitability of any prospective roommate before moving in or sharing financial responsibilities.</li>
+                <li><strong>Personal Disputes:</strong> Gida is not liable or responsible for personal disagreements, property theft, lifestyle conflicts, or damages arising between roommates.</li>
+            </ul>
+
+            <h2>4. User Conduct &amp; Acceptable Use</h2>
+            <p>You agree <strong>NOT</strong> to:</p>
+            <ul>
+                <li>Post fake, misleading, or deceptive lodge listings, photos, or descriptions.</li>
+                <li>Impersonate any person, student, landlord, or entity.</li>
+                <li>Use Gida to scam, defraud, or solicit unauthorized funds from other users.</li>
+                <li>Harass, threaten, abuse, or discriminate against any user based on race, origin, gender, or personal background.</li>
+                <li>Upload viruses, malicious code, or attempt to reverse-engineer any part of the Gida platform.</li>
+            </ul>
+            <p><strong>Gida reserves the right to suspend or permanently terminate any account that violates these guidelines without prior notice.</strong></p>
+
+            <h2>5. Property Listings &amp; Content</h2>
+            <ul>
+                <li><strong>User Content:</strong> By uploading photos, videos, or lodge descriptions to Gida, you grant us a non-exclusive, royalty-free license to display, modify, and distribute that content to operate and promote the platform.</li>
+                <li><strong>Accuracy:</strong> Users who submit listings guarantee that they have the legal right or authorization to offer the property and that all photos accurately reflect current property conditions.</li>
+            </ul>
+
+            <h2>6. Limitation of Liability</h2>
+            <p>To the maximum extent permitted by the laws of the Federal Republic of Nigeria:</p>
+            <p>Gida, its founders, team members, and affiliates shall <strong>not</strong> be liable for any direct, indirect, incidental, consequential, or punitive damages resulting from:</p>
+            <ul>
+                <li>Your use of or inability to use the Gida platform.</li>
+                <li>Any dispute between you and a landlord, agent, or roommate.</li>
+                <li>Financial losses resulting from off-platform rent or fee payments.</li>
+                <li>Property damage, personal injury, or loss occurring at a lodge found via the platform.</li>
+                <li>Any unauthorized access to or use of our servers and personal data.</li>
+            </ul>
+
+            <h2>7. Indemnification</h2>
+            <p>You agree to defend, indemnify, and hold harmless Gida, its officers, team members, and partners from any claims, liabilities, damages, losses, or expenses (including legal fees) arising out of your breach of these Terms, your misuse of the platform, or your violation of any third-party rights.</p>
+
+            <h2>8. Modifications to Service &amp; Terms</h2>
+            <p>We reserve the right to modify, suspend, or discontinue any feature of Gida at any time. We may also update these Terms periodically. Continued use of the platform after updates are published constitutes your acceptance of the new Terms.</p>
+
+            <h2>9. Governing Law &amp; Dispute Resolution</h2>
+            <ul>
+                <li>These Terms are governed by and construed in accordance with the laws of the <strong>Federal Republic of Nigeria</strong>.</li>
+                <li>Any dispute arising from these Terms or your use of Gida shall first be attempted to be resolved informally through mutual discussion by contacting us at <a href="mailto:help@gida.apartments">help@gida.apartments</a>.</li>
+            </ul>
+
+            <h2>10. Contact Us</h2>
+            <p>For any questions or concerns regarding these Terms of Service, please reach out to:</p>
+            <ul>
+                <li><strong>Email:</strong> <a href="mailto:help@gida.apartments">help@gida.apartments</a></li>
+                <li><strong>WhatsApp Support:</strong> <a href="https://wa.me/2348061186486" target="_blank" rel="noopener">+234 806 118 6486</a></li>
+                <li><strong>Primary Campus Coverage:</strong> FUT Minna, Niger State, Nigeria</li>
+            </ul>
+
+            <p class="footer-note">Thank you for using Gida. Your safety, clear communication, and trust are our priorities.</p>
+        </article>
+    </main>
+</body>
+</html>

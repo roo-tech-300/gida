@@ -42,7 +42,27 @@ export type PodJoinAttachment = {
   totalSeats: number;
 };
 
-export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment | PodJoinAttachment;
+export type LodgeReservationAttachment = {
+  type: 'lodge_reservation';
+  creditId: string;
+  listingId: string;
+  title: string;
+  image: string | null;
+  location: string;
+  userName: string;
+};
+
+export type LodgeDecisionAttachment = {
+  type: 'lodge_decision';
+  creditId: string;
+  listingId: string;
+  title: string;
+  image: string | null;
+  decision: 'accepted' | 'rejected';
+  reason?: string;
+};
+
+export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment | PodJoinAttachment | LodgeReservationAttachment | LodgeDecisionAttachment;
 
 /** A message as it exists on the server (no device-local ordering fields). */
 export type ServerChatMessage = {

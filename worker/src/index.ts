@@ -71,13 +71,32 @@ async function reconcileExpiredPods(baseUrl: string, key: string, expiredCreditI
 async function expireStaleSlotCredits(env: Env): Promise<SlotCreditExpireResult> {
   const now = new Date().toISOString();
   const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
-  const params = new URLSearchParams({
+  const headers = {
+    'Content-Type': 'application/json',
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    Prefer: 'return=representation',
+  };
+
+  let totalExpired = 0;
+  let totalIds: string[] = [];
+
+  const expiredBooked = await patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'slot_credits', new URLSearchParams({
     status: 'eq.booked_pending_claim',
     payment_deadline: `lt.${now}`,
-  });
-  const result = await patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'slot_credits', params.toString());
-  const podsReconciled = await reconcileExpiredPods(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, result.ids);
-  return { ...result, podsReconciled };
+  }).toString());
+  totalExpired += expiredBooked.expired;
+  totalIds = totalIds.concat(expiredBooked.ids);
+
+  const expiredPending = await patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'slot_credits', new URLSearchParams({
+    status: 'eq.pending_verification',
+    payment_deadline: `lt.${now}`,
+  }).toString());
+  totalExpired += expiredPending.expired;
+  totalIds = totalIds.concat(expiredPending.ids);
+
+  const podsReconciled = await reconcileExpiredPods(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, totalIds);
+  return { expired: totalExpired, ids: totalIds, podsReconciled };
 }
 
 async function expireStaleTourBookings(env: Env): Promise<ExpireResult> {

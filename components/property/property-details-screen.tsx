@@ -68,7 +68,9 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   const isPaid = !!credit && (credit.status === 'paid_unmatched' || credit.status === 'matched' || credit.status === 'subletting');
   const isSolo = !!credit && credit.target_occupancy === 1;
-  const isClaimable = !credit || credit.status === 'expired';
+  const isPendingVerification = !!credit && credit.status === 'pending_verification';
+  const isRejected = !!credit && credit.status === 'rejected';
+  const isClaimable = !credit || credit.status === 'expired' || isRejected;
 
   // The CTA state (pending invite / unpaid reservation / paid / free to claim) is
   // only determined once both queries settle; until then show a bare spinner.
@@ -90,6 +92,10 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       ctaLabel = isSolo ? 'View Booking' : 'Go to Lobby';
       ctaIcon = isSolo ? 'checkmark-circle-outline' : 'people-outline';
       onCtaPress = () => router.push(isSolo ? `/property/booking?id=${credit.id}` : '/property/lobby');
+    } else if (isPendingVerification) {
+      ctaLabel = 'Application Pending';
+      ctaIcon = 'time-outline';
+      onCtaPress = () => {};
     } else {
       ctaLabel = 'Pay Now';
       ctaIcon = 'card-outline';

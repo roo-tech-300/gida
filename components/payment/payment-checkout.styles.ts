@@ -220,4 +220,28 @@ export const styles = StyleSheet.create({
     fontFamily,
     fontWeight: '800',
   },
+
+  pendingBadge: {
+    width: 88,
+    height: 88,
+    borderRadius: 44,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 3,
+    borderColor: DesignColors.primaryTintBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  pendingTitle: {
+    ...DesignTypography.headlineMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '700',
+  },
+  pendingSubtitle: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    lineHeight: 22,
+    textAlign: 'center',
+  },
 });

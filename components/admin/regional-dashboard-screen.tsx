@@ -6,10 +6,12 @@ import { router } from 'expo-router';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
+import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
 
 const ACTIONS = [
   { key: 'sub_admins', title: 'Appoint\nSub Admins', icon: 'git-network-outline', primary: true },
   { key: 'field_staff', title: 'Deploy\nField Staff', icon: 'person-add-outline', primary: false },
+  { key: 'applications', title: 'Applications', icon: 'document-text-outline', primary: false },
   { key: 'inventory', title: 'Zone\nInventory', icon: 'storefront-outline', primary: false },
   { key: 'landlords', title: 'Landlord\nAccounts', icon: 'document-text-outline', primary: false },
   { key: 'tours', title: 'Tour\nRequests', icon: 'calendar-outline', primary: false },
@@ -17,8 +19,13 @@ const ACTIONS = [
 
 export function RegionalDashboardScreen() {
   const { unread, clearUnread } = useRealtimeTourAlerts();
+  const { unread: lodgeUnread, clearUnread: clearLodgeUnread } = useRealtimeLodgeAlerts();
 
   const handleActionPress = (key: string) => {
+    if (key === 'applications') {
+      clearLodgeUnread();
+      router.push('/admin/lodge-reservations');
+    }
     if (key === 'tours') {
       clearUnread();
       router.push('/admin/tours');
@@ -45,6 +52,11 @@ export function RegionalDashboardScreen() {
               {a.key === 'tours' && unread > 0 && (
                 <View style={styles.actionBadge}>
                   <Text style={styles.actionBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                </View>
+              )}
+              {a.key === 'applications' && lodgeUnread > 0 && (
+                <View style={styles.actionBadge}>
+                  <Text style={styles.actionBadgeText}>{lodgeUnread > 9 ? '9+' : lodgeUnread}</Text>
                 </View>
               )}
               <View style={[styles.actionIcon, a.primary && styles.actionIconPrimary]}>

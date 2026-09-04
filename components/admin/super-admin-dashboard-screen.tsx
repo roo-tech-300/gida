@@ -9,6 +9,7 @@ import { AdminHeader } from '@/components/admin/admin-header';
 import { MetricCard } from '@/components/admin/super-admin-helpers';
 import { useAdminStats, useRecentAdminActivity } from '@/hooks/use-admin-profiles';
 import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
+import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
 import type { AdminActivity } from '@/services/super-admin-service';
 import { useAuth } from '@/context/auth-context';
 
@@ -20,6 +21,7 @@ type ActionItem = {
 
 const ACTIONS: ActionItem[] = [
   { key: 'teams', title: 'Teams', icon: 'people-outline' },
+  { key: 'applications', title: 'Applications', icon: 'document-text-outline' },
   { key: 'inventory', title: 'Inventory', icon: 'map-outline' },
   { key: 'landlords', title: 'Landlords', icon: 'people-outline' },
   { key: 'regions', title: 'Regions', icon: 'globe-outline' },
@@ -49,6 +51,7 @@ export function SuperAdminDashboardScreen() {
   const { data: stats } = useAdminStats();
   const { data: activity, isError: activityError } = useRecentAdminActivity();
   const { unread, clearUnread } = useRealtimeTourAlerts();
+  const { unread: lodgeUnread, clearUnread: clearLodgeUnread } = useRealtimeLodgeAlerts();
 
   const displayName = profile?.full_name?.trim() || 'Super Admin';
   const initials = useMemo(
@@ -60,6 +63,10 @@ export function SuperAdminDashboardScreen() {
 
   const handleActionPress = (key: string) => {
     if (key === 'teams') router.push('/admin/manage-teams');
+    if (key === 'applications') {
+      clearLodgeUnread();
+      router.push('/admin/lodge-reservations');
+    }
     if (key === 'inventory') router.push('/admin/total-inventory');
     if (key === 'landlords') router.push('/admin/landlord-contracts');
     if (key === 'regions') router.push('/admin/regions');
@@ -95,6 +102,11 @@ export function SuperAdminDashboardScreen() {
                 {action.key === 'tours' && unread > 0 && (
                   <View style={styles.actionBadge}>
                     <Text style={styles.actionBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                )}
+                {action.key === 'applications' && lodgeUnread > 0 && (
+                  <View style={styles.actionBadge}>
+                    <Text style={styles.actionBadgeText}>{lodgeUnread > 9 ? '9+' : lodgeUnread}</Text>
                   </View>
                 )}
                 <View style={styles.actionIconWrap}>

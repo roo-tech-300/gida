@@ -1,27 +1,26 @@
 import { useCallback, useEffect, useState } from 'react';
-import { ActivityIndicator, Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
+import { Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
 import { DesignColors } from '@/constants/design';
 import { RoommatePrompt } from '@/components/claim/roommate-prompt';
-import { GroupSizeSelector } from '@/components/claim/group-size-selector';
-import { ExistingFriendsSelector } from '@/components/claim/existing-friends-selector';
-import { FriendPicker, type SelectedFriend } from '@/components/claim/friend-picker';
-import { ClaimReviewStep } from '@/components/claim/claim-review-step';
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
 import { JoinInviteCard } from '@/components/claim/join-invite-card';
 import { OpenPodStep } from '@/components/claim/open-pod-step';
 import { WizardFooter } from '@/components/claim/wizard-footer';
-import { WizardHeader } from '@/components/claim/wizard-header';
-import { StepTransition } from '@/components/claim/step-transition';
+import { ClaimWizardBody } from '@/components/claim/claim-wizard-body';
+import type { SelectedFriend } from '@/components/claim/friend-picker';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit, useOpenPodsForListing } from '@/hooks/use-liquidity';
 import { useAuth } from '@/context/auth-context';
+import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
+import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
+import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus } from '@/utils/liquidity-math';
 import type { Pod } from '@/types/liquidity';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
+import { derivePropertyTier } from '@/utils/liquidity-math';
 import { generateInviteCode } from '@/services/liquidity-pod-service';
 import { useDraggableSheet } from './use-draggable-sheet';
 import { useEscapeKey } from './use-escape-key';
@@ -37,6 +36,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { profile } = useAuth();
+  const { needsOnboarding } = useRoommateVisibility();
   const { showToast } = useAppToast();
   const { panHandlers, sheetHeight } = useDraggableSheet();
   useEscapeKey(onClose, visible);
@@ -49,6 +49,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const [inviteCode, setInviteCode] = useState(generateInviteCode);
   const [joinMode, setJoinMode] = useState(false);
   const [showOpenPods, setShowOpenPods] = useState(false);
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
@@ -87,7 +88,6 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const peopleTotal = isBuyout ? 1 : 1 + roommateCount;
   const matchedCount = isBuyout ? 0 : Math.max(0, roommateCount - haveCount);
   const codeSeats = isBuyout ? 0 : Math.max(0, haveCount - friends.length);
-  const pricingOccupancy = peopleTotal;
 
   useEffect(() => {
     if (!visible) {
@@ -99,8 +99,17 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       setInviteCode(generateInviteCode());
       setJoinMode(false);
       setShowOpenPods(false);
+      setShowOnboarding(false);
     }
   }, [visible]);
+
+  const handleRoommateChoice = (value: boolean | null) => {
+    if (value === true && needsOnboarding) {
+      setShowOnboarding(true);
+      return;
+    }
+    setWantsRoommates(value);
+  };
 
   const changeRoommateCount = (count: number) => {
     setRoommateCount(count);
@@ -115,26 +124,37 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
 
   const handleReserve = useCallback(async () => {
     if (!dbListing) return;
+    console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
     try {
+      console.log('[ClaimModal] 2. Calling purchaseSlot...');
       const { credit } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: peopleTotal,
         createCode: inviteCode,
         invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
+        creatorGender: profile?.gender,
       });
+      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'status:', credit.status);
       const message = isBuyout
         ? 'Spot reserved! You\'re all set for solo living.'
         : matchedCount > 0
           ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
           : 'Spot secured! Invite your friends to keep the group together.';
       showToast({ message, type: 'success' });
+      console.log('[ClaimModal] 4. Notifying admin...');
+      try {
+        await notifyAdminOfReservation({ creditId: credit.id, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
+        console.log('[ClaimModal] 5. Admin notified successfully');
+      } catch (notifyErr) {
+        console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
+      }
       onClose();
       router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends]);
+  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.gender]);
 
   const handleJoinOpenPod = useCallback(
     async (pod: Pod) => {
@@ -147,6 +167,13 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
           source: 'recommendation',
         });
         showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
+        console.log('[ClaimModal] JoinOpenPod — Notifying admin...');
+        try {
+          await notifyAdminOfReservation({ creditId: credit.id, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
+          console.log('[ClaimModal] JoinOpenPod — Admin notified');
+        } catch (notifyErr) {
+          console.error('[ClaimModal] JoinOpenPod — Admin notification FAILED:', notifyErr);
+        }
         onClose();
         router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
       } catch (error) {
@@ -154,86 +181,10 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         showToast({ message, type: 'error' });
       }
     },
-    [dbListing, purchaseSlot, showToast, onClose],
+    [dbListing, purchaseSlot, showToast, onClose, profile?.full_name],
   );
 
-  const baseRent = calculateBaseRent(priceAmount, pricingOccupancy);
-  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
-  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
-
-  const renderStep = () => {
-    if (listingLoading) {
-      return <ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} />;
-    }
-    if (!listing && !dbListing) {
-      return <Text style={styles.errorText}>Listing unavailable.</Text>;
-    }
-    if (step === 1) {
-      return (
-        <>
-          <Text style={styles.title}>Would you like to have roommates?</Text>
-          <Text style={styles.subtitle}>You can live alone, with friends, with matched roommates — or a mix.</Text>
-          <RoommatePrompt value={wantsRoommates} onChange={setWantsRoommates} />
-          <JoinInviteCard onPress={() => setJoinMode(true)} />
-        </>
-      );
-    }
-    if (isConfirmStep) {
-      return (
-        <ClaimReviewStep
-          isBuyout={isBuyout}
-          listingTitle={listing?.title || 'Gida Property'}
-          listingPriceLabel={`Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`}
-          listingImage={dbListing?.primary_image || listing?.image}
-          friendsCount={friends.length}
-          codeSeats={codeSeats}
-          matchedCount={matchedCount}
-          code={inviteCode}
-          roster={friends}
-          baseRent={baseRent}
-          platformFee={platformFee}
-          totalCost={totalCost}
-        />
-      );
-    }
-    if (step === 2) {
-      return (
-        <>
-          <Text style={styles.title}>How many roommates do you want?</Text>
-          <Text style={styles.subtitle}>This property fits up to {propertyTier} people total.</Text>
-          <GroupSizeSelector capacity={propertyTier} value={roommateCount} onChange={changeRoommateCount} />
-        </>
-      );
-    }
-    if (step === 3) {
-      return (
-        <>
-          <Text style={styles.title}>Do you already have these roommates?</Text>
-          <Text style={styles.subtitle}>Tell us how many roomates you already have, and we will fill whatever space is left</Text>
-          <ExistingFriendsSelector roommateCount={roommateCount} value={haveCount} onChange={changeHaveCount} />
-        </>
-      );
-    }
-    return (
-      <>
-        <Text style={styles.title}>Add your roommates</Text>
-        <Text style={styles.subtitle}>Search Gida for your friends — the rest join by code.</Text>
-        <FriendPicker
-          allowed={haveCount}
-          selected={friends}
-          code={inviteCode}
-          codeSeats={codeSeats}
-          matchedCount={matchedCount}
-          onAdd={(friend) => setFriends((prev) => [...prev, friend])}
-          onRemove={(id) => setFriends((prev) => prev.filter((friend) => friend.id !== id))}
-        />
-      </>
-    );
-  };
-
   const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;
-  const footerLoading = isPurchasing || (step === 1 && wantsRoommates === true && openPodsLoading);
-  const footerLabel = isConfirmStep ? 'Reserve My Spot' : 'Continue';
 
   const handleFooterPress = () => {
     if (isConfirmStep) {
@@ -245,6 +196,11 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       return;
     }
     setStep((current) => current + 1);
+  };
+
+  const handleOnboardingDismiss = () => {
+    setShowOnboarding(false);
+    setWantsRoommates(true);
   };
 
   return (
@@ -271,18 +227,9 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 }}
                 onClose={onClose}
               />
-            ) : (
+            ) : step === 1 ? (
               <>
-                <WizardHeader
-                  step={step}
-                  totalSteps={totalSteps}
-                  canGoBack={step > 1}
-                  onBack={() => setStep((current) => current - 1)}
-                  onClose={onClose}
-                />
-
                 <View style={styles.divider} />
-
                 <ScrollView
                   style={styles.scroll}
                   bounces={false}
@@ -291,24 +238,55 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                   keyboardShouldPersistTaps="handled"
                   nestedScrollEnabled
                   removeClippedSubviews={false}
-                  >
-                    <StepTransition stepKey={step} style={styles.stepContent}>
-                      {renderStep()}
-                    </StepTransition>
-                  </ScrollView>
-
+                >
+                  <Text style={styles.title}>Would you like to have roommates?</Text>
+                  <Text style={styles.subtitle}>You can live alone, with friends, with matched roommates — or a mix.</Text>
+                  <RoommatePrompt value={wantsRoommates} onChange={handleRoommateChoice} />
+                  <JoinInviteCard onPress={() => setJoinMode(true)} />
+                </ScrollView>
                 <WizardFooter
-                  label={footerLabel}
-                    icon={isConfirmStep ? undefined : 'arrow-forward'}
-                  loading={footerLoading}
+                  label="Continue"
+                  icon="arrow-forward"
+                  loading={isPurchasing || openPodsLoading}
                   disabled={!canContinue}
                   onPress={handleFooterPress}
                 />
               </>
+            ) : (
+              <ClaimWizardBody
+                step={step}
+                totalSteps={totalSteps}
+                listingLoading={listingLoading}
+                listingAvailable={!!(listing || dbListing)}
+                isBuyout={isBuyout}
+                isConfirmStep={isConfirmStep}
+                wantsRoommates={wantsRoommates}
+                openPodsLoading={openPodsLoading}
+                isPurchasing={isPurchasing}
+                propertyTier={propertyTier}
+                priceAmount={priceAmount}
+                listingTitle={listing?.title || 'Gida Property'}
+                listingPriceLabel={`Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`}
+                listingImage={dbListing?.primary_image || listing?.image}
+                roommateCount={roommateCount}
+                haveCount={haveCount}
+                friends={friends}
+                inviteCode={inviteCode}
+                matchedCount={matchedCount}
+                codeSeats={codeSeats}
+                onBack={() => setStep((c) => c - 1)}
+                onClose={onClose}
+                onFooterPress={handleFooterPress}
+                onRoommateCountChange={changeRoommateCount}
+                onHaveCountChange={changeHaveCount}
+                onFriendAdd={(f) => setFriends((prev) => [...prev, f])}
+                onFriendRemove={(id) => setFriends((prev) => prev.filter((f) => f.id !== id))}
+              />
             )}
           </Animated.View>
         </View>
       </SafeKeyboardView>
+      <RoommateOnboardingSheet visible={showOnboarding} onDismiss={handleOnboardingDismiss} />
     </Modal>
   );
 }

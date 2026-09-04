@@ -10,6 +10,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
@@ -25,14 +26,26 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
 
   const handleReserve = useCallback(async () => {
     if (!dbListing) return;
+    console.log('[SoloClaim] 1. Button clicked — starting reservation flow');
+    console.log('[SoloClaim] 2. dbListing.id:', dbListing.id, 'price:', dbListing.price_amount);
     try {
+      console.log('[SoloClaim] 3. Calling purchaseSlot...');
       const { credit, synced } = await purchaseSlot({ listing: dbListing, targetOccupancy: 1 });
-      showToast({ message: 'Spot reserved! Welcome to Gida.', type: 'success' });
+      console.log('[SoloClaim] 4. purchaseSlot returned — credit.id:', credit.id, 'synced:', synced, 'status:', credit.status);
+      showToast({ message: 'Application submitted for admin review.', type: 'success' });
       if (!synced) {
         showToast({ message: "Reserved locally — couldn't sync to the server. Sign in to persist your spot.", type: 'error' });
       }
-      router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+      console.log('[SoloClaim] 5. Calling notifyAdminOfReservation...');
+      try {
+        await notifyAdminOfReservation({ creditId: credit.id, listingId: dbListing.id, userName: 'A resident' });
+        console.log('[SoloClaim] 8. notifyAdminOfReservation completed successfully');
+      } catch (notifyErr) {
+        console.error('[SoloClaim] 8. notifyAdminOfReservation FAILED:', notifyErr);
+      }
+      router.back();
     } catch (error) {
+      console.error('[SoloClaim] ERROR in handleReserve:', error);
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
@@ -113,7 +126,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
               </View>
               <View style={styles.noticeRow}>
                 <Ionicons name="shield-checkmark-outline" size={18} color={DesignColors.primaryBright} />
-                <Text style={styles.noticeText}>Paying locks your spot immediately</Text>
+                <Text style={styles.noticeText}>Admin will review before you can pay</Text>
               </View>
             </View>
           </ScrollView>
@@ -130,7 +143,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
               ) : (
                 <>
                   <Ionicons name="lock-closed" size={16} color={DesignColors.onPrimaryContainer} />
-                  <Text style={styles.primaryText}>Reserve My Spot</Text>
+                  <Text style={styles.primaryText}>Submit Reservation</Text>
                 </>
               )}
             </Pressable>

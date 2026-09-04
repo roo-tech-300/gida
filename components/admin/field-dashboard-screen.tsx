@@ -6,11 +6,13 @@ import { router } from 'expo-router';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
+import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
 
 const TABS = ['Super View', 'State Teams', 'Field Agents'];
 
 const TOOLS = [
   { key: 'onboard', title: 'Onboard\nNew Property', icon: 'add-circle-outline', color: DesignColors.primaryContainer },
+  { key: 'applications', title: 'Applications', icon: 'document-text-outline', color: DesignColors.primaryBright },
   { key: 'allocations', title: 'Manage\nAllocations', icon: 'swap-horizontal-outline', color: DesignColors.warning },
   { key: 'maintenance', title: 'Maintenance\nLogs', icon: 'construct-outline', color: DesignColors.tertiary },
   { key: 'contacts', title: 'Landlord\nContacts', icon: 'call-outline', color: DesignColors.secondary },
@@ -25,8 +27,13 @@ const SCHEDULE = [
 
 export function FieldAdminDashboardScreen() {
   const { unread, clearUnread } = useRealtimeTourAlerts();
+  const { unread: lodgeUnread, clearUnread: clearLodgeUnread } = useRealtimeLodgeAlerts();
 
   const handleToolPress = (key: string) => {
+    if (key === 'applications') {
+      clearLodgeUnread();
+      router.push('/admin/lodge-reservations');
+    }
     if (key === 'tours') {
       clearUnread();
       router.push('/admin/tours');
@@ -59,6 +66,11 @@ export function FieldAdminDashboardScreen() {
                 {t.key === 'tours' && unread > 0 && (
                   <View style={styles.toolBadge}>
                     <Text style={styles.toolBadgeText}>{unread > 9 ? '9+' : unread}</Text>
+                  </View>
+                )}
+                {t.key === 'applications' && lodgeUnread > 0 && (
+                  <View style={styles.toolBadge}>
+                    <Text style={styles.toolBadgeText}>{lodgeUnread > 9 ? '9+' : lodgeUnread}</Text>
                   </View>
                 )}
                 <View style={[styles.toolIcon, { backgroundColor: `${t.color}20` }]}>

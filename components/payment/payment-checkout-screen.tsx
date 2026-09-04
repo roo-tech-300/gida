@@ -96,6 +96,8 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const credit = credits?.find((c) => c.id === creditId);
   const isPaid = credit?.status === 'paid_unmatched' || locallyPaid;
   const isExpired = credit?.status === 'expired' || locallyExpired;
+  const isPendingVerification = credit?.status === 'pending_verification';
+  const isRejected = credit?.status === 'rejected';
   const amount = credit?.amount_paid ?? 0;
   const estateName = credit?.estate?.name || 'Gida Campus Residence';
 
@@ -213,6 +215,45 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       <View style={styles.footer}>
         <Pressable style={styles.payButton} onPress={handleRelease} testID="checkout-release-btn">
           <Text style={styles.payText}>Release Hold</Text>
+        </Pressable>
+      </View>
+    </SafeAreaView>
+  );
+
+  if (isPendingVerification) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center}>
+        <View style={styles.glassCenterCard}>
+          <View style={styles.pendingBadge}>
+            <Ionicons name="hourglass-outline" size={36} color={DesignColors.primaryBright} />
+          </View>
+          <Text style={styles.pendingTitle}>Application pending</Text>
+          <Text style={styles.pendingSubtitle}>
+            Your application is being reviewed by the property admin. You&apos;ll be able to complete payment once it&apos;s approved.
+          </Text>
+        </View>
+      </View>
+    </SafeAreaView>
+  );
+
+  if (isRejected) return (
+    <SafeAreaView style={styles.safe} edges={['top']}>
+      <TopBar title="Payment" />
+      <View style={styles.center}>
+        <View style={styles.glassCenterCard}>
+          <View style={[styles.pendingBadge, { backgroundColor: DesignColors.surfaceContainerHigh, borderColor: DesignColors.borderSoft }]}>
+            <Ionicons name="close-outline" size={36} color={DesignColors.onSurfaceVariant} />
+          </View>
+          <Text style={styles.pendingTitle}>Application not approved</Text>
+          <Text style={styles.pendingSubtitle}>
+            Your application was not approved by the property admin. You can explore other properties and submit a new application.
+          </Text>
+        </View>
+      </View>
+      <View style={styles.footer}>
+        <Pressable style={styles.payButton} onPress={() => router.back()} testID="checkout-back-btn">
+          <Text style={styles.payText}>Go Back</Text>
         </Pressable>
       </View>
     </SafeAreaView>

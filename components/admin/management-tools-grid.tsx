@@ -34,11 +34,11 @@ export function ManagementToolsGrid() {
       </View>
 
       <View style={styles.row}>
-        <Pressable style={[styles.card, styles.cardShort, styles.glassCard]}>
+        <Pressable style={[styles.card, styles.cardShort, styles.glassCard]} onPress={() => router.push('/admin/lodge-reservations')}>
           <WebBlurView intensity={20} tint="dark" style={styles.glassBlur} />
           <View style={styles.cardContent}>
             <Ionicons name="document-text-outline" size={22} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.cardTitle}>Tenant{'\n'}Applications</Text>
+            <Text style={styles.cardTitle}>Applications</Text>
           </View>
         </Pressable>
 

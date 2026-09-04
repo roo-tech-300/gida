@@ -63,7 +63,7 @@ function buildCredit(userId: string, estateId: string, estate: Estate, listingId
     property_tier: propertyTier,
     intent_size: 1,
     target_occupancy: targetOccupancy,
-    status: 'booked_pending_claim',
+    status: 'pending_verification',
     invite_code: code,
     created_at: new Date().toISOString(),
     payment_deadline: new Date(Date.now() + PAYMENT_WINDOW_MS).toISOString(),
@@ -240,20 +240,24 @@ async function createPodInvitations(
   }
 }
 
-export async function createFounderCredit(args: { listing: DbListing; estate: Estate; estateId: string; propertyTier: number; targetOccupancy: number; createCode?: string; invitedFriends?: InvitedFriend[] }): Promise<PurchaseSlotCreditResult> {
+export async function createFounderCredit(args: { listing: DbListing; estate: Estate; estateId: string; propertyTier: number; targetOccupancy: number; createCode?: string; invitedFriends?: InvitedFriend[]; creatorGender?: 'MALE' | 'FEMALE' | null }): Promise<PurchaseSlotCreditResult> {
+  console.log('[PodService] createFounderCredit — listingId:', args.listing.id, 'tier:', args.propertyTier, 'occupancy:', args.targetOccupancy);
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
   const code = args.createCode?.trim() || generateInviteCode();
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, args.propertyTier, args.targetOccupancy, code);
   credit.amount_paid = memberAmount(args.listing.price_amount, EXPECTED_TOTAL_POD_FEE, args.targetOccupancy, 0);
+  console.log('[PodService] Credit built — id:', credit.id, 'status:', credit.status, 'amount:', credit.amount_paid);
+
+  const matchedGender = args.creatorGender === 'MALE' || args.creatorGender === 'FEMALE' ? args.creatorGender : 'ANY';
 
   const pod: Pod = {
     id: `pod-dyn-${Math.floor(100 + Math.random() * 900)}`,
     estate_id: args.estateId,
     listing_id: args.listing.id,
     property_tier: args.propertyTier,
-    matched_gender: 'ANY',
+    matched_gender: matchedGender,
     target_occupancy: args.targetOccupancy,
     group_code: code,
     members: [buildMember(userId, credit.id, credit.amount_paid)],
@@ -267,10 +271,15 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
     assertRevenueParity(pod.members, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
   }
 
+  console.log('[PodService] Persisting pod...');
   const realPodId = await persistFounderPod(pod, credit, userId);
+  console.log('[PodService] Pod persisted — realPodId:', realPodId);
   if (!realPodId) {
+    console.error('[PodService] ABORT — pod persistence returned null');
     throw new Error(SYNC_FAILURE_MESSAGE);
   }
+  console.log('[PodService] Creating invitations...');
   await createPodInvitations(pod.id, userId, args.invitedFriends ?? [], args.listing);
+  console.log('[PodService] createFounderCredit done — returning credit');
   return { credit, synced: true };
 }

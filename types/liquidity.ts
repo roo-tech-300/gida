@@ -1,6 +1,8 @@
 export type SlotCreditStatus =
   | 'booked'
   | 'booked_pending_claim'
+  | 'pending_verification'
+  | 'rejected'
   | 'paid_unmatched'
   | 'matched'
   | 'subletting'
@@ -39,6 +41,8 @@ export interface SlotCredit {
   pod_id?: string | null;
   amount_paid?: number | null;
   paid_at?: string | null;
+  rejection_reason?: string | null;
+  verified_at?: string | null;
 }
 
 export interface PodMember {

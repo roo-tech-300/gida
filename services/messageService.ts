@@ -86,7 +86,9 @@ async function fetchProfilesByIds(ids: string[]): Promise<Record<string, Profile
 }
 
 export async function getOrCreateConversation(myId: string, otherId: string): Promise<Conversation> {
+  console.log('[MsgService] getOrCreateConversation — myId:', myId, 'otherId:', otherId);
   const [a, b] = normalizePair(myId, otherId);
+  console.log('[MsgService] Normalized pair:', a, b);
 
   let { data, error } = await supabase
     .from('conversations')
@@ -95,7 +97,12 @@ export async function getOrCreateConversation(myId: string, otherId: string): Pr
     .eq('participant_b', b)
     .maybeSingle();
 
+  if (error) {
+    console.error('[MsgService] Conversation lookup ERROR:', error.message, error.code);
+  }
+
   if (!data && !error) {
+    console.log('[MsgService] No existing conversation — creating new one');
     const result = await supabase
       .from('conversations')
       .insert({ participant_a: a, participant_b: b })
@@ -105,6 +112,7 @@ export async function getOrCreateConversation(myId: string, otherId: string): Pr
     error = result.error;
 
     if (error?.code === '23505') {
+      console.log('[MsgService] Duplicate key — refetching existing conversation');
       const refetch = await supabase
         .from('conversations')
         .select('*')
@@ -116,6 +124,14 @@ export async function getOrCreateConversation(myId: string, otherId: string): Pr
     } else {
       data = result.data as ConversationRow | null;
     }
+
+    if (error) {
+      console.error('[MsgService] Conversation create ERROR:', error.message, error.code);
+    } else {
+      console.log('[MsgService] Conversation created — id:', data?.id);
+    }
+  } else if (data) {
+    console.log('[MsgService] Found existing conversation — id:', data.id);
   }
 
   if (error || !data) throw error ?? new Error('Could not create conversation.');
@@ -168,6 +184,7 @@ export type SendMessageInput = {
 };
 
 export async function sendMessage(input: SendMessageInput): Promise<ServerChatMessage> {
+  console.log('[MsgService] sendMessage — conversationId:', input.conversationId, 'senderId:', input.senderId, 'body:', input.body?.substring(0, 50));
   const { data, error } = await supabase
     .from('messages')
     .insert({
@@ -180,7 +197,11 @@ export async function sendMessage(input: SendMessageInput): Promise<ServerChatMe
     .select('*')
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error('[MsgService] sendMessage ERROR:', error.message, error.code, error.details);
+    throw error;
+  }
+  console.log('[MsgService] Message inserted — id:', data.id);
   return mapMessageRow(data as MessageRow);
 }
 

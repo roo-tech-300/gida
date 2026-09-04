@@ -18,6 +18,7 @@ export type PurchaseSlotCreditInput = {
   joinCode?: string;
   invitedFriends?: InvitedFriend[];
   source?: 'code' | 'recommendation';
+  creatorGender?: 'MALE' | 'FEMALE' | null;
 };
 
 export async function findUserCreditForProperty(userId: string | null, listingId: string): Promise<SlotCredit | null> {
@@ -37,24 +38,31 @@ export async function findUserCreditForProperty(userId: string | null, listingId
 }
 
 export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promise<PurchaseSlotCreditResult> {
+  console.log('[LiquidityService] purchaseSlotCredit called — listingId:', input.listing.id, 'targetOccupancy:', input.targetOccupancy, 'joinCode:', input.joinCode ?? 'none');
   const propertyTier = derivePropertyTier(input.listing.property_tier, input.listing.max_roommates);
   if (!isValidTargetOccupancy(propertyTier, input.targetOccupancy)) {
+    console.error('[LiquidityService] Invalid occupancy:', input.targetOccupancy, 'for tier:', propertyTier);
     throw new Error(`Invalid occupancy ${input.targetOccupancy} for a ${propertyTier}-slot property.`);
   }
 
   const userId = await currentUserId();
+  console.log('[LiquidityService] userId:', userId);
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
   const existing = await findUserCreditForProperty(userId, input.listing.id);
+  console.log('[LiquidityService] Existing credit:', existing?.id ?? 'none', 'status:', existing?.status ?? 'n/a');
   if (existing && existing.status !== 'expired') {
     throw new Error('You already have a spot reserved on this property.');
   }
 
   const { estateId, estate } = await resolveEstateForListing(input.listing);
+  console.log('[LiquidityService] Resolved estate — estateId:', estateId);
   if (input.joinCode && input.joinCode.trim()) {
+    console.log('[LiquidityService] Joining existing pod via code...');
     return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier, source: input.source });
   }
-  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode, invitedFriends: input.invitedFriends });
+  console.log('[LiquidityService] Creating founder credit...');
+  return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode, invitedFriends: input.invitedFriends, creatorGender: input.creatorGender });
 }
 
 export async function fetchEstates(): Promise<Estate[]> {

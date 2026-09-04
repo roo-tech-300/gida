@@ -144,6 +144,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
           listing: dbListing,
           targetOccupancy: pod.target_occupancy,
           joinCode: pod.group_code,
+          source: 'recommendation',
         });
         showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
         onClose();

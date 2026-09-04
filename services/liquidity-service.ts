@@ -17,6 +17,7 @@ export type PurchaseSlotCreditInput = {
   createCode?: string;
   joinCode?: string;
   invitedFriends?: InvitedFriend[];
+  source?: 'code' | 'recommendation';
 };
 
 export async function findUserCreditForProperty(userId: string | null, listingId: string): Promise<SlotCredit | null> {
@@ -51,7 +52,7 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
 
   const { estateId, estate } = await resolveEstateForListing(input.listing);
   if (input.joinCode && input.joinCode.trim()) {
-    return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier });
+    return joinPodByCode({ code: input.joinCode, listing: input.listing, estate, estateId, propertyTier, source: input.source });
   }
   return createFounderCredit({ listing: input.listing, estate, estateId, propertyTier, targetOccupancy: input.targetOccupancy, createCode: input.createCode, invitedFriends: input.invitedFriends });
 }

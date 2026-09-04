@@ -29,7 +29,20 @@ export type RoommateInviteAttachment = {
   inviterName: string;
 };
 
-export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment;
+export type PodJoinAttachment = {
+  type: 'pod_join';
+  podId: string;
+  listingId: string;
+  title: string;
+  image: string | null;
+  location: string;
+  joinerName: string;
+  source: 'code' | 'recommendation';
+  seatNumber: number;
+  totalSeats: number;
+};
+
+export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment | PodJoinAttachment;
 
 /** A message as it exists on the server (no device-local ordering fields). */
 export type ServerChatMessage = {

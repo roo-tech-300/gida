@@ -3,6 +3,7 @@ import { EXPECTED_TOTAL_POD_FEE, PAYMENT_WINDOW_MS } from '@/utils/liquidity-mat
 import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
 import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
+import { notifyFounderOfJoiner, type PodJoinSource } from '@/services/pod-join-message';
 import {
   PERSIST_FAILURE_MESSAGE,
   PodJoinError,
@@ -149,7 +150,7 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; synced: boolean };
 
-export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number }): Promise<PurchaseSlotCreditResult> {
+export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource }): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
@@ -186,6 +187,19 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   if (nextTotal >= target) {
     const finalizedMembers = [...activeMembers, buildMember(userId, credit.id, credit.amount_paid)];
     assertRevenueParity(finalizedMembers, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
+  }
+
+  const founder = pod.members.find((m) => (m.intent_size ?? 1) > 0 && m.user_id !== userId);
+  if (founder) {
+    void notifyFounderOfJoiner({
+      podId: pod.id,
+      joinerUserId: userId,
+      founderUserId: founder.user_id,
+      listing: args.listing,
+      source: args.source ?? 'code',
+      seatNumber: nextTotal,
+      totalSeats: target,
+    });
   }
 
   return { credit, synced: true };

@@ -1,5 +1,5 @@
 import { Pressable, StyleSheet, Text } from 'react-native';
-import { signOutUserAccount } from '@/services/authService';
+import { useAuth } from '@/context/auth-context';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import {
   DesignColors,
@@ -11,6 +11,7 @@ import {
 
 export function LogoutButton() {
   const alert = useCustomAlert();
+  const { signOut } = useAuth();
 
   const handleLogout = () => {
     alert.showAlert({
@@ -23,7 +24,7 @@ export function LogoutButton() {
           style: 'destructive',
           onPress: async () => {
             try {
-              await signOutUserAccount();
+              await signOut();
             } catch (error) {}
           },
         },

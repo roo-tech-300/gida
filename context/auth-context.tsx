@@ -1,7 +1,9 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
+import { useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/lib/supabase';
 import { signOutUserAccount } from '@/services/authService';
+import { cacheProfile, getCachedProfile, clearCachedProfile } from '@/services/offline-profile-store';
 
 export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
 
@@ -38,6 +40,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
+  const queryClient = useQueryClient();
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -49,8 +52,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .single();
 
     if (error) {
-      console.error('Error fetching profile:', error.message);
-      setProfile(null);
+      console.error('[Auth] Failed to fetch profile (will keep cached if available):', error.message);
       return;
     }
 
@@ -60,12 +62,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       .eq('id', userId)
       .maybeSingle();
 
-    setProfile({
+    const merged: AuthProfile = {
       ...profileData,
       email: email ?? profile?.email ?? null,
       admin_role: adminData?.role ?? null,
       assigned_region_id: adminData?.assigned_region_id ?? null,
-    });
+    };
+
+    setProfile(merged);
+    cacheProfile(merged);
   }, [profile?.email]);
 
   useEffect(() => {
@@ -93,7 +98,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (session?.user) {
-        fetchProfile(session.user.id, session.user.email ?? null).finally(() => setIsLoading(false));
+        const cached = getCachedProfile();
+        if (cached) {
+          setProfile(cached);
+          setIsLoading(false);
+        }
+        fetchProfile(session.user.id, session.user.email ?? null).finally(() => {
+          if (!cached) setIsLoading(false);
+        });
         attachRealtime(session.user.id);
       } else {
         setProfile(null);
@@ -106,6 +118,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id, session.user.email ?? null);
         attachRealtime(session.user.id);
       } else {
+        clearCachedProfile();
         setProfile(null);
         realtimeCleanup?.();
         realtimeCleanup = null;
@@ -139,8 +152,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const signOut = useCallback(async () => {
     await signOutUserAccount();
+    clearCachedProfile();
+    queryClient.clear();
     setProfile(null);
-  }, []);
+  }, [queryClient]);
 
   return (
     <AuthContext.Provider

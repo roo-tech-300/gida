@@ -7,7 +7,12 @@ export interface UserProfileInput {
 export async function registerUserAccount(email: string, password: string, profile: UserProfileInput){
     const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
-        password
+        password,
+        options: {
+            data: {
+                full_name: profile.fullName,
+            }
+        }
     });
     if(authError) {
         console.error("Error registering user:", authError.message);
@@ -16,22 +21,6 @@ export async function registerUserAccount(email: string, password: string, profi
     if(!authData || !authData.user) {
         console.error("No user data returned after registration.");
         throw new Error("No user data returned after registration.");
-    }
-
-    const { error: profileError } = await supabase
-    .from('profiles')
-    .upsert(
-        {
-            id: authData.user.id,
-            full_name: profile.fullName,
-            onboarded: false,
-        },
-        { onConflict: 'id' }
-    );
-
-    if (profileError) {
-        console.error("Error creating user profile:", profileError.message);
-        throw new Error(profileError.message);
     }
     return authData.user;
 };

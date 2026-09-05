@@ -222,12 +222,16 @@ export async function inviteRoommateToPod(podId: string | undefined, inviteeName
     try {
       const { data: pod } = await supabase.from('pods').select('listing_id').eq('id', podId).maybeSingle();
       if (pod?.listing_id) {
-        const { data: listing } = await supabase.from('listings').select('*').eq('id', pod.listing_id).maybeSingle();
+        const [{ data: listing }, { data: inviterProfile }] = await Promise.all([
+          supabase.from('listings').select('*').eq('id', pod.listing_id).maybeSingle(),
+          supabase.from('profiles').select('gender').eq('id', userId).maybeSingle(),
+        ]);
         if (listing) {
           await sendRoommateInviteDm({
             inviterUserId: userId,
             inviteeUserId,
             listing: listing as DbListing,
+            inviterGender: inviterProfile?.gender ?? undefined,
           });
         }
       }

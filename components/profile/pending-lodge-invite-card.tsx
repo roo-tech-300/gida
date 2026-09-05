@@ -68,9 +68,11 @@ function LodgeInviteCard({ invitation }: { invitation: PendingLodgeInvitation })
         </View>
         <View style={styles.copy}>
           <Text style={styles.title}>
-            {invitation.inviter_name
-              ? `${invitation.inviter_name} invited you to be roommates`
-              : "You're invited"}
+            {invitation.hasExistingSlot
+              ? `${invitation.inviter_name ?? 'Someone'} invited you to be their roommate — leave your current room?`
+              : invitation.inviter_name
+                ? `${invitation.inviter_name} invited you to be roommates`
+                : "You're invited"}
           </Text>
           <Text style={styles.subtitle} numberOfLines={1}>
             {lodgeTitle} · {seatsLeft} seat{seatsLeft === 1 ? '' : 's'} left

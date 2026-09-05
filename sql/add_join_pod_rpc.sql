@@ -131,7 +131,8 @@ BEGIN
     'amountPaid', v_share,
     'paymentDeadline', v_deadline,
     'isFinalized', v_finalized,
-    'inviteCode', v_invite_code
+    'inviteCode', v_invite_code,
+    'status', 'booked_pending_claim'
   );
 END;
 $$;

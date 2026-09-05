@@ -63,10 +63,21 @@ export function InviteResponseModal({ visible, invitation, onClose }: Props) {
             <View style={styles.handle} />
             <Text style={styles.title}>You&rsquo;re invited</Text>
             <Text style={styles.subtitle}>
-              {invitation.inviter_name
-                ? `${invitation.inviter_name} invited you to be roommates.`
-                : 'Someone you know wants you in their lodge.'}
+              {invitation.hasExistingSlot
+                ? `${invitation.inviter_name ?? 'Someone'} invited you to be their roommate — would you like to leave your current room and be with them?`
+                : invitation.inviter_name
+                  ? `${invitation.inviter_name} invited you to be roommates.`
+                  : 'Someone you know wants you in their lodge.'}
             </Text>
+
+            {invitation.hasExistingSlot ? (
+              <View style={styles.noteRow}>
+                <Ionicons name="information-circle-outline" size={16} color={DesignColors.onSurfaceVariant} />
+                <Text style={styles.noteText}>
+                  Accepting will move you from your current room to this group. Your previous reservation will be cancelled.
+                </Text>
+              </View>
+            ) : null}
 
             <View style={styles.lodgeCard}>
               {cover ? <Image source={{ uri: cover }} style={styles.thumb} /> : (
@@ -82,12 +93,14 @@ export function InviteResponseModal({ visible, invitation, onClose }: Props) {
               </View>
             </View>
 
-            <View style={styles.noteRow}>
-              <Ionicons name="information-circle-outline" size={16} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.noteText}>
-                Accepting holds your seat with the same 3-day payment deadline as the rest of the group.
-              </Text>
-            </View>
+            {!invitation.hasExistingSlot ? (
+              <View style={styles.noteRow}>
+                <Ionicons name="information-circle-outline" size={16} color={DesignColors.onSurfaceVariant} />
+                <Text style={styles.noteText}>
+                  Accepting holds your seat with the same 3-day payment deadline as the rest of the group.
+                </Text>
+              </View>
+            ) : null}
 
             <Pressable
               style={[styles.button, styles.acceptButton, busy !== null && styles.buttonDisabled]}

@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { SlotCredit } from '@/types/liquidity';
+import type { SlotCredit, SlotCreditStatus } from '@/types/liquidity';
 
 // Client side of the atomic pod join. Prefers the worker endpoint
 // (POST /api/pods/join) and lets callers fall back to supabase.rpc('join_pod')
@@ -32,6 +32,7 @@ export type PodJoinRemoteCredit = {
   paymentDeadline?: string;
   isFinalized?: boolean;
   inviteCode?: string;
+  status?: string;
 };
 
 export type RemoteJoinOutcome =
@@ -130,6 +131,7 @@ export function applyRemoteCredit(credit: SlotCredit, remote: PodJoinRemoteCredi
   if (typeof remote.amountPaid === 'number' && remote.amountPaid > 0) credit.amount_paid = remote.amountPaid;
   if (remote.paymentDeadline) credit.payment_deadline = remote.paymentDeadline;
   if (remote.inviteCode) credit.invite_code = remote.inviteCode;
+  if (remote.status) credit.status = remote.status as SlotCreditStatus;
 }
 
 export async function joinPodViaRpc(code: string, credit: SlotCredit): Promise<void> {

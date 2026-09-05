@@ -15,4 +15,3 @@ CREATE POLICY "slot_credits_update_admin"
     )
   )
   WITH CHECK (true);
-w

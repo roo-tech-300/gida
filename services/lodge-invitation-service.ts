@@ -3,6 +3,7 @@ import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-ma
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
+import type { SlotCredit } from '@/types/liquidity';
 import type { PendingLodgeInvitation } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 
@@ -17,19 +18,46 @@ async function fetchDbListing(listingId: string): Promise<DbListing> {
   return data as DbListing;
 }
 
-async function attachInviterNames(rows: PendingLodgeInvitation[]): Promise<PendingLodgeInvitation[]> {
+async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<PendingLodgeInvitation[]> {
   const inviterIds = [...new Set(rows.map((row) => row.inviter_user_id).filter((id) => Boolean(id)))];
-  if (inviterIds.length === 0) return rows;
+  const inviteeIds = [...new Set(rows.map((row) => row.invitee_user_id).filter((id): id is string => Boolean(id)))];
+  const listingIds = [...new Set(rows.map((row) => row.pod.listing_id).filter((id): id is string => Boolean(id)))];
+
   try {
-    const { data, error } = await supabase.from('profiles').select('id, full_name').in('id', inviterIds);
-    if (error) {
-      console.error('[LodgeInvitations] Failed to load inviter profiles:', error);
-      return rows;
-    }
-    const names = new Map((data ?? []).map((profile) => [profile.id, profile.full_name]));
-    return rows.map((row) => ({ ...row, inviter_name: names.get(row.inviter_user_id) ?? null }));
+    const [{ data: profiles }, { data: existingCredits }, { data: listings }] = await Promise.all([
+      inviterIds.length > 0
+        ? supabase.from('profiles').select('id, full_name, gender').in('id', inviterIds)
+        : Promise.resolve({ data: null, error: null } as const),
+      inviteeIds.length > 0 && listingIds.length > 0
+        ? supabase.from('slot_credits').select('user_id, listing_id').in('user_id', inviteeIds).in('listing_id', listingIds).neq('status', 'expired')
+        : Promise.resolve({ data: null, error: null } as const),
+      listingIds.length > 0
+        ? supabase.from('listings').select('id').in('id', listingIds)
+        : Promise.resolve({ data: null, error: null } as const),
+    ]);
+
+    type ProfileRow = { id: string; full_name: string | null; gender: string | null };
+    const names = new Map((profiles as ProfileRow[] | null ?? []).map((p) => [p.id, p.full_name]));
+    const genders = new Map((profiles as ProfileRow[] | null ?? []).map((p) => [p.id, p.gender]));
+    type CreditRow = { user_id: string; listing_id: string };
+    const existingSlotKeys = new Set(
+      (existingCredits as CreditRow[] | null ?? []).map((c) => `${c.user_id}:${c.listing_id}`),
+    );
+
+    return rows.map((row) => {
+      const inviterId = row.inviter_user_id;
+      const listingId = row.pod.listing_id;
+      const inviteeId = row.invitee_user_id;
+      const gender = inviterId ? genders.get(inviterId) : null;
+      return {
+        ...row,
+        inviter_name: (inviterId ? names.get(inviterId) : null) ?? null,
+        inviterGender: (gender === 'MALE' || gender === 'FEMALE' ? gender : null) ?? null,
+        hasExistingSlot: Boolean(inviteeId && listingId && existingSlotKeys.has(`${inviteeId}:${listingId}`)),
+      };
+    });
   } catch (error) {
-    console.error('[LodgeInvitations] Exception while loading inviter profiles:', error);
+    console.error('[LodgeInvitations] Exception while loading inviter info:', error);
     return rows;
   }
 }
@@ -48,7 +76,7 @@ export async function fetchMyPendingInvitations(): Promise<PendingLodgeInvitatio
       console.error('[LodgeInvitations] Failed to fetch invitations:', error);
       return [];
     }
-    return await attachInviterNames((data ?? []) as PendingLodgeInvitation[]);
+    return await attachInviterInfo((data ?? []) as PendingLodgeInvitation[]);
   } catch (error) {
     console.error('[LodgeInvitations] Exception while fetching invitations:', error);
     return [];
@@ -64,9 +92,10 @@ export async function respondToLodgeInvitation(invitationId: string, status: 'ac
       .update({ status })
       .eq('id', invitationId)
       .eq('invitee_user_id', userId);
-    if (error) console.error('[LodgeInvitations] Failed to update invitation:', error);
+    if (error) throw new Error(`Failed to update invitation status: ${error.message}`);
   } catch (error) {
     console.error('[LodgeInvitations] Exception while updating invitation:', error);
+    throw error;
   }
 }
 
@@ -78,18 +107,72 @@ export async function acceptLodgeInvitation(invitation: PendingLodgeInvitation, 
   if (!listingId) throw new Error('This invite is missing its lodge details.');
   if (!invitation.pod.group_code) throw new Error('This invite is missing its group code.');
 
-  // Occupancy/fullness checks live in joinPodByCode + the join_pod RPC, which
-  // derive truth from real members (the stored counter can be drifted).
-
   const dbListing = listing ?? (await fetchDbListing(listingId));
   const propertyTier = derivePropertyTier(dbListing.property_tier, dbListing.max_roommates);
-  const target = invitation.pod.target_occupancy || invitation.pod.property_tier;
-  if (!isValidTargetOccupancy(propertyTier, target)) {
-    throw new Error(`Invalid occupancy ${target} for a ${propertyTier}-slot property.`);
+  const targetOccupancy = invitation.pod.target_occupancy || invitation.pod.property_tier;
+  if (!isValidTargetOccupancy(propertyTier, targetOccupancy)) {
+    throw new Error(`Invalid occupancy ${targetOccupancy} for a ${propertyTier}-slot property.`);
+  }
+
+  const existingCredit = await findActiveSlotCreditForListing(userId, listingId);
+  if (existingCredit) {
+    await expireAndRemoveFromPod(userId, existingCredit, listingId, targetOccupancy);
   }
 
   const { estateId, estate } = await resolveEstateForListing(dbListing);
   const result = await joinPodByCode({ code: invitation.pod.group_code, listing: dbListing, estate, estateId, propertyTier });
   await respondToLodgeInvitation(invitation.id, 'accepted');
   return result;
+}
+
+async function findActiveSlotCreditForListing(userId: string, listingId: string): Promise<SlotCredit | null> {
+  try {
+    const { data, error } = await supabase
+      .from('slot_credits')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('listing_id', listingId)
+      .neq('status', 'expired')
+      .maybeSingle();
+    if (error || !data) return null;
+    return data as SlotCredit;
+  } catch (error) {
+    console.error('[LodgeInvitations] Failed to find active slot credit:', error);
+    return null;
+  }
+}
+
+async function expireAndRemoveFromPod(userId: string, credit: SlotCredit, listingId: string, targetOccupancy: number): Promise<void> {
+  try {
+    console.log('[LodgeInvitations] Swap detected — expiring old credit:', credit.id);
+
+    await supabase.from('slot_credits').update({ status: 'expired' }).eq('id', credit.id);
+
+    const { data: oldPodMember } = await supabase
+      .from('pod_members')
+      .select('pod_id')
+      .eq('user_id', userId)
+      .eq('slot_credit_id', credit.id)
+      .maybeSingle();
+
+    if (oldPodMember?.pod_id) {
+      await supabase.from('pod_members').delete().eq('pod_id', oldPodMember.pod_id).eq('user_id', userId);
+
+      const { data: remainingMembers } = await supabase
+        .from('pod_members')
+        .select('intent_size')
+        .eq('pod_id', oldPodMember.pod_id);
+
+      const nextIntent = (remainingMembers ?? []).reduce((sum, m) => sum + Math.max(0, m.intent_size ?? 1), 0);
+      await supabase
+        .from('pods')
+        .update({ current_total_intent: nextIntent, is_finalized: nextIntent >= targetOccupancy })
+        .eq('id', oldPodMember.pod_id);
+    }
+
+    console.log('[LodgeInvitations] Old slot expired and pod reconciled successfully.');
+  } catch (error) {
+    console.error('[LodgeInvitations] Failed to expire old slot and reconcile pod:', error);
+    throw new Error('Your previous reservation has been expired. Please accept the new invite again.');
+  }
 }

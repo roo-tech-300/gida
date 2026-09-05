@@ -24,6 +24,7 @@ function makeChain(): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
+  chain.neq = jest.fn(() => chain);
   chain.in = jest.fn(() => chain);
   chain.order = jest.fn(() => chain);
   chain.single = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
@@ -31,6 +32,7 @@ function makeChain(): Chain {
   chain.insert = jest.fn(() => chain);
   chain.update = jest.fn(() => chain);
   chain.delete = jest.fn(() => chain);
+  chain.then = jest.fn(async (resolve: (value: any) => void) => resolve({ data: null, error: null }));
   return chain;
 }
 
@@ -334,10 +336,11 @@ describe('lodge invitations', () => {
         pods: successChain(founderPodFixture()),
         estates: successChain({ id: ESTATE_ID }),
         pod_invitations: invitationsChain,
+        slot_credits: rowsChain([{ id: CREDIT_ID, status: 'booked_pending_claim', user_id: FOUNDER_ID, listing_id: LISTING.id }]),
       }),
     );
     supabaseMock.rpc.mockResolvedValue({
-      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000 },
+      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000, status: 'booked_pending_claim' },
       error: null,
     });
 
@@ -370,8 +373,13 @@ describe('lodge invitations', () => {
         pods: successChain(pod),
         estates: successChain({ id: ESTATE_ID }),
         pod_invitations: rowsChain([]),
+        slot_credits: rowsChain([{ id: CREDIT_ID, status: 'booked_pending_claim', user_id: FOUNDER_ID, listing_id: LISTING.id }]),
       }),
     );
+    supabaseMock.rpc.mockResolvedValue({
+      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000, status: 'booked_pending_claim' },
+      error: null,
+    });
 
     const { credit } = await acceptLodgeInvitation(invitationFixture(), LISTING);
 

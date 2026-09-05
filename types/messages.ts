@@ -27,6 +27,8 @@ export type RoommateInviteAttachment = {
   price: string;
   location: string;
   inviterName: string;
+  hasExistingSlot?: boolean;
+  inviterGender?: 'MALE' | 'FEMALE' | null;
 };
 
 export type PodJoinAttachment = {

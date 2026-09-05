@@ -28,9 +28,11 @@ export function MessageRoommateInviteCard({
   const isInvitee = !isMe;
   const inviteStillPending = Boolean(invitation);
 
-  const caption = isMe
-    ? `You invited ${participantName ?? 'a friend'} to be your roommate.`
-    : `${attachment.inviterName ?? 'Someone'} invited you to be roommates.`;
+    const caption = isMe
+      ? `You invited ${participantName ?? 'a friend'} to be your roommate.`
+      : attachment.hasExistingSlot
+        ? `${attachment.inviterName ?? 'Someone'} invited you to be their roommate — would you like to leave your current room and join them?`
+        : `${attachment.inviterName ?? 'Someone'} invited you to be roommates.`;
 
   const handleViewLodge = () => router.push(`/property/${attachment.listingId}`);
 

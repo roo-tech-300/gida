@@ -191,15 +191,19 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
 
   const founder = pod.members.find((m) => (m.intent_size ?? 1) > 0 && m.user_id !== userId);
   if (founder) {
-    void notifyFounderOfJoiner({
-      podId: pod.id,
-      joinerUserId: userId,
-      founderUserId: founder.user_id,
-      listing: args.listing,
-      source: args.source ?? 'code',
-      seatNumber: nextTotal,
-      totalSeats: target,
-    });
+    try {
+      await notifyFounderOfJoiner({
+        podId: pod.id,
+        joinerUserId: userId,
+        founderUserId: founder.user_id,
+        listing: args.listing,
+        source: args.source ?? 'code',
+        seatNumber: nextTotal,
+        totalSeats: target,
+      });
+    } catch (error) {
+      console.error('[LiquidityService] Failed to notify founder of joiner:', error);
+    }
   }
 
   return { credit, synced: true };
@@ -213,6 +217,7 @@ async function createPodInvitations(
   friends: InvitedFriend[],
   listing?: DbListing,
   inviterName?: string,
+  inviterGender?: 'MALE' | 'FEMALE' | null,
 ): Promise<void> {
   if (friends.length === 0) return;
   try {
@@ -232,6 +237,7 @@ async function createPodInvitations(
           inviteeUserId: friend.id,
           inviterName: inviterName || 'Someone',
           listing,
+          inviterGender,
         });
       }
     }
@@ -279,7 +285,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
     throw new Error(SYNC_FAILURE_MESSAGE);
   }
   console.log('[PodService] Creating invitations...');
-  await createPodInvitations(pod.id, userId, args.invitedFriends ?? [], args.listing);
+  await createPodInvitations(pod.id, userId, args.invitedFriends ?? [], args.listing, undefined, args.creatorGender);
   console.log('[PodService] createFounderCredit done — returning credit');
   return { credit, synced: true };
 }

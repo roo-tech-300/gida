@@ -94,6 +94,8 @@ export interface PendingLodgeInvitation {
   invitee_user_id?: string | null;
   invitee_name: string;
   created_at: string;
+  hasExistingSlot?: boolean;
+  inviterGender?: 'MALE' | 'FEMALE' | null;
   pod: {
     id: string;
     group_code: string | null;

@@ -8,7 +8,7 @@ type Props = {
   isBuyout: boolean;
   listingTitle: string;
   listingPriceLabel: string;
-  listingImage?: string;
+  listingImage?: string | null;
   friendsCount: number;
   codeSeats: number;
   matchedCount: number;

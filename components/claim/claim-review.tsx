@@ -10,7 +10,7 @@ import type { SelectedFriend } from '@/components/claim/friend-picker';
 type Props = {
   listingTitle: string;
   listingPriceLabel: string;
-  listingImage?: string;
+  listingImage?: string | null;
   friendsCount: number;
   codeSeats: number;
   matchedCount: number;

@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { Conversation, ListingAttachment, MessageAttachment, ServerChatMessage } from '@/types/messages';
+import { fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 type ConversationRow = {
   id: string;
@@ -67,19 +68,13 @@ async function fetchProfilesByIds(ids: string[]): Promise<Record<string, Profile
   const uniqueIds = [...new Set(ids)];
   if (uniqueIds.length === 0) return {};
 
-  const { data, error } = await supabase
-    .from('profiles')
-    .select('id, full_name, avatar_url')
-    .in('id', uniqueIds);
-
-  if (error) throw error;
-
+  const profiles = await fetchProfilesInChunks(uniqueIds);
   const map: Record<string, ProfileSummary> = {};
-  for (const row of data ?? []) {
-    map[row.id] = {
-      id: row.id,
-      name: row.full_name || 'Gida user',
-      avatarUrl: row.avatar_url || null,
+  for (const [id, profile] of Object.entries(profiles)) {
+    map[id] = {
+      id,
+      name: profile.full_name || 'Gida user',
+      avatarUrl: profile.avatar_url || null,
     };
   }
   return map;
@@ -164,12 +159,39 @@ export async function fetchMyConversations(myId: string): Promise<Conversation[]
     .filter((conversation) => conversation.lastMessageAt !== conversation.createdAt || conversation.lastMessage !== '');
 }
 
-export async function fetchConversationMessages(conversationId: string): Promise<ServerChatMessage[]> {
+export async function fetchConversationMessages(
+  conversationId: string,
+  from?: number,
+  to?: number
+): Promise<ServerChatMessage[]> {
+  const query = supabase
+    .from('messages')
+    .select('*')
+    .eq('conversation_id', conversationId);
+
+  if (from !== undefined && to !== undefined) {
+    query.order('client_sent_at', { ascending: true }).range(from, to);
+  } else {
+    query.order('client_sent_at', { ascending: true });
+  }
+
+  const { data, error } = await query;
+
+  if (error) throw error;
+  return (data ?? []).map((row) => mapMessageRow(row as MessageRow));
+}
+
+export async function fetchMessagesPaginated(
+  conversationId: string,
+  from: number,
+  to: number,
+): Promise<ServerChatMessage[]> {
   const { data, error } = await supabase
     .from('messages')
     .select('*')
     .eq('conversation_id', conversationId)
-    .order('client_sent_at', { ascending: true });
+    .order('client_sent_at', { ascending: false }) // NEWEST FIRST
+    .range(from, to);
 
   if (error) throw error;
   return (data ?? []).map((row) => mapMessageRow(row as MessageRow));

@@ -7,6 +7,7 @@ import { getMessagesForConversation, markLocalMessagesRead, saveIncomingMessages
 import { createOutboxMessage, markMessageFailed, markOutboxSynced } from '@/services/offline-outbox-store';
 import {
   fetchConversationMessages,
+  fetchMessagesPaginated,
   getOrCreateConversation,
   markConversationRead,
   sendMessage,
@@ -14,6 +15,7 @@ import {
   type SendMessageInput,
 } from '@/services/messageService';
 import type { ChatMessage, ListingAttachment } from '@/types/messages';
+import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 
 export type SendDraft = {
   body: string;
@@ -29,6 +31,8 @@ export function useConversationThread(otherId: string) {
   const myId = profile?.id;
   const queryClient = useQueryClient();
   const { isConnected } = useNetInfo();
+
+  const limit = 50; // page size for pagination
 
   const [unreadBoundaryId, setUnreadBoundaryId] = useState<string | null>(null);
   const boundaryCaptured = useRef(false);
@@ -46,29 +50,12 @@ export function useConversationThread(otherId: string) {
 
   const conversationId = conversationQuery.data?.id;
 
-  const messagesQuery = useQuery({
+  const messagesQuery = usePaginatedQuery<ServerChatMessage[]>({
     queryKey: ['messages', conversationId],
-    queryFn: async () => {
-      if (!conversationId) return [];
-      const stored = getMessagesForConversation(conversationId);
-      try {
-        const server = await fetchConversationMessages(conversationId);
-        if (!boundaryCaptured.current && myId) {
-          const firstUnread = server.find((message) => message.senderId !== myId && !message.readAt);
-          if (firstUnread) {
-            boundaryCaptured.current = true;
-            setUnreadBoundaryId(firstUnread.id);
-          }
-        }
-        return saveIncomingMessages(conversationId, server);
-      } catch (error) {
-        console.error('[MessageThread] Failed to fetch messages:', error);
-        if (stored.length > 0) return stored;
-        throw error;
-      }
-    },
-    enabled: !!conversationId,
+    queryFn: ({ from, to }) => fetchMessagesPaginated(conversationId, from, to),
+    limit,
     staleTime: 30 * 1000,
+    enabled: !!conversationId,
   });
 
   useEffect(() => {

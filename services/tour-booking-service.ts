@@ -23,7 +23,7 @@ export type ReserveTourResult = {
   error?: 'slot_full' | 'already_booked' | 'admin_unavailable' | 'failed';
 };
 
-export async function fetchTourAvailability(listingId: string, adminId?: string | null): Promise<TourAvailabilityEntry[]> {
+export async function fetchTourAvailability(listingId: string, adminId?: string | null, limit = 30): Promise<TourAvailabilityEntry[]> {
   const userId = await currentUserId();
   if (!userId || !listingId) {
     return [];
@@ -38,12 +38,14 @@ export async function fetchTourAvailability(listingId: string, adminId?: string 
       console.warn('[TourBooking] Availability fetch skipped:', error?.message ?? 'no data');
       return [];
     }
-    return (data as { scheduled_date: string; scheduled_time: string; booked: number; admin_unavailable: boolean }[]).map((row) => ({
-      date: row.scheduled_date,
-      time: row.scheduled_time,
-      booked: row.booked,
-      adminUnavailable: row.admin_unavailable,
-    }));
+    return (data as { scheduled_date: string; scheduled_time: string; booked: number; admin_unavailable: boolean }[])
+      .map((row) => ({
+        date: row.scheduled_date,
+        time: row.scheduled_time,
+        booked: row.booked,
+        adminUnavailable: row.admin_unavailable,
+      }))
+      .slice(0, limit);
   } catch (error) {
     console.error('[TourBooking] Failed to fetch availability:', error);
     return [];

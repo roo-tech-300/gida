@@ -1,21 +1,30 @@
-import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  PaginatedFlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo-router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SearchBar } from '@/components/ui/search-bar';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
-import { useAdminProfiles } from '@/hooks/use-admin-profiles';
-import type { AdminMember, AdminRole } from '@/types/admin';
+import { useAdminProfilesPaginated } from '@/hooks/use-admin-profiles-paginated';
+import type { AdminMember } from '@/types/admin';
+import { MemberCard } from '@/components/admin/member-card';
 
 const TABS = ['All Members', 'Regional Admins', 'Field Admins'];
 
-const ROLE_LABELS: Record<AdminRole, string> = {
+const ROLE_LABELS: Record<string, string> = {
   super_admin: 'Super Admin',
   regional_admin: 'Regional Admin',
   field_admin: 'Field Admin',
@@ -33,16 +42,15 @@ function getInitials(name: string): string {
 export function ManageTeamsScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data = [], isLoading, isError, isRefetching, refetch } = useAdminProfiles();
+  const { data: adminProfiles, isLoading, hasNextPage, fetchNextPage } = useAdminProfilesPaginated();
   const [activeTab, setActiveTab] = useState('All Members');
   const [query, setQuery] = useState('');
-  const [filtersOpen, setFiltersOpen] = useState(false);
 
   useEffect(() => {
-    if (isError) {
-      showToast({ message: 'Failed to load admin team. Pull down to retry.', type: 'error' });
+    if (isLoading) {
+      showToast({ message: 'Loading admin team...', type: 'info' });
     }
-  }, [isError, showToast]);
+  }, [isLoading]);
 
   let filtered = data;
   if (activeTab === 'Regional Admins') filtered = filtered.filter((m) => m.role === 'regional_admin');
@@ -61,7 +69,7 @@ export function ManageTeamsScreen() {
           style={styles.scroll}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={DesignColors.primary} />}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchNextPage} tintColor={DesignColors.primary} />}
         >
           <View style={styles.headerRow}>
             <BackButton hasBackground />
@@ -93,25 +101,20 @@ export function ManageTeamsScreen() {
             <View style={styles.centerState}>
               <ActivityIndicator size="large" color={DesignColors.primary} />
             </View>
-          ) : isError ? (
-            <View style={styles.centerState}>
-              <Ionicons name="cloud-offline-outline" size={32} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.stateText}>Could not load the admin team.</Text>
-              <Pressable style={styles.retryBtn} onPress={() => refetch()}>
-                <Text style={styles.retryText}>Retry</Text>
-              </Pressable>
-            </View>
           ) : filtered.length === 0 ? (
             <View style={styles.centerState}>
               <Ionicons name="people-outline" size={32} color={DesignColors.onSurfaceVariant} />
               <Text style={styles.stateText}>No members match your search.</Text>
             </View>
           ) : (
-            <View style={styles.list}>
-              {filtered.map((member) => (
-                <MemberCard key={member.id} member={member} />
-              ))}
-            </View>
+            <PaginatedFlatList
+              data={filtered}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <MemberCard member={item} />}
+              onEndReached={fetchNextPage}
+              onEndReachedThreshold={0.5}
+              ListComponent={<View />}
+            />
           )}
         </ScrollView>
       </SafeKeyboardView>
@@ -157,7 +160,7 @@ const styles = StyleSheet.create({
   kav: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
+  headerRow: { flexDirection: 'row', alignItems: 'gap': 12 },
   title: { flex: 1, fontSize: 22, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.3 },
   fab: {
     position: 'absolute',
@@ -228,5 +231,4 @@ const styles = StyleSheet.create({
   memberName: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   memberEmail: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 2 },
   memberRole: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily, marginBottom: 2 },
-  memberJurisdiction: { fontSize: 12, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
 });

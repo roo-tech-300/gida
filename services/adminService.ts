@@ -131,6 +131,73 @@ export async function fetchRegions(): Promise<AdminRegion[]> {
   return (data ?? []) as AdminRegion[];
 }
 
+export async function fetchAdminListingsPaginated(page = 1, limit = 50): Promise<AdminListing[]> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  let query = supabase
+    .from('listings')
+    .select('id, title, price_amount, location_landmark, city, primary_image, featured, status, created_at')
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  const { data, error } = await query;
+
+  if (error) {
+    console.error('[AdminService] Failed to fetch admin listings:', error.message);
+    return [];
+  }
+  return (data ?? []) as AdminListing[];
+}
+
+export async function fetchAdminProfilesPaginated(page = 1, limit = 50): Promise<AdminMember[]> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error } = await supabase
+    .from('admin_profiles')
+    .select('id, role, assigned_region_id, profile:profiles(full_name, email, avatar_url), region:regions(name)')
+    .order('updated_at', { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error('[AdminService] Failed to fetch admin profiles:', error.message);
+    throw new Error(error.message);
+  }
+
+  const rows = (data ?? []) as unknown as AdminProfileRow[];
+  const members: AdminHierarchyInput[] = rows.map((row) => ({
+    id: row.id,
+    full_name: row.profile?.full_name ?? 'Unknown Admin',
+    email: row.profile?.email ?? null,
+    avatar_url: row.profile?.avatar_url ?? null,
+    role: row.role,
+    assigned_region_id: row.assigned_region_id,
+    region_name: row.region?.name ?? null,
+  }));
+
+  const regions = await fetchRegions();
+  return deriveSupervisors(members, regions);
+}
+
+export async function fetchRegionsPaginated(page = 1, limit = 100): Promise<AdminRegion[]> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error } = await supabase
+    .from('regions')
+    .select('id, name, parent_region_id, path')
+    .order('name', { ascending: true })
+    .range(from, to);
+
+  if (error) {
+    console.error('[AdminService] Failed to fetch regions:', error.message);
+    throw new Error(error.message);
+  }
+
+  return (data ?? []) as AdminRegion[];
+}
+
 export async function searchAdminCandidates(query: string): Promise<AdminCandidate[]> {
   const trimmed = query.trim();
   if (trimmed.length < 2) return [];

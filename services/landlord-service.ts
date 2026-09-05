@@ -46,6 +46,23 @@ export async function fetchLandlords(): Promise<LandlordWithCount[]> {
   return data as LandlordWithCount[];
 }
 
+export async function fetchLandlordsPaginated(
+  page = 1,
+  limit = 50,
+): Promise<LandlordWithCount[]> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error } = await supabase
+    .from('landlords')
+    .select('*, listings:listings(count)')
+    .order('created_at', { ascending: false })
+    .range(from, to);
+
+  if (error) throw error;
+  return data as LandlordWithCount[];
+}
+
 export type LandlordListing = {
   id: string;
   title: string;
@@ -68,6 +85,27 @@ export async function fetchListingsByLandlord(landlordId: string): Promise<Landl
     )
     .eq('landlord_id', landlordId)
     .order('created_at', { ascending: false });
+
+  if (error) throw error;
+  return data as LandlordListing[];
+}
+
+export async function fetchLandlordListingsPaginated(
+  landlordId: string,
+  page = 1,
+  limit = 20,
+): Promise<LandlordListing[]> {
+  const from = (page - 1) * limit;
+  const to = from + limit - 1;
+
+  const { data, error } = await supabase
+    .from('listings')
+    .select(
+      'id, title, status, price_amount, lease_term, location_landmark, city, number_of_bedrooms, number_of_bathrooms, size_sqft, primary_image',
+    )
+    .eq('landlord_id', landlordId)
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) throw error;
   return data as LandlordListing[];

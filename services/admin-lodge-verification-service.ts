@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 export type AdminLodgeView = 'pending' | 'rejected';
 
@@ -67,16 +68,36 @@ export async function fetchAdminLodgeReservations(
 
     const [namesRes, listingsRes] = await Promise.all([
       userIds.length > 0
-        ? supabase.from('profiles').select('id, full_name').in('id', userIds)
+        ? (() => {
+            const profiles = fetchProfilesInChunks(userIds);
+            const names = new Map<string, string | null>();
+            for (const [id, profile] of Object.entries(profiles)) {
+              names.set(id, profile.full_name ?? null);
+            }
+            return { data: Array.from(names.entries()), error: null };
+          })()
         : { data: null, error: null },
       lidIds.length > 0
-        ? supabase.from('listings').select('id, title, primary_image, location_landmark').in('id', lidIds)
+        ? (() => {
+            const chunks = chunkInIds(lidIds);
+            const listingsMap: Map<string, { title: string; primary_image: string | null; location_landmark: string }> = new Map();
+            for (const chunk of chunks) {
+              const { data } = await supabase
+                .from('listings')
+                .select('id, title, primary_image, location_landmark')
+                .in('id', chunk);
+              for (const row of (data as { id: string; title: string; primary_image: string | null; location_landmark: string }[] | null) ?? []) {
+                listingsMap.set(row.id, row);
+              }
+            }
+            return { data: Array.from(listingsMap.values()), error: null };
+          })()
         : { data: null, error: null },
     ]);
 
     const names = new Map<string, string | null>();
-    for (const p of ((namesRes.data as { id: string; full_name: string | null }[]) ?? [])) {
-      names.set(p.id, p.full_name);
+    for (const p of ((namesRes.data as [string, string | null][]) ?? [])) {
+      names.set(p[0], p[1]);
     }
     const listings = new Map<string, { title: string; primary_image: string | null; location_landmark: string }>();
     for (const l of ((listingsRes.data as { id: string; title: string; primary_image: string | null; location_landmark: string }[]) ?? [])) {

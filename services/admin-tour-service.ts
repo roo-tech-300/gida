@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 import type { AdminTour, AdminTourDetail, TourBookingStatus, TourListingBrief } from '@/types/tour-booking';
 
 export type AdminTourView = 'active' | 'completed';
@@ -18,9 +19,9 @@ async function fetchProfileNames(ids: string[]): Promise<Map<string, string | nu
   if (ids.length === 0) {
     return names;
   }
-  const { data } = await supabase.from('profiles').select('id, full_name').in('id', ids);
-  for (const profile of (data as { id: string; full_name: string | null }[] | null) ?? []) {
-    names.set(profile.id, profile.full_name);
+  const profiles = await fetchProfilesInChunks(ids);
+  for (const [id, profile] of Object.entries(profiles)) {
+    names.set(id, profile.full_name ?? null);
   }
   return names;
 }
@@ -30,12 +31,16 @@ async function fetchListings(ids: string[]): Promise<Map<string, TourListingBrie
   if (ids.length === 0) {
     return listings;
   }
-  const { data } = await supabase
-    .from('listings')
-    .select('id, title, location_landmark, city, primary_image, price_amount, latitude, longitude')
-    .in('id', ids);
-  for (const row of (data as (TourListingBrief & { id: string })[] | null) ?? []) {
-    listings.set(row.id, row);
+  // Chunk the IDs since .in() without limit can return many rows
+  const chunks = chunkInIds(ids);
+  for (const chunk of chunks) {
+    const { data } = await supabase
+      .from('listings')
+      .select('id, title, location_landmark, city, primary_image, price_amount, latitude, longitude')
+      .in('id', chunk);
+    for (const row of (data as (TourListingBrief & { id: string })[] | null) ?? []) {
+      listings.set(row.id, row);
+    }
   }
   return listings;
 }

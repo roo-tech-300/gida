@@ -1,14 +1,24 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  PaginatedFlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  TextInput,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, fontFamily } from '@/constants/design';
-import { useListings } from '@/hooks/use-listings';
+import { useAdminListingsPaginated } from '@/hooks/use-admin-listings-paginated';
 import { InventoryCard } from '@/components/admin/inventory-card';
-import type { FeedListing } from '@/types/feed-listing';
+import type { AdminListing } from '@/types/admin';
 
 type Tab = 'all' | 'available' | 'booked';
 
@@ -20,27 +30,27 @@ const TABS: { key: Tab; label: string }[] = [
 
 export function TotalInventoryScreen() {
   const insets = useSafeAreaInsets();
-  const { data: listings, isLoading } = useListings();
+  const { data: adminListings, isLoading, hasNextPage, fetchNextPage } = useAdminListingsPaginated();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
   const filtered = useMemo(() => {
-    if (!listings) return [];
-    let items = listings;
+    if (!adminListings) return [];
+    let items = adminListings;
     if (activeTab === 'available') items = items.filter((i) => i.status.toLowerCase() === 'available');
     if (activeTab === 'booked') items = items.filter((i) => i.status.toLowerCase() === 'booked');
     if (query.trim()) {
       const q = query.toLowerCase();
       items = items.filter(
         (i) => i.title.toLowerCase().includes(q)
-          || i.location.toLowerCase().includes(q),
+          || i.location_landmark.toLowerCase().includes(q),
       );
     }
     return items;
-  }, [activeTab, listings, query]);
+  }, [activeTab, adminListings, query]);
 
-  const totalCount = listings?.length || 0;
-  const availableCount = listings?.filter((i) => i.status.toLowerCase() === 'available').length || 0;
+  const totalCount = adminListings?.length || 0;
+  const availableCount = adminListings?.filter((i) => i.status.toLowerCase() === 'available').length || 0;
   const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
 
   return (
@@ -51,7 +61,15 @@ export function TotalInventoryScreen() {
           <Text style={styles.headerTitle}>Total Inventory</Text>
         </View>
 
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
+        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={
+          <RefreshControl
+            refreshing={isLoading}
+            onRefresh={fetchNextPage}
+            colors={['#4F46E5']}
+          >
+            <Ionicons name="refresh" size="small" color="#4F46E5" />
+          </RefreshControl>
+        }>
           <View style={styles.metricsRow}>
             <View style={styles.metricCard}>
               <Text style={styles.metricValue}>{totalCount.toLocaleString()}</Text>
@@ -99,11 +117,15 @@ export function TotalInventoryScreen() {
               <Text style={styles.emptyText}>No listings found</Text>
             </View>
           ) : (
-            <View style={styles.list}>
-              {filtered.map((item) => (
-                <InventoryCard key={item.id} listing={item} onPress={() => router.push(`/admin/listing/${item.id}` as any)} />
-              ))}
-            </View>
+            <PaginatedFlatList
+              data={filtered}
+              keyExtractor={(item) => item.id}
+              renderItem={({ item }) => <InventoryCard listing={item} onPress={() => router.push(`/admin/listing/${item.id}` as any) />}
+                onEndReached={fetchNextPage}
+                onEndReachedThreshold={0.5}
+                ListComponent={<View />}
+              />
+            </PaginatedFlatList>
           )}
         </ScrollView>
 
@@ -149,7 +171,7 @@ const styles = StyleSheet.create({
   tabsRow: { marginBottom: 16 },
   tab: {
     paddingHorizontal: 18, paddingVertical: 8,
-    borderRadius: 999,
+    borderRadius: 9999,
     backgroundColor: DesignColors.glassFill,
     marginRight: 8,
   },

@@ -1,33 +1,44 @@
+import { useMemo, useState } from 'react';
+import {
+  ActivityIndicator,
+  Pressable,
+  PaginatedFlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
-import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
-import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
-import { LandlordPropertyCard } from '@/components/admin/landlord-property-card';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import { useLandlords } from '@/hooks/use-landlords';
-import { useLandlordListings } from '@/hooks/use-landlord-listings';
+import { useLandlordListingsPaginated } from '@/hooks/use-landlord-listings-paginated';
+import { LandlordPropertyCard } from '@/components/admin/landlord-property-card';
 import { getInitials } from '@/utils/get-initials';
-import { useState } from 'react';
+import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
+import { useAppToast } from '@/components/ui/toast-card';
 
 export function LandlordPropertiesScreen({ landlordId }: { landlordId: string }) {
-  const [profileOpen, setProfileOpen] = useState(false);
-  const { data: landlords } = useLandlords();
-  const { data: listings, isPending, isError, refetch, isRefetching } = useLandlordListings(landlordId);
+  const router = useRouter();
+  const { showToast } = useAppToast();
+
+  // Fetch landlord profile
+  const { data: landlords, isLoading: landlordsLoading } = useLandlords();
   const landlord = landlords?.find((l) => l.id === landlordId) ?? null;
 
-  if (isError) {
-    return (
-      <SafeAreaView style={styles.root}>
-        <View style={styles.header}>
-          <BackButton hasBackground />
-        </View>
-        <NetworkErrorScreen onRetry={() => refetch()} subtitle="Could not load this landlord's properties." />
-      </SafeAreaView>
-    );
-  }
+  // Fetch paginated listings
+  const { data: listings, isLoading: listingsLoading, hasNextPage, fetchNextPage } = useLandlordListingsPaginated(landlordId);
+  const combinedLoading = landlordsLoading || listingsLoading;
+
+  useEffect(() => {
+    if (combinedLoading) {
+      showToast({ message: 'Loading landlord properties...', type: 'info' });
+    }
+  }, [combinedLoading]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -36,7 +47,7 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
         <Pressable
           style={styles.avatar}
           hitSlop={6}
-          onPress={() => setProfileOpen(true)}
+          onPress={() => setProfileOpen?.(true)}
           disabled={!landlord}
         >
           <Text style={styles.avatarText}>{landlord ? getInitials(landlord.full_name) : '—'}</Text>
@@ -44,37 +55,34 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>{landlord?.full_name ?? 'Landlord'}</Text>
           <Text style={styles.headerSub}>
-            {listings ? `${listings.length} Propert${listings.length === 1 ? 'y' : 'ies'}` : 'Loading...'}
+            {listings ? `${listings.length} Propert${listings.length === 1 ? 'y' : 'ies'}` on landlord's properties} : 'Loading…'}
           </Text>
         </View>
       </View>
 
-      <ScrollView
-        contentContainerStyle={styles.content}
-        showsVerticalScrollIndicator={false}
-        refreshControl={
-          <RefreshControl refreshing={isRefetching} onRefresh={() => refetch()} tintColor={DesignColors.primary} />
-        }
-      >
-        {isPending ? (
-          <View style={styles.centered}>
-            <ActivityIndicator size="large" color={DesignColors.primary} />
-          </View>
-        ) : !listings || listings.length === 0 ? (
-          <View style={styles.emptyState}>
-            <Ionicons name="business-outline" size={48} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.emptyText}>No properties</Text>
-            <Text style={styles.emptySub}>This landlord hasn&apos;t onboarded any properties yet</Text>
-          </View>
-        ) : (
-          listings.map((listing) => <LandlordPropertyCard key={listing.id} property={listing} />)
-        )}
-      </ScrollView>
+      {combinedLoading ? (
+        <ActivityIndicator size="large" color={DesignColors.primary} />
+      ) : !listings || listings.length === 0 ? (
+        <View style={styles.emptyState}>
+          <Ionicons name="business-outline" size={48} color={DesignColors.onSurfaceVariant} />
+          <Text style={styles.emptyText}>No properties</Text>
+          <Text style={styles.emptySub}>This landlord hasn't onboarded any properties yet</Text>
+        </View>
+      ) : (
+        <PaginatedFlatList
+          data={listings}
+          keyExtractor={(item) => item.id}
+          renderItem={({ item }) => <LandlordPropertyCard property={item} />}
+          onEndReached={fetchNextPage}
+          onEndReachedThreshold={0.5}
+          ListComponent={<View />}
+        />
+      )}
 
       <LandlordProfileModal
-        visible={profileOpen && landlord !== null}
+        visible={profileOpen ?? false}
         landlord={landlord}
-        onClose={() => setProfileOpen(false)}
+        onClose={() => setProfileOpen?.(false)}
       />
     </SafeAreaView>
   );
@@ -102,7 +110,6 @@ const styles = StyleSheet.create({
     paddingBottom: DesignSpacing.xl * 5,
     gap: DesignSpacing.lg,
   },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', paddingTop: 80 },
 
   emptyState: {
     flex: 1,

@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
@@ -24,21 +25,31 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
   const listingIds = [...new Set(rows.map((row) => row.pod.listing_id).filter((id): id is string => Boolean(id)))];
 
   try {
-    const [{ data: profiles }, { data: existingCredits }, { data: listings }] = await Promise.all([
+    const [{ data: inviterProfiles }, { data: existingCredits }, { data: inviterListings }] = await Promise.all([
       inviterIds.length > 0
-        ? supabase.from('profiles').select('id, full_name, gender').in('id', inviterIds)
-        : Promise.resolve({ data: null, error: null } as const),
+        ? fetchProfilesInChunks(inviterIds)
+        : { data: null, error: null } as const,
       inviteeIds.length > 0 && listingIds.length > 0
         ? supabase.from('slot_credits').select('user_id, listing_id').in('user_id', inviteeIds).in('listing_id', listingIds).neq('status', 'expired')
         : Promise.resolve({ data: null, error: null } as const),
       listingIds.length > 0
-        ? supabase.from('listings').select('id').in('id', listingIds)
+        ? (() => {
+            const chunks = chunkInIds(listingIds);
+            const listingsMap: Map<string, DbListing> = new Map();
+            for (const chunk of chunks) {
+              const { data } = await supabase.from('listings').select('*').in('id', chunk);
+              for (const row of (data as DbListing[] | null) ?? []) {
+                listingsMap.set(row.id, row);
+              }
+            }
+            return { data: Array.from(listingsMap.values()), error: null };
+          })()
         : Promise.resolve({ data: null, error: null } as const),
     ]);
 
     type ProfileRow = { id: string; full_name: string | null; gender: string | null };
-    const names = new Map((profiles as ProfileRow[] | null ?? []).map((p) => [p.id, p.full_name]));
-    const genders = new Map((profiles as ProfileRow[] | null ?? []).map((p) => [p.id, p.gender]));
+    const names = new Map((Object.entries(inviterProfiles ?? {}) as [string, { full_name: string | null; gender: string | null }][]).map((p) => [p[0], p[1].full_name]));
+    const genders = new Map((Object.entries(inviterProfiles ?? {}) as [string, { full_name: string | null; gender: string | null }][]).map((p) => [p[0], p[1].gender]));
     type CreditRow = { user_id: string; listing_id: string };
     const existingSlotKeys = new Set(
       (existingCredits as CreditRow[] | null ?? []).map((c) => `${c.user_id}:${c.listing_id}`),

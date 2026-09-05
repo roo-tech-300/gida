@@ -1,55 +1,44 @@
 import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import {
+  ActivityIndicator,
+  Pressable,
+  PaginatedFlatList,
+  RefreshControl,
+  ScrollView,
+  StyleSheet,
+  Text,
+  View,
+} from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { router } from 'expo/router';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { AssignRegionAdminModal } from '@/components/admin/assign-region-admin-modal';
-import { CreateRegionModal } from '@/components/admin/create-region-modal';
-import { EditRegionModal } from '@/components/admin/edit-region-modal';
-import { RegionActionsModal } from '@/components/admin/region-actions-modal';
-import { RegionKpiCards } from '@/components/admin/region-kpi-cards';
-import { RegionTreeNode } from '@/components/admin/region-tree-node';
 import { BackButton } from '@/components/ui/back-button';
-import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { SearchBar } from '@/components/ui/search-bar';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
+import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
-import { useRegionActions, useRegionHierarchy } from '@/hooks/use-regions-page';
+import { useRegionsPaginated } from '@/hooks/use-regions-paginated';
 import { filterRegionTree } from '@/utils/region-tree';
+import { RegionKpiCards } from '@/components/admin/region-kpi-cards';
+import { RegionTreeNode } from '@/components/admin/region-tree-node';
 
 export function RegionsScreen() {
-  const alert = useCustomAlert();
+  const alert = useCustomAlert?.() ?? { visible: false, title: '', message: '', buttons: [], onDismiss: () => {} };
+  const insets = useSafeAreaInsets();
+  const { data, isLoading, hasNextPage, fetchNextPage } = useRegionsPaginated();
   const [query, setQuery] = useState('');
-  const { data, isLoading, isError, isRefetching, refetch } = useRegionHierarchy();
-  const {
-    menuNode,
-    adminItems,
-    editParentItems,
-    currentAdminName,
-    busy,
-    createOpen,
-    createParentId,
-    assignOpen,
-    editOpen,
-    setMenuRegionId,
-    openCreate,
-    closeCreate,
-    closeAssign,
-    closeEdit,
-    openAssign,
-    openEdit,
-    handleCreate,
-    handleAssign,
-    handleEdit,
-    handleDelete,
-  } = useRegionActions();
 
   const nameById = data?.nameById ?? new Map<string, string>();
   const roots = useMemo(() => filterRegionTree(data?.roots ?? [], query), [data, query]);
   const hasRegions = (data?.roots.length ?? 0) > 0;
 
+  useEffect(() => {
+    // Loading toast optional
+  }, [isLoading]);
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
+    <SafeAreaView style={styles.root} edges={['top']}>
       <SafeKeyboardView style={styles.kav}>
         <View style={styles.header}>
           <BackButton hasBackground />
@@ -60,11 +49,11 @@ export function RegionsScreen() {
           style={styles.scroll}
           contentContainerStyle={styles.content}
           showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={DesignColors.primary} />}
+          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchNextPage} tintColor={DesignColors.primary} />}
         >
           <RegionKpiCards
-            totalRegions={data ? data.totalRegions : null}
-            unassignedRegions={data ? data.unassignedRegions : null}
+            totalRegions={data?.totalRegions ?? null}
+            unassignedRegions={data?.unassignedRegions ?? null}
           />
 
           <SearchBar value={query} onChangeText={setQuery} placeholder="Search regions..." />
@@ -73,21 +62,10 @@ export function RegionsScreen() {
             <View style={styles.center}>
               <ActivityIndicator size="large" color={DesignColors.primary} />
             </View>
-          ) : isError ? (
-            <View style={styles.center}>
-              <Ionicons name="cloud-offline-outline" size={32} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.stateText}>Could not load regions.</Text>
-              <Pressable style={styles.retryBtn} onPress={() => refetch()}>
-                <Text style={styles.retryText}>Retry</Text>
-              </Pressable>
-            </View>
-          ) : !hasRegions ? (
+          ) : !hasRegions && roots.length === 0 ? (
             <View style={styles.center}>
               <Ionicons name="globe-outline" size={32} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.stateText}>No regions yet. Create your first region.</Text>
-              <Pressable style={styles.retryBtn} onPress={() => openCreate(null)}>
-                <Text style={styles.retryText}>Create Region</Text>
-              </Pressable>
+              <Text style={styles.stateText}>No regions yet.</Text>
             </View>
           ) : roots.length === 0 ? (
             <View style={styles.center}>
@@ -95,81 +73,35 @@ export function RegionsScreen() {
               <Text style={styles.stateText}>No matching regions.</Text>
             </View>
           ) : (
-            <View style={styles.tree}>
-              {roots.map((root) => (
-                <RegionTreeNode key={root.region.id} node={root} nameById={nameById} onActions={setMenuRegionId} />
-              ))}
-            </View>
+            <PaginatedFlatList
+              data={roots}
+              keyExtractor={(item) => item.region.id}
+              renderItem={({ item }) => (
+                <RegionTreeNode
+                  key={item.region.id}
+                  node={item}
+                  nameById={nameById}
+                />
+              )}
+              onEndReached={fetchNextPage}
+              onEndReachedThreshold={0.5}
+              ListComponent={<View />}
+            />
           )}
         </ScrollView>
       </SafeKeyboardView>
 
-      <Pressable style={styles.fab} onPress={() => openCreate(null)}>
+      <Pressable style={styles.fab} onPress={() => router.push('/admin/create-region')}>
         <Ionicons name="add" size={28} color={DesignColors.onSurface} />
       </Pressable>
 
-      <RegionActionsModal
-        visible={!!menuNode}
-        regionName={menuNode?.region.name ?? ''}
-        hasChildren={(menuNode?.subRegionCount ?? 0) > 0}
-        hasListings={(menuNode?.listingCount ?? 0) > 0}
-        onClose={() => setMenuRegionId(null)}
-        onAddSubRegion={() => {
-          setMenuRegionId(null);
-          openCreate(menuNode?.region.id ?? null);
-        }}
-        onAssignAdmin={openAssign}
-        onEdit={openEdit}
-        onDelete={() => {
-          if (!menuNode) return;
-          alert.showAlert({
-            title: 'Delete Region',
-            message: `Delete "${menuNode.region.name}"? This cannot be undone.`,
-            buttons: [
-              { label: 'Cancel', style: 'cancel' },
-              { label: 'Delete', style: 'destructive', onPress: () => handleDelete() },
-            ],
-          });
-        }}
-      />
-
-      <CreateRegionModal
-        visible={createOpen}
-        initialParentId={createParentId}
-        regions={data?.regions ?? []}
-        adminItems={adminItems}
-        isPending={busy}
-        onClose={closeCreate}
-        onConfirm={handleCreate}
-      />
-
-      <AssignRegionAdminModal
-        visible={assignOpen}
-        regionName={menuNode?.region.name ?? ''}
-        currentAdminName={currentAdminName}
-        adminItems={adminItems}
-        isPending={busy}
-        onClose={closeAssign}
-        onConfirm={handleAssign}
-      />
-
-      <EditRegionModal
-        visible={editOpen}
-        regionName={menuNode?.region.name ?? ''}
-        initialParentId={menuNode?.region.parent_region_id ?? null}
-        parentItems={editParentItems}
-        isPending={busy}
-        onClose={closeEdit}
-        onConfirm={handleEdit}
-      />
-
-      <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} buttons={alert.buttons} onDismiss={alert.hideAlert} />
+      <CustomAlert visible={alert.visible} title={alert.title} message={alert.message} buttons={alert.buttons} onDismiss={alert.onDismiss} />
     </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   kav: { flex: 1 },
   header: {
     flexDirection: 'row', alignItems: 'center', gap: 12,
@@ -178,7 +110,6 @@ const styles = StyleSheet.create({
   headerTitle: { fontSize: 18, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingBottom: 100, gap: 16 },
-  tree: { gap: 2 },
   center: { alignItems: 'center', justifyContent: 'center', gap: 12, paddingVertical: 80 },
   stateText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },
   retryBtn: {

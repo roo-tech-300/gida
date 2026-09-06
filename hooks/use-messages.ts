@@ -1,5 +1,5 @@
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { supabase } from '@/lib/supabase';
+import { fetchMessagesPaginated } from '@/services/messageService';
 import type { ServerChatMessage } from '@/types/messages';
 
 export function useMessagesPaginated(conversationId: string, limit = 50) {

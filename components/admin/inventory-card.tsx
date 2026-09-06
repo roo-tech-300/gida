@@ -3,13 +3,11 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
-import type { FeedListing } from '@/types/feed-listing';
+import type { AdminListing } from '@/services/adminService';
 
-const layoutLabels: Record<string, string> = {
-  single_room: 'Single Room',
-  self_contain: 'Self-Contain',
-  flat: 'Flat',
-};
+function formatCreatedDate(iso: string): string {
+  return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+}
 
 const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }> = {
   available: { bg: DesignColors.successContainer, color: DesignColors.success, label: 'Available' },
@@ -17,12 +15,12 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }>
   maintenance: { bg: DesignColors.warningContainer, color: DesignColors.warning, label: 'Maintenance' },
 };
 
-export function InventoryCard({ listing, onPress }: { listing: FeedListing; onPress?: () => void }) {
+export function InventoryCard({ listing, onPress }: { listing: AdminListing; onPress?: () => void }) {
   const s = STATUS_STYLE[listing.status.toLowerCase()] || STATUS_STYLE.available;
   return (
     <View style={styles.card}>
       <View style={styles.imageWrap}>
-        <Image source={{ uri: listing.image || undefined }} style={styles.image} contentFit="cover" />
+        <Image source={{ uri: listing.primary_image || undefined }} style={styles.image} contentFit="cover" />
         <View style={styles.overlay} />
         <View style={[styles.badge, { backgroundColor: s.bg }]}>
           <Text style={[styles.badgeText, { color: s.color }]}>{s.label}</Text>
@@ -33,19 +31,19 @@ export function InventoryCard({ listing, onPress }: { listing: FeedListing; onPr
           <Text style={styles.title}>{listing.title}</Text>
           <View style={styles.locationRow}>
             <Ionicons name="location-outline" size={14} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.location}>{listing.location}</Text>
+            <Text style={styles.location}>{listing.location_landmark}</Text>
           </View>
         </View>
 
         <View style={styles.metaRow}>
-          <MetaPill icon="bed-outline" label={listing.beds || layoutLabels[listing.layoutType] || listing.layoutType} />
-          <MetaPill icon="water-outline" label={listing.baths || 'N/A'} />
+          <MetaPill icon="cash-outline" label={`₦${(listing.price_amount || 0).toLocaleString('en-US')}`} />
+          {listing.featured ? <MetaPill icon="star-outline" label="Featured" /> : null}
         </View>
 
         <View style={styles.bottomRow}>
           <View style={styles.managerInfo}>
-            <Ionicons name="pricetag-outline" size={13} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.managerText} numberOfLines={1}>{listing.price}</Text>
+            <Ionicons name="calendar-outline" size={13} color={DesignColors.onSurfaceVariant} />
+            <Text style={styles.managerText} numberOfLines={1}>{formatCreatedDate(listing.created_at)}</Text>
           </View>
           <Pressable style={styles.viewButton} onPress={onPress}>
             <Text style={styles.viewButtonText}>View</Text>

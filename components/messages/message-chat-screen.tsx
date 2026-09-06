@@ -46,6 +46,7 @@ export function MessageChatScreen() {
     isConversationLoading,
     isConversationError,
     isMessagesLoading,
+    isMessagesFetching,
     isRefetching,
     refetchMessages,
     sendMessage,
@@ -81,13 +82,22 @@ export function MessageChatScreen() {
     showToast({ message: `Listing attached: ${selected.title}`, type: 'success' });
   };
 
+  const handleBack = () => {
+    if (router.canGoBack()) {
+      router.back();
+    } else {
+      // Web refresh / deep link onto /messages/[id] leaves no in-app screen to pop.
+      router.replace('/(tabs)/messages');
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <SafeKeyboardView
         style={styles.flex}
       >
         <View style={styles.header}>
-          <Pressable onPress={() => router.back()} style={styles.backButton} hitSlop={8}>
+          <Pressable onPress={handleBack} style={styles.backButton} hitSlop={8}>
             <Ionicons name="chevron-back" size={26} color={DesignColors.onSurface} />
           </Pressable>
 
@@ -106,7 +116,7 @@ export function MessageChatScreen() {
           </View>
         </View>
 
-        {isConversationLoading || (isMessagesLoading && messages.length === 0) ? (
+        {isConversationLoading || (messages.length === 0 && (isMessagesLoading || isMessagesFetching)) ? (
           <View style={styles.center}>
             <ActivityIndicator size="large" color={DesignColors.primary} />
           </View>

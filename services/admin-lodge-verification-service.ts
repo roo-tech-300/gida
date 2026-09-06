@@ -78,7 +78,7 @@ export async function fetchAdminLodgeReservations(
           })()
         : { data: null, error: null },
       lidIds.length > 0
-        ? (() => {
+        ? (async () => {
             const chunks = chunkInIds(lidIds);
             const listingsMap: Map<string, { title: string; primary_image: string | null; location_landmark: string }> = new Map();
             for (const chunk of chunks) {

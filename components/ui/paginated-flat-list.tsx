@@ -1,71 +1,34 @@
-import React, { ReactNode, useRef } from 'react';
-import {
-  FlatList,
-  FlatListProps,
-  RefreshControl,
-  View,
-} from 'react-native';
-
-type LoadingComponent = ReactNode | ((props: { isLoading: boolean }) => ReactNode);
+import React from 'react';
+import { FlatList, type FlatListProps } from 'react-native';
+import type { ListRenderItem } from 'react-native';
 
 type PaginatedFlatListProps<T> = {
-  data: T[];
-  keyExtractor: (item: T, index: number) => string;
-  renderItem: FlatListProps<T>['renderItem'];
-  onEndReached?: FlatListProps<T>['onEndReached'];
+  data: readonly T[] | null | undefined;
+  keyExtractor?: (item: T, index: number) => string;
+  renderItem?: ListRenderItem<T> | null | undefined;
+  onEndReached?: () => void;
   onEndReachedThreshold?: number;
-  refreshControl?: boolean;
-  onRefresh?: () => void;
-  LoadingComponent?: LoadingComponent;
-  ListComponent?: ReactNode;
-};
+} & Omit<
+  FlatListProps<T>,
+  'data' | 'keyExtractor' | 'renderItem' | 'onEndReached' | 'onEndReachedThreshold'
+>;
 
-export const PaginatedFlatList = <T>({
+export function PaginatedFlatList<T>({
   data,
   keyExtractor,
   renderItem,
   onEndReached,
   onEndReachedThreshold = 0.5,
-  refreshControl = false,
-  onRefresh,
-  LoadingComponent = (
-    <View
-      style={{
-        padding: 20,
-        textAlign: 'center',
-        color: 'gray',
-      }}
-    >
-      Loading more…
-    </View>
-  ),
-  ListComponent = <React.Fragment />,
   ...rest
-}: PaginatedFlatListProps<T> & FlatListProps<T>) => {
-  const lastRenderedIndexRef = useRef(data.length - 1 || 0);
-
-  const handleEndReached = () => {
-    onEndReached?.();
-  };
-
+}: PaginatedFlatListProps<T>) {
   return (
-    <FlatList
+    <FlatList<T>
       data={data}
       keyExtractor={keyExtractor}
       renderItem={renderItem}
-      onEndReached={handleEndReached}
+      onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold}
-      refreshControl={refreshControl ? (
-        <RefreshControl
-          refreshing={!!onRefresh}
-          onRefresh={onRefresh}
-          colors={['#4F46E5']}
-        >
-          <Spinner size="small" />
-        </RefreshControl>
-      ) : undefined}
-      ListComponent={ListComponent}
-      ...rest
+      {...rest}
     />
   );
-};
+}

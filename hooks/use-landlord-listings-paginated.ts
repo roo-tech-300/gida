@@ -1,6 +1,5 @@
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { fetchLandlordListingsPaginated } from '@/services/landlord-service';
-import type { LandlordListing } from '@/types/landlord';
+import { fetchLandlordListingsPaginated, type LandlordListing } from '@/services/landlord-service';
 
 export function useLandlordListingsPaginated(
   landlordId: string,

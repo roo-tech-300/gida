@@ -74,7 +74,7 @@ export function useDeleteRegion() {
 export function useRegionActions() {
   const { profile } = useAuth();
   const { showToast } = useAppToast();
-  const { data } = useRegionHierarchy();
+  const { data, isRefetching, refetch } = useRegionHierarchy();
 
   const createRegion = useCreateRegion();
   const assignAdmin = useAssignRegionalAdmin();
@@ -187,6 +187,8 @@ export function useRegionActions() {
 
   return {
     data,
+    isRefetching,
+    refetch,
     menuRegionId,
     menuNode,
     adminItems,

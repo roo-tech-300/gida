@@ -31,7 +31,7 @@ export function chunkArray<T>(array: T[], maxSize = MAX_CHUNK_SIZE): T[][] {
  * @returns Object mapping keys to arrays of items
  */
 export function groupBy<T, K extends string | number>(array: T[], keyFn: (item: T) => K): Record<K, T[]> {
-  const grouped: Record<K, T[]> = {};
+  const grouped = {} as Record<K, T[]>;
   for (const item of array) {
     const key = keyFn(item);
     if (!grouped[key]) grouped[key] = [];

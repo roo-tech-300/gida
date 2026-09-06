@@ -17,22 +17,24 @@ export const LoadingFooter = ({
   }
 
   return (
-    <View
-      style={
-        hideWhenIdle
-          ? StyleSheet.absoluteFillObject
-          : {
-              padding: 20,
-              textAlign: 'center',
-              color: 'gray',
-            }
-      }
-    >
+    <View style={styles.container}>
       {isLoading ? (
         <ActivityIndicator size="small" color="#4F46E5" />
       ) : (
-        <Text>{text}</Text>
+        <Text style={styles.text}>{text}</Text>
       )}
     </View>
   );
 };
+
+const styles = StyleSheet.create({
+  container: {
+    padding: 20,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  text: {
+    textAlign: 'center',
+    color: 'gray',
+  },
+});

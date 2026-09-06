@@ -1,6 +1,5 @@
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { fetchAdminListingsPaginated } from '@/services/adminService';
-import type { AdminListing } from '@/types/admin';
+import { fetchAdminListingsPaginated, type AdminListing } from '@/services/adminService';
 
 export function useAdminListingsPaginated(limit = 50) {
   return usePaginatedQuery<AdminListing[]>({

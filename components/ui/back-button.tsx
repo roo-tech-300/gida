@@ -12,7 +12,19 @@ type Props = {
 export function BackButton({ onPress, hasBackground = true }: Props) {
   return (
     <Pressable
-      onPress={onPress ?? (() => router.back())}
+      onPress={
+        onPress ??
+        (() => {
+          // On web, a refresh / deep link makes the current screen the ONLY route in
+          // the stack. router.back() then dispatches GO_BACK with nothing to pop,
+          // producing a dev-only warning. Fall back to a real destination instead.
+          if (router.canGoBack()) {
+            router.back();
+          } else {
+            router.replace('/(tabs)');
+          }
+        })
+      }
       style={[styles.btn, !hasBackground && styles.btnPlain]}
     >
       <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />

@@ -33,7 +33,7 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
         ? supabase.from('slot_credits').select('user_id, listing_id').in('user_id', inviteeIds).in('listing_id', listingIds).neq('status', 'expired')
         : Promise.resolve({ data: null, error: null } as const),
       listingIds.length > 0
-        ? (() => {
+        ? (async () => {
             const chunks = chunkInIds(listingIds);
             const listingsMap: Map<string, DbListing> = new Map();
             for (const chunk of chunks) {
@@ -47,9 +47,15 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
         : Promise.resolve({ data: null, error: null } as const),
     ]);
 
-    type ProfileRow = { id: string; full_name: string | null; gender: string | null };
-    const names = new Map((Object.entries(inviterProfiles ?? {}) as [string, { full_name: string | null; gender: string | null }][]).map((p) => [p[0], p[1].full_name]));
-    const genders = new Map((Object.entries(inviterProfiles ?? {}) as [string, { full_name: string | null; gender: string | null }][]).map((p) => [p[0], p[1].gender]));
+    type InviterProfile = { full_name?: string | null; gender?: string | null };
+    const profiles = inviterProfiles ?? {};
+    const names = new Map<string, string | null>();
+    const genders = new Map<string, string | null>();
+    for (const [id, value] of Object.entries(profiles)) {
+      const info = (value ?? {}) as InviterProfile;
+      names.set(id, info.full_name ?? null);
+      genders.set(id, info.gender ?? null);
+    }
     type CreditRow = { user_id: string; listing_id: string };
     const existingSlotKeys = new Set(
       (existingCredits as CreditRow[] | null ?? []).map((c) => `${c.user_id}:${c.listing_id}`),

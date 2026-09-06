@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  PaginatedFlatList,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -11,7 +10,7 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
+import { useRouter } from 'expo-router';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
@@ -19,25 +18,32 @@ import { DesignColors, fontFamily } from '@/constants/design';
 import { useLandlordsPaginated } from '@/hooks/use-landlords-paginated';
 import { getInitials } from '@/utils/get-initials';
 import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
-import { useAppToast } from '@/components/ui/toast-card';
+import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
+import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
+import type { LandlordWithCount } from '@/services/landlord-service';
 
 export function LandlordContractsScreen() {
   const insets = useSafeAreaInsets();
-  const { data: landlords, isLoading, hasNextPage, fetchNextPage } = useLandlordsPaginated();
+  const router = useRouter();
+  const { data: landlords, isLoading, fetchNextPage } = useLandlordsPaginated();
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     // loading toast optional
   }, [isLoading]);
 
+  const landlordItems = useMemo(
+    () => (landlords?.pages ?? []).reduce<LandlordWithCount[]>((acc, page) => acc.concat(page), []),
+    [landlords],
+  );
+
   const filtered = useMemo(() => {
-    if (!landlords) return [];
-    if (!query.trim()) return landlords;
+    if (!query.trim()) return landlordItems;
     const q = query.toLowerCase();
-    return landlords.filter(
+    return landlordItems.filter(
       (l) => l.full_name.toLowerCase().includes(q) || (l.email ?? '').toLowerCase().includes(q),
     );
-  }, [query, landlords]);
+  }, [query, landlordItems]);
 
   return (
     <SafeAreaView style={styles.root} edges={['top']}>
@@ -76,14 +82,15 @@ export function LandlordContractsScreen() {
             <PaginatedFlatList
               data={filtered}
               keyExtractor={(item) => item.id}
-              renderItem={(item) => (
-                <Pressable key={item.id} style={styles.landlordCard} onPress={() => router.push(`/admin/landlord-properties/${item.id}` as any)}>
+              renderItem={({ item }) => (
+                <Pressable
+                  style={styles.landlordCard}
+                  onPress={() => router.push(`/admin/landlord-properties/${item.id}`)}
+                >
                   <View style={styles.cardLeft}>
-                    <Pressable style={styles.avatar} hitSlop={6} onPress={(e) => {
-                      e.stopPropagation();
-                    }}>
+                    <View style={styles.avatar}>
                       <Text style={styles.avatarText}>{getInitials(item.full_name)}</Text>
-                    </Pressable>
+                    </View>
                     <View style={styles.cardInfo}>
                       <Text style={styles.landlordName}>{item.full_name}</Text>
                       <Text style={styles.landlordEmail}>{item.email ?? ''}</Text>
@@ -95,7 +102,6 @@ export function LandlordContractsScreen() {
               )}
               onEndReached={fetchNextPage}
               onEndReachedThreshold={0.5}
-              ListComponent={<View />}
             />
           )}
         </ScrollView>
@@ -106,7 +112,7 @@ export function LandlordContractsScreen() {
         <Text style={styles.fabLabel}>Add Landlord</Text>
       </Pressable>
 
-      <LandlordProfileModal visible={false} landlord={{}} onClose={() => {}} />
+      <LandlordProfileModal visible={false} landlord={null} onClose={() => {}} />
     </SafeAreaView>
   );
 }
@@ -131,6 +137,25 @@ const styles = StyleSheet.create({
     marginBottom: 20,
   },
   searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
+
+  landlordCard: {
+    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 12,
+    borderRadius: 12, padding: 14,
+    backgroundColor: DesignColors.surface,
+    borderWidth: 1, borderColor: DesignColors.borderSoft,
+    marginBottom: 12,
+  },
+  cardLeft: { flexDirection: 'row', alignItems: 'center', gap: 12, flex: 1 },
+  avatar: {
+    width: 44, height: 44, borderRadius: 22,
+    backgroundColor: DesignColors.primaryTint,
+    alignItems: 'center', justifyContent: 'center',
+  },
+  avatarText: { fontSize: 14, fontWeight: '700', color: DesignColors.primary, fontFamily },
+  cardInfo: { flex: 1, gap: 2 },
+  landlordName: { fontSize: 15, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
+  landlordEmail: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily },
+  propertyText: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily, marginTop: 2 },
 
   center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 80 },
   emptyText: { fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },

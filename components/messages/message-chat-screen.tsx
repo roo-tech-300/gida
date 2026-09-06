@@ -106,7 +106,7 @@ export function MessageChatScreen() {
               <Image source={{ uri: participant.avatarUrl }} style={styles.avatar} contentFit="cover" />
             ) : (
               <View style={[styles.avatar, styles.avatarFallback]}>
-                <Text style={styles.avatarInitials}>{getInitials(participant?.name ?? 'Gida')}</Text>
+                <Text style={styles.avatarInitials}>{getInitials(participant?.name ?? 'User')}</Text>
               </View>
             )}
           </View>

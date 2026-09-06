@@ -25,7 +25,7 @@ const customTheme = {
 };
 
 function AuthGate({ children }: { children: React.ReactNode }) {
-  const { profile, isLoading, isAuthenticated } = useAuth();
+  const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
   const segments = useSegments();
   const router = useRouter();
 
@@ -36,8 +36,18 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
+    const inTabsGroup = segments[0] === '(tabs)';
 
     if (!isAuthenticated) {
+      // Valid session but the profile row hasn't loaded yet (e.g. offline on
+      // first run): best-effort homepage. The profile fills in silently when
+      // connectivity returns, and routing re-evaluates then.
+      if (hasSession) {
+        if (!inTabsGroup) {
+          router.replace('/(tabs)');
+        }
+        return;
+      }
       if (isWeb) {
         if (!inLandingGroup && !inAuthGroup) {
           router.replace('/(landing)');
@@ -58,7 +68,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (isAuthenticated && profile?.onboarded && (inAuthGroup || inOnboardingGroup || inLandingGroup)) {
       router.replace('/(tabs)');
     }
-  }, [isLoading, isAuthenticated, profile, segments, router]);
+  }, [isLoading, isAuthenticated, hasSession, profile, segments, router]);
 
   if (isLoading) return <SplashScreen />;
 

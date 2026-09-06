@@ -1,6 +1,7 @@
 // @ts-ignore
 import messaging from '@react-native-firebase/messaging';
 import { supabase } from '@/lib/supabase';
+import { Platform } from 'react-native';
 import type { ServerChatMessage } from '@/types/messages';
 
 const messagingInstance = messaging;
@@ -17,9 +18,25 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
 
 export const getFCMToken = async (): Promise<string | null> => {
   try {
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (!currentUser) return null;
+
     const token = await messagingInstance.getToken({
       sync: true,
     });
+
+    if (token) {
+      // Persist token to Supabase device_tokens table
+      await supabase.from('device_tokens').upsert(
+        {
+          user_id: currentUser.id,
+          token,
+          platform: Platform.OS,
+        },
+        { onConflict: 'user_id,platform' }
+      );
+    }
+
     return token ?? null;
   } catch (error) {
     console.error('[Notifications] Failed to get FCM token:', error);

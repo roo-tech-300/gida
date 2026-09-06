@@ -36,6 +36,7 @@ export interface SlotCredit {
   invite_code?: string | null;
   created_at: string;
   payment_deadline: string;
+  expired_at?: string | null;
   estate?: Estate;
   listing_id?: string;
   pod_id?: string | null;

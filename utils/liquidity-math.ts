@@ -87,7 +87,6 @@ export function calculateSeparateBillingPerPerson(totalPrice: number, intentSize
   return Math.ceil(totalReservedAmount / intentSize);
 }
 
-export const EXPECTED_TOTAL_POD_FEE = 20000;
 export const PAYMENT_WINDOW_MS = 3 * 24 * 3600 * 1000;
 
 export function allocateEvenShares(total: number, count: number): { shares: number[]; total: number } {
@@ -158,13 +157,8 @@ export function calculateBaseRent(totalRent: number, targetOccupancy: number): n
   return Math.ceil(totalRent / targetOccupancy);
 }
 
-export function calculatePlatformFee(totalPodFee: number, targetOccupancy: number): number {
-  if (targetOccupancy <= 0) return 0;
-  return Math.ceil(totalPodFee / targetOccupancy);
-}
-
-export function calculateTotalUserCost(totalRent: number, totalPodFee: number, targetOccupancy: number): number {
-  return calculateBaseRent(totalRent, targetOccupancy) + calculatePlatformFee(totalPodFee, targetOccupancy);
+export function calculateTotalUserCost(totalRent: number, targetOccupancy: number): number {
+  return calculateBaseRent(totalRent, targetOccupancy);
 }
 
 export function verifyPodCompleteness(currentTotalIntent: number, targetOccupancy: number): boolean {

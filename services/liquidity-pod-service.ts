@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { EXPECTED_TOTAL_POD_FEE, PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
+import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
 import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
 import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
@@ -171,7 +171,7 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   }
 
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, pod.property_tier, target, generateInviteCode());
-  credit.amount_paid = memberAmount(args.listing.price_amount, EXPECTED_TOTAL_POD_FEE, target, activeMembers.length);
+  credit.amount_paid = memberAmount(args.listing.price_amount, target, activeMembers.length);
 
   const outcome = await joinPodViaWorker(pod.group_code ?? args.code);
   if (outcome.kind === 'failed') {
@@ -186,7 +186,7 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   const nextTotal = activeMembers.length + 1;
   if (nextTotal >= target) {
     const finalizedMembers = [...activeMembers, buildMember(userId, credit.id, credit.amount_paid)];
-    assertRevenueParity(finalizedMembers, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
+    assertRevenueParity(finalizedMembers, args.listing.price_amount);
   }
 
   const founder = pod.members.find((m) => (m.intent_size ?? 1) > 0 && m.user_id !== userId);
@@ -253,7 +253,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
 
   const code = args.createCode?.trim() || generateInviteCode();
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, args.propertyTier, args.targetOccupancy, code);
-  credit.amount_paid = memberAmount(args.listing.price_amount, EXPECTED_TOTAL_POD_FEE, args.targetOccupancy, 0);
+  credit.amount_paid = memberAmount(args.listing.price_amount, args.targetOccupancy, 0);
   console.log('[PodService] Credit built — id:', credit.id, 'status:', credit.status, 'amount:', credit.amount_paid);
 
   const matchedGender = args.creatorGender === 'MALE' || args.creatorGender === 'FEMALE' ? args.creatorGender : 'ANY';
@@ -274,7 +274,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
   };
 
   if (pod.is_finalized) {
-    assertRevenueParity(pod.members, args.listing.price_amount, EXPECTED_TOTAL_POD_FEE);
+    assertRevenueParity(pod.members, args.listing.price_amount);
   }
 
   console.log('[PodService] Persisting pod...');

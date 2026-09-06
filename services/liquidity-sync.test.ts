@@ -128,7 +128,7 @@ describe('server sync guarantees', () => {
 
     const { synced } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
     expect(synced).toBe(true);
-    expect(memberInserts[0]).toMatchObject({ amount_paid: 610000 });
+    expect(memberInserts[0]).toMatchObject({ amount_paid: 600000 });
   });
 
   it('delegates a pod-finalizing join to the atomic join_pod RPC', async () => {
@@ -162,7 +162,7 @@ describe('server sync guarantees', () => {
             cleanliness_score: 5,
             sleep_schedule: '',
             slot_credit_id: CREDIT_ID,
-            amount_paid: 610000,
+            amount_paid: 600000,
           }],
           current_total_intent: 1,
           is_finalized: false,
@@ -173,7 +173,7 @@ describe('server sync guarantees', () => {
     );
     supabaseMock.auth.getUser.mockResolvedValue({ data: { user: { id: JOINER_ID } } });
     supabaseMock.rpc.mockResolvedValue({
-      data: { creditId: JOINER_CREDIT_ID, podId: POD_ID, amountPaid: 610000, isFinalized: true },
+      data: { creditId: JOINER_CREDIT_ID, podId: POD_ID, amountPaid: 600000, isFinalized: true },
       error: null,
     });
 
@@ -185,7 +185,7 @@ describe('server sync guarantees', () => {
 
     expect(synced).toBe(true);
     expect(credit.id).toBe(JOINER_CREDIT_ID);
-    expect(credit.amount_paid).toBe(610000);
+    expect(credit.amount_paid).toBe(600000);
     expect(supabaseMock.rpc).toHaveBeenCalledWith('join_pod', {
       p_group_code: founder.credit.invite_code,
     });

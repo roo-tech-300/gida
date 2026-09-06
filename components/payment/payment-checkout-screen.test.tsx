@@ -29,7 +29,7 @@ const PENDING_CREDIT: SlotCredit = {
   invite_code: 'GIDA-POD-0001',
   created_at: new Date().toISOString(),
   payment_deadline: new Date(Date.now() + 22 * 3600 * 1000).toISOString(),
-  amount_paid: 610000,
+  amount_paid: 600000,
   estate: {
     id: 'est-101',
     name: 'Gida Prestige Residence',
@@ -73,7 +73,7 @@ describe('PaymentCheckoutScreen (dummy payment flow)', () => {
     );
 
     expect(getByTestId('checkout-amount')).toBeTruthy();
-    expect(getByText('₦610,000')).toBeTruthy();
+    expect(getByText('₦600,000')).toBeTruthy();
     expect(getByTestId('checkout-pay-btn')).toBeTruthy();
     expect(getByTestId('method-card')).toBeTruthy();
     expect(getByTestId('method-transfer')).toBeTruthy();

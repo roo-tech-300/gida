@@ -22,10 +22,16 @@ type Props = {
 };
 
 const PAID_STATUSES: SlotCredit['status'][] = ['paid_unmatched', 'matched', 'subletting'];
+const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 export function ReservedHousesSection({ reservations, hasError, isLoading }: Props) {
   const router = useRouter();
-  const reserved = reservations.filter((credit) => credit.status !== 'expired' || credit.listing_id);
+  const reserved = reservations.filter((credit) => {
+    if (credit.status !== 'expired') return true;
+    if (!credit.expired_at) return true; // Backward compat: show if no timestamp
+    const expiredTime = new Date(credit.expired_at).getTime();
+    return Date.now() - expiredTime <= THREE_DAYS_MS;
+  });
 
   if (!isLoading && !hasError && reserved.length === 0) {
     return null;

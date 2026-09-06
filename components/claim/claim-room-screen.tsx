@@ -12,7 +12,7 @@ import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
+import { calculateBaseRent, derivePropertyTier } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
@@ -42,9 +42,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
     setSelectedTargetOccupancy(newOccupancy);
   };
 
-  const baseRent = calculateBaseRent(priceAmount, selectedTargetOccupancy);
-  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, selectedTargetOccupancy);
-  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, selectedTargetOccupancy);
+  const price = calculateBaseRent(priceAmount, selectedTargetOccupancy);
 
   const handleSecureSpace = useCallback(async () => {
     if (!dbListing) return;
@@ -115,11 +113,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             onSelectIntent={handleOccupancyChange}
           />
 
-          <ClaimSplitSummary
-            baseRent={baseRent}
-            platformFee={platformFee}
-            totalCost={totalCost}
-          />
+          <ClaimSplitSummary price={price} />
 
           <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
 

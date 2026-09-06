@@ -5,7 +5,11 @@ import type {
   MessageAttachment,
   ServerChatMessage,
 } from '@/types/messages';
-import { subscribeToMessageNotifications } from '@/src/notifications';
+import {
+  subscribeToMessageNotifications,
+  getNotificationTitle,
+  getNotificationBody,
+} from '@/src/notifications';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 type ConversationRow = {
@@ -230,7 +234,12 @@ export async function sendMessage(input: SendMessageInput): Promise<ServerChatMe
     throw error;
   }
   console.log('[MsgService] Message inserted — id:', data.id);
-  return mapMessageRow(data as MessageRow);
+
+  // Broadcast push notification to conversation participants
+  const newMessage = mapMessageRow(data as MessageRow);
+  await broadcastMessageToConversation(input.conversationId, newMessage);
+
+  return newMessage;
 }
 
 export async function markConversationRead(conversationId: string, readerId: string): Promise<void> {
@@ -241,6 +250,47 @@ export async function markConversationRead(conversationId: string, readerId: str
 
   if (error) {
     console.error('[MessageService] Failed to mark conversation read:', error.message);
+  }
+}
+
+async function broadcastMessageToConversation(
+  conversationId: string,
+  message: ServerChatMessage
+): Promise<void> {
+  const { data: conversation } = await supabase
+    .from('conversations')
+    .select('participant_a, participant_b')
+    .eq('id', conversationId)
+    .single();
+
+  if (!conversation) return;
+
+  const participantIds = [conversation.participant_a, conversation.participant_b];
+  const { data: tokens } = await supabase
+    .from('device_tokens')
+    .select('token, platform')
+    .in('user_id', participantIds);
+
+  const notificationTitle = getNotificationTitle(message);
+  const notificationBody = getNotificationBody(message);
+
+  if (!tokens) return;
+
+  for (const { token, platform } of tokens) {
+    try {
+      await messagingInstance.send({
+        notification: {
+          title: notificationTitle,
+          body: notificationBody,
+        },
+        token,
+      });
+    } catch (err) {
+      console.error(
+        `[MessageService] Failed to send push notification:`,
+        err
+      );
+    }
   }
 }
 

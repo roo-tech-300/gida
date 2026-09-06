@@ -10,9 +10,7 @@ type Props = {
   priceLabel: string;
   seatNumber: number;
   totalSeats: number;
-  baseRent: number;
-  platformFee: number;
-  totalCost: number;
+  price: number;
 };
 
 export function JoinConfirm({
@@ -21,9 +19,7 @@ export function JoinConfirm({
   priceLabel,
   seatNumber,
   totalSeats,
-  baseRent,
-  platformFee,
-  totalCost,
+  price,
 }: Props) {
   const seatsLeft = Math.max(0, totalSeats - seatNumber);
 
@@ -67,7 +63,7 @@ export function JoinConfirm({
         </Text>
       </View>
 
-      <ClaimSplitSummary baseRent={baseRent} platformFee={platformFee} totalCost={totalCost} />
+      <ClaimSplitSummary price={price} />
 
       <View style={styles.deadlineNote}>
         <Ionicons name="time-outline" size={16} color={DesignColors.primaryBright} />

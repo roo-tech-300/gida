@@ -8,7 +8,7 @@ import { ClaimReviewStep } from '@/components/claim/claim-review-step';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import { StepTransition } from '@/components/claim/step-transition';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
+import { calculateBaseRent } from '@/utils/liquidity-math';
 import { styles } from './claim-room-modal.styles';
 
 type Props = {
@@ -71,9 +71,7 @@ export function ClaimWizardBody({
   onFriendRemove,
 }: Props) {
   const pricingOccupancy = isBuyout ? 1 : 1 + roommateCount;
-  const baseRent = calculateBaseRent(priceAmount, pricingOccupancy);
-  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
-  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, pricingOccupancy);
+  const price = calculateBaseRent(priceAmount, pricingOccupancy);
 
   const footerLabel = isConfirmStep ? 'Reserve My Spot' : 'Continue';
   const footerLoading = isPurchasing || (step === 1 && wantsRoommates === true && openPodsLoading);
@@ -98,9 +96,7 @@ export function ClaimWizardBody({
           matchedCount={matchedCount}
           code={inviteCode}
           roster={friends}
-          baseRent={baseRent}
-          platformFee={platformFee}
-          totalCost={totalCost}
+          price={price}
         />
       );
     }

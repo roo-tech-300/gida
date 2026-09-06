@@ -16,9 +16,7 @@ type Props = {
   matchedCount: number;
   code: string;
   roster: SelectedFriend[];
-  baseRent: number;
-  platformFee: number;
-  totalCost: number;
+  price: number;
 };
 
 export function ClaimReview({
@@ -30,9 +28,7 @@ export function ClaimReview({
   matchedCount,
   code,
   roster,
-  baseRent,
-  platformFee,
-  totalCost,
+  price,
 }: Props) {
   return (
     <>
@@ -72,7 +68,7 @@ export function ClaimReview({
         )}
       </View>
 
-      <ClaimSplitSummary baseRent={baseRent} platformFee={platformFee} totalCost={totalCost} />
+      <ClaimSplitSummary price={price} />
 
       <View style={styles.deadlineCard}>
         <Ionicons name="time-outline" size={18} color={DesignColors.warning} />

@@ -10,7 +10,8 @@
 --     Drifted counters (e.g. extra members on an over-capacity pod) converge on
 --     the next join/remove/reconcile instead of corrupting new joins.
 --   * Even-share math matches allocateEvenShares/memberAmount exactly:
---     share[i] = floor(total/target) + (i < total % target ? 1 : 0), i = active count.
+--     share[i] = floor(rent/target) + (i < rent % target ? 1 : 0), i = active count.
+--     Rent-only: no platform fee is added.
 --
 -- Run order: AFTER sql/add_liquidity_pool_schema.sql, sql/add_target_occupancy_and_join.sql
 -- and sql/add_payment_flow.sql (the 'expired' enum label must exist).
@@ -42,7 +43,6 @@ DECLARE
   v_target INTEGER;
   v_active INTEGER;
   v_rent BIGINT;
-  v_total_fee CONSTANT INTEGER := 20000; -- EXPECTED_TOTAL_POD_FEE in utils/liquidity-math.ts
   v_share NUMERIC;
   v_new_intent INTEGER;
   v_finalized BOOLEAN;
@@ -91,9 +91,8 @@ BEGIN
 
   SELECT price_amount::BIGINT INTO v_rent FROM listings WHERE id = v_pod.listing_id;
 
-  -- memberAmount(rent, fee, target, index = v_active): even split, first members absorb the remainder.
-  v_share := FLOOR(v_rent / v_target) + CASE WHEN v_active < (v_rent % v_target) THEN 1 ELSE 0 END
-           + FLOOR(v_total_fee / v_target) + CASE WHEN v_active < (v_total_fee % v_target) THEN 1 ELSE 0 END;
+  -- memberAmount(rent, target, index = v_active): even split, first members absorb the remainder.
+  v_share := FLOOR(v_rent / v_target) + CASE WHEN v_active < (v_rent % v_target) THEN 1 ELSE 0 END;
 
   v_new_intent := v_active + 1;
   v_finalized := v_new_intent >= v_target;

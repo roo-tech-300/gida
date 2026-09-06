@@ -18,6 +18,7 @@ import {
 import { useOnboarding } from '@/context/onboarding-context';
 import { useAuth } from '@/context/auth-context';
 import { saveOnboardingProfile } from '@/services/profileService';
+import { requestNotificationPermission, getFCMToken } from '@/src/notifications';
 import { AMENITY_OPTIONS, LAYOUT_OPTIONS } from '@/types/onboarding';
 import type { LayoutType, Amenity } from '@/types/onboarding';
 
@@ -48,6 +49,15 @@ export default function OnboardingLayoutScreen() {
     if (!profile?.id) {
       showToast({ type: 'error', message: 'User not found. Please sign in again.' });
       return;
+    }
+
+    // Request notification permission
+    const notificationEnabled = await requestNotificationPermission();
+    if (!notificationEnabled) {
+      showToast({ type: 'warn', message: 'Notifications disabled. Some features may be limited.' });
+    } else {
+      // Get and persist FCM token
+      await getFCMToken();
     }
 
     setSaving(true);

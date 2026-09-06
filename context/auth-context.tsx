@@ -1,9 +1,31 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
 import { useQueryClient } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
 import { supabase } from '@/lib/supabase';
 import { signOutUserAccount } from '@/services/authService';
 import { cacheProfile, getCachedProfile, clearCachedProfile } from '@/services/offline-profile-store';
+
+// Upper bound for any single launch-time network wait. The splash screen only
+// ever covers this window — it can never hang indefinitely.
+const SETTLE_TIMEOUT_MS = 10000;
+
+function withTimeout<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = setTimeout(() => reject(new Error('Auth settle timed out')), ms);
+  });
+  return Promise.race([promise, timeout]).finally(() => clearTimeout(timer));
+}
+
+async function isOffline(): Promise<boolean> {
+  try {
+    const state = await NetInfo.fetch();
+    return state.isConnected === false;
+  } catch {
+    return false;
+  }
+}
 
 export type AdminRole = 'super_admin' | 'regional_admin' | 'field_admin';
 
@@ -33,6 +55,10 @@ type AuthContextValue = {
   profile: AuthProfile | null;
   isLoading: boolean;
   isAuthenticated: boolean;
+  // True when a Supabase session exists even if the profile row hasn't loaded
+  // yet (e.g. offline on first run). Lets the router send the user to the
+  // homepage best-effort instead of bouncing them to login.
+  hasSession: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -42,6 +68,7 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export function AuthProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const [profile, setProfile] = useState<AuthProfile | null>(null);
+  const [hasSession, setHasSession] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   const fetchProfile = useCallback(async (userId: string, email: string | null = null) => {
@@ -74,6 +101,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }, [profile?.email]);
 
   useEffect(() => {
+    let cancelled = false;
     let realtimeCleanup: (() => void) | null = null;
 
     const attachRealtime = (userId: string) => {
@@ -85,7 +113,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           { event: 'UPDATE', schema: 'public', table: 'profiles', filter: `id=eq.${userId}` },
           () => {
             console.log('[Auth] Profile updated on the server — refreshing.');
-            void fetchProfile(userId, profile?.email ?? null);
+            void fetchProfile(userId, profile?.email ?? null).catch((error) => {
+              console.log('[Auth] Background profile refresh failed.', error);
+            });
           },
         );
       channel.subscribe((status, err) => {
@@ -96,39 +126,100 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       realtimeCleanup = () => void supabase.removeChannel(channel);
     };
 
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session?.user) {
-        const cached = getCachedProfile();
-        if (cached) {
-          setProfile(cached);
-          setIsLoading(false);
-        }
-        fetchProfile(session.user.id, session.user.email ?? null).finally(() => {
-          if (!cached) setIsLoading(false);
-        });
-        attachRealtime(session.user.id);
-      } else {
-        setProfile(null);
+    // Launch settle: cache-first so the homepage renders instantly, then a
+    // bounded, silent background sync. The splash screen only ever covers the
+    // no-cache determination window — never an unbounded network wait.
+    const settle = async () => {
+      const cached = getCachedProfile();
+      if (cached && !cancelled) {
+        setProfile(cached);
+        setHasSession(true);
         setIsLoading(false);
       }
-    });
+
+      let sessionUser: { id: string; email?: string | null } | null = null;
+      try {
+        const { data: { session } } = await withTimeout(supabase.auth.getSession(), SETTLE_TIMEOUT_MS);
+        sessionUser = session?.user ?? null;
+      } catch (error) {
+        console.log('[Auth] Session check timed out or failed — continuing with cached state.', error);
+      }
+      if (cancelled) return;
+
+      if (!sessionUser) {
+        if (!cached) {
+          setProfile(null);
+          setHasSession(false);
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      setHasSession(true);
+      attachRealtime(sessionUser.id);
+
+      // Offline: stay on the cached/session state; the reconnect listener
+      // below syncs silently when connectivity returns. No hiccup.
+      if (await isOffline()) {
+        setIsLoading(false);
+        return;
+      }
+
+      try {
+        await withTimeout(fetchProfile(sessionUser.id, sessionUser.email ?? null), SETTLE_TIMEOUT_MS);
+      } catch (error) {
+        console.log('[Auth] Background profile refresh failed — keeping current state.', error);
+      } finally {
+        if (!cancelled) setIsLoading(false);
+      }
+    };
+    void settle();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
-        fetchProfile(session.user.id, session.user.email ?? null);
+        setHasSession(true);
+        void fetchProfile(session.user.id, session.user.email ?? null).catch((error) => {
+          console.log('[Auth] Background profile refresh failed.', error);
+        });
         attachRealtime(session.user.id);
       } else {
         clearCachedProfile();
         setProfile(null);
+        setHasSession(false);
         realtimeCleanup?.();
         realtimeCleanup = null;
       }
     });
 
     return () => {
+      cancelled = true;
       subscription.unsubscribe();
       realtimeCleanup?.();
     };
+  }, [fetchProfile]);
+
+  // Silent catch-up when connectivity returns: refresh the profile in the
+  // background without touching isLoading, so the user notices nothing.
+  const firstNetRun = useRef(true);
+  useEffect(() => {
+    const unsubscribe = NetInfo.addEventListener((state) => {
+      if (firstNetRun.current) {
+        firstNetRun.current = false;
+        return;
+      }
+      if (!state.isConnected) return;
+      void (async () => {
+        try {
+          const { data: { session } } = await withTimeout(supabase.auth.getSession(), SETTLE_TIMEOUT_MS);
+          if (!session?.user) return;
+          setHasSession(true);
+          await withTimeout(fetchProfile(session.user.id, session.user.email ?? null), SETTLE_TIMEOUT_MS);
+        } catch (error) {
+          console.log('[Auth] Reconnect refresh failed — will retry on next change.', error);
+        }
+      })();
+    });
+    return () => unsubscribe();
   }, [fetchProfile]);
 
   const refreshProfile = useCallback(async () => {
@@ -155,6 +246,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearCachedProfile();
     queryClient.clear();
     setProfile(null);
+    setHasSession(false);
   }, [queryClient]);
 
   return (
@@ -163,6 +255,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         profile,
         isLoading,
         isAuthenticated: !!profile,
+        hasSession,
         refreshProfile,
         signOut,
       }}>

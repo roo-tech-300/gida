@@ -49,6 +49,8 @@ export async function expireSlotCredit(creditId: string): Promise<boolean> {
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
   const remoteOk = await updateRemote(creditId, 'expired');
+  // Set expired_at timestamp for grace period tracking
+  await supabase.from('slot_credits').update({ expired_at: new Date().toISOString() }).eq('id', creditId);
   await reconcileRemotePod(creditId);
   return remoteOk !== null;
 }

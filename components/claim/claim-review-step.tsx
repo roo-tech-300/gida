@@ -14,9 +14,7 @@ type Props = {
   matchedCount: number;
   code: string;
   roster: SelectedFriend[];
-  baseRent: number;
-  platformFee: number;
-  totalCost: number;
+  price: number;
 };
 
 export function ClaimReviewStep({
@@ -29,9 +27,7 @@ export function ClaimReviewStep({
   matchedCount,
   code,
   roster,
-  baseRent,
-  platformFee,
-  totalCost,
+  price,
 }: Props) {
   return (
     <>
@@ -48,9 +44,7 @@ export function ClaimReviewStep({
         matchedCount={matchedCount}
         code={code}
         roster={roster}
-        baseRent={baseRent}
-        platformFee={platformFee}
-        totalCost={totalCost}
+        price={price}
       />
     </>
   );

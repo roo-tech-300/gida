@@ -9,7 +9,7 @@ import { WizardHeader } from '@/components/claim/wizard-header';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 import { useListing } from '@/hooks/use-listing';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, derivePropertyTier, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
+import { calculateBaseRent, derivePropertyTier } from '@/utils/liquidity-math';
 import { findPodByGroupCode, currentUserId } from '@/services/liquidity-pod-service';
 import type { Pod } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
@@ -44,9 +44,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
   const priceLabel = `Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`;
   const seatNumber = pod ? pod.current_total_intent + 1 : 0;
   const joinTarget = pod?.target_occupancy ?? 1;
-  const baseRent = calculateBaseRent(priceAmount, joinTarget);
-  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, joinTarget);
-  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, joinTarget);
+  const price = calculateBaseRent(priceAmount, joinTarget);
 
   const changeCode = (value: string) => {
     setCode(value);
@@ -171,9 +169,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
                 priceLabel={priceLabel}
                 seatNumber={seatNumber}
                 totalSeats={joinTarget}
-                baseRent={baseRent}
-                platformFee={platformFee}
-                totalCost={totalCost}
+                price={price}
               />
             ) : (
               <Text style={styles.errorText}>

@@ -1,4 +1,14 @@
-import { QueryClient } from '@tanstack/react-query';
+import { QueryClient, onlineManager } from '@tanstack/react-query';
+import NetInfo from '@react-native-community/netinfo';
+
+// Let TanStack pause queries while offline and resume on reconnect instead of
+// flashing error states — part of the "user notices nothing" behavior.
+onlineManager.setEventListener((setOnline) => {
+  const unsubscribe = NetInfo.addEventListener((state) => {
+    setOnline(!!state.isConnected);
+  });
+  return unsubscribe;
+});
 
 export const queryClient = new QueryClient({
   defaultOptions: {

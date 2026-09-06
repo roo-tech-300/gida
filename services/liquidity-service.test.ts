@@ -125,7 +125,7 @@ function founderPodFixture(): Pod {
       cleanliness_score: 5,
       sleep_schedule: '',
       slot_credit_id: 'founder-credit-id',
-      amount_paid: 610000,
+      amount_paid: 600000,
     }],
     current_total_intent: 1,
     is_finalized: false,
@@ -144,7 +144,7 @@ function memberFixture(userId: string): Pod['members'][number] {
     cleanliness_score: 5,
     sleep_schedule: '',
     slot_credit_id: `${userId}-credit`,
-    amount_paid: 610000,
+    amount_paid: 600000,
   };
 }
 
@@ -340,7 +340,7 @@ describe('lodge invitations', () => {
       }),
     );
     supabaseMock.rpc.mockResolvedValue({
-      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000, status: 'booked_pending_claim' },
+      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 600000, status: 'booked_pending_claim' },
       error: null,
     });
 
@@ -377,7 +377,7 @@ describe('lodge invitations', () => {
       }),
     );
     supabaseMock.rpc.mockResolvedValue({
-      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000, status: 'booked_pending_claim' },
+      data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 600000, status: 'booked_pending_claim' },
       error: null,
     });
 
@@ -444,7 +444,7 @@ describe('worker-backed pod join', () => {
   it('prefers the worker endpoint and applies its credit without touching the direct RPC', async () => {
     fetchSpy = stubFetch(200, {
       joined: true,
-      credit: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000, isFinalized: false, inviteCode: GROUP_CODE },
+      credit: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 600000, isFinalized: false, inviteCode: GROUP_CODE },
     });
 
     const { credit } = await acceptLodgeInvitation(invitationFixture(), LISTING);
@@ -455,7 +455,7 @@ describe('worker-backed pod join', () => {
     );
     expect(supabaseMock.rpc).not.toHaveBeenCalled();
     expect(credit.id).toBe(CREDIT_ID);
-    expect(credit.amount_paid).toBe(610000);
+    expect(credit.amount_paid).toBe(600000);
   });
 
   it('surfaces an ALREADY_MEMBER rejection from the worker as a friendly error', async () => {
@@ -469,7 +469,7 @@ describe('worker-backed pod join', () => {
     fetchSpy = jest.spyOn(global, 'fetch').mockImplementation(async () => {
       throw new Error('network down');
     });
-    supabaseMock.rpc.mockResolvedValue({ data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 610000 }, error: null });
+    supabaseMock.rpc.mockResolvedValue({ data: { creditId: CREDIT_ID, podId: POD_ID, amountPaid: 600000 }, error: null });
 
     const { credit } = await acceptLodgeInvitation(invitationFixture(), LISTING);
 

@@ -12,7 +12,6 @@ import {
   isValidTargetOccupancy,
   getTargetOccupancyOptions,
   calculateBaseRent,
-  calculatePlatformFee,
   calculateTotalUserCost,
   verifyPodCompleteness,
   podEffectiveGender,
@@ -66,16 +65,10 @@ describe('Dynamic Target Occupancy Math', () => {
       expect(calculateBaseRent(1200000, 4)).toBe(300000); // 25%
     });
 
-    it('calculates the platform fee correctly based on total expected fee', () => {
-      const totalPodFee = 20000;
-      expect(calculatePlatformFee(totalPodFee, 1)).toBe(20000); // Solo pays all
-      expect(calculatePlatformFee(totalPodFee, 2)).toBe(10000); // 2 people split it
-      expect(calculatePlatformFee(totalPodFee, 4)).toBe(5000); // 4 people split it
-    });
-
-    it('calculates total user cost correctly', () => {
-      const totalCost = calculateTotalUserCost(1200000, 20000, 4);
-      expect(totalCost).toBe(305000); // 300000 + 5000
+    it('calculates total user cost as the rent share only (no fees)', () => {
+      expect(calculateTotalUserCost(1200000, 4)).toBe(300000);
+      expect(calculateTotalUserCost(1200000, 1)).toBe(1200000);
+      expect(calculateTotalUserCost(1200000, 2)).toBe(600000);
     });
   });
 

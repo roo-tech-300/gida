@@ -11,7 +11,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
-import { calculateBaseRent, calculatePlatformFee, calculateTotalUserCost, EXPECTED_TOTAL_POD_FEE } from '@/utils/liquidity-math';
+import { calculateBaseRent } from '@/utils/liquidity-math';
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
@@ -51,9 +51,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
     }
   }, [dbListing, purchaseSlot, showToast]);
 
-  const baseRent = calculateBaseRent(priceAmount, 1);
-  const platformFee = calculatePlatformFee(EXPECTED_TOTAL_POD_FEE, 1);
-  const totalCost = calculateTotalUserCost(priceAmount, EXPECTED_TOTAL_POD_FEE, 1);
+  const price = calculateBaseRent(priceAmount, 1);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -97,17 +95,8 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
 
             <View style={styles.costCard}>
               <View style={styles.costRow}>
-                <Text style={styles.costLabel}>Base Rent</Text>
-                <Text style={styles.costValue}>{formatNaira(baseRent)}/yr</Text>
-              </View>
-              <View style={styles.costRow}>
-                <Text style={styles.costLabel}>Platform Fee</Text>
-                <Text style={styles.costValue}>{formatNaira(platformFee)}</Text>
-              </View>
-              <View style={styles.costDivider} />
-              <View style={styles.costRow}>
-                <Text style={styles.costTotal}>Total Due Today</Text>
-                <Text style={styles.costTotalValue}>{formatNaira(totalCost)}</Text>
+                <Text style={styles.costTotal}>Your Price</Text>
+                <Text style={styles.costTotalValue}>{formatNaira(price)}/yr</Text>
               </View>
             </View>
 
@@ -173,9 +162,6 @@ const styles = StyleSheet.create({
   listingMeta: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
   costCard: { backgroundColor: DesignColors.surfaceContainerLow, borderRadius: DesignRadius.lg, borderWidth: 1, borderColor: DesignColors.borderFaint, padding: DesignSpacing.md, gap: DesignSpacing.sm, alignSelf: 'stretch' },
   costRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' },
-  costLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  costValue: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  costDivider: { height: 1, backgroundColor: DesignColors.borderFaint, marginVertical: DesignSpacing.xs },
   costTotal: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   costTotalValue: { ...DesignTypography.bodyLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '800' },
   noticeCard: { backgroundColor: DesignColors.primaryTint, borderWidth: 1, borderColor: DesignColors.primaryTintBorder, borderRadius: DesignRadius.lg, padding: DesignSpacing.md, gap: DesignSpacing.md, alignSelf: 'stretch' },

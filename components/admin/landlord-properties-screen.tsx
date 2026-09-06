@@ -1,16 +1,12 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  PaginatedFlatList,
-  RefreshControl,
-  ScrollView,
   StyleSheet,
   Text,
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { useLocalSearchParams } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
@@ -21,24 +17,37 @@ import { LandlordPropertyCard } from '@/components/admin/landlord-property-card'
 import { getInitials } from '@/utils/get-initials';
 import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
 import { useAppToast } from '@/components/ui/toast-card';
+import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
+import type { LandlordListing } from '@/services/landlord-service';
 
 export function LandlordPropertiesScreen({ landlordId }: { landlordId: string }) {
-  const router = useRouter();
   const { showToast } = useAppToast();
+  const [profileOpen, setProfileOpen] = useState(false);
 
   // Fetch landlord profile
   const { data: landlords, isLoading: landlordsLoading } = useLandlords();
   const landlord = landlords?.find((l) => l.id === landlordId) ?? null;
 
   // Fetch paginated listings
-  const { data: listings, isLoading: listingsLoading, hasNextPage, fetchNextPage } = useLandlordListingsPaginated(landlordId);
+  const { data: listings, isLoading: listingsLoading, fetchNextPage } = useLandlordListingsPaginated(landlordId);
   const combinedLoading = landlordsLoading || listingsLoading;
+
+  const listingItems = useMemo(
+    () => (listings?.pages ?? []).reduce<LandlordListing[]>((acc, page) => acc.concat(page), []),
+    [listings],
+  );
 
   useEffect(() => {
     if (combinedLoading) {
       showToast({ message: 'Loading landlord properties...', type: 'info' });
     }
   }, [combinedLoading]);
+
+  const propertyCountLabel = useMemo(() => {
+    const count = listingItems.length;
+    if (combinedLoading && count === 0) return 'Loading…';
+    return `${count} Propert${count === 1 ? 'y' : 'ies'} on landlord's properties`;
+  }, [combinedLoading, listingItems]);
 
   return (
     <SafeAreaView style={styles.root}>
@@ -47,22 +56,22 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
         <Pressable
           style={styles.avatar}
           hitSlop={6}
-          onPress={() => setProfileOpen?.(true)}
+          onPress={() => setProfileOpen(true)}
           disabled={!landlord}
         >
           <Text style={styles.avatarText}>{landlord ? getInitials(landlord.full_name) : '—'}</Text>
         </Pressable>
         <View style={styles.headerInfo}>
           <Text style={styles.headerTitle}>{landlord?.full_name ?? 'Landlord'}</Text>
-          <Text style={styles.headerSub}>
-            {listings ? `${listings.length} Propert${listings.length === 1 ? 'y' : 'ies'}` on landlord's properties} : 'Loading…'}
-          </Text>
+          <Text style={styles.headerSub}>{propertyCountLabel}</Text>
         </View>
       </View>
 
-      {combinedLoading ? (
-        <ActivityIndicator size="large" color={DesignColors.primary} />
-      ) : !listings || listings.length === 0 ? (
+      {combinedLoading && listingItems.length === 0 ? (
+        <View style={styles.centerState}>
+          <ActivityIndicator size="large" color={DesignColors.primary} />
+        </View>
+      ) : listingItems.length === 0 ? (
         <View style={styles.emptyState}>
           <Ionicons name="business-outline" size={48} color={DesignColors.onSurfaceVariant} />
           <Text style={styles.emptyText}>No properties</Text>
@@ -70,19 +79,18 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
         </View>
       ) : (
         <PaginatedFlatList
-          data={listings}
+          data={listingItems}
           keyExtractor={(item) => item.id}
           renderItem={({ item }) => <LandlordPropertyCard property={item} />}
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.5}
-          ListComponent={<View />}
         />
       )}
 
       <LandlordProfileModal
-        visible={profileOpen ?? false}
+        visible={profileOpen}
         landlord={landlord}
-        onClose={() => setProfileOpen?.(false)}
+        onClose={() => setProfileOpen(false)}
       />
     </SafeAreaView>
   );
@@ -109,6 +117,13 @@ const styles = StyleSheet.create({
     paddingHorizontal: DesignSpacing.marginMobile,
     paddingBottom: DesignSpacing.xl * 5,
     gap: DesignSpacing.lg,
+  },
+
+  centerState: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingTop: 80,
   },
 
   emptyState: {

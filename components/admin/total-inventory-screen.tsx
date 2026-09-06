@@ -2,7 +2,6 @@ import { useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  PaginatedFlatList,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -18,7 +17,8 @@ import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminListingsPaginated } from '@/hooks/use-admin-listings-paginated';
 import { InventoryCard } from '@/components/admin/inventory-card';
-import type { AdminListing } from '@/types/admin';
+import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
+import type { AdminListing } from '@/services/adminService';
 
 type Tab = 'all' | 'available' | 'booked';
 
@@ -30,13 +30,17 @@ const TABS: { key: Tab; label: string }[] = [
 
 export function TotalInventoryScreen() {
   const insets = useSafeAreaInsets();
-  const { data: adminListings, isLoading, hasNextPage, fetchNextPage } = useAdminListingsPaginated();
+  const { data: adminListings, isLoading, fetchNextPage } = useAdminListingsPaginated();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
+  const listingItems = useMemo(
+    () => (adminListings?.pages ?? []).reduce<AdminListing[]>((acc, page) => acc.concat(page), []),
+    [adminListings],
+  );
+
   const filtered = useMemo(() => {
-    if (!adminListings) return [];
-    let items = adminListings;
+    let items = listingItems;
     if (activeTab === 'available') items = items.filter((i) => i.status.toLowerCase() === 'available');
     if (activeTab === 'booked') items = items.filter((i) => i.status.toLowerCase() === 'booked');
     if (query.trim()) {
@@ -47,10 +51,10 @@ export function TotalInventoryScreen() {
       );
     }
     return items;
-  }, [activeTab, adminListings, query]);
+  }, [activeTab, listingItems, query]);
 
-  const totalCount = adminListings?.length || 0;
-  const availableCount = adminListings?.filter((i) => i.status.toLowerCase() === 'available').length || 0;
+  const totalCount = listingItems.length;
+  const availableCount = listingItems.filter((i) => i.status.toLowerCase() === 'available').length;
   const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
 
   return (
@@ -67,7 +71,7 @@ export function TotalInventoryScreen() {
             onRefresh={fetchNextPage}
             colors={['#4F46E5']}
           >
-            <Ionicons name="refresh" size="small" color="#4F46E5" />
+            <Ionicons name="refresh" size={16} color="#4F46E5" />
           </RefreshControl>
         }>
           <View style={styles.metricsRow}>
@@ -108,7 +112,7 @@ export function TotalInventoryScreen() {
             ))}
           </ScrollView>
 
-          {isLoading ? (
+          {isLoading && listingItems.length === 0 ? (
             <View style={styles.center}>
               <ActivityIndicator size="large" color={DesignColors.primary} />
             </View>
@@ -120,12 +124,12 @@ export function TotalInventoryScreen() {
             <PaginatedFlatList
               data={filtered}
               keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <InventoryCard listing={item} onPress={() => router.push(`/admin/listing/${item.id}` as any) />}
-                onEndReached={fetchNextPage}
-                onEndReachedThreshold={0.5}
-                ListComponent={<View />}
-              />
-            </PaginatedFlatList>
+              renderItem={({ item }) => (
+                <InventoryCard listing={item} onPress={() => router.push(`/admin/listing/${item.id}`)} />
+              )}
+              onEndReached={fetchNextPage}
+              onEndReachedThreshold={0.5}
+            />
           )}
         </ScrollView>
 

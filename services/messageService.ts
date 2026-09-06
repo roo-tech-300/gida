@@ -1,5 +1,11 @@
 import { supabase } from '@/lib/supabase';
-import type { Conversation, ListingAttachment, MessageAttachment, ServerChatMessage } from '@/types/messages';
+import type {
+  Conversation,
+  ListingAttachment,
+  MessageAttachment,
+  ServerChatMessage,
+} from '@/types/messages';
+import { subscribeToMessageNotifications } from '@/src/notifications';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 type ConversationRow = {
@@ -257,18 +263,9 @@ export function subscribeToConversationMessages(
   conversationId: string,
   onInsert: (message: ServerChatMessage) => void,
 ): () => void {
-  const channel = supabase
-    .channel(uniqueChannelName(`messages:${conversationId}`))
-    .on(
-      'postgres_changes',
-      { event: 'INSERT', schema: 'public', table: 'messages', filter: `conversation_id=eq.${conversationId}` },
-      (payload) => onInsert(mapMessageRow(payload.new as MessageRow)),
-    );
-  attachSafeSubscribe(channel);
-
-  return () => {
-    void supabase.removeChannel(channel);
-  };
+  // Use the notifications service to handle both Supabase subscription
+  // and push notification display
+  return subscribeToMessageNotifications(conversationId, onInsert);
 }
 
 export function subscribeToConversationChanges(onChange: () => void): () => void {

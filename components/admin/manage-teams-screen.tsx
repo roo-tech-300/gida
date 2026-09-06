@@ -1,8 +1,7 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   Pressable,
-  PaginatedFlatList,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -10,8 +9,8 @@ import {
   View,
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SearchBar } from '@/components/ui/search-bar';
@@ -21,46 +20,41 @@ import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminProfilesPaginated } from '@/hooks/use-admin-profiles-paginated';
 import type { AdminMember } from '@/types/admin';
 import { MemberCard } from '@/components/admin/member-card';
+import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
 
 const TABS = ['All Members', 'Regional Admins', 'Field Admins'];
-
-const ROLE_LABELS: Record<string, string> = {
-  super_admin: 'Super Admin',
-  regional_admin: 'Regional Admin',
-  field_admin: 'Field Admin',
-};
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0] ?? '')
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
 
 export function ManageTeamsScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: adminProfiles, isLoading, hasNextPage, fetchNextPage } = useAdminProfilesPaginated();
+  const { data: adminProfiles, isLoading, fetchNextPage } = useAdminProfilesPaginated();
   const [activeTab, setActiveTab] = useState('All Members');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
 
   useEffect(() => {
     if (isLoading) {
       showToast({ message: 'Loading admin team...', type: 'info' });
     }
-  }, [isLoading]);
+  }, [isLoading, showToast]);
 
-  let filtered = data;
-  if (activeTab === 'Regional Admins') filtered = filtered.filter((m) => m.role === 'regional_admin');
-  if (activeTab === 'Field Admins') filtered = filtered.filter((m) => m.role === 'field_admin');
-  if (query.trim()) {
-    const q = query.toLowerCase();
-    filtered = filtered.filter(
-      (m) => m.full_name.toLowerCase().includes(q) || (m.email?.toLowerCase().includes(q) ?? false),
-    );
-  }
+  const members = useMemo(
+    () => (adminProfiles?.pages ?? []).reduce<AdminMember[]>((acc, page) => acc.concat(page), []),
+    [adminProfiles],
+  );
+
+  const filtered = useMemo(() => {
+    let list = members;
+    if (activeTab === 'Regional Admins') list = list.filter((m) => m.role === 'regional_admin');
+    if (activeTab === 'Field Admins') list = list.filter((m) => m.role === 'field_admin');
+    if (query.trim()) {
+      const q = query.toLowerCase();
+      list = list.filter(
+        (m) => m.full_name.toLowerCase().includes(q) || (m.email?.toLowerCase().includes(q) ?? false),
+      );
+    }
+    return list;
+  }, [activeTab, members, query]);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -97,7 +91,7 @@ export function ManageTeamsScreen() {
             </ScrollView>
           )}
 
-          {isLoading ? (
+          {isLoading && members.length === 0 ? (
             <View style={styles.centerState}>
               <ActivityIndicator size="large" color={DesignColors.primary} />
             </View>
@@ -113,7 +107,6 @@ export function ManageTeamsScreen() {
               renderItem={({ item }) => <MemberCard member={item} />}
               onEndReached={fetchNextPage}
               onEndReachedThreshold={0.5}
-              ListComponent={<View />}
             />
           )}
         </ScrollView>
@@ -126,41 +119,12 @@ export function ManageTeamsScreen() {
   );
 }
 
-function MemberCard({ member }: { member: AdminMember }) {
-  const isSuper = member.role === 'super_admin';
-  const regionLine = isSuper ? 'Global Access' : member.region_name ?? 'No region assigned';
-  const supervisorLine = isSuper ? 'Global Access' : member.supervisor_name ? `Reports to ${member.supervisor_name}` : 'Independent';
-
-  return (
-    <Pressable style={styles.memberCard}>
-      <View style={styles.memberAvatar}>
-        {member.avatar_url ? (
-          <Image source={{ uri: member.avatar_url }} style={styles.memberAvatarImage} contentFit="cover" />
-        ) : (
-          <Text style={[styles.memberAvatarText, { color: DesignColors.primary }]}>
-            {getInitials(member.full_name)}
-          </Text>
-        )}
-      </View>
-      <View style={styles.memberInfo}>
-        <Text style={styles.memberName}>{member.full_name}</Text>
-        <Text style={styles.memberEmail}>{member.email ?? 'No email'}</Text>
-        <Text style={styles.memberRole}>
-          {ROLE_LABELS[member.role]} • {regionLine}
-        </Text>
-        <Text style={styles.memberJurisdiction}>{supervisorLine}</Text>
-      </View>
-      <Ionicons name="chevron-forward" size={18} color={DesignColors.onSurfaceVariant} />
-    </Pressable>
-  );
-}
-
 const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   kav: { flex: 1 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'gap': 12 },
+  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   title: { flex: 1, fontSize: 22, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.3 },
   fab: {
     position: 'absolute',

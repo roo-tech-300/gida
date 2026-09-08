@@ -26,6 +26,7 @@ export function useAuthForm() {
             showToast({type: 'success', message: "Registration successful!"});
             router.replace('/(onboarding)');
         } catch (error) {
+            console.error("[useAuthForm] Registration failed:", error);
             setLoading(false);
             showToast({type: 'error', message: "Registration failed. Please try again."});
         }

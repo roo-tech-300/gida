@@ -158,7 +158,7 @@ const styles = StyleSheet.create({
     elevation: 8,
   },
   blur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   accentBar: {
     position: 'absolute',

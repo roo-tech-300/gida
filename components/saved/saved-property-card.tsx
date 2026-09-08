@@ -82,10 +82,10 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.scrimLight,
   },
   saveButton: {

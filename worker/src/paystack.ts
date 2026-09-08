@@ -107,7 +107,7 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
     if (!creditResp.ok) {
       return json({ error: 'Could not look up slot credit.' }, 500);
     }
-    const rows = (await creditResp.json()) as Array<{ amount_paid: number | null; status: string | null }>;
+    const rows = (await creditResp.json()) as { amount_paid: number | null; status: string | null }[];
     const creditRow = rows[0];
     const creditStatus = creditRow?.status;
     if (creditStatus === 'paid_unmatched' || creditStatus === 'matched' || creditStatus === 'subletting') {
@@ -124,7 +124,7 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
       { method: 'GET', headers: svcHeaders },
     );
     if (existingResp.ok) {
-      const existingRows = (await existingResp.json()) as Array<{ id: string }>;
+      const existingRows = (await existingResp.json()) as { id: string }[];
       if (existingRows.length > 0) {
         return json({ error: 'Location access already unlocked for this property.' }, 409);
       }

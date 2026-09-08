@@ -127,7 +127,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
 });
 
 const styles = StyleSheet.create({
-  wrapper: { ...StyleSheet.absoluteFillObject, zIndex: 200 },
+  wrapper: { ...StyleSheet.absoluteFill, zIndex: 200 },
   overlay: { position: 'absolute', left: 0, right: 0, top: 0, bottom: 0, zIndex: 200, overflow: 'hidden', backgroundColor: DesignColors.surfaceContainerLowest },
   overlayContent: { flex: 1, paddingHorizontal: DesignSpacing.marginMobile, justifyContent: 'center', gap: 32 },
   headerSection: { gap: 8 },

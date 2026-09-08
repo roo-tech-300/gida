@@ -1,6 +1,6 @@
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 export function DiscoverCategories({ categories }: { categories: readonly string[] }) {
   return (

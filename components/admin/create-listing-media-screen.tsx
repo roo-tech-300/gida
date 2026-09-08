@@ -14,7 +14,7 @@ import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-pi
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useCreateListing } from '@/hooks/use-create-listing';
-import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, deleteListing } from '@/services/listing-service';
+import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -26,7 +26,7 @@ function isRemoteUrl(str: string) {
 export function CreateListingMediaScreen() {
   const { data, setStep5, reset, editListingId } = useCreateListingForm();
   const { step5, step1, step2, step3, step4 } = data;
-  const { mutateAsync: createMutate, isPending } = useCreateListing();
+  const { mutateAsync: createMutate } = useCreateListing();
   const { showToast } = useAppToast();
   const queryClient = useQueryClient();
   const { profile } = useAuth();
@@ -380,7 +380,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 8,
   },
   stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 16 },
+  glassBlur: { ...StyleSheet.absoluteFill, borderRadius: 16 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 24, gap: 24, paddingBottom: 24 },
   hero: { paddingTop: 8 },

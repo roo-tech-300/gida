@@ -1,5 +1,5 @@
 import type { ChatMessage, MessageAttachment, QueuedOutboundMessage } from '@/types/messages';
-import { nextLocalStamp, parseAttachment } from '@/services/offline-message-store';
+import { nextLocalStamp } from '@/services/offline-message-store';
 
 export type OutboxInput = {
   id?: string;

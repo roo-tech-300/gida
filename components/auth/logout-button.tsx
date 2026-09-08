@@ -25,7 +25,9 @@ export function LogoutButton() {
           onPress: async () => {
             try {
               await signOut();
-            } catch (error) {}
+            } catch (error) {
+              console.error('[LogoutButton] Failed to sign out:', error);
+            }
           },
         },
       ],

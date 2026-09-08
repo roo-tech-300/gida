@@ -15,7 +15,7 @@ export function SavedPropertiesScreen() {
   const { width } = useWindowDimensions();
   const { data: listings = [], isLoading, isRefetching, refetch } = useSavedListings();
   const { mutate: toggleSave } = useToggleSave();
-  const [removingId, setRemovingId] = useState<string | null>(null);
+  const [, setRemovingId] = useState<string | null>(null);
 
   const isWide = width >= 960;
 

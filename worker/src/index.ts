@@ -31,7 +31,7 @@ async function patchExpired(baseUrl: string, key: string, table: string, filter:
     throw new Error(`Supabase PATCH on ${table} failed: ${response.status} — ${text}`);
   }
 
-  const updated = (await response.json()) as Array<{ id: string }>;
+  const updated = (await response.json()) as { id: string }[];
   return { expired: updated.length, ids: updated.map((r) => r.id) };
 }
 

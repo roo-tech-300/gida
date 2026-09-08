@@ -52,7 +52,7 @@ export const styles = StyleSheet.create({
     borderColor: DesignColors.glassBorder,
   },
   heroImage: { width: '100%', height: 120 },
-  heroGradient: { ...StyleSheet.absoluteFillObject },
+  heroGradient: { ...StyleSheet.absoluteFill },
   heroFallback: {
     height: 80,
     backgroundColor: DesignColors.surfaceContainerHigh,

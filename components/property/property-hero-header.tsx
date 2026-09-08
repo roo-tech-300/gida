@@ -67,13 +67,13 @@ const styles = StyleSheet.create({
     height: '100%',
   },
   heroLoader: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.surfaceContainerLowest,
     alignItems: 'center',
     justifyContent: 'center',
   },
   heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.scrim,
   },
   heroBadges: {

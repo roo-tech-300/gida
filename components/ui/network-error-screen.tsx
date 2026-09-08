@@ -102,7 +102,7 @@ export function NetworkErrorScreen({
             </Animated.View>
           </View>
 
-          <Text style={styles.title}>Oops! Gida couldn't connect</Text>
+          <Text style={styles.title}>Oops! Gida couldn&apos;t connect</Text>
           <Text style={styles.subtitle}>{subtitle}</Text>
 
           <Pressable onPress={onRetry} style={styles.button}>

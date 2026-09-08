@@ -102,7 +102,7 @@ const styles = StyleSheet.create({
     padding: 8,
   },
   glassBlur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   cardInner: {
     borderRadius: 26,
@@ -119,11 +119,11 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },
   gradientWrap: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     zIndex: 5,
   },
   gradientSvg: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   featuredBadge: {
     position: 'absolute',

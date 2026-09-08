@@ -75,7 +75,7 @@ export function CreateListingEntryScreen() {
           <View style={styles.textSection}>
             <Text style={styles.title}>Create Your Gida Listing</Text>
             <Text style={styles.description}>
-              Onboard your listing, apartment, or studio space into Gida's premium network.
+              Onboard your listing, apartment, or studio space into Gida&apos;s premium network.
               Provide core utilities, pinpoint precise satellite GPS coordinates on-site,
               and upload rich media galleries directly to Minna campus students.
             </Text>
@@ -99,7 +99,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 8, zIndex: 20,
   },
   stepIndicator: { fontSize: 11, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2, textTransform: 'uppercase' },
-  bgGlows: { ...StyleSheet.absoluteFillObject, overflow: 'hidden', pointerEvents: 'none' },
+  bgGlows: { ...StyleSheet.absoluteFill, overflow: 'hidden', pointerEvents: 'none' },
   glowTopRight: {
     position: 'absolute', top: '25%', right: -80, width: 256, height: 256,
     borderRadius: 128, backgroundColor: DesignColors.primaryContainer,
@@ -121,7 +121,7 @@ const styles = StyleSheet.create({
     shadowColor: DesignColors.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.2, shadowRadius: 40, elevation: 10,
   },
-  cardBlur: { ...StyleSheet.absoluteFillObject },
+  cardBlur: { ...StyleSheet.absoluteFill },
   mainIcon: { marginTop: 4 },
   accentTopRight: {
     position: 'absolute', top: -16, right: -16, zIndex: 20,

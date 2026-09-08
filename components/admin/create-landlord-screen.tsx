@@ -207,7 +207,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 20, paddingVertical: 8,
   },
   topBarTitle: { fontSize: 18, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
-  glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 12 },
+  glassBlur: { ...StyleSheet.absoluteFill, borderRadius: 12 },
   scroll: { flex: 1 },
   content: { paddingHorizontal: 24, gap: 24, paddingBottom: 120 },
   hero: { paddingTop: 8 },

@@ -84,7 +84,7 @@ const styles = StyleSheet.create({
     position: 'relative',
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   imagePlaceholder: {
     alignItems: 'center',
@@ -92,7 +92,7 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerHigh,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.scrimLight,
   },
   badge: {

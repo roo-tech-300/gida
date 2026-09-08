@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -44,7 +43,7 @@ interface Props {
 
 export function GroupMemberRow({ member, onKick }: Props) {
   const config = STATUS_CONFIG[member.status];
-  const kickable = !!onKick && member.status !== 'you' && member.status !== 'paid';``
+  const kickable = !!onKick && member.status !== 'you' && member.status !== 'paid';
   return (
     <View style={styles.row}>
       {!member.avatar_url || member.avatar_url === undefined? (

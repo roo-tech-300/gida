@@ -3,7 +3,7 @@ import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
 
 export function ManagementToolsGrid() {
   return (
@@ -77,7 +77,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.primaryTintMid,
   },
   glassBlur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   cardTall: {
     height: 176,

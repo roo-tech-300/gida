@@ -56,7 +56,7 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
         <CompatibilityBadge pct={roommate.compatibility} />
       </View>
 
-      <Text style={styles.bio} numberOfLines={2}>"{roommate.bio}"</Text>
+      <Text style={styles.bio} numberOfLines={2}>&quot;{roommate.bio}&quot;</Text>
 
       <View style={styles.chipRow}>
         {roommate.chips.map((chip) => (

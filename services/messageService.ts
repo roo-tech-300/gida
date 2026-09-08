@@ -10,6 +10,8 @@ import {
   getNotificationTitle,
   getNotificationBody,
 } from '@/src/notifications';
+// @ts-ignore
+import messaging from '@react-native-firebase/messaging';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 type ConversationRow = {
@@ -276,9 +278,9 @@ async function broadcastMessageToConversation(
 
   if (!tokens) return;
 
-  for (const { token, platform } of tokens) {
+  for (const { token } of tokens) {
     try {
-      await messagingInstance.send({
+      await messaging.send({
         notification: {
           title: notificationTitle,
           body: notificationBody,

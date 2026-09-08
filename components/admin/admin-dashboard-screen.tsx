@@ -4,7 +4,7 @@ import { WebBlurView } from '@/components/ui/web-blur-view';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
-import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { fetchAdminListings, type AdminListing } from '@/services/adminService';
 import { FeaturedListingCard } from './featured-listing-card';
@@ -14,7 +14,6 @@ export function AdminDashboardScreen() {
   const { profile } = useAuth();
   const [businessName, setBusinessName] = useState<string | null>(null);
   const [operatingCity, setOperatingCity] = useState<string | null>(null);
-  const [createdAt, setCreatedAt] = useState<string | null>(null);
   const [listings, setListings] = useState<AdminListing[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -98,7 +97,7 @@ const styles = StyleSheet.create({
     shadowColor: DesignColors.primary, shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.4, shadowRadius: 20, elevation: 10,
   },
-  avatarBlur: { ...StyleSheet.absoluteFillObject },
+  avatarBlur: { ...StyleSheet.absoluteFill },
   avatarText: { fontSize: 20, fontWeight: '900', color: DesignColors.onSurface, fontFamily, transform: [{ rotate: '-6deg' }] },
   backBtnWrap: { position: 'absolute', top: -24, left: -8, zIndex: 10 },
   headerText: { flex: 1 },

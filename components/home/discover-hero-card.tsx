@@ -128,10 +128,10 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.primaryTint,
   },
   imageFill: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   heroOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.scrimLight,
   },
   heroTopRow: {

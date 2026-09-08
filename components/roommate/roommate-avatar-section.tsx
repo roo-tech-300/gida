@@ -7,7 +7,7 @@ import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/
 import { useAuth } from '@/context/auth-context';
 import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);

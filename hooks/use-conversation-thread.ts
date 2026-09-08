@@ -1,12 +1,11 @@
 import { useMutation, useQuery, useQueryClient, type InfiniteData } from '@tanstack/react-query';
 import { useNetInfo } from '@react-native-community/netinfo';
-import { useEffect, useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/context/auth-context';
 import { getMessagesForConversation, markLocalMessagesRead, saveIncomingMessages, upsertThreadFromConversation } from '@/services/offline-message-store';
 import { createOutboxMessage, markMessageFailed, markOutboxSynced } from '@/services/offline-outbox-store';
 import {
-  fetchConversationMessages,
   fetchMessagesPaginated,
   getOrCreateConversation,
   markConversationRead,
@@ -62,8 +61,7 @@ export function useConversationThread(otherId: string) {
 
   const limit = 50; // page size for pagination
 
-  const [unreadBoundaryId, setUnreadBoundaryId] = useState<string | null>(null);
-  const boundaryCaptured = useRef(false);
+  const [unreadBoundaryId] = useState<string | null>(null);
 
   const conversationQuery = useQuery({
     queryKey: ['conversation-pair', myId, otherId],

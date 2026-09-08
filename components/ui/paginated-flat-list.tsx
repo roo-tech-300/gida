@@ -1,6 +1,6 @@
 import React from 'react';
-import { FlatList, type FlatListProps } from 'react-native';
-import type { ListRenderItem } from 'react-native';
+import { FlatList, type FlatListProps , ListRenderItem } from 'react-native';
+
 
 type PaginatedFlatListProps<T> = {
   data: readonly T[] | null | undefined;

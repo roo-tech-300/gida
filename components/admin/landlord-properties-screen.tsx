@@ -75,7 +75,7 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
         <View style={styles.emptyState}>
           <Ionicons name="business-outline" size={48} color={DesignColors.onSurfaceVariant} />
           <Text style={styles.emptyText}>No properties</Text>
-          <Text style={styles.emptySub}>This landlord hasn't onboarded any properties yet</Text>
+          <Text style={styles.emptySub}>This landlord hasn&apos;t onboarded any properties yet</Text>
         </View>
       ) : (
         <PaginatedFlatList

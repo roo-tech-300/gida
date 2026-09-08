@@ -80,7 +80,7 @@ export function InlineInviteSearch({ remainingSlots, onSelect }: Props) {
         {query.trim().length >= 2 && results.length === 0 && !isFetching && (
           <Pressable style={styles.inviteRawBtn} onPress={handleInviteRaw}>
             <Ionicons name="mail-outline" size={14} color={DesignColors.onPrimaryContainer} />
-            <Text style={styles.inviteRawText}>Invite "{query.trim()}" anyway</Text>
+            <Text style={styles.inviteRawText}>Invite &quot;{query.trim()}&quot; anyway</Text>
           </Pressable>
         )}
       </View>

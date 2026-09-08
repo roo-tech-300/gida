@@ -263,7 +263,7 @@ const styles = StyleSheet.create({
   fieldHint: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: 2 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
   glassInput: { borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder },
-  glassBlur: { ...StyleSheet.absoluteFillObject },
+  glassBlur: { ...StyleSheet.absoluteFill },
   textInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, color: DesignColors.onSurface, fontSize: 16, fontFamily },
 
   selectRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 16, paddingVertical: 14 },

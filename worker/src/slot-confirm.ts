@@ -59,7 +59,7 @@ export async function confirmSlotPayment(env: Env, slotCreditId: string, referen
     console.error(`[SlotConfirm] Failed to read slot credit ${slotCreditId} for location unlock.`);
     return { confirmed: true, locationUnlocked: false };
   }
-  const rows = (await creditResponse.json()) as Array<{ user_id: string; listing_id: string }>;
+  const rows = (await creditResponse.json()) as { user_id: string; listing_id: string }[];
   const credit = rows[0];
   if (!credit) {
     return { confirmed: true, locationUnlocked: false };

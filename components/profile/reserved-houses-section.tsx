@@ -197,7 +197,7 @@ const styles = StyleSheet.create({
     borderTopRightRadius: DesignRadius.xl,
   },
   coverScrim: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   coverBadge: {

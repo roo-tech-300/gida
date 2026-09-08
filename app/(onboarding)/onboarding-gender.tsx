@@ -36,7 +36,7 @@ export default function OnboardingGenderScreen() {
 
       <OnboardingGlassCard>
         <View style={styles.header}>
-          <Text style={styles.title}>What's your gender?</Text>
+          <Text style={styles.title}>What&apos;s your gender?</Text>
           <Text style={styles.subtitle}>
             Gida uses your gender to match you with compatible roommates and keep groups single-gender.
           </Text>

@@ -1,4 +1,4 @@
-import { StyleSheet, Text, TextInput, View } from 'react-native';
+import { StyleSheet, Text, TextInput } from 'react-native';
 import { OnboardingGlassCard } from '@/components/onboarding/onboarding-glass-card';
 import { RoommateChipSelector } from '@/components/roommate/roommate-chip-selector';
 import { LEVEL_OPTIONS } from '@/components/roommate/roommate-onboarding-options';

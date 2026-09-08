@@ -116,16 +116,16 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerLowest,
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   loaderOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.surfaceContainerLowest,
     alignItems: 'center',
     justifyContent: 'center',
   },
   gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   content: {
     position: 'absolute',
@@ -145,7 +145,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.secondary,
   },
   badgeBlur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   badgeText: {
     ...DesignTypography.labelCaps,
@@ -246,6 +246,6 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.cardBorder,
   },
   likeBlur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
 });

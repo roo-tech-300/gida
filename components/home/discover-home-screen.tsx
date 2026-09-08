@@ -45,7 +45,7 @@ export function DiscoverHomeScreen() {
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [feedHeight, setFeedHeight] = useState(0);
   const [mode, setMode] = useState<FeedMode>('listings');
-  const [currentIndex, setCurrentIndex] = useState(0);
+  const [, setCurrentIndex] = useState(0);
   const listRef = useRef<FlatList<FeedListing>>(null);
   const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
   const searchScreenRef = useRef<SearchScreenRef>(null);

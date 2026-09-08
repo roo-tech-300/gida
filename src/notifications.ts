@@ -85,7 +85,7 @@ const showNotification = async (message: ServerChatMessage) => {
   });
 };
 
-const getNotificationTitle = (message: ServerChatMessage): string => {
+export const getNotificationTitle = (message: ServerChatMessage): string => {
   const attachment = message.attachment;
 
   if (!attachment) {
@@ -110,7 +110,7 @@ const getNotificationTitle = (message: ServerChatMessage): string => {
   }
 };
 
-const getNotificationBody = (message: ServerChatMessage): string => {
+export const getNotificationBody = (message: ServerChatMessage): string => {
   const attachment = message.attachment;
 
   if (!attachment || !message.body) {
@@ -151,8 +151,6 @@ export const notificationReceivedListener = () => {
       console.log('[Notifications] Foreground message received:', remoteMessage);
 
       if (remoteMessage.notification) {
-        const { title, body } = remoteMessage.notification;
-
         // Handle notification tap
         remoteMessage.finishNotification();
       }

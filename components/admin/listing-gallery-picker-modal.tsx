@@ -141,7 +141,7 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
             <View style={styles.emptyState}>
               <Ionicons name="images-outline" size={48} color={DesignColors.onSurfaceVariant} />
               <Text style={styles.emptyText}>No photos selected yet</Text>
-              <Text style={styles.emptySub}>Tap "Pick from device" to add images</Text>
+              <Text style={styles.emptySub}>Tap &quot;Pick from device&quot; to add images</Text>
             </View>
           )}
         </View>

@@ -9,7 +9,6 @@ import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 
-const MAX_ROOMMATES = 4;
 const ROOMMATE_OPTIONS = [1, 2, 3, 4];
 
 export function CreateListingRulesScreen() {
@@ -140,7 +139,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
     borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
-  glassBlur: { ...StyleSheet.absoluteFillObject, borderRadius: 12 },
+  glassBlur: { ...StyleSheet.absoluteFill, borderRadius: 12 },
   textInput: {
     paddingHorizontal: 16, paddingVertical: 14,
     color: DesignColors.onSurface, fontSize: 16, fontFamily,

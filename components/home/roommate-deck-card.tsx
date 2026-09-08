@@ -79,7 +79,7 @@ export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) 
             </View>
 
             <Text style={styles.bio} numberOfLines={2}>
-              "{profile.bio}"
+            &quot;{profile.bio}&quot;
             </Text>
 
             <View style={styles.chipsRow}>
@@ -110,10 +110,10 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerLowest,
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   imageFallback: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: DesignColors.surfaceContainerHigh,
     alignItems: 'center',
     justifyContent: 'flex-start',
@@ -127,7 +127,7 @@ const styles = StyleSheet.create({
     opacity: 0.5,
   },
   gradientOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   bottomSection: {
     position: 'absolute',
@@ -146,7 +146,7 @@ const styles = StyleSheet.create({
     borderColor: DesignColors.glassBorder,
   },
   glassBlur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   glassInner: {
     padding: DesignSpacing.lg,

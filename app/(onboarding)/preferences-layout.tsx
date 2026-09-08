@@ -54,7 +54,7 @@ export default function OnboardingLayoutScreen() {
     // Request notification permission
     const notificationEnabled = await requestNotificationPermission();
     if (!notificationEnabled) {
-      showToast({ type: 'warn', message: 'Notifications disabled. Some features may be limited.' });
+      showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
     } else {
       // Get and persist FCM token
       await getFCMToken();

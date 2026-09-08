@@ -1,7 +1,7 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
 import type { Pod } from '@/types/liquidity';
 
 const AVATAR_COLORS = [

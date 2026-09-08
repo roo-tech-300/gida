@@ -32,8 +32,13 @@ export function useUnreadMessages() {
     // Real-time subscription for new/updated conversations.
     // One filter per postgres_changes handler, so subscribe as both
     // participant_a and participant_b.
+    //
+    // Use a unique channel name per mount to avoid Supabase returning a
+    // cached, already-subscribed channel instance — which causes the
+    // "cannot add postgres_changes callbacks after subscribe()" error.
+    const channelName = `unread-messages-${userId}-${Date.now()}`;
     const channel = supabase
-      .channel(`unread-messages-${userId}`)
+      .channel(channelName)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'conversations', filter: `participant_a=eq.${userId}` },
         () => loadInitial()

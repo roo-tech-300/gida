@@ -2,7 +2,6 @@ import { useCallback, useEffect, useState } from 'react';
 import { Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
-import { DesignColors } from '@/constants/design';
 import { RoommatePrompt } from '@/components/claim/roommate-prompt';
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
 import { JoinInviteCard } from '@/components/claim/join-invite-card';
@@ -18,9 +17,9 @@ import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
-import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus } from '@/utils/liquidity-math';
+import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus , derivePropertyTier } from '@/utils/liquidity-math';
 import type { Pod } from '@/types/liquidity';
-import { derivePropertyTier } from '@/utils/liquidity-math';
+
 import { generateInviteCode } from '@/services/liquidity-pod-service';
 import { useDraggableSheet } from './use-draggable-sheet';
 import { useEscapeKey } from './use-escape-key';

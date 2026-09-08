@@ -4,8 +4,8 @@ import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-ma
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
-import type { SlotCredit } from '@/types/liquidity';
-import type { PendingLodgeInvitation } from '@/types/liquidity';
+import type { SlotCredit , PendingLodgeInvitation } from '@/types/liquidity';
+
 import type { DbListing } from '@/types/feed-listing';
 
 const POD_COLUMNS = 'id, group_code, listing_id, property_tier, target_occupancy, current_total_intent';
@@ -25,7 +25,7 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
   const listingIds = [...new Set(rows.map((row) => row.pod.listing_id).filter((id): id is string => Boolean(id)))];
 
   try {
-    const [{ data: inviterProfiles }, { data: existingCredits }, { data: inviterListings }] = await Promise.all([
+    const [{ data: inviterProfiles }, { data: existingCredits }] = await Promise.all([
       inviterIds.length > 0
         ? fetchProfilesInChunks(inviterIds)
         : { data: null, error: null } as const,

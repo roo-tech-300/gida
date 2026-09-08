@@ -306,7 +306,7 @@ const styles = StyleSheet.create({
     borderWidth: 1, borderColor: DesignColors.cardBorder,
   },
   inputRounded: { borderRadius: 20 },
-  glassBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
+  glassBlur: { ...StyleSheet.absoluteFill, pointerEvents: 'none' },
   textInput: {
     flex: 1, paddingHorizontal: 16, paddingVertical: 14,
     color: DesignColors.onSurface, fontSize: 16, fontFamily,
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
     borderWidth: 1, borderColor: DesignColors.cardBorder, padding: 16, gap: 12, alignItems: 'center',
   },
-  roomCardBlur: { ...StyleSheet.absoluteFillObject, pointerEvents: 'none' },
+  roomCardBlur: { ...StyleSheet.absoluteFill, pointerEvents: 'none' },
   roomLabel: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
   roomStepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
   roomBtn: {

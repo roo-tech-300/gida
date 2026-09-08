@@ -71,7 +71,7 @@ const styles = StyleSheet.create({
     zIndex: 150,
   },
   blur: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   header: {
     gap: DesignSpacing.sm,

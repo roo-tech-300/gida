@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
   rejectionLabel: { ...DesignTypography.labelSm, color: DesignColors.error, fontFamily, fontWeight: '700' },
   rejectionReason: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, lineHeight: 22 },
   modalOverlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.5)',
     alignItems: 'center',
     justifyContent: 'center',

@@ -11,7 +11,7 @@ import { MessageSyncProvider } from '@/components/messages/message-sync-provider
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 
-import { DarkTheme, ThemeProvider } from 'expo-router/react-navigation';
+import { DarkTheme, ThemeProvider } from '@react-navigation/native';
 
 const customTheme = {
   ...DarkTheme,

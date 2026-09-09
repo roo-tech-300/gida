@@ -9,6 +9,7 @@ import {
   subscribeToMessageNotifications,
   getNotificationTitle,
   getNotificationBody,
+  messagingInstance,
 } from '@/src/notifications';
 // @ts-ignore
 import messaging from '@react-native-firebase/messaging';

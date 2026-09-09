@@ -15,9 +15,10 @@ type AuthOptionVariant = 'apple' | 'phone' | 'email';
 type AuthOptionButtonProps = PressableProps & {
   label: string;
   variant: AuthOptionVariant;
+  showIcon?: boolean;
 };
 
-export function AuthOptionButton({ label, variant, disabled, style, ...props }: AuthOptionButtonProps) {
+export function AuthOptionButton({ label, variant, showIcon = true, disabled, style, ...props }: AuthOptionButtonProps) {
   const isApple = variant === 'apple';
   const isPhone = variant === 'phone';
   const isEmail = variant === 'email';
@@ -37,12 +38,12 @@ export function AuthOptionButton({ label, variant, disabled, style, ...props }: 
         typeof style === 'function' ? style({ pressed, hovered }) : style,
       ]}
       {...props}>
-      {isApple ? (
+      {showIcon && (isApple ? (
         <Ionicons name="logo-apple" size={20} color={DesignColors.surfaceContainerLowest} />
-      ) : null}
-      {isPhone ? (
+      ) : null)}
+      {showIcon && (isPhone ? (
         <Ionicons name="phone-portrait-outline" size={22} color={DesignColors.onSurface} />
-      ) : null}
+      ) : null)}
       <Text
         style={[
           styles.label,

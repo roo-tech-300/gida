@@ -4,7 +4,7 @@ import { supabase } from '@/lib/supabase';
 import { Platform } from 'react-native';
 import type { ServerChatMessage } from '@/types/messages';
 
-const messagingInstance = messaging;
+export const messagingInstance = messaging;
 
 export const requestNotificationPermission = async (): Promise<boolean> => {
   const authStatus = await messagingInstance.requestPermission();

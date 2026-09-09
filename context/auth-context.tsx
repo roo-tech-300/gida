@@ -1,6 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useRef, useState, type ReactNode } from 'react';
 import { AppState } from 'react-native';
-import { useQueryClient } from '@tanstack/react-query';
+import { queryClient } from '@/lib/query-clients';
 import NetInfo from '@react-native-community/netinfo';
 import { supabase } from '@/lib/supabase';
 import { signOutUserAccount } from '@/services/authService';
@@ -66,7 +66,7 @@ type AuthContextValue = {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const queryClient = useQueryClient();
+  console.log('[PROBE] AuthProvider rendered');
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [hasSession, setHasSession] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
@@ -266,6 +266,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 export function useAuth() {
   const context = useContext(AuthContext);
+  console.log('[PROBE] useAuth context:', context ? 'DEF' : 'UNDEF');
   if (!context) {
     throw new Error('useAuth must be used within an AuthProvider');
   }

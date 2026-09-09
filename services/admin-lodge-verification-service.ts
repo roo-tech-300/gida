@@ -68,8 +68,8 @@ export async function fetchAdminLodgeReservations(
 
     const [namesRes, listingsRes] = await Promise.all([
       userIds.length > 0
-        ? (() => {
-            const profiles = fetchProfilesInChunks(userIds);
+        ? (async () => {
+            const profiles = await fetchProfilesInChunks(userIds);
             const names = new Map<string, string | null>();
             for (const [id, profile] of Object.entries(profiles)) {
               names.set(id, profile.full_name ?? null);

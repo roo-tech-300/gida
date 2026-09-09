@@ -59,6 +59,13 @@ type AuthContextValue = {
   // yet (e.g. offline on first run). Lets the router send the user to the
   // homepage best-effort instead of bouncing them to login.
   hasSession: boolean;
+  // Live network state — lets screens show an offline banner or fall back to
+  // cached data without polling NetInfo themselves.
+  isOnline: boolean;
+  // True once the session has been confirmed against Supabase in the current
+  // app session. Until then the user is "provisionally logged in" from cache
+  // and the UI can show a subtle syncing indicator.
+  sessionVerified: boolean;
   refreshProfile: () => Promise<void>;
   signOut: () => Promise<void>;
 };
@@ -70,6 +77,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [profile, setProfile] = useState<AuthProfile | null>(null);
   const [hasSession, setHasSession] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [isOnline, setIsOnline] = useState(true);
+  const [sessionVerified, setSessionVerified] = useState(false);
 
   const fetchProfile = useCallback(async (userId: string, email: string | null = null) => {
     const { data: profileData, error } = await supabase
@@ -156,6 +165,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
 
       setHasSession(true);
+      setSessionVerified(true);
       attachRealtime(sessionUser.id);
 
       // Offline: stay on the cached/session state; the reconnect listener
@@ -178,16 +188,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session?.user) {
         setHasSession(true);
+        setSessionVerified(true);
         void fetchProfile(session.user.id, session.user.email ?? null).catch((error) => {
           console.log('[Auth] Background profile refresh failed.', error);
         });
         attachRealtime(session.user.id);
       } else {
-        clearCachedProfile();
-        setProfile(null);
-        setHasSession(false);
-        realtimeCleanup?.();
-        realtimeCleanup = null;
+        // When Supabase can't refresh the token (e.g. offline), it may emit
+        // SIGNED_OUT even though the stored session is still valid. Only clear
+        // cached auth if we're actually online — otherwise the reconnect
+        // listener will re-verify once connectivity returns.
+        void (async () => {
+          const offline = await isOffline();
+          if (offline) {
+            console.log('[Auth] Session lost while offline — keeping cached auth until reconnect.');
+            return;
+          }
+          clearCachedProfile();
+          setProfile(null);
+          setHasSession(false);
+          setSessionVerified(false);
+          realtimeCleanup?.();
+          realtimeCleanup = null;
+        })();
       }
     });
 
@@ -203,6 +226,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const firstNetRun = useRef(true);
   useEffect(() => {
     const unsubscribe = NetInfo.addEventListener((state) => {
+      setIsOnline(!!state.isConnected);
       if (firstNetRun.current) {
         firstNetRun.current = false;
         return;
@@ -213,6 +237,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           const { data: { session } } = await withTimeout(supabase.auth.getSession(), SETTLE_TIMEOUT_MS);
           if (!session?.user) return;
           setHasSession(true);
+          setSessionVerified(true);
           await withTimeout(fetchProfile(session.user.id, session.user.email ?? null), SETTLE_TIMEOUT_MS);
         } catch (error) {
           console.log('[Auth] Reconnect refresh failed — will retry on next change.', error);
@@ -247,6 +272,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     queryClient.clear();
     setProfile(null);
     setHasSession(false);
+    setSessionVerified(false);
   }, [queryClient]);
 
   return (
@@ -256,6 +282,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         isLoading,
         isAuthenticated: !!profile,
         hasSession,
+        isOnline,
+        sessionVerified,
         refreshProfile,
         signOut,
       }}>

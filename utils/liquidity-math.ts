@@ -1,3 +1,5 @@
+import type { Pod, SlotCredit } from '@/types/liquidity';
+
 export type IntentOption = {
   intent: number;
   label: string;
@@ -165,6 +167,11 @@ export function verifyPodCompleteness(currentTotalIntent: number, targetOccupanc
   return currentTotalIntent === targetOccupancy && targetOccupancy > 0;
 }
 
+export function isPodCreator(pod: Pod | undefined, currentUserId: string | undefined): boolean {
+  if (!pod || !currentUserId) return false;
+  return pod.founder_user_id === currentUserId;
+}
+
 export type PodGender = 'MALE' | 'FEMALE' | 'MIXED' | 'ANY';
 
 type GenderAwareMember = { user_id: string; profile?: { gender?: 'MALE' | 'FEMALE' | null } | null };
@@ -212,4 +219,26 @@ export function podOpenSlotStatus(pod: SlotAwarePod): OpenSlotStatus {
   const occupied = realMembers + reservedInvites;
   const available = Math.max(0, target - occupied);
   return { open: available > 0, occupied, available, target };
+}
+
+export function findActivePodForCredit(pods: Pod[] | undefined, credit: SlotCredit | undefined): Pod | undefined {
+  if (!pods || pods.length === 0 || !credit) return pods?.[0];
+  return pods.find((pod) =>
+    pod.members.some((member) => member.slot_credit_id === credit.id),
+  ) ?? pods.find((pod) => pod.listing_id === credit.listing_id) ?? pods[0];
+}
+
+const PAID_CREDIT_STATUSES = new Set(['paid_unmatched', 'matched', 'subletting']);
+
+export type MemberPaymentStatus = 'paid' | 'accepted';
+
+/**
+ * Decide whether a pod member has actually paid. The truth lives on the linked
+ * slot_credit.status (flipped by payment), NOT on amount_paid, which is
+ * pre-filled with the member's rent share at reservation time (before payment).
+ * An absent/unknown status is treated as NOT paid (fail-safe), never as paid.
+ */
+export function memberPaymentStatus(member: { credit_status?: string | null; amount_paid?: number }): MemberPaymentStatus {
+  if (member.credit_status) return PAID_CREDIT_STATUSES.has(member.credit_status) ? 'paid' : 'accepted';
+  return 'accepted';
 }

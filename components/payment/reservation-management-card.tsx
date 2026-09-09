@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useActivePods } from '@/hooks/use-liquidity';
+import { findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
 import { inviteRoommateToPod } from '@/services/liquidity-service';
 import { ManageGroupModal } from '@/components/lobby/manage-group-modal';
 import type { ManageGroupMember } from '@/dummy/group-members-mock';
@@ -15,31 +16,30 @@ interface Props {
 
 export function ReservationManagementCard({ credit }: Props) {
   const { showToast } = useAppToast();
-  const { data: pods, isLoading: podsLoading, isError: podsError, refetch: refetchPods } = useActivePods();
+  const { data: pods, isLoading: podsLoading, isError: podsError, refetch: refetchPods } = useActivePods(undefined, credit.listing_id);
   const [manageVisible, setManageVisible] = useState(false);
 
   const groupLoading = podsLoading || pods === undefined;
 
-  const activePod = pods?.[0];  const targetTier = credit.target_occupancy;
+  const activePod = useMemo(() => findActivePodForCredit(pods, credit), [pods, credit]);
+  const targetTier = credit.target_occupancy;
   const realMembers = (activePod?.members ?? []).filter((m) => m.slot_credit_id !== 'invitation');
   const filled = realMembers.length;
   const remaining = Math.max(0, targetTier - filled);
   const inviteCode = credit.invite_code ?? 'GIDA-GRP-DEV';
-  const isCreator = !!activePod && activePod.members[0]?.user_id === credit.user_id;
+  const isCreator = isPodCreator(activePod, credit.user_id);
 
-  const groupMembers: ManageGroupMember[] = (activePod?.members ?? []).map((m) => ({
+  const groupMembers: ManageGroupMember[] = useMemo(() => (activePod?.members ?? []).map((m) => ({
     id: m.user_id,
     name: m.profile?.full_name || m.full_name || 'Roommate',
     status: (m.user_id === credit.user_id
       ? 'you'
       : m.slot_credit_id === 'invitation'
         ? 'pending'
-        : m.amount_paid
-          ? 'paid'
-          : 'accepted') as ManageGroupMember['status'],
+        : memberPaymentStatus(m)) as ManageGroupMember['status'],
     via: (m.slot_credit_id === 'invitation' ? 'code' : 'direct') as ManageGroupMember['via'],
     avatar_url: m.profile?.avatar_url ?? m.avatar_url,
-  }));
+  })), [activePod, credit.user_id]);
 
   const handleInvite = async (name: string, userId?: string) => {
     try {

@@ -43,7 +43,7 @@ interface Props {
 
 export function GroupMemberRow({ member, onKick }: Props) {
   const config = STATUS_CONFIG[member.status];
-  const kickable = !!onKick && member.status !== 'you' && member.status !== 'paid';
+  const kickable = onKick != null && member.status !== 'you' && member.status !== 'paid';
   return (
     <View style={styles.row}>
       {!member.avatar_url || member.avatar_url === undefined? (

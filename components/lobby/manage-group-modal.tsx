@@ -112,7 +112,7 @@ export function ManageGroupModal({ visible, groupCode, members, maxCapacity, edi
               </View>
             ) : (
               roster.map((member) => (
-                <GroupMemberRow key={member.id} member={member} onKick={editable ? handleKick : () => {}} />
+                <GroupMemberRow key={member.id} member={member} onKick={editable ? handleKick : undefined} />
               ))
             )}
             {!loading && roster.length === 0 && (

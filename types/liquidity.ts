@@ -57,6 +57,7 @@ export interface PodMember {
   sleep_schedule: string;
   slot_credit_id: string;
   amount_paid?: number;
+  credit_status?: SlotCreditStatus | null;
   profile?: { id?: string; full_name?: string | null; avatar_url?: string | null; gender?: 'MALE' | 'FEMALE' | null };
 }
 
@@ -75,6 +76,7 @@ export interface Pod {
   tier?: number;
   group_code?: string | null;
   status?: 'forming' | 'finalized';
+  founder_user_id?: string | null;
 }
 
 export interface PodInvitation {

@@ -1,13 +1,13 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter , useFocusEffect } from 'expo-router';
+import { useRouter , useFocusEffect, useLocalSearchParams } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors } from '@/constants/design';
 import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { removeMemberFromPod, inviteRoommateToPod } from '@/services/liquidity-service';
-import { countRealMembers } from '@/utils/liquidity-math';
+import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
 import { useAppToast } from '@/components/ui/toast-card';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { SlotPass } from './slot-pass';
@@ -19,17 +19,21 @@ import { styles } from './lobby-screen.styles';
 
 export function LobbyScreen() {
   const router = useRouter();
+  const params = useLocalSearchParams<{ creditId?: string | string[] }>();
+  const creditIdParam = params.creditId;
+  const creditId = Array.isArray(creditIdParam) ? creditIdParam[0] : creditIdParam;
   const {
     data: credits,
     refetch: refetchCredits,
     isLoading: creditsLoading,
     isError: creditsError,
   } = useUserSlotCredits();
+  const credit = credits?.find((c) => c.id === creditId) ?? credits?.[0];
   const {
     data: pods,
     refetch: refetchPods,
     isLoading: podsLoading,
-  } = useActivePods();
+  } = useActivePods(undefined, credit?.listing_id);
 
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
@@ -40,8 +44,7 @@ export function LobbyScreen() {
     refetchPods();
   }, [refetchCredits, refetchPods]));
 
-  const credit = credits?.[0];
-  const activePod = pods?.[0];
+  const activePod = useMemo(() => findActivePodForCredit(pods, credit), [pods, credit]);
   const targetTier = credit?.target_occupancy ?? 1;
   const isSolo = targetTier === 1;
   const currentTotalIntent = activePod ? countRealMembers(activePod) : credit?.intent_size ?? 1;
@@ -49,7 +52,7 @@ export function LobbyScreen() {
   const isPendingPayment = credit?.status === 'booked_pending_claim';
   const isExpiredCredit = credit?.status === 'expired';
   const isPaid = credit?.status === 'paid_unmatched' || credit?.status === 'matched';
-  const isCreator = !!activePod && activePod.members[0]?.user_id === credit?.user_id;
+  const isCreator = isPodCreator(activePod, credit?.user_id);
 
   const { data: physicalRoom } = usePhysicalRoom(activePod?.physical_room_id);
   const roomLabel = physicalRoom?.physical_door_number ?? activePod?.physical_room_id ?? null;
@@ -57,19 +60,17 @@ export function LobbyScreen() {
   const estateName = credit?.estate?.name || 'Campus Residence';
   const estateImage = credit?.estate?.primary_image;
 
-  const groupMembers: ManageGroupMember[] = (activePod?.members ?? []).map((member) => ({
+  const groupMembers: ManageGroupMember[] = useMemo(() => (activePod?.members ?? []).map((member) => ({
     id: member.user_id,
     name: member.profile?.full_name || member.full_name || 'Roommate',
     status: (member.user_id === credit?.user_id
       ? 'you'
       : member.slot_credit_id === 'invitation'
         ? 'pending'
-        : member.amount_paid
-          ? 'paid'
-          : 'accepted') as ManageGroupMember['status'],
+        : memberPaymentStatus(member)) as ManageGroupMember['status'],
     via: (member.slot_credit_id === 'invitation' ? 'code' : 'direct') as ManageGroupMember['via'],
     avatar_url: member.profile?.avatar_url ?? member.avatar_url,
-  }));
+  })), [activePod, credit?.user_id]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -208,6 +209,19 @@ export function LobbyScreen() {
 
         {!isSolo && (
           <LobbyMemberList members={groupMembers} targetTier={targetTier} />
+        )}
+
+        {!isSolo && activePod && (
+          <Pressable
+            style={styles.manageBtn}
+            onPress={() => setManageModalVisible(true)}
+            testID="manage-group-btn"
+          >
+            <Ionicons name={isCreator ? 'settings-outline' : 'eye-outline'} size={18} color={DesignColors.onPrimaryContainer} />
+            <Text style={styles.manageBtnText}>
+              {isCreator ? 'Manage Group' : 'See Group'}
+            </Text>
+          </Pressable>
         )}
 
         {!isSolo && isCreator && remainingSlots > 0 && (

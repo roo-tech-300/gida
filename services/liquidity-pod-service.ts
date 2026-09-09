@@ -103,49 +103,11 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
-  const pod = await getPodById(podId);
-  const founder = pod.members[0];
-  if (founder?.user_id !== userId) {
-    throw new Error('Only the group founder can remove members.');
-  }
+  const { data, error } = await supabase
+    .rpc('remove_member_from_pod', { p_pod_id: podId, p_target_user_id: targetUserId });
+  if (error) throw new Error(error.message);
 
-  const target = pod.members.find((m) => m.user_id === targetUserId);
-  if (!target) throw new Error('Member not found in this group.');
-  if (target.user_id === userId) throw new Error('You cannot remove yourself from the group.');
-  if (target.amount_paid) throw new Error('Paid members cannot be removed.');
-
-  const nextMembers = pod.members.filter((m) => m.user_id !== targetUserId);
-  // Self-healing: recompute occupancy from the members that remain, never decrement
-  // the stored counter (it can already be drifted; decrementing preserves drift).
-  const nextIntent = nextMembers.reduce((sum, m) => sum + Math.max(0, m.intent_size ?? 1), 0);
-  const targetOccupancy = pod.target_occupancy ?? pod.property_tier;
-
-  const updatedPod: Pod = {
-    ...pod,
-    members: nextMembers,
-    current_total_intent: nextIntent,
-    is_finalized: nextIntent >= targetOccupancy,
-    physical_room_id: nextIntent >= targetOccupancy
-      ? pod.physical_room_id ?? `room-${Math.floor(700 + Math.random() * 100)}`
-      : null,
-  };
-
-  try {
-    await supabase.from('pod_members').delete().eq('pod_id', podId).eq('user_id', targetUserId);
-    await supabase.from('pods').update({
-      current_total_intent: nextIntent,
-      is_finalized: updatedPod.is_finalized,
-      physical_room_id: updatedPod.physical_room_id ?? null,
-    }).eq('id', podId);
-    if (target.slot_credit_id && target.slot_credit_id !== 'invitation') {
-      await supabase.from('slot_credits').update({ status: 'expired' }).eq('id', target.slot_credit_id);
-    }
-  } catch (error) {
-    console.error('[LiquidityService] Failed to persist member removal:', error);
-    throw new Error('Could not remove the member on the server. Try again.');
-  }
-
-  return updatedPod;
+  return data as Pod;
 }
 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; synced: boolean };

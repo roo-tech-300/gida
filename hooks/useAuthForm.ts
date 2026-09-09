@@ -42,9 +42,10 @@ export function useAuthForm() {
       await loginUserAccount(email, password);
       await refreshProfile();
       router.replace('/(tabs)');
-    } catch (err: any) {
+    } catch (err) {
       setLoading(false);
-      showToast({ title: 'Login Failed', message: err.message || 'An error occurred during login. Please try again.', type: 'error' });
+      const message = err instanceof Error ? err.message : 'An error occurred during login. Please try again.';
+      showToast({ title: 'Login Failed', message, type: 'error' });
     }
   };
    return {

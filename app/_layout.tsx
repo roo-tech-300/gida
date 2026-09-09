@@ -76,6 +76,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
+  console.log('[PROBE] RootLayout rendered');
   return (
     <QueryClientProvider client={queryClient}>
       <AppConfigProvider>

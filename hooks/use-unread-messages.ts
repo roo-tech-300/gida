@@ -2,6 +2,10 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/lib/supabase';
 import { useAuth } from '@/context/auth-context';
 
+let activeChannel: ReturnType<typeof supabase.channel> | null = null;
+let activeUserId: string | null = null;
+let refCount = 0;
+
 export function useUnreadMessages() {
   const { profile } = useAuth();
   const userId = profile?.id;
@@ -13,7 +17,6 @@ export function useUnreadMessages() {
       return;
     }
 
-    // Initial data fetch
     const loadInitial = async () => {
       const { data, error } = await supabase
         .from('conversations')
@@ -29,16 +32,25 @@ export function useUnreadMessages() {
 
     loadInitial();
 
-    // Real-time subscription for new/updated conversations.
-    // One filter per postgres_changes handler, so subscribe as both
-    // participant_a and participant_b.
-    //
-    // Use a unique channel name per mount to avoid Supabase returning a
-    // cached, already-subscribed channel instance — which causes the
-    // "cannot add postgres_changes callbacks after subscribe()" error.
-    const channelName = `unread-messages-${userId}-${Date.now()}`;
+    refCount++;
+
+    if (activeChannel && activeUserId === userId) {
+      return () => {
+        refCount--;
+        if (refCount === 0 && activeChannel) {
+          void supabase.removeChannel(activeChannel);
+          activeChannel = null;
+          activeUserId = null;
+        }
+      };
+    }
+
+    if (activeChannel) {
+      void supabase.removeChannel(activeChannel);
+    }
+
     const channel = supabase
-      .channel(channelName)
+      .channel(`unread-messages-${userId}`)
       .on('postgres_changes',
         { event: 'INSERT', schema: 'public', table: 'conversations', filter: `participant_a=eq.${userId}` },
         () => loadInitial()
@@ -57,8 +69,16 @@ export function useUnreadMessages() {
       )
       .subscribe();
 
+    activeChannel = channel;
+    activeUserId = userId;
+
     return () => {
-      void supabase.removeChannel(channel);
+      refCount--;
+      if (refCount === 0) {
+        void supabase.removeChannel(channel);
+        activeChannel = null;
+        activeUserId = null;
+      }
     };
   }, [userId]);
 

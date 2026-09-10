@@ -11,19 +11,6 @@ import { MessageSyncProvider } from '@/components/messages/message-sync-provider
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 
-import { DarkTheme, ThemeProvider } from '@react-navigation/native';
-
-const customTheme = {
-  ...DarkTheme,
-  colors: {
-    ...DarkTheme.colors,
-    background: DesignColors.surfaceContainerLowest,
-    card: DesignColors.surface,
-    text: DesignColors.onSurface,
-    border: DesignColors.cardBorder,
-  },
-};
-
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
   const segments = useSegments();
@@ -85,24 +72,22 @@ export default function RootLayout() {
             <ToastProvider>
               <MessageSyncProvider>
                 <AuthGate>
-                  <ThemeProvider value={customTheme}>
-                    <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
-                      <Stack.Screen name="index" />
-                      <Stack.Screen name="(landing)" />
-                      <Stack.Screen name="(auth)" />
-                      <Stack.Screen name="(onboarding)" />
-                      <Stack.Screen name="(tabs)" />
-                      <Stack.Screen name="property/[id]" />
-                      <Stack.Screen name="property/claim-room" />
-                      <Stack.Screen name="property/lobby" />
-                      <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
-                      <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
-                      <Stack.Screen name="property/tour-history" options={{ presentation: 'modal' }} />
-                      <Stack.Screen name="messages/[id]" />
-                      <Stack.Screen name="roommate/[id]" />
-                      <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-                    </Stack>
-                  </ThemeProvider>
+                  <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>
+                    <Stack.Screen name="index" />
+                    <Stack.Screen name="(landing)" />
+                    <Stack.Screen name="(auth)" />
+                    <Stack.Screen name="(onboarding)" />
+                    <Stack.Screen name="(tabs)" />
+                    <Stack.Screen name="property/[id]" />
+                    <Stack.Screen name="property/claim-room" />
+                    <Stack.Screen name="property/lobby" />
+                    <Stack.Screen name="property/tour-scheduler" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="property/tour-pass" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="property/tour-history" options={{ presentation: 'modal' }} />
+                    <Stack.Screen name="messages/[id]" />
+                    <Stack.Screen name="roommate/[id]" />
+                    <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
+                  </Stack>
                 </AuthGate>
               </MessageSyncProvider>
             </ToastProvider>

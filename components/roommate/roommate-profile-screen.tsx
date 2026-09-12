@@ -58,7 +58,7 @@ export function RoommateProfileScreen({ roommateId }: { roommateId: string }) {
     const { roommate } = data;
     try {
       await Share.share({
-        message: `${roommate.name}, ${roommate.age} • ${roommate.university} • ${roommate.budget} — found on Gida.`,
+        message: `${roommate.name} • ${roommate.university} • ${roommate.budget} — found on Gida.`,
       });
     } catch (error) {
       console.error('[RoommateProfile] Share failed:', error);

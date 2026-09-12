@@ -64,7 +64,7 @@ export function RoommateDeckCard({ profile, onViewProfile, onSayHello }: Props) 
         <View style={styles.glassCard}>
           <WebBlurView intensity={90} tint="dark" style={styles.glassBlur} />
           <View style={styles.glassInner}>
-            <Text style={styles.nameText}>{profile.name}, {profile.age}</Text>
+            <Text style={styles.nameText}>{profile.name}</Text>
             {profile.username ? <Text style={styles.usernameText}>@{profile.username}</Text> : null}
 
             <View style={styles.metaRow}>

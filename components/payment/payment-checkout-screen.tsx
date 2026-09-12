@@ -96,8 +96,8 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const credit = credits?.find((c) => c.id === creditId);
   const isPaid = credit?.status === 'paid_unmatched' || locallyPaid;
   const isExpired = credit?.status === 'expired' || locallyExpired;
-  const isPendingVerification = credit?.status === 'pending_verification';
-  const isRejected = credit?.status === 'rejected';
+  const isPendingVerification = credit?.pod_verification_status === 'pending_verification';
+  const isRejected = credit?.pod_verification_status === 'rejected';
   const amount = credit?.amount_paid ?? 0;
   const estateName = credit?.estate?.name || 'Gida Campus Residence';
 
@@ -192,7 +192,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       <View style={styles.footer}>
         <Pressable
           style={styles.payButton}
-          onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : '/property/lobby')}
+          onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : { pathname: '/property/lobby', params: { creditId } })}
           testID="checkout-continue"
         >
           <Text style={styles.payText}>{credit.target_occupancy === 1 ? 'View Booking' : 'Continue to Lobby'}</Text>

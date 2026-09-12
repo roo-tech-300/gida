@@ -67,6 +67,7 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
         group_code: pod.group_code,
         current_total_intent: pod.current_total_intent,
         is_finalized: pod.is_finalized,
+        verification_status: pod.verification_status,
       })
       .select()
       .maybeSingle();

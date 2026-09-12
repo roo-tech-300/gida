@@ -97,7 +97,7 @@ export function BookingConfirmationScreen({ creditId }: { creditId: string }) {
           <Text style={styles.primaryText}>Back to Properties</Text>
         </Pressable>
         {!isSolo && (
-          <Pressable style={styles.secondaryButton} onPress={() => router.push('/property/lobby')} testID="booking-go-to-lobby">
+          <Pressable style={styles.secondaryButton} onPress={() => router.push({ pathname: '/property/lobby', params: { creditId } })} testID="booking-go-to-lobby">
             <Text style={styles.secondaryText}>Go to Lobby</Text>
           </Pressable>
         )}

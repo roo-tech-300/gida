@@ -88,7 +88,7 @@ export const OFFERS: LandingOfferItem[] = [
   {
     step: 2,
     title: 'Connect with Roommates',
-    desc: 'Find verified students with similar lifestyles to share your space and split the bills easily.',
+    desc: 'Find students with similar lifestyles to share your space and split the bills easily.',
     image: SCREENSHOTS[2],
   },
 ];

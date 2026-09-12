@@ -46,7 +46,7 @@ export type PodJoinAttachment = {
 
 export type LodgeReservationAttachment = {
   type: 'lodge_reservation';
-  creditId: string;
+  podId: string;
   listingId: string;
   title: string;
   image: string | null;
@@ -56,7 +56,7 @@ export type LodgeReservationAttachment = {
 
 export type LodgeDecisionAttachment = {
   type: 'lodge_decision';
-  creditId: string;
+  podId: string;
   listingId: string;
   title: string;
   image: string | null;

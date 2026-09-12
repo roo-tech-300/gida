@@ -36,10 +36,10 @@ export function useCreditForListing(listingId?: string) {
   return { data: credit, isLoading };
 }
 
-export function useActivePods(estateId?: string) {
+export function useActivePods(estateId?: string, listingId?: string) {
   return useQuery<Pod[], Error>({
-    queryKey: ['active-pods', estateId],
-    queryFn: () => fetchActivePods(estateId),
+    queryKey: ['active-pods', estateId ?? null, listingId ?? null],
+    queryFn: () => fetchActivePods(estateId, listingId),
     staleTime: 30_000,
   });
 }

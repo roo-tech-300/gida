@@ -150,4 +150,22 @@ export const styles = StyleSheet.create({
   roomInfo: { flex: 1, gap: 2 },
   roomLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.2 },
   roomValue: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '800' },
+  manageBtn: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: DesignSpacing.xs,
+    backgroundColor: DesignColors.primaryContainer,
+    borderRadius: DesignRadius.full,
+    paddingVertical: 10,
+    paddingHorizontal: DesignSpacing.lg,
+    alignSelf: 'center',
+  },
+  manageBtnText: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onPrimaryContainer,
+    fontFamily,
+    fontWeight: '700',
+    fontSize: 13,
+  },
 });

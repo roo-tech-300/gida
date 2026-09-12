@@ -168,6 +168,7 @@ describe('server sync guarantees', () => {
           is_finalized: false,
           physical_room_id: null,
           created_at: new Date().toISOString(),
+          verification_status: 'pending_verification',
         }),
       }),
     );

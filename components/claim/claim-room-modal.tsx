@@ -126,14 +126,14 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
     try {
       console.log('[ClaimModal] 2. Calling purchaseSlot...');
-      const { credit } = await purchaseSlot({
+      const { credit, podId } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: peopleTotal,
         createCode: inviteCode,
         invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
         creatorGender: profile?.gender,
       });
-      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'status:', credit.status);
+      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'status:', credit.status);
       const message = isBuyout
         ? 'Spot reserved! You\'re all set for solo living.'
         : matchedCount > 0
@@ -142,7 +142,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       showToast({ message, type: 'success' });
       console.log('[ClaimModal] 4. Notifying admin...');
       try {
-        await notifyAdminOfReservation({ creditId: credit.id, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
+        await notifyAdminOfReservation({ podId, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
         console.log('[ClaimModal] 5. Admin notified successfully');
       } catch (notifyErr) {
         console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
@@ -159,7 +159,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     async (pod: Pod) => {
       if (!dbListing || !pod.group_code) return;
       try {
-        const { credit } = await purchaseSlot({
+        const { credit, podId } = await purchaseSlot({
           listing: dbListing,
           targetOccupancy: pod.target_occupancy,
           joinCode: pod.group_code,
@@ -168,7 +168,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
         console.log('[ClaimModal] JoinOpenPod — Notifying admin...');
         try {
-          await notifyAdminOfReservation({ creditId: credit.id, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
+          await notifyAdminOfReservation({ podId, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
           console.log('[ClaimModal] JoinOpenPod — Admin notified');
         } catch (notifyErr) {
           console.error('[ClaimModal] JoinOpenPod — Admin notification FAILED:', notifyErr);

@@ -8,6 +8,7 @@ import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { ToastProvider } from '@/components/ui/toast-card';
 import { MessageSyncProvider } from '@/components/messages/message-sync-provider';
+import { OfflineBanner } from '@/components/ui/offline-banner';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 
@@ -70,6 +71,7 @@ export default function RootLayout() {
         <AuthProvider>
           <OnboardingProvider>
             <ToastProvider>
+              <OfflineBanner />
               <MessageSyncProvider>
                 <AuthGate>
                   <Stack screenOptions={{ headerShown: false, animation: 'none', contentStyle: { backgroundColor: DesignColors.surfaceContainerLowest } }}>

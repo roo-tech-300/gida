@@ -4,12 +4,19 @@ import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult, InvitedFriend } from '@/services/liquidity-pod-service';
 import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
-import type { Estate, SlotCredit, Pod, PodMember, PodInvitation } from '@/types/liquidity';
+import type { Estate, SlotCredit, Pod, PodMember, PodInvitation, SlotCreditStatus } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 import { MOCK_ESTATES } from '@/dummy/liquidity-mock';
 
 export { findPodByGroupCode, removeMemberFromPod };
 export type { PurchaseSlotCreditResult };
+
+type CreditPaymentStatus = {
+  pod_id: string;
+  user_id: string;
+  slot_credit_id: string;
+  status: string;
+};
 
 export type PurchaseSlotCreditInput = {
   listing: DbListing;
@@ -82,18 +89,52 @@ export async function fetchUserSlotCredits(): Promise<SlotCredit[]> {
   const userId = await currentUserId();
   if (!userId) return [];
   try {
-    const { data, error } = await supabase.from('slot_credits').select('*, estate:estates(*)').eq('user_id', userId);
+    const { data, error } = await supabase
+      .from('slot_credits')
+      .select('*, estate:estates(*)')
+      .eq('user_id', userId);
     if (error || !data) {
       return [];
     }
-    return data as SlotCredit[];
+
+    // Fetch pod verification status via pod_members join
+    const creditIds = data.map((r) => r.id).filter(Boolean);
+    let podVerificationByCreditId = new Map<string, string>();
+    if (creditIds.length > 0) {
+      const { data: memberships } = await supabase
+        .from('pod_members')
+        .select('slot_credit_id, pod_id')
+        .eq('user_id', userId)
+        .in('slot_credit_id', creditIds);
+      if (memberships && memberships.length > 0) {
+        const podIds = [...new Set(memberships.map((m) => m.pod_id).filter(Boolean))];
+        if (podIds.length > 0) {
+          const { data: pods } = await supabase
+            .from('pods')
+            .select('id, verification_status')
+            .in('id', podIds);
+          if (pods) {
+            const podStatusById = new Map(pods.map((p) => [p.id, p.verification_status]));
+            for (const m of memberships) {
+              const status = podStatusById.get(m.pod_id);
+              if (status) podVerificationByCreditId.set(m.slot_credit_id, status);
+            }
+          }
+        }
+      }
+    }
+
+    return data.map((row) => ({
+      ...row,
+      pod_verification_status: podVerificationByCreditId.get(row.id) ?? null,
+    })) as SlotCredit[];
   } catch (error) {
     console.error('[LiquidityService] Failed to fetch user slot credits:', error);
     return [];
   }
 }
 
-export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
+export async function fetchActivePods(estateId?: string, listingId?: string): Promise<Pod[]> {
   const userId = await currentUserId();
   if (!userId) return [];
   try {
@@ -108,9 +149,13 @@ export async function fetchActivePods(estateId?: string): Promise<Pod[]> {
     let query = supabase
       .from('pods')
       .select('*, members:pod_members(*)')
-      .in('id', podIds);
+      .in('id', podIds)
+      .order('created_at', { ascending: false });
     if (estateId) {
       query = query.eq('estate_id', estateId);
+    }
+    if (listingId) {
+      query = query.eq('listing_id', listingId);
     }
     const { data, error } = await query;
     if (error || !data) {
@@ -151,12 +196,12 @@ export async function fetchOpenPodsForListing(listingId: string): Promise<Pod[]>
 }
 
 async function enrichPods(pods: Pod[]): Promise<Pod[]> {
-  const allUserIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user_id)))];
-  if (allUserIds.length > 0) {
+  const realUserIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.user_id)).filter((id) => !id.startsWith('inv-')))];
+  if (realUserIds.length > 0) {
     const { data: profiles } = await supabase
       .from('profiles')
       .select('id, full_name, avatar_url, gender')
-      .in('id', allUserIds);
+      .in('id', realUserIds);
     if (profiles) {
       const profileMap = new Map(profiles.map((p) => [p.id, p]));
       for (const pod of pods) {
@@ -167,6 +212,27 @@ async function enrichPods(pods: Pod[]): Promise<Pod[]> {
             if (!member.full_name) member.full_name = profile.full_name ?? '';
             if (!member.avatar_url) member.avatar_url = profile.avatar_url ?? undefined;
           }
+        }
+      }
+    }
+  }
+  const realCreditIds = [...new Set(pods.flatMap((pod) => pod.members.map((m) => m.slot_credit_id)).filter((id) => id !== 'invitation'))];
+  if (pods.length > 0 && realCreditIds.length > 0) {
+    // Only expose payment statuses for pods the caller actually belongs to; the
+    // SECURITY DEFINER RPC bypasses slot_credits SELECT RLS while staying gated
+    // on pod_members membership. Direct .from('slot_credits') here would return
+    // only the caller's own rows and leave co-members' credit_status unset.
+    const podIds = pods.map((p) => p.id);
+    const creditStatuses = (await supabase.rpc('get_pod_member_payment_statuses', {
+      p_pod_ids: podIds,
+    }))?.data as CreditPaymentStatus[] | null;
+    if (creditStatuses) {
+      const statusBySlotCreditId = new Map(creditStatuses.map((c) => [c.slot_credit_id, c.status as SlotCreditStatus]));
+      const statusByUserId = new Map(creditStatuses.map((c) => [c.user_id, c.status as SlotCreditStatus]));
+      for (const pod of pods) {
+        for (const member of pod.members) {
+          const status = statusBySlotCreditId.get(member.slot_credit_id) ?? statusByUserId.get(member.user_id);
+          if (status) member.credit_status = status;
         }
       }
     }

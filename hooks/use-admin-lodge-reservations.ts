@@ -20,11 +20,11 @@ export function useAdminLodgeReservations(view: AdminLodgeView = 'pending') {
   });
 }
 
-export function useAdminLodgeDetail(creditId: string | undefined) {
+export function useAdminLodgeDetail(podId: string | undefined) {
   return useQuery({
-    queryKey: ['admin-lodge-detail', creditId],
-    queryFn: () => fetchAdminLodgeDetail(creditId ?? ''),
-    enabled: Boolean(creditId),
+    queryKey: ['admin-lodge-detail', podId],
+    queryFn: () => fetchAdminLodgeDetail(podId ?? ''),
+    enabled: Boolean(podId),
   });
 }
 
@@ -43,7 +43,7 @@ export function useAcceptLodgeReservation() {
 export function useRejectLodgeReservation() {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: ({ creditId, reason }: { creditId: string; reason: string }) => rejectReservation(creditId, reason),
+    mutationFn: ({ podId, reason }: { podId: string; reason: string }) => rejectReservation(podId, reason),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-lodge-reservations'] });
       queryClient.invalidateQueries({ queryKey: ['admin-lodge-detail'] });

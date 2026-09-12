@@ -25,7 +25,7 @@ export function useUnreadMessages() {
 
       if (!error && data) {
         const total = data.reduce((sum, row) =>
-          sum + (row.unread_a ?? 0) + (row.unread_b ?? 0), 0);
+          sum + (row.participant_a === userId ? (row.unread_a ?? 0) : (row.unread_b ?? 0)), 0);
         setCount(total);
       }
     };

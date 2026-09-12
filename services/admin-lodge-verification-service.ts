@@ -3,15 +3,22 @@ import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 export type AdminLodgeView = 'pending' | 'rejected';
 
-export type AdminLodgeReservation = {
-  creditId: string;
+export type AdminLodgeMember = {
   userId: string;
   userName: string | null;
+  slotCreditId: string;
+  amountPaid: number | null;
+};
+
+export type AdminLodgeReservation = {
+  podId: string;
   listingId: string;
   listingTitle: string;
   listingImage: string | null;
   listingLocation: string;
-  amountPaid: number | null;
+  memberCount: number;
+  targetOccupancy: number;
+  members: AdminLodgeMember[];
   status: string;
   createdAt: string;
   rejectionReason: string | null;
@@ -50,26 +57,32 @@ export async function fetchAdminLodgeReservations(
 
     const statusValue = view === 'pending' ? 'pending_verification' : 'rejected';
 
-    const { data, error } = await supabase
-      .from('slot_credits')
-      .select('id, user_id, listing_id, amount_paid, status, created_at, rejection_reason')
-      .eq('status', statusValue)
+    const { data: pods, error: podsError } = await supabase
+      .from('pods')
+      .select('id, listing_id, target_occupancy, verification_status, rejection_reason, created_at, members:pod_members(user_id, slot_credit_id, amount_paid)')
+      .eq('verification_status', statusValue)
       .in('listing_id', listingIds)
       .order('created_at', { ascending: false })
       .limit(100);
 
-    if (error || !data) {
-      console.warn('[AdminLodgeService] Fetch skipped:', error?.message ?? 'no data');
+    if (podsError || !pods) {
+      console.warn('[AdminLodgeService] Fetch skipped:', podsError?.message ?? 'no data');
       return [];
     }
 
-    const userIds = [...new Set(data.map((r) => r.user_id).filter(Boolean))];
-    const lidIds = [...new Set(data.map((r) => r.listing_id).filter(Boolean))];
+    const allUserIds = new Set<string>();
+    const lidIds = new Set<string>();
+    for (const pod of pods) {
+      if (pod.listing_id) lidIds.add(pod.listing_id);
+      for (const m of (pod.members as { user_id: string }[]) ?? []) {
+        if (m.user_id) allUserIds.add(m.user_id);
+      }
+    }
 
     const [namesRes, listingsRes] = await Promise.all([
-      userIds.length > 0
+      allUserIds.size > 0
         ? (async () => {
-            const profiles = await fetchProfilesInChunks(userIds);
+            const profiles = await fetchProfilesInChunks([...allUserIds]);
             const names = new Map<string, string | null>();
             for (const [id, profile] of Object.entries(profiles)) {
               names.set(id, profile.full_name ?? null);
@@ -77,9 +90,9 @@ export async function fetchAdminLodgeReservations(
             return { data: Array.from(names.entries()), error: null };
           })()
         : { data: null, error: null },
-      lidIds.length > 0
+      lidIds.size > 0
         ? (async () => {
-            const chunks = chunkInIds(lidIds);
+            const chunks = chunkInIds([...lidIds]);
             const listingsMap: Map<string, { title: string; primary_image: string | null; location_landmark: string }> = new Map();
             for (const chunk of chunks) {
               const { data } = await supabase
@@ -104,20 +117,27 @@ export async function fetchAdminLodgeReservations(
       listings.set(l.id, l);
     }
 
-    return data.map((row) => {
-      const listing = listings.get(row.listing_id);
+    return pods.map((pod) => {
+      const listing = listings.get(pod.listing_id);
+      const members = ((pod.members as { user_id: string; slot_credit_id: string; amount_paid: number | null }[]) ?? []).map((m) => ({
+        userId: m.user_id,
+        userName: names.get(m.user_id) ?? null,
+        slotCreditId: m.slot_credit_id,
+        amountPaid: m.amount_paid,
+      }));
+
       return {
-        creditId: row.id,
-        userId: row.user_id,
-        userName: names.get(row.user_id) ?? null,
-        listingId: row.listing_id,
+        podId: pod.id,
+        listingId: pod.listing_id,
         listingTitle: listing?.title ?? 'Unknown property',
         listingImage: listing?.primary_image ?? null,
         listingLocation: listing?.location_landmark ?? '',
-        amountPaid: row.amount_paid,
-        status: row.status,
-        createdAt: row.created_at,
-        rejectionReason: row.rejection_reason ?? null,
+        memberCount: members.length,
+        targetOccupancy: pod.target_occupancy,
+        members,
+        status: pod.verification_status,
+        createdAt: pod.created_at,
+        rejectionReason: pod.rejection_reason ?? null,
       };
     });
   } catch (error) {
@@ -127,56 +147,67 @@ export async function fetchAdminLodgeReservations(
 }
 
 export type AdminLodgeDetail = {
-  credit: {
+  pod: {
     id: string;
-    status: string;
-    amountPaid: number | null;
+    verificationStatus: string;
     targetOccupancy: number;
+    memberCount: number;
     createdAt: string;
     rejectionReason: string | null;
   };
-  user: { id: string; name: string | null; email: string | null };
+  members: AdminLodgeMember[];
   listing: { id: string; title: string; primaryImage: string | null; location: string; priceAmount: number } | null;
 };
 
-export async function fetchAdminLodgeDetail(creditId: string): Promise<AdminLodgeDetail | null> {
+export async function fetchAdminLodgeDetail(podId: string): Promise<AdminLodgeDetail | null> {
   try {
-    const { data, error } = await supabase
-      .from('slot_credits')
-      .select('id, user_id, listing_id, amount_paid, status, target_occupancy, created_at, rejection_reason')
-      .eq('id', creditId)
+    const { data: pod, error: podError } = await supabase
+      .from('pods')
+      .select('id, listing_id, target_occupancy, verification_status, rejection_reason, created_at, members:pod_members(user_id, slot_credit_id, amount_paid)')
+      .eq('id', podId)
       .maybeSingle();
 
-    if (error || !data) return null;
+    if (podError || !pod) return null;
 
-    const [profileRes, listingRes] = await Promise.all([
-      supabase.from('profiles').select('id, full_name').eq('id', data.user_id).maybeSingle(),
-      data.listing_id
-        ? supabase.from('listings').select('id, title, primary_image, location_landmark, price_amount').eq('id', data.listing_id).maybeSingle()
-        : { data: null, error: null },
+    const memberRows = (pod.members as { user_id: string; slot_credit_id: string; amount_paid: number | null }[]) ?? [];
+    const memberUserIds = memberRows.map((m) => m.user_id).filter(Boolean);
+
+    const [namesMap, listing] = await Promise.all([
+      memberUserIds.length > 0
+        ? fetchProfilesInChunks(memberUserIds).then((profiles) => {
+            const names = new Map<string, string | null>();
+            for (const [id, profile] of Object.entries(profiles)) {
+              names.set(id, profile.full_name ?? null);
+            }
+            return names;
+          })
+        : Promise.resolve(new Map<string, string | null>()),
+      pod.listing_id
+        ? supabase.from('listings').select('id, title, primary_image, location_landmark, price_amount').eq('id', pod.listing_id).maybeSingle()
+        : Promise.resolve({ data: null, error: null }),
     ]);
 
-    const profile = profileRes.data as { id: string; full_name: string | null } | null;
-    const listing = listingRes.data as { id: string; title: string; primary_image: string | null; location_landmark: string; price_amount: number } | null;
+    const listingRow = listing.data as { id: string; title: string; primary_image: string | null; location_landmark: string; price_amount: number } | null;
 
-    let email: string | null = null;
-    if (data.user_id) {
-      const { data: authData } = await supabase.auth.admin.getUserById(data.user_id);
-      email = authData?.user?.email ?? null;
-    }
+    const members: AdminLodgeMember[] = memberRows.map((m) => ({
+      userId: m.user_id,
+      userName: namesMap.get(m.user_id) ?? null,
+      slotCreditId: m.slot_credit_id,
+      amountPaid: m.amount_paid,
+    }));
 
     return {
-      credit: {
-        id: data.id,
-        status: data.status,
-        amountPaid: data.amount_paid,
-        targetOccupancy: data.target_occupancy,
-        createdAt: data.created_at,
-        rejectionReason: data.rejection_reason ?? null,
+      pod: {
+        id: pod.id,
+        verificationStatus: pod.verification_status,
+        targetOccupancy: pod.target_occupancy,
+        memberCount: members.length,
+        createdAt: pod.created_at,
+        rejectionReason: pod.rejection_reason ?? null,
       },
-      user: { id: data.user_id, name: profile?.full_name ?? null, email },
-      listing: listing
-        ? { id: listing.id, title: listing.title, primaryImage: listing.primary_image, location: listing.location_landmark, priceAmount: listing.price_amount }
+      members,
+      listing: listingRow
+        ? { id: listingRow.id, title: listingRow.title, primaryImage: listingRow.primary_image, location: listingRow.location_landmark, priceAmount: listingRow.price_amount }
         : null,
     };
   } catch (error) {
@@ -185,17 +216,17 @@ export async function fetchAdminLodgeDetail(creditId: string): Promise<AdminLodg
   }
 }
 
-export async function acceptReservation(creditId: string): Promise<boolean> {
+export async function acceptReservation(podId: string): Promise<boolean> {
   try {
     const { error } = await supabase
-      .from('slot_credits')
+      .from('pods')
       .update({
-        status: 'booked_pending_claim',
+        verification_status: 'approved',
         verified_at: new Date().toISOString(),
         rejection_reason: null,
       })
-      .eq('id', creditId)
-      .eq('status', 'pending_verification');
+      .eq('id', podId)
+      .eq('verification_status', 'pending_verification');
 
     if (error) {
       console.error('[AdminLodgeService] Accept failed:', error);
@@ -208,18 +239,18 @@ export async function acceptReservation(creditId: string): Promise<boolean> {
   }
 }
 
-export async function rejectReservation(creditId: string, reason: string): Promise<boolean> {
+export async function rejectReservation(podId: string, reason: string): Promise<boolean> {
   if (!reason.trim()) return false;
   try {
     const { error } = await supabase
-      .from('slot_credits')
+      .from('pods')
       .update({
-        status: 'rejected',
+        verification_status: 'rejected',
         rejection_reason: reason.trim(),
         verified_at: new Date().toISOString(),
       })
-      .eq('id', creditId)
-      .eq('status', 'pending_verification');
+      .eq('id', podId)
+      .eq('verification_status', 'pending_verification');
 
     if (error) {
       console.error('[AdminLodgeService] Reject failed:', error);

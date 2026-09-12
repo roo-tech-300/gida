@@ -19,7 +19,7 @@ export function LodgeAlertsProvider({ children }: { children: ReactNode }) {
       .channel('lodge-reservation-admin-alerts')
       .on(
         'postgres_changes',
-        { event: 'INSERT', schema: 'public', table: 'slot_credits', filter: 'status=eq.pending_verification' },
+        { event: 'INSERT', schema: 'public', table: 'pods', filter: 'verification_status=eq.pending_verification' },
         () => {
           setUnread((count) => count + 1);
           queryClient.invalidateQueries({ queryKey: ['admin-lodge-reservations'] });

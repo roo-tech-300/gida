@@ -9,13 +9,13 @@ import { useAuth } from '@/context/auth-context';
 import { useAdminLodgeDetail, useAcceptLodgeReservation, useRejectLodgeReservation } from '@/hooks/use-admin-lodge-reservations';
 import { useAppToast } from '@/components/ui/toast-card';
 import { notifyUserOfDecision } from '@/services/lodge-reservation-notify';
-import type { AdminLodgeDetail } from '@/services/admin-lodge-verification-service';
+import type { AdminLodgeDetail, AdminLodgeMember } from '@/services/admin-lodge-verification-service';
 
 const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
-export function LodgeReservationDetailScreen({ creditId }: { creditId: string }) {
+export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
   const { profile } = useAuth();
-  const { data: detail, isError, isLoading, isRefetching, refetch } = useAdminLodgeDetail(creditId);
+  const { data: detail, isError, isLoading, isRefetching, refetch } = useAdminLodgeDetail(podId);
   const acceptMutation = useAcceptLodgeReservation();
   const rejectMutation = useRejectLodgeReservation();
   const { showToast } = useAppToast();
@@ -26,58 +26,51 @@ export function LodgeReservationDetailScreen({ creditId }: { creditId: string })
     refetch();
   }, [refetch]);
 
+  const notifyAllMembers = useCallback(async (decision: 'accepted' | 'rejected', reason?: string) => {
+    if (!detail || !profile?.id || !detail.listing?.id) return;
+    for (const member of detail.members) {
+      try {
+        await notifyUserOfDecision({
+          adminId: profile.id,
+          userId: member.userId,
+          listingId: detail.listing.id,
+          podId: detail.pod.id,
+          decision,
+          reason,
+        });
+      } catch (err) {
+        console.error('[LodgeDetail] Failed to notify member:', member.userId, err);
+      }
+    }
+  }, [detail, profile]);
+
   const handleAccept = useCallback(async () => {
     if (!detail) return;
-    const ok = await acceptMutation.mutateAsync(detail.credit.id);
+    const ok = await acceptMutation.mutateAsync(detail.pod.id);
     if (ok) {
-      if (profile?.id && detail.user.id && detail.listing?.id) {
-        try {
-          await notifyUserOfDecision({
-            adminId: profile.id,
-            userId: detail.user.id,
-            listingId: detail.listing.id,
-            creditId: detail.credit.id,
-            decision: 'accepted',
-          });
-        } catch (err) {
-          console.error('[LodgeDetail] Failed to send acceptance notification:', err);
-        }
-      }
-      showToast({ message: 'Application accepted. User can now proceed to payment.', type: 'success' });
+      await notifyAllMembers('accepted');
+      showToast({ message: 'Pod accepted. All members can now proceed to payment.', type: 'success' });
       router.back();
     } else {
-      showToast({ message: 'Failed to accept application. Try again.', type: 'error' });
+      showToast({ message: 'Failed to accept pod. Try again.', type: 'error' });
     }
-  }, [detail, acceptMutation, showToast, profile]);
+  }, [detail, acceptMutation, showToast, notifyAllMembers]);
 
   const handleReject = useCallback(async () => {
     if (!detail || !rejectReason.trim()) return;
-    const ok = await rejectMutation.mutateAsync({ creditId: detail.credit.id, reason: rejectReason.trim() });
+    const ok = await rejectMutation.mutateAsync({ podId: detail.pod.id, reason: rejectReason.trim() });
     if (ok) {
-      if (profile?.id && detail.user.id && detail.listing?.id) {
-        try {
-          await notifyUserOfDecision({
-            adminId: profile.id,
-            userId: detail.user.id,
-            listingId: detail.listing.id,
-            creditId: detail.credit.id,
-            decision: 'rejected',
-            reason: rejectReason.trim(),
-          });
-        } catch (err) {
-          console.error('[LodgeDetail] Failed to send rejection notification:', err);
-        }
-      }
-      showToast({ message: 'Application rejected.', type: 'success' });
+      await notifyAllMembers('rejected', rejectReason.trim());
+      showToast({ message: 'Pod rejected.', type: 'success' });
       setRejectModalOpen(false);
       setRejectReason('');
       router.back();
     } else {
-      showToast({ message: 'Failed to reject application. Try again.', type: 'error' });
+      showToast({ message: 'Failed to reject pod. Try again.', type: 'error' });
     }
-  }, [detail, rejectReason, rejectMutation, showToast, profile]);
+  }, [detail, rejectReason, rejectMutation, showToast, notifyAllMembers]);
 
-  const isPending = detail?.credit.status === 'pending_verification';
+  const isPending = detail?.pod.verificationStatus === 'pending_verification';
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -85,7 +78,7 @@ export function LodgeReservationDetailScreen({ creditId }: { creditId: string })
         <Pressable onPress={() => router.back()} style={styles.closeButton} hitSlop={8}>
           <Ionicons name="close" size={22} color={DesignColors.onSurface} />
         </Pressable>
-        <Text style={styles.title}>Application details</Text>
+        <Text style={styles.title}>Pod application</Text>
         <View style={styles.closeButton} />
       </View>
 
@@ -108,8 +101,8 @@ export function LodgeReservationDetailScreen({ creditId }: { creditId: string })
           showsVerticalScrollIndicator={false}
         >
           <PropertyCard detail={detail} />
-          <ReservationInfoCard detail={detail} />
-          <UserCard detail={detail} />
+          <PodInfoCard detail={detail} />
+          <MembersCard members={detail.members} targetOccupancy={detail.pod.targetOccupancy} />
 
           {isPending && (
             <View style={styles.actionsRow}>
@@ -138,12 +131,12 @@ export function LodgeReservationDetailScreen({ creditId }: { creditId: string })
             </View>
           )}
 
-          {detail.credit.status === 'rejected' && detail.credit.rejectionReason && (
+          {detail.pod.verificationStatus === 'rejected' && detail.pod.rejectionReason && (
             <View style={styles.rejectionCard}>
               <Ionicons name="close-circle-outline" size={18} color={DesignColors.error} />
               <View style={styles.rejectionBody}>
                 <Text style={styles.rejectionLabel}>Rejection reason</Text>
-                <Text style={styles.rejectionReason}>{detail.credit.rejectionReason}</Text>
+                <Text style={styles.rejectionReason}>{detail.pod.rejectionReason}</Text>
               </View>
             </View>
           )}
@@ -153,13 +146,13 @@ export function LodgeReservationDetailScreen({ creditId }: { creditId: string })
       {rejectModalOpen && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Reject Application</Text>
-            <Text style={styles.modalSubtitle}>Provide a reason for rejecting this application.</Text>
+            <Text style={styles.modalTitle}>Reject Pod</Text>
+            <Text style={styles.modalSubtitle}>Provide a reason for rejecting this pod application.</Text>
             <TextInput
               style={styles.modalInput}
               value={rejectReason}
               onChangeText={setRejectReason}
-              placeholder="e.g. Incomplete information, policy violation..."
+              placeholder="e.g. Room no longer available, policy violation..."
               placeholderTextColor={DesignColors.onSurfaceVariant}
               multiline
               numberOfLines={3}
@@ -218,34 +211,49 @@ function PropertyCard({ detail }: { detail: AdminLodgeDetail }) {
   );
 }
 
-function ReservationInfoCard({ detail }: { detail: AdminLodgeDetail }) {
-  const credit = detail.credit;
-  const ref = `GIDA-LR-${credit.id.slice(-4).toUpperCase()}`;
+function PodInfoCard({ detail }: { detail: AdminLodgeDetail }) {
+  const pod = detail.pod;
+  const ref = `GIDA-POD-${pod.id.slice(-4).toUpperCase()}`;
 
   return (
     <View style={styles.card}>
       <InfoRow icon="ticket-outline" label="Reference" value={ref} />
-      <InfoRow icon="people-outline" label="Target occupancy" value={`${credit.targetOccupancy} ${credit.targetOccupancy === 1 ? 'person' : 'people'}`} />
-      {credit.amountPaid != null && (
-        <InfoRow icon="cash-outline" label="Amount due" value={formatNaira(credit.amountPaid)} />
-      )}
-      <InfoRow icon="time-outline" label="Submitted" value={formatCreatedDate(credit.createdAt)} />
+      <InfoRow icon="people-outline" label="Target occupancy" value={`${pod.targetOccupancy} ${pod.targetOccupancy === 1 ? 'person' : 'people'}`} />
+      <InfoRow icon="person-outline" label="Members applied" value={`${pod.memberCount} of ${pod.targetOccupancy}`} />
+      <InfoRow icon="time-outline" label="Submitted" value={formatCreatedDate(pod.createdAt)} />
     </View>
   );
 }
 
-function UserCard({ detail }: { detail: AdminLodgeDetail }) {
-  const name = detail.user.name;
-  const initial = (name ?? 'R').trim().charAt(0).toUpperCase();
-
+function MembersCard({ members, targetOccupancy }: { members: AdminLodgeMember[]; targetOccupancy: number }) {
   return (
     <View style={styles.card}>
-      <View style={styles.avatar}>
-        <Text style={styles.avatarText}>{initial}</Text>
+      <Text style={styles.sectionTitle}>Members ({members.length} of {targetOccupancy})</Text>
+      {members.length === 0 ? (
+        <Text style={styles.emptyMembers}>No members yet</Text>
+      ) : (
+        members.map((member) => (
+          <MemberRow key={member.userId} member={member} />
+        ))
+      )}
+    </View>
+  );
+}
+
+function MemberRow({ member }: { member: AdminLodgeMember }) {
+  const name = member.userName ?? 'Unknown';
+  const initial = name.trim().charAt(0).toUpperCase();
+
+  return (
+    <View style={styles.memberRow}>
+      <View style={styles.memberAvatar}>
+        <Text style={styles.memberAvatarText}>{initial}</Text>
       </View>
-      <View style={styles.studentBody}>
-        <Text style={styles.studentName}>{name ?? 'Gida resident'}</Text>
-        <Text style={styles.studentMeta}>Applied for a lodge spot</Text>
+      <View style={styles.memberBody}>
+        <Text style={styles.memberName}>{name}</Text>
+        {member.amountPaid != null && (
+          <Text style={styles.memberAmount}>{formatNaira(member.amountPaid)}</Text>
+        )}
       </View>
     </View>
   );
@@ -326,6 +334,21 @@ const styles = StyleSheet.create({
   propertyTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
   propertyMeta: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   propertyPrice: { ...DesignTypography.headlineMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
+  sectionTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  emptyMembers: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
+  memberRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
+  memberAvatar: {
+    width: 36,
+    height: 36,
+    borderRadius: DesignRadius.full,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.primaryTint,
+  },
+  memberAvatarText: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
+  memberBody: { flex: 1, gap: 2 },
+  memberName: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
+  memberAmount: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   infoRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
   infoIcon: {
     width: 28,
@@ -337,18 +360,6 @@ const styles = StyleSheet.create({
   },
   rowLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flex: 1 },
   rowValue: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: DesignRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.primaryTint,
-  },
-  avatarText: { ...DesignTypography.headlineMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
-  studentBody: { flex: 1, gap: 2 },
-  studentName: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  studentMeta: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   actionsRow: {
     flexDirection: 'row',
     gap: DesignSpacing.md,

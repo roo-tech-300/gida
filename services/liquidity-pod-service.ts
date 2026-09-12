@@ -12,7 +12,7 @@ import {
   joinPodViaWorker,
   podJoinErrorMessage,
 } from '@/services/pod-join-remote';
-import type { Estate, SlotCredit, Pod, PodMember } from '@/types/liquidity';
+import type { Estate, SlotCredit, Pod, PodMember, PodVerificationStatus } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 
 export const SIGN_IN_REQUIRED_MESSAGE = 'Please sign in to continue.';
@@ -63,7 +63,7 @@ function buildCredit(userId: string, estateId: string, estate: Estate, listingId
     property_tier: propertyTier,
     intent_size: 1,
     target_occupancy: targetOccupancy,
-    status: 'pending_verification',
+    status: 'booked_pending_claim',
     invite_code: code,
     created_at: new Date().toISOString(),
     payment_deadline: new Date(Date.now() + PAYMENT_WINDOW_MS).toISOString(),
@@ -110,7 +110,7 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
   return data as Pod;
 }
 
-export type PurchaseSlotCreditResult = { credit: SlotCredit; synced: boolean };
+export type PurchaseSlotCreditResult = { credit: SlotCredit; podId: string; synced: boolean };
 
 export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource }): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
@@ -168,7 +168,7 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
     }
   }
 
-  return { credit, synced: true };
+  return { credit, podId: pod.id, synced: true };
 }
 
 export type InvitedFriend = { id: string; name: string };
@@ -233,6 +233,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
     is_finalized: args.targetOccupancy === 1,
     physical_room_id: args.targetOccupancy === 1 ? `room-${Math.floor(700 + Math.random() * 100)}` : null,
     created_at: new Date().toISOString(),
+    verification_status: 'pending_verification',
   };
 
   if (pod.is_finalized) {
@@ -247,7 +248,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
     throw new Error(SYNC_FAILURE_MESSAGE);
   }
   console.log('[PodService] Creating invitations...');
-  await createPodInvitations(pod.id, userId, args.invitedFriends ?? [], args.listing, undefined, args.creatorGender);
+  await createPodInvitations(realPodId, userId, args.invitedFriends ?? [], args.listing, undefined, args.creatorGender);
   console.log('[PodService] createFounderCredit done — returning credit');
-  return { credit, synced: true };
+  return { credit, podId: realPodId, synced: true };
 }

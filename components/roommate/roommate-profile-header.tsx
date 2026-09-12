@@ -56,7 +56,7 @@ export function RoommateProfileHeader({ roommate, matchScore }: Props) {
 
       <View style={styles.bottom}>
         <Text style={styles.name}>
-          {roommate.name}, {roommate.age}
+          {roommate.name}
         </Text>
         <View style={styles.tagRow}>
           <View style={styles.tag}>

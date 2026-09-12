@@ -1,14 +1,14 @@
 export type SlotCreditStatus =
   | 'booked'
   | 'booked_pending_claim'
-  | 'pending_verification'
-  | 'rejected'
   | 'paid_unmatched'
   | 'matched'
   | 'subletting'
   | 'expired';
 
 export type PodStatus = 'forming' | 'finalized' | 'swept_latecomer';
+
+export type PodVerificationStatus = 'pending_verification' | 'approved' | 'rejected';
 
 export interface Estate {
   id: string;
@@ -42,8 +42,7 @@ export interface SlotCredit {
   pod_id?: string | null;
   amount_paid?: number | null;
   paid_at?: string | null;
-  rejection_reason?: string | null;
-  verified_at?: string | null;
+  pod_verification_status?: PodVerificationStatus | null;
 }
 
 export interface PodMember {
@@ -77,6 +76,9 @@ export interface Pod {
   group_code?: string | null;
   status?: 'forming' | 'finalized';
   founder_user_id?: string | null;
+  verification_status: PodVerificationStatus;
+  rejection_reason?: string | null;
+  verified_at?: string | null;
 }
 
 export interface PodInvitation {

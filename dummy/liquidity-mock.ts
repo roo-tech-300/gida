@@ -153,6 +153,7 @@ export const MOCK_PODS: Pod[] = [
     is_finalized: false,
     physical_room_id: null,
     created_at: new Date(Date.now() - 1 * 3600 * 1000).toISOString(),
+    verification_status: 'approved',
   },
 ];
 

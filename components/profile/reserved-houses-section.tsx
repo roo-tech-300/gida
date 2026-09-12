@@ -39,7 +39,7 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
 
   const openReservation = (credit: SlotCredit) => {
     if (!credit.listing_id) {
-      router.push('/property/lobby');
+      router.push({ pathname: '/property/lobby', params: { creditId: credit.id } });
       return;
     }
 
@@ -49,11 +49,11 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
     }
 
     if (PAID_STATUSES.includes(credit.status)) {
-      router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: credit.id } } : '/property/lobby');
+      router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: credit.id } } : { pathname: '/property/lobby', params: { creditId: credit.id } });
       return;
     }
 
-    if (credit.status === 'pending_verification' || credit.status === 'rejected') {
+    if (credit.pod_verification_status === 'pending_verification' || credit.pod_verification_status === 'rejected') {
       router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
       return;
     }
@@ -124,8 +124,8 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
 
 function getStatusLabel(credit: SlotCredit) {
   if (credit.status === 'expired') return 'Expired';
-  if (credit.status === 'pending_verification') return 'Awaiting Review';
-  if (credit.status === 'rejected') return 'Not Approved';
+  if (credit.pod_verification_status === 'pending_verification') return 'Awaiting Review';
+  if (credit.pod_verification_status === 'rejected') return 'Not Approved';
   if (credit.status === 'booked_pending_claim') return 'Pay Now';
   if (credit.status === 'booked') return 'Reserved';
   if (credit.status === 'paid_unmatched') return 'Paid';
@@ -136,8 +136,8 @@ function getStatusLabel(credit: SlotCredit) {
 function getStatusDetail(credit: SlotCredit) {
   const occupancy = credit.target_occupancy > 1 ? `${credit.target_occupancy} slots` : 'Solo booking';
   const payment = credit.status === 'booked' || credit.status === 'booked_pending_claim' ? 'Payment pending'
-    : credit.status === 'pending_verification' ? 'Admin reviewing'
-    : credit.status === 'rejected' ? 'Not approved'
+    : credit.pod_verification_status === 'pending_verification' ? 'Admin reviewing'
+    : credit.pod_verification_status === 'rejected' ? 'Not approved'
     : 'Ready to continue';
   const estate = credit.estate?.campus ? ` - ${credit.estate.campus}` : '';
   return `${occupancy}${estate} - ${payment}`;

@@ -39,7 +39,7 @@ export function LodgeReservationQueueScreen() {
     return (
       r.listingTitle.toLowerCase().includes(q) ||
       r.listingLocation.toLowerCase().includes(q) ||
-      (r.userName ?? '').toLowerCase().includes(q)
+      r.members.some((m) => (m.userName ?? '').toLowerCase().includes(q))
     );
   });
 
@@ -61,7 +61,7 @@ export function LodgeReservationQueueScreen() {
           )}
         </View>
 
-        <SearchBar value={query} onChangeText={setQuery} placeholder="Search applications..." />
+        <SearchBar value={query} onChangeText={setQuery} placeholder="Search pods..." />
 
         <View style={styles.pillsRow}>
           {VIEWS.map(({ key, label }) => {
@@ -104,10 +104,10 @@ export function LodgeReservationQueueScreen() {
         ) : (
           <View style={styles.list}>
             {filtered.map((reservation) => (
-              <ReservationCard
-                key={reservation.creditId}
+              <PodCard
+                key={reservation.podId}
                 reservation={reservation}
-                onPress={() => router.push(`/admin/lodge-reservation/${reservation.creditId}`)}
+                onPress={() => router.push(`/admin/lodge-reservation/${reservation.podId}`)}
               />
             ))}
           </View>
@@ -117,7 +117,12 @@ export function LodgeReservationQueueScreen() {
   );
 }
 
-function ReservationCard({ reservation, onPress }: { reservation: AdminLodgeReservation; onPress: () => void }) {
+function PodCard({ reservation, onPress }: { reservation: AdminLodgeReservation; onPress: () => void }) {
+  const memberNames = reservation.members
+    .map((m) => m.userName ?? 'Unknown')
+    .join(', ');
+  const occupancyLabel = `${reservation.memberCount} of ${reservation.targetOccupancy}`;
+
   return (
     <Pressable style={styles.card} onPress={onPress}>
       <View style={styles.cardThumb}>
@@ -134,9 +139,14 @@ function ReservationCard({ reservation, onPress }: { reservation: AdminLodgeRese
         <Text style={styles.cardMeta} numberOfLines={1}>
           {reservation.listingLocation} · {formatDate(reservation.createdAt)}
         </Text>
-        <Text style={styles.cardUser} numberOfLines={1}>
-          {reservation.userName ?? 'Unknown user'}
+        <Text style={styles.cardOccupancy} numberOfLines={1}>
+          {occupancyLabel} members
         </Text>
+        {memberNames ? (
+          <Text style={styles.cardMembers} numberOfLines={1}>
+            {memberNames}
+          </Text>
+        ) : null}
       </View>
       <Ionicons name="chevron-forward" size={18} color={DesignColors.onSurfaceVariant} />
     </Pressable>
@@ -190,5 +200,6 @@ const styles = StyleSheet.create({
   cardInfo: { flex: 1, gap: 1 },
   cardTitle: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
   cardMeta: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 2 },
-  cardUser: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily, marginBottom: 2 },
+  cardOccupancy: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily, marginBottom: 2 },
+  cardMembers: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily },
 });

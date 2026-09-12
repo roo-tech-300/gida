@@ -48,7 +48,7 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
             </View>
           )}
           <View style={styles.nameBlock}>
-            <Text style={styles.name}>{roommate.name}, {roommate.age}</Text>
+            <Text style={styles.name}>{roommate.name}</Text>
             {roommate.username ? <Text style={styles.username}>@{roommate.username}</Text> : null}
             <Text style={styles.logistics}>Move-in: {roommate.moveInDate} | Budget: {roommate.budget}</Text>
           </View>

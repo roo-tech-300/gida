@@ -13,6 +13,23 @@ export const requestNotificationPermission = async (): Promise<boolean> => {
     authStatus === messagingInstance.authorizationStatus.AUTHORIZED ||
     authStatus === messagingInstance.authorizationStatus.PROVISIONAL;
 
+  if (enabled) {
+    const currentUser = (await supabase.auth.getUser()).data.user;
+    if (currentUser) {
+      const token = await messagingInstance.getToken({ sync: true });
+      if (token) {
+        await supabase.from('device_tokens').upsert(
+          {
+            user_id: currentUser.id,
+            token,
+            platform: Platform.OS,
+          },
+          { onConflict: 'user_id,platform' }
+        );
+      }
+    }
+  }
+
   return enabled;
 };
 
@@ -173,4 +190,19 @@ export const notificationOpenedListener = () => {
 export const getInitialNotification = async () => {
   const notification = await messagingInstance.getInitialNotification();
   return notification?.notification ?? null;
+};
+
+export const useForegroundMessageListener = () => {
+  useEffect(() => {
+    const messageListener = messagingInstance.onMessage(
+      (remoteMessage: any) => {
+        console.log('[Notifications] Foreground message received:', remoteMessage);
+
+        if (remoteMessage.notification) {
+          remoteMessage.finishNotification();
+        }
+      },
+    );
+    return () => messageListener();
+  }, []);
 };

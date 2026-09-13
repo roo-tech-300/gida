@@ -30,16 +30,13 @@ export default function TourHistoryRoute() {
   }, []);
 
   const onRefresh = useCallback(() => {
-    if (bookings.length === 0) {
-      setSimRefreshing(true);
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-      timerRef.current = setTimeout(() => setSimRefreshing(false), 1300);
-      return;
-    }
     refetch();
-  }, [bookings.length, refetch]);
+
+    if (timerRef.current) {
+      clearTimeout(timerRef.current);
+    }
+    timerRef.current = setTimeout(() => {}, 1300);
+  }, [refetch]);
 
   const refreshing = isRefetching || simRefreshing;
 

@@ -15,6 +15,7 @@ import {
 } from '@/services/messageService';
 import type { ChatMessage, ListingAttachment, ServerChatMessage } from '@/types/messages';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
+import { useForegroundMessageListener } from '@/src/notifications';
 
 export type SendDraft = {
   body: string;
@@ -101,6 +102,11 @@ export function useConversationThread(otherId: string) {
     });
     return unsubscribe;
   }, [conversationId, queryClient]);
+
+  useEffect(() => {
+    const unsubscribe = useForegroundMessageListener();
+    return () => unsubscribe();
+  }, [conversationId]);
 
   const send = useMutation({
     mutationFn: async (draft: SendDraft): Promise<ChatMessage> => {

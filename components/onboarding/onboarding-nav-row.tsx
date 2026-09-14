@@ -62,9 +62,10 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   backLabel: {
-    ...DesignTypography.headlineMd,
+    ...DesignTypography.bodyLg,
     color: DesignColors.onSurface,
     fontFamily,
+    fontWeight: '600',
   },
   continueWrap: {
     flex: 2,

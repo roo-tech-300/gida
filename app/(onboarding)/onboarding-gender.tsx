@@ -56,7 +56,7 @@ export default function OnboardingGenderScreen() {
         </View>
       </OnboardingGlassCard>
 
-      <OnboardingNavRow showBack={false} continueDisabled={!data.gender} onContinue={handleContinue} />
+      <OnboardingNavRow onBack={() => router.back()} continueDisabled={!data.gender} onContinue={handleContinue} />
     </OnboardingLayout>
   );
 }

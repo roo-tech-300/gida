@@ -42,6 +42,7 @@ export function OnboardingContinueButton({
 
 const styles = StyleSheet.create({
   base: {
+    width: '100%',
     height: 48,
     borderRadius: DesignRadius.md,
     backgroundColor: DesignColors.secondary,

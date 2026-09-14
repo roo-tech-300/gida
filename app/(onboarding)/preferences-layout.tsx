@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { useState } from 'react';
+import { Platform, useState } from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { AmenityGrid } from '@/components/onboarding/onboarding-amenity-grid';
@@ -51,13 +51,14 @@ export default function OnboardingLayoutScreen() {
       return;
     }
 
-    // Request notification permission
-    const notificationEnabled = await requestNotificationPermission();
-    if (!notificationEnabled) {
-      showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
-    } else {
-      // Get and persist FCM token
-      await getFCMToken();
+        // Request notification permission (native only - web handled in root layout)
+    if (Platform.OS !== 'web') {
+      const notificationEnabled = await requestNotificationPermission();
+      if (!notificationEnabled) {
+        showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
+      } else {
+        await getFCMToken();
+      }
     }
 
     setSaving(true);

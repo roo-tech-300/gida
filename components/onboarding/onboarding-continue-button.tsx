@@ -33,7 +33,7 @@ export function OnboardingContinueButton({
       ) : (
         <>
           <Text style={styles.label}>{label}</Text>
-          {showArrow ? <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimaryContainer} /> : null}
+          {showArrow ? <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimary} /> : null}
         </>
       )}
     </Pressable>

@@ -95,7 +95,7 @@ export function SavedSpacesEmptyState() {
 
           <Text style={styles.title}>Your Shortlist is Empty</Text>
           <Text style={styles.subtitle}>
-            Tap the heart icon on any premium penthouse, flat, or student lodge to save your top choices here for
+            Tap the heart icon on any lodge to save your top choices here for
             quick comparison.
           </Text>
 

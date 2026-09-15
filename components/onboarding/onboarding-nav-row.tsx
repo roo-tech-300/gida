@@ -69,9 +69,11 @@ const styles = StyleSheet.create({
   },
   continueWrap: {
     flex: 2,
+    height: 48,
   },
   continueFull: {
     flex: 1,
+    height: 48,
   },
   pressed: {
     opacity: 0.9,

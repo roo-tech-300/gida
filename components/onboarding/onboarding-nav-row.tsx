@@ -21,18 +21,21 @@ export function OnboardingNavRow({
   isLoading,
   showBack = true,
 }: OnboardingNavRowProps) {
+  const hasBack = Boolean(showBack && onBack);
+
   return (
     <View style={styles.row}>
-      {showBack && onBack ? (
+      {hasBack && onBack ? (
         <Pressable
           accessibilityRole="button"
           onPress={onBack}
+          hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
           style={({ pressed }) => [styles.backButton, pressed && styles.pressed]}>
           <Ionicons name="arrow-back" size={18} color={DesignColors.onSurface} />
           <Text style={styles.backLabel}>Back</Text>
         </Pressable>
       ) : null}
-      <View style={showBack && onBack ? styles.continueWrap : styles.continueFull}>
+      <View style={hasBack ? styles.continueWrap : styles.continueFull}>
         <OnboardingContinueButton
           label={continueLabel}
           onPress={onContinue}
@@ -48,6 +51,7 @@ const styles = StyleSheet.create({
   row: {
     flexDirection: 'row',
     alignItems: 'center',
+    width: '100%',
     gap: DesignSpacing.md,
     marginTop: DesignSpacing.lg,
   },
@@ -70,10 +74,13 @@ const styles = StyleSheet.create({
   continueWrap: {
     flex: 2,
     height: 48,
+    alignSelf: 'stretch',
   },
   continueFull: {
     flex: 1,
+    width: '100%',
     height: 48,
+    alignSelf: 'stretch',
   },
   pressed: {
     opacity: 0.9,

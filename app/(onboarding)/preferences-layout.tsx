@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
-import { Platform, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Platform, StyleSheet, Text, View } from 'react-native';
 
 import { AmenityGrid } from '@/components/onboarding/onboarding-amenity-grid';
 import { OnboardingGlassCard } from '@/components/onboarding/onboarding-glass-card';

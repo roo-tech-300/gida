@@ -64,7 +64,28 @@ export default function OnboardingLayoutScreen() {
     setSaving(true);
     try {
       await saveOnboardingProfile(profile.id, data);
-      await refreshProfile();
+      try {
+        await refreshProfile();
+      } catch (refreshErr) {
+        console.error('[Onboarding] Failed to refresh profile after save:', refreshErr);
+      }
+
+      router.replace('/(tabs)');
+
+      if (Platform.OS !== 'web') {
+        void (async () => {
+          try {
+            const notificationEnabled = await requestNotificationPermission();
+            if (!notificationEnabled) {
+              showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
+            } else {
+              await getFCMToken();
+            }
+          } catch (notificationErr) {
+            console.error('[Onboarding] Notification permission request failed:', notificationErr);
+          }
+        })();
+      }
     } catch (err) {
       console.error('[Onboarding] Failed to save:', err);
       showToast({ type: 'error', message: 'Failed to save preferences. Please try again.' });

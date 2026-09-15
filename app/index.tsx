@@ -1,8 +1,22 @@
-import { Platform } from 'react-native';
 import { Redirect } from 'expo-router';
+import { SplashScreen } from '@/components/splash/splash-screen';
+import { useAuth } from '@/context/auth-context';
 
 export default function Index() {
-  const isWeb = Platform.OS === 'web';
-  return <Redirect href={isWeb ? '/(landing)' : '/(auth)/welcome'} />;
+  const { isLoading, hasSession, profile } = useAuth();
+
+  if (isLoading) {
+    return <SplashScreen />;
+  }
+
+  if (hasSession) {
+    if (profile?.onboarded === false) {
+      return <Redirect href="/(onboarding)" />;
+    }
+
+    return <Redirect href="/(tabs)" />;
+  }
+
+  return <Redirect href="/(landing)" />;
 }
 

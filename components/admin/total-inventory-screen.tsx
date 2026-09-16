@@ -1,23 +1,12 @@
 import { useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  TextInput,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
-import { BackButton } from '@/components/ui/back-button';
+import { InventoryCard } from '@/components/admin/inventory-card';
+import { ListScreen } from '@/components/ui/list-screen';
+import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminListingsPaginated } from '@/hooks/use-admin-listings-paginated';
-import { InventoryCard } from '@/components/admin/inventory-card';
-import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
 import type { AdminListing } from '@/services/adminService';
 
 type Tab = 'all' | 'available' | 'booked';
@@ -29,8 +18,15 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export function TotalInventoryScreen() {
-  const insets = useSafeAreaInsets();
-  const { data: adminListings, isLoading, fetchNextPage } = useAdminListingsPaginated();
+  const {
+    data: adminListings,
+    isLoading,
+    isError,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useAdminListingsPaginated();
   const [query, setQuery] = useState('');
   const [activeTab, setActiveTab] = useState<Tab>('all');
 
@@ -46,8 +42,7 @@ export function TotalInventoryScreen() {
     if (query.trim()) {
       const q = query.toLowerCase();
       items = items.filter(
-        (i) => i.title.toLowerCase().includes(q)
-          || i.location_landmark.toLowerCase().includes(q),
+        (i) => i.title.toLowerCase().includes(q) || i.location_landmark.toLowerCase().includes(q),
       );
     }
     return items;
@@ -56,24 +51,13 @@ export function TotalInventoryScreen() {
   const totalCount = listingItems.length;
   const availableCount = listingItems.filter((i) => i.status.toLowerCase() === 'available').length;
   const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
+  const hasFilters = query.trim().length > 0 || activeTab !== 'all';
 
   return (
-    <View style={styles.root}>
-      <SafeAreaView style={styles.safe} edges={['top']}>
-        <View style={styles.header}>
-          <BackButton hasBackground />
-          <Text style={styles.headerTitle}>Total Inventory</Text>
-        </View>
-
-        <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false} refreshControl={
-          <RefreshControl
-            refreshing={isLoading}
-            onRefresh={fetchNextPage}
-            colors={['#4F46E5']}
-          >
-            <Ionicons name="refresh" size={16} color="#4F46E5" />
-          </RefreshControl>
-        }>
+    <ListScreen<AdminListing>
+      title="Total Inventory"
+      toolbar={
+        <>
           <View style={styles.metricsRow}>
             <View style={styles.metricCard}>
               <Text style={styles.metricValue}>{totalCount.toLocaleString()}</Text>
@@ -89,92 +73,61 @@ export function TotalInventoryScreen() {
             </View>
           </View>
 
-          <View style={styles.searchRow}>
-            <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} style={{ opacity: 0.5 }} />
-            <TextInput
-              placeholder="Search by property or location..."
-              placeholderTextColor={DesignColors.onSurfaceVariant}
-              style={styles.searchInput}
-              value={query}
-              onChangeText={setQuery}
-            />
-          </View>
+          <SearchBar value={query} onChangeText={setQuery} placeholder="Search by property or location..." />
 
-          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={styles.tabsRow}>
-            {TABS.map((tab) => (
-              <Pressable
-                key={tab.key}
-                style={[styles.tab, activeTab === tab.key && styles.tabActive]}
-                onPress={() => setActiveTab(tab.key)}
-              >
-                <Text style={[styles.tabText, activeTab === tab.key && styles.tabTextActive]}>{tab.label}</Text>
-              </Pressable>
-            ))}
+          <ScrollView horizontal showsHorizontalScrollIndicator={false}>
+            {TABS.map((tab) => {
+              const active = activeTab === tab.key;
+              return (
+                <Pressable
+                  key={tab.key}
+                  style={[styles.tab, active && styles.tabActive]}
+                  onPress={() => setActiveTab(tab.key)}
+                >
+                  <Text style={[styles.tabText, active && styles.tabTextActive]}>{tab.label}</Text>
+                </Pressable>
+              );
+            })}
           </ScrollView>
-
-          {isLoading && listingItems.length === 0 ? (
-            <View style={styles.center}>
-              <ActivityIndicator size="large" color={DesignColors.primary} />
-            </View>
-          ) : filtered.length === 0 ? (
-            <View style={styles.center}>
-              <Text style={styles.emptyText}>No listings found</Text>
-            </View>
-          ) : (
-            <PaginatedFlatList
-              data={filtered}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => (
-                <InventoryCard listing={item} onPress={() => router.push(`/admin/listing/${item.id}`)} />
-              )}
-              onEndReached={fetchNextPage}
-              onEndReachedThreshold={0.5}
-            />
-          )}
-        </ScrollView>
-
-        <Pressable style={[styles.fab, { bottom: insets.bottom + 24 }]} onPress={() => router.push('/admin/create-listing')}>
-          <Ionicons name="add" size={28} color={DesignColors.onSurface} />
-        </Pressable>
-      </SafeAreaView>
-    </View>
+        </>
+      }
+      data={filtered}
+      keyExtractor={(item) => item.id}
+      isLoading={isLoading && listingItems.length === 0}
+      isError={isError}
+      onRetry={() => void refetch()}
+      errorMessage="Could not load inventory."
+      emptyMessage={hasFilters ? 'No listings match your filters.' : 'No listings found'}
+      emptyIcon={hasFilters ? 'search-outline' : 'home-outline'}
+      isRefetching={isRefetching}
+      onRefresh={() => void refetch()}
+      onEndReached={() => void fetchNextPage()}
+      isLoadingMore={isFetchingNextPage}
+      contentContainerStyle={styles.content}
+      action={{ icon: 'add', onPress: () => router.push('/admin/create-listing') }}
+      renderItem={({ item }) => (
+        <InventoryCard listing={item} onPress={() => router.push(`/admin/listing/${item.id}`)} />
+      )}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
-  safe: { flex: 1 },
-
-  header: {
-    flexDirection: 'row', alignItems: 'center', gap: 12,
-    paddingHorizontal: 16, paddingVertical: 12,
-  },
-  headerTitle: { fontSize: 18, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
-
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingBottom: 100 },
-
-  metricsRow: { flexDirection: 'row', gap: 10, paddingBottom: 24 },
+  content: { gap: 16 },
+  metricsRow: { flexDirection: 'row', gap: 10 },
   metricCard: {
-    flex: 1, borderRadius: 16, padding: 14,
+    flex: 1,
+    borderRadius: 16,
+    padding: 14,
     backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: DesignColors.borderSoft,
+    borderWidth: 1,
+    borderColor: DesignColors.borderSoft,
   },
   metricValue: { fontSize: 20, fontWeight: '800', color: DesignColors.onSurface, fontFamily },
   metricLabel: { fontSize: 12, fontWeight: '700', color: DesignColors.primary, fontFamily, marginTop: 4 },
-
-  searchRow: {
-    flexDirection: 'row', alignItems: 'center', gap: 8,
-    borderRadius: 9999, paddingHorizontal: 16, height: 44,
-    backgroundColor: DesignColors.surface,
-    borderWidth: 1, borderColor: DesignColors.borderSoft,
-    marginBottom: 16,
-  },
-  searchInput: { flex: 1, fontSize: 14, fontWeight: '600', color: DesignColors.onSurface, fontFamily, paddingVertical: 0 },
-
-  tabsRow: { marginBottom: 16 },
   tab: {
-    paddingHorizontal: 18, paddingVertical: 8,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
     borderRadius: 9999,
     backgroundColor: DesignColors.glassFill,
     marginRight: 8,
@@ -182,16 +135,4 @@ const styles = StyleSheet.create({
   tabActive: { backgroundColor: DesignColors.primaryContainer },
   tabText: { fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
   tabTextActive: { color: DesignColors.onSurface },
-
-  list: { gap: 16 },
-
-  center: { alignItems: 'center', justifyContent: 'center', paddingVertical: 64 },
-  emptyText: { fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily },
-
-  fab: {
-    position: 'absolute', bottom: 32, right: 24,
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: DesignColors.primaryContainer,
-    alignItems: 'center', justifyContent: 'center',
-  },
 });

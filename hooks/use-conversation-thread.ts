@@ -15,7 +15,6 @@ import {
 } from '@/services/messageService';
 import type { ChatMessage, ListingAttachment, ServerChatMessage } from '@/types/messages';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
-import { useForegroundMessageListener } from '@/src/notifications';
 
 export type SendDraft = {
   body: string;
@@ -103,10 +102,9 @@ export function useConversationThread(otherId: string) {
     return unsubscribe;
   }, [conversationId, queryClient]);
 
-  useEffect(() => {
-    const unsubscribe = useForegroundMessageListener();
-    return () => unsubscribe();
-  }, [conversationId]);
+  // NOTE: the foreground FCM listener is global and is registered exactly once
+  // in `app/_layout.tsx`. Calling `useForegroundMessageListener()` from inside an
+  // effect here is a Rules-of-Hooks violation and throws "Invalid hook call".
 
   const send = useMutation({
     mutationFn: async (draft: SendDraft): Promise<ChatMessage> => {

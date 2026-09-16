@@ -1,33 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { BackButton } from '@/components/ui/back-button';
+import { MemberCard } from '@/components/admin/member-card';
+import { ListScreen } from '@/components/ui/list-screen';
 import { SearchBar } from '@/components/ui/search-bar';
-import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminProfilesPaginated } from '@/hooks/use-admin-profiles-paginated';
 import type { AdminMember } from '@/types/admin';
-import { MemberCard } from '@/components/admin/member-card';
-import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
 
 const TABS = ['All Members', 'Regional Admins', 'Field Admins'];
 
 export function ManageTeamsScreen() {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: adminProfiles, isLoading, fetchNextPage } = useAdminProfilesPaginated();
+  const {
+    data: adminProfiles,
+    isLoading,
+    isError,
+    isRefetching,
+    refetch,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useAdminProfilesPaginated();
   const [activeTab, setActiveTab] = useState('All Members');
   const [filtersOpen, setFiltersOpen] = useState(false);
   const [query, setQuery] = useState('');
@@ -56,97 +52,62 @@ export function ManageTeamsScreen() {
     return list;
   }, [activeTab, members, query]);
 
+  const hasFilters = query.trim().length > 0 || activeTab !== 'All Members';
+
   return (
-    <SafeAreaView style={styles.safe} edges={['top']}>
-      <SafeKeyboardView style={styles.kav}>
-        <ScrollView
-          style={styles.scroll}
-          contentContainerStyle={styles.content}
-          showsVerticalScrollIndicator={false}
-          refreshControl={<RefreshControl refreshing={isLoading} onRefresh={fetchNextPage} tintColor={DesignColors.primary} />}
-        >
-          <View style={styles.headerRow}>
-            <BackButton hasBackground />
-            <Text style={styles.title}>Manage Teams</Text>
-          </View>
-
-          <SearchBar value={query} onChangeText={setQuery} placeholder="Search teams..." hasFilter onFilterPress={() => setFiltersOpen((o) => !o)} />
-
-          {filtersOpen && (
+    <ListScreen<AdminMember>
+      title="Manage Teams"
+      toolbar={
+        <>
+          <SearchBar
+            value={query}
+            onChangeText={setQuery}
+            placeholder="Search teams..."
+            hasFilter
+            onFilterPress={() => setFiltersOpen((open) => !open)}
+          />
+          {filtersOpen ? (
             <ScrollView horizontal bounces={false} showsHorizontalScrollIndicator={false}>
               <View style={styles.pillsRow}>
-                {TABS.map((t) => {
-                  const active = activeTab === t;
+                {TABS.map((tab) => {
+                  const active = activeTab === tab;
                   return (
                     <Pressable
-                      key={t}
+                      key={tab}
                       style={[styles.pill, active && styles.pillActive]}
-                      onPress={() => setActiveTab(t)}
+                      onPress={() => setActiveTab(tab)}
                     >
-                      <Text style={[styles.pillText, active && styles.pillTextActive]}>{t}</Text>
+                      <Text style={[styles.pillText, active && styles.pillTextActive]}>{tab}</Text>
                     </Pressable>
                   );
                 })}
               </View>
             </ScrollView>
-          )}
-
-          {isLoading && members.length === 0 ? (
-            <View style={styles.centerState}>
-              <ActivityIndicator size="large" color={DesignColors.primary} />
-            </View>
-          ) : filtered.length === 0 ? (
-            <View style={styles.centerState}>
-              <Ionicons name="people-outline" size={32} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.stateText}>No members match your search.</Text>
-            </View>
-          ) : (
-            <PaginatedFlatList
-              data={filtered}
-              keyExtractor={(item) => item.id}
-              renderItem={({ item }) => <MemberCard member={item} />}
-              onEndReached={fetchNextPage}
-              onEndReachedThreshold={0.5}
-            />
-          )}
-        </ScrollView>
-      </SafeKeyboardView>
-
-      <Pressable style={styles.fab} onPress={() => router.push('/admin/add-admin')}>
-        <Ionicons name="add" size={28} color={DesignColors.onSurface} />
-      </Pressable>
-    </SafeAreaView>
+          ) : null}
+        </>
+      }
+      data={filtered}
+      keyExtractor={(item) => item.id}
+      isLoading={isLoading && members.length === 0}
+      isError={isError}
+      onRetry={() => void refetch()}
+      errorMessage="Could not load the admin team."
+      emptyMessage={hasFilters ? 'No members match your search.' : 'No members yet.'}
+      emptyIcon={hasFilters ? 'search-outline' : 'people-outline'}
+      isRefetching={isRefetching}
+      onRefresh={() => void refetch()}
+      onEndReached={() => void fetchNextPage()}
+      isLoadingMore={isFetchingNextPage}
+      contentContainerStyle={styles.content}
+      action={{ icon: 'add', onPress: () => router.push('/admin/add-admin') }}
+      renderItem={({ item }) => <MemberCard member={item} />}
+    />
   );
 }
 
 const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
-  kav: { flex: 1 },
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 16, paddingTop: 24, paddingBottom: 100, gap: 16 },
-  headerRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  title: { flex: 1, fontSize: 22, fontWeight: '700', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.3 },
-  fab: {
-    position: 'absolute',
-    bottom: 80,
-    right: 20,
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: DesignColors.primaryContainer,
-    alignItems: 'center',
-    justifyContent: 'center',
-    elevation: 6,
-    shadowColor: DesignColors.surfaceContainerLowest,
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 6,
-  },
-
-  pillsRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
+  content: { gap: 16 },
+  pillsRow: { flexDirection: 'row', gap: 12 },
   pill: {
     paddingHorizontal: 14,
     paddingVertical: 10,
@@ -155,44 +116,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
   },
-  pillActive: {
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  pillText: {
-    fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily,
-  },
-  pillTextActive: {
-    color: DesignColors.onSurface, fontWeight: '600',
-  },
-
-  centerState: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 12,
-    paddingVertical: 80,
-  },
-  stateText: { fontSize: 14, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center' },
-  retryBtn: {
-    paddingHorizontal: 24, paddingVertical: 12, borderRadius: 999,
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  retryText: { fontSize: 14, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
-
-  list: { gap: 24 },
-  memberCard: {
-    flexDirection: 'row', alignItems: 'center', gap: 16,
-    borderRadius: 12, padding: 16,
-  },
-  memberAvatar: {
-    width: 48, height: 48, borderRadius: 24,
-    backgroundColor: DesignColors.primaryTint,
-    alignItems: 'center', justifyContent: 'center',
-    overflow: 'hidden',
-  },
-  memberAvatarImage: { width: '100%', height: '100%' },
-  memberAvatarText: { fontSize: 18, fontWeight: '700', fontFamily },
-  memberInfo: { flex: 1, gap: 1 },
-  memberName: { fontSize: 16, fontWeight: '700', color: DesignColors.onSurface, fontFamily },
-  memberEmail: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, marginBottom: 2 },
-  memberRole: { fontSize: 12, fontWeight: '600', color: DesignColors.primary, fontFamily, marginBottom: 2 },
+  pillActive: { backgroundColor: DesignColors.primaryContainer },
+  pillText: { fontSize: 14, color: DesignColors.onSurfaceVariant, fontFamily },
+  pillTextActive: { color: DesignColors.onSurface, fontWeight: '600' },
 });

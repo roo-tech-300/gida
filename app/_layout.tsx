@@ -11,6 +11,7 @@ import { MessageSyncProvider } from '@/components/messages/message-sync-provider
 import { OfflineBanner } from '@/components/ui/offline-banner';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
+import { useForegroundMessageListener } from '@/src/notifications';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -65,8 +66,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  console.log('[PROBE] RootLayout rendered');
   useNotificationPermissionPlatform();
+  // Global foreground FCM subscription — registered once for the whole app.
+  // It is a no-op (and never throws) when Firebase messaging is unavailable.
+  useForegroundMessageListener();
   return (
     <QueryClientProvider client={queryClient}>
       <AppConfigProvider>

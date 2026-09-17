@@ -5,12 +5,8 @@ import type {
   MessageAttachment,
   ServerChatMessage,
 } from '@/types/messages';
-import {
-  subscribeToMessageNotifications,
-  getNotificationTitle,
-  getNotificationBody,
-  messagingInstance,
-} from '@/src/notifications';
+import { subscribeToMessageNotifications } from '@/src/notifications';
+import { getNotificationBody, getNotificationTitle } from '@/src/notification-copy';
 // @ts-ignore
 import messaging from '@react-native-firebase/messaging';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';

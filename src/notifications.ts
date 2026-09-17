@@ -1,58 +1,101 @@
 // @ts-ignore
 import messaging from '@react-native-firebase/messaging';
-import { supabase } from '@/lib/supabase';
+import { useEffect } from 'react';
 import { Platform } from 'react-native';
+
+import { getNotificationBody, getNotificationTitle } from '@/src/notification-copy';
+import { supabase } from '@/lib/supabase';
 import type { ServerChatMessage } from '@/types/messages';
 
 export const messagingInstance = messaging;
 
-export const requestNotificationPermission = async (): Promise<boolean> => {
-  const authStatus = await messagingInstance.requestPermission();
+/**
+ * Notifications are strictly best-effort. Web, Expo Go and builds without the
+ * native Firebase module must degrade to silent no-ops instead of throwing into
+ * UI code. Every export below follows the same contract:
+ *   - never throws
+ *   - always returns a callable cleanup handle
+ *   - logs failures under a `[Notifications]` context instead of failing silently
+ */
+const isMessagingAvailable = (): boolean =>
+  Platform.OS !== 'web' && typeof messagingInstance !== 'undefined';
 
-  const enabled =
-    authStatus === messagingInstance.authorizationStatus.AUTHORIZED ||
-    authStatus === messagingInstance.authorizationStatus.PROVISIONAL;
+/** Callable no-op cleanup so callers can always invoke the returned unsubscribe. */
+export const NOOP_UNSUBSCRIBE = (): void => {};
 
-  if (enabled) {
+export type NotificationSubscription = () => void;
+
+export type ForegroundRemoteMessage = {
+  notification?: { title?: string | null; body?: string | null } | null;
+  finishNotification?: () => void;
+};
+
+const safeUnsubscribe = (
+  label: string,
+  unsubscribe: NotificationSubscription | undefined,
+): void => {
+  try {
+    unsubscribe?.();
+  } catch (error) {
+    console.error(`[Notifications] Failed to unsubscribe from ${label}:`, error);
+  }
+};
+
+const upsertDeviceToken = async (token: string): Promise<void> => {
+  try {
     const currentUser = (await supabase.auth.getUser()).data.user;
-    if (currentUser) {
-      const token = await messagingInstance.getToken({ sync: true });
-      if (token) {
-        await supabase.from('device_tokens').upsert(
-          {
-            user_id: currentUser.id,
-            token,
-            platform: Platform.OS,
-          },
-          { onConflict: 'user_id,platform' }
-        );
-      }
-    }
+    if (!currentUser) return;
+
+    await supabase.from('device_tokens').upsert(
+      {
+        user_id: currentUser.id,
+        token,
+        platform: Platform.OS,
+      },
+      { onConflict: 'user_id,platform' }
+    );
+  } catch (error) {
+    console.error('[Notifications] Failed to persist device token:', error);
+  }
+};
+
+export const requestNotificationPermission = async (): Promise<boolean> => {
+  if (!isMessagingAvailable()) {
+    console.log('[Notifications] Skipping permission request — messaging unavailable here');
+    return false;
   }
 
-  return enabled;
+  try {
+    const authStatus = await messagingInstance.requestPermission();
+
+    const enabled =
+      authStatus === messagingInstance.authorizationStatus.AUTHORIZED ||
+      authStatus === messagingInstance.authorizationStatus.PROVISIONAL;
+
+    if (!enabled) return false;
+
+    const token = await messagingInstance.getToken({ sync: true });
+    if (token) await upsertDeviceToken(token);
+
+    return true;
+  } catch (error) {
+    console.error('[Notifications] Failed to request notification permission:', error);
+    return false;
+  }
 };
 
 export const getFCMToken = async (): Promise<string | null> => {
+  if (!isMessagingAvailable()) {
+    console.log('[Notifications] Skipping FCM token — messaging unavailable here');
+    return null;
+  }
+
   try {
     const currentUser = (await supabase.auth.getUser()).data.user;
     if (!currentUser) return null;
 
-    const token = await messagingInstance.getToken({
-      sync: true,
-    });
-
-    if (token) {
-      // Persist token to Supabase device_tokens table
-      await supabase.from('device_tokens').upsert(
-        {
-          user_id: currentUser.id,
-          token,
-          platform: Platform.OS,
-        },
-        { onConflict: 'user_id,platform' }
-      );
-    }
+    const token = await messagingInstance.getToken({ sync: true });
+    if (token) await upsertDeviceToken(token);
 
     return token ?? null;
   } catch (error) {
@@ -61,148 +104,106 @@ export const getFCMToken = async (): Promise<string | null> => {
   }
 };
 
+/**
+ * Best-effort push for an inbound message. Swallows everything on purpose: a
+ * failed notification must never break the chat feed.
+ */
+const showNotification = async (message: ServerChatMessage): Promise<void> => {
+  if (!isMessagingAvailable() || typeof messagingInstance.send !== 'function') return;
+
+  try {
+    const token = await getFCMToken();
+    if (!token) return;
+
+    await messagingInstance.send({
+      notification: {
+        title: getNotificationTitle(message),
+        body: getNotificationBody(message),
+      },
+      token,
+    });
+  } catch (error) {
+    console.error('[Notifications] Failed to send message notification:', error);
+  }
+};
+
+/**
+ * Subscribes to new messages in a conversation and mirrors them into a push
+ * notification. Always returns a callable unsubscribe — even when subscribing
+ * failed — so callers never need their own guards.
+ */
 export const subscribeToMessageNotifications = (
   conversationId: string,
   onMessageReceived: (message: ServerChatMessage) => void,
-) => {
-  const channel = supabase
-    .channel(`messages:${conversationId}`)
-    .on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'messages',
-        filter: `conversation_id=eq.${conversationId}`,
-      },
-      (payload) => {
-        const message = payload.new as ServerChatMessage;
-        onMessageReceived(message);
+): NotificationSubscription => {
+  try {
+    const channel = supabase
+      .channel(`messages:${conversationId}`)
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'messages',
+          filter: `conversation_id=eq.${conversationId}`,
+        },
+        (payload) => {
+          const message = payload.new as ServerChatMessage;
 
-        // Show notification for new messages
-        showNotification(message);
-      },
-    );
-  return () => void supabase.removeChannel(channel);
-};
+          try {
+            onMessageReceived(message);
+          } catch (error) {
+            console.error('[Notifications] Message callback threw:', error);
+          }
 
-const showNotification = async (message: ServerChatMessage) => {
-  const notificationTitle = getNotificationTitle(message);
-  const notificationBody = getNotificationBody(message);
+          void showNotification(message).catch((error: unknown) => {
+            console.error('[Notifications] Notification dispatch failed:', error);
+          });
+        }
+      );
 
-  const token = await getFCMToken();
-  if (!token) return;
-
-  await messagingInstance.send({
-    notification: {
-      title: notificationTitle,
-      body: notificationBody,
-    },
-    token,
-  });
-};
-
-export const getNotificationTitle = (message: ServerChatMessage): string => {
-  const attachment = message.attachment;
-
-  if (!attachment) {
-    return 'New Message';
-  }
-
-  switch (attachment.type) {
-    case 'listing':
-      return 'Listing Shared';
-    case 'tour':
-      return 'New Tour Booking';
-    case 'roommate_invite':
-      return 'Roommate Invite';
-    case 'pod_join':
-      return 'Pod Invitation';
-    case 'lodge_reservation':
-      return 'New Lodge Application';
-    case 'lodge_decision':
-      return 'Lodge Decision';
-    default:
-      return 'New Message';
-  }
-};
-
-export const getNotificationBody = (message: ServerChatMessage): string => {
-  const attachment = message.attachment;
-
-  if (!attachment || !message.body) {
-    return message.body || 'New message';
-  }
-
-  switch (attachment.type) {
-    case 'listing':
-      return `${attachment.title ?? 'Property'}: ${message.body?.slice(0, 50) || ''}`.trim();
-
-    case 'tour':
-      const date = attachment.date ?? '';
-      const time = attachment.time ?? '';
-      return `${attachment.title ?? 'Tour'}${date && time ? ` on ${date} at ${time}` : ''}`;
-
-    case 'roommate_invite':
-      return `${attachment.inviterName ?? 'Someone'} invited you${attachment.hasExistingSlot ? ' to join their slot' : ''}`;
-
-    case 'pod_join':
-      const seatInfo = `${attachment.seatNumber}/${attachment.totalSeats} seats`;
-      return `${attachment.title ?? 'Pod Join'} - ${seatInfo}`;
-
-    case 'lodge_reservation':
-      return `Applied for ${attachment.title ?? 'property'}`;
-
-    case 'lodge_decision':
-      const decision = attachment.decision === 'accepted' ? 'approved' : 'rejected';
-      return `Your application ${decision}${attachment.reason ? `: ${attachment.reason}` : ''}`;
-
-    default:
-      return message.body || 'New message';
-  }
-};
-
-export const notificationReceivedListener = () => {
-  const messageListener = messagingInstance.onMessage(
-    (remoteMessage: any) => {
-      console.log('[Notifications] Foreground message received:', remoteMessage);
-
-      if (remoteMessage.notification) {
-        // Handle notification tap
-        remoteMessage.finishNotification();
+    return () => {
+      try {
+        void supabase.removeChannel(channel);
+      } catch (error) {
+        console.error('[Notifications] Failed to remove messages channel:', error);
       }
-    },
-  );
-
-  return () => messageListener();
+    };
+  } catch (error) {
+    console.error('[Notifications] Failed to subscribe to conversation messages:', error);
+    return NOOP_UNSUBSCRIBE;
+  }
 };
 
-export const notificationOpenedListener = () => {
-  const notificationOpenListener = messagingInstance.onNotificationOpenedApp(
-    async (remoteMessage: any) => {
-      console.log('[Notifications] App opened from notification:', remoteMessage);
-    },
-  );
+/** Imperative foreground listener, reused by `useForegroundMessageListener`. */
+export const notificationReceivedListener = (): NotificationSubscription => {
+  if (!isMessagingAvailable()) return NOOP_UNSUBSCRIBE;
 
-  return () => notificationOpenListener();
-};
-
-export const getInitialNotification = async () => {
-  const notification = await messagingInstance.getInitialNotification();
-  return notification?.notification ?? null;
-};
-
-export const useForegroundMessageListener = () => {
-  useEffect(() => {
+  try {
     const messageListener = messagingInstance.onMessage(
-      (remoteMessage: any) => {
+      (remoteMessage: ForegroundRemoteMessage) => {
         console.log('[Notifications] Foreground message received:', remoteMessage);
 
-        if (remoteMessage.notification) {
-          remoteMessage.finishNotification();
+        try {
+          remoteMessage.finishNotification?.();
+        } catch (error) {
+          console.error('[Notifications] Failed to handle foreground message:', error);
         }
-      },
+      }
     );
-    return () => messageListener();
-  }, []);
+
+    return () => safeUnsubscribe('foreground messages', messageListener);
+  } catch (error) {
+    console.error('[Notifications] Failed to register foreground listener:', error);
+    return NOOP_UNSUBSCRIBE;
+  }
+};
+
+/**
+ * Registers the global foreground FCM subscription. This is a hook, so it must
+ * be called at the top level of a component (`app/_layout.tsx`) — never from
+ * inside an effect or callback, which throws an "Invalid hook call" error.
+ */
+export const useForegroundMessageListener = (): void => {
+  useEffect(() => notificationReceivedListener(), []);
 };

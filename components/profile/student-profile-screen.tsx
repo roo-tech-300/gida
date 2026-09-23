@@ -11,6 +11,7 @@ import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
 import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
 import { useUserSlotCredits } from '@/hooks/use-liquidity';
+import { useNotificationPermission } from '@/src/use-notification-permission-platform';
 import { ProfileRow } from './profile-row';
 import { ActiveAdminCard } from './active-admin-card';
 import { JoinGroupCard } from './join-group-card';
@@ -23,6 +24,7 @@ export function StudentProfileScreen() {
   const [signingOut, setSigningOut] = useState(false);
   const [uploading, setUploading] = useState(false);
   const { showToast } = useAppToast();
+  const { status: notificationStatus, enable: enableNotifications } = useNotificationPermission();
   const userId = profile?.id;
   const displayName = profile?.full_name ?? 'Student';
 
@@ -106,6 +108,33 @@ export function StudentProfileScreen() {
     }
   };
 
+  const notificationValue =
+    notificationStatus === 'granted'
+      ? 'On'
+      : notificationStatus === 'unavailable'
+        ? 'Not available on this device'
+        : 'Off';
+
+  const handleNotificationsPress = async () => {
+    if (notificationStatus === 'unavailable') {
+      showToast({ type: 'info', message: 'Notifications are not available on this device.' });
+      return;
+    }
+    if (notificationStatus === 'granted') {
+      showToast({ type: 'info', message: 'Notifications are already on.' });
+      return;
+    }
+
+    const result = await enableNotifications();
+    if (result.enabled) {
+      showToast({ type: 'success', message: 'Notifications are on.' });
+      return;
+    }
+    if (result.status === 'denied') {
+      showToast({ type: 'info', message: 'Turn on notifications in your device settings.' });
+    }
+  };
+
   return (
     <SafeAreaView style={styles.safe}>
       <View style={{ flex: 1 }}>
@@ -149,6 +178,12 @@ export function StudentProfileScreen() {
 
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Account & Safety</Text>
+            <ProfileRow
+              icon="notifications-outline"
+              label="Notifications"
+              value={notificationValue}
+              onPress={() => void handleNotificationsPress()}
+            />
             <ProfileRow icon="shield-checkmark-outline" label="Security & Privacy" />
             <ProfileRow icon="headset-outline" label="Help & Support" />
           </View>

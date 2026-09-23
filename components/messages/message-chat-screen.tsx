@@ -1,28 +1,23 @@
 import { useEffect, useState } from 'react';
-import {
-  ActivityIndicator,
-  Pressable,
-  StyleSheet,
-  Text,
-  View,
-} from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { MessageAttachmentSheet, type AttachmentSource } from '@/components/messages/message-attachment-sheet';
+import { MessageChatHeader } from '@/components/messages/message-chat-header';
 import { MessageChatList } from '@/components/messages/message-chat-list';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
 import { MessageComposer } from '@/components/messages/message-composer';
 import { ListingPickerModal, type PickerSource } from '@/components/messages/listing-picker-modal';
+import { NotificationPermissionPromptModal } from '@/components/notifications/notification-permission-prompt-modal';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
+import { useContextualNotificationPrompt } from '@/hooks/use-contextual-notification-prompt';
 import type { ListingAttachment } from '@/types/messages';
-import { getInitials } from '@/utils/initials';
 
 export function MessageChatScreen() {
   const router = useRouter();
@@ -38,6 +33,9 @@ export function MessageChatScreen() {
   const [attachment, setAttachment] = useState<ListingAttachment | null>(null);
   const [attachSheetVisible, setAttachSheetVisible] = useState(false);
   const [pickerSource, setPickerSource] = useState<PickerSource | null>(null);
+
+  const { modalVisible, triggerPromptIfAppropriate, closeModal } =
+    useContextualNotificationPrompt('first_sent_message');
 
   const {
     participant,
@@ -66,55 +64,29 @@ export function MessageChatScreen() {
       await sendMessage({ body: text, attachment });
       setDraft('');
       setAttachment(null);
+      triggerPromptIfAppropriate();
     } catch (error) {
       console.error('[MessageChat] Failed to send message:', error);
       showToast({ message: 'Message could not be sent. Please try again.', type: 'error' });
     }
   };
 
-  const handleSelectSource = (source: AttachmentSource) => {
-    setAttachSheetVisible(false);
-    setPickerSource(source);
-  };
-
-  const handleSelectListing = (selected: ListingAttachment) => {
-    setAttachment(selected);
-    showToast({ message: `Listing attached: ${selected.title}`, type: 'success' });
-  };
-
   const handleBack = () => {
     if (router.canGoBack()) {
       router.back();
     } else {
-      // Web refresh / deep link onto /messages/[id] leaves no in-app screen to pop.
       router.replace('/(tabs)/messages');
     }
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <SafeKeyboardView
-        style={styles.flex}
-      >
-        <View style={styles.header}>
-          <Pressable onPress={handleBack} style={styles.backButton} hitSlop={8}>
-            <Ionicons name="chevron-back" size={26} color={DesignColors.onSurface} />
-          </Pressable>
-
-          <View style={styles.avatarWrap}>
-            {participant?.avatarUrl ? (
-              <Image source={{ uri: participant.avatarUrl }} style={styles.avatar} contentFit="cover" />
-            ) : (
-              <View style={[styles.avatar, styles.avatarFallback]}>
-                <Text style={styles.avatarInitials}>{getInitials(participant?.name ?? 'User')}</Text>
-              </View>
-            )}
-          </View>
-          <View style={styles.headerText}>
-            <Text style={styles.name} numberOfLines={1}>{participant?.name ?? 'Loading…'}</Text>
-            <Text style={styles.subtitle}>Potential roommate • Gida</Text>
-          </View>
-        </View>
+      <SafeKeyboardView style={styles.flex}>
+        <MessageChatHeader
+          name={participant?.name}
+          avatarUrl={participant?.avatarUrl}
+          onBack={handleBack}
+        />
 
         {isConversationLoading || (messages.length === 0 && (isMessagesLoading || isMessagesFetching)) ? (
           <View style={styles.center}>
@@ -156,7 +128,10 @@ export function MessageChatScreen() {
       <MessageAttachmentSheet
         visible={attachSheetVisible}
         onClose={() => setAttachSheetVisible(false)}
-        onSelectSource={handleSelectSource}
+        onSelectSource={(source) => {
+          setAttachSheetVisible(false);
+          setPickerSource(source);
+        }}
         isAdmin={Boolean(profile?.is_admin)}
       />
 
@@ -164,7 +139,17 @@ export function MessageChatScreen() {
         visible={pickerSource !== null}
         source={pickerSource ?? 'saved'}
         onClose={() => setPickerSource(null)}
-        onSelect={handleSelectListing}
+        onSelect={(selected) => {
+          setAttachment(selected);
+          showToast({ message: `Listing attached: ${selected.title}`, type: 'success' });
+        }}
+      />
+
+      <NotificationPermissionPromptModal
+        visible={modalVisible}
+        title="Stay updated on replies"
+        description={`Turn on notifications so you know right away when ${participant?.name ?? 'they'} reply.`}
+        onClose={closeModal}
       />
     </SafeAreaView>
   );
@@ -177,59 +162,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    paddingHorizontal: DesignSpacing.md,
-    paddingVertical: DesignSpacing.sm,
-    borderBottomWidth: StyleSheet.hairlineWidth,
-    borderBottomColor: DesignColors.borderSoft,
-    backgroundColor: DesignColors.surface,
-  },
-  backButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  avatarWrap: {
-    width: 44,
-    height: 44,
-  },
-  avatar: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: DesignColors.surfaceContainerHigh,
-  },
-  avatarFallback: {
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.primary,
-  },
-  avatarInitials: {
-    fontSize: 16,
-    color: DesignColors.onPrimary,
-    fontFamily,
-    fontWeight: '800',
-  },
-  headerText: {
-    flex: 1,
-    gap: 1,
-  },
-  name: {
-    ...DesignTypography.bodyLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  subtitle: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
   },
   center: {
     flex: 1,

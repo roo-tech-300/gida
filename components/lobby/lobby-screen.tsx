@@ -186,7 +186,7 @@ export function LobbyScreen() {
               <Text style={styles.bannerTitle}>Payment required</Text>
               <ClaimCountdown expiresAt={credit.payment_deadline} variant="inline" />
             </View>
-            <Pressable style={styles.bannerAction} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })}>
+            <Pressable testID="lobby-pay-now" style={styles.bannerAction} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })}>
               <Text style={styles.bannerActionText}>Pay</Text>
             </Pressable>
           </View>

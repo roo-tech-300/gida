@@ -25,7 +25,7 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
   const listingIds = [...new Set(rows.map((row) => row.pod.listing_id).filter((id): id is string => Boolean(id)))];
 
   try {
-    const [{ data: inviterProfiles }, { data: existingCredits }] = await Promise.all([
+    const [inviterProfiles, { data: existingCredits }] = await Promise.all([
       inviterIds.length > 0
         ? fetchProfilesInChunks(inviterIds)
         : { data: null, error: null } as const,

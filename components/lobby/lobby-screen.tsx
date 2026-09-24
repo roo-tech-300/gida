@@ -1,21 +1,21 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter , useFocusEffect, useLocalSearchParams } from 'expo-router';
 
-import { Ionicons } from '@expo/vector-icons';
-import { DesignColors } from '@/constants/design';
-import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
-import { removeMemberFromPod, inviteRoommateToPod } from '@/services/liquidity-service';
-import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
-import { useAppToast } from '@/components/ui/toast-card';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
-import { SlotPass } from './slot-pass';
-import { LobbyMemberList } from './lobby-member-list';
-import { InlineInviteSearch } from './inline-invite-search';
-import { ManageGroupModal } from './manage-group-modal';
+import { useAppToast } from '@/components/ui/toast-card';
+import { DesignColors } from '@/constants/design';
 import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
+import { inviteRoommateToPod, removeMemberFromPod } from '@/services/liquidity-service';
+import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
+import { Ionicons } from '@expo/vector-icons';
+import { InlineInviteSearch } from './inline-invite-search';
+import { LobbyMemberList } from './lobby-member-list';
 import { styles } from './lobby-screen.styles';
+import { ManageGroupModal } from './manage-group-modal';
+import { SlotPass } from './slot-pass';
 
 export function LobbyScreen() {
   const router = useRouter();

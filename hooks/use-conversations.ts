@@ -1,9 +1,8 @@
-import { useQuery, useQueryClient } from '@tanstack/react-query';
-import { useEffect } from 'react';
+import { useQuery } from '@tanstack/react-query';
 
 import { useAuth } from '@/context/auth-context';
+import { fetchMyConversations } from '@/services/messageService';
 import { getLocalSortKey, getOfflineThreads, syncThreadsToStore } from '@/services/offline-message-store';
-import { fetchMyConversations, subscribeToConversationChanges } from '@/services/messageService';
 import type { Conversation } from '@/types/messages';
 
 function reconcileThreads(server: Conversation[]): Conversation[] {
@@ -19,7 +18,6 @@ function threadSortMs(conversation: Conversation): number {
 export function useConversations() {
   const { profile } = useAuth();
   const userId = profile?.id;
-  const queryClient = useQueryClient();
 
   const query = useQuery({
     queryKey: ['conversations', userId],
@@ -37,14 +35,6 @@ export function useConversations() {
     enabled: !!userId,
     staleTime: 30 * 1000,
   });
-
-  useEffect(() => {
-    if (!userId) return;
-    const unsubscribe = subscribeToConversationChanges(() => {
-      void queryClient.invalidateQueries({ queryKey: ['conversations', userId] });
-    });
-    return unsubscribe;
-  }, [userId, queryClient]);
 
   return query;
 }

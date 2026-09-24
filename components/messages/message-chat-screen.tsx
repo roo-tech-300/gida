@@ -4,7 +4,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
-import { MessageAttachmentSheet, type AttachmentSource } from '@/components/messages/message-attachment-sheet';
+import { MessageAttachmentSheet } from '@/components/messages/message-attachment-sheet';
 import { MessageChatHeader } from '@/components/messages/message-chat-header';
 import { MessageChatList } from '@/components/messages/message-chat-list';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
@@ -45,10 +45,11 @@ export function MessageChatScreen() {
     isConversationError,
     isMessagesLoading,
     isMessagesFetching,
-    isRefetching,
-    refetchMessages,
     sendMessage,
     isSending,
+    hasNextPage,
+    isFetchingNextPage,
+    fetchNextPage,
   } = useConversationThread(otherId ?? '');
 
   useEffect(() => {
@@ -107,12 +108,16 @@ export function MessageChatScreen() {
             myId={myId}
             participantName={participant?.name}
             participantAvatar={participant?.avatarUrl}
-            isRefetching={isRefetching}
-            onRefresh={() => void refetchMessages()}
             onRetry={() => {
               void flushOutbox();
               showToast({ message: 'Retrying queued message…', type: 'info' });
             }}
+            onLoadEarlier={() => {
+              if (hasNextPage && !isFetchingNextPage) {
+                void fetchNextPage();
+              }
+            }}
+            isLoadingEarlier={isFetchingNextPage}
           />
         )}
 

@@ -1,15 +1,15 @@
-import { useEffect } from 'react';
-import { onMessage, onTokenRefresh } from '@react-native-firebase/messaging';
 import { supabase } from '@/lib/supabase';
-import type { ServerChatMessage } from '@/types/messages';
+import type { MessageAttachment, ServerChatMessage } from '@/types/messages';
+import { onMessage, onTokenRefresh } from '@react-native-firebase/messaging';
+import { useEffect } from 'react';
 import { getNativeMessaging } from './native-messaging';
 import { upsertDeviceToken } from './token-service';
 import {
-  NOOP_UNSUBSCRIBE,
-  type ForegroundMessageHandler,
-  type ForegroundRemoteMessage,
-  type MessageReceivedHandler,
-  type NotificationSubscription,
+    NOOP_UNSUBSCRIBE,
+    type ForegroundMessageHandler,
+    type ForegroundRemoteMessage,
+    type MessageReceivedHandler,
+    type NotificationSubscription,
 } from './types';
 
 const safeUnsubscribe = (label: string, unsubscribe: NotificationSubscription | undefined): void => {
@@ -20,13 +20,39 @@ const safeUnsubscribe = (label: string, unsubscribe: NotificationSubscription | 
   }
 };
 
+type RealtimeMessageRow = {
+  id: string;
+  conversation_id: string;
+  sender_id: string;
+  body: string | null;
+  attachment: MessageAttachment | null;
+  created_at: string;
+  client_sent_at: number | null;
+  read_at: string | null;
+};
+
+const mapRealtimeMessage = (row: RealtimeMessageRow): ServerChatMessage => ({
+  id: row.id,
+  conversationId: row.conversation_id,
+  senderId: row.sender_id,
+  body: row.body ?? '',
+  attachment: row.attachment,
+  createdAt: row.created_at,
+  clientSentAt: row.client_sent_at ?? Date.parse(row.created_at),
+  readAt: row.read_at,
+});
+
+let messageChannelSequence = 0;
+
 export const subscribeToMessageNotifications = (
   conversationId: string,
   onMessageReceived: MessageReceivedHandler,
 ): NotificationSubscription => {
   try {
+    messageChannelSequence += 1;
+    let cleanupRequested = false;
     const channel = supabase
-      .channel(`messages:${conversationId}`)
+      .channel(`messages:${conversationId}:${Date.now().toString(36)}-${messageChannelSequence}`)
       .on(
         'postgres_changes',
         {
@@ -37,14 +63,24 @@ export const subscribeToMessageNotifications = (
         },
         (payload) => {
           try {
-            onMessageReceived(payload.new as ServerChatMessage);
+            onMessageReceived(mapRealtimeMessage(payload.new as RealtimeMessageRow));
           } catch (error) {
             console.error('[Notifications] Message callback threw:', error);
           }
         },
       );
 
+    channel.subscribe((status, error) => {
+      if (status === 'SUBSCRIBED') {
+        console.log(`[Notifications] Subscribed to conversation ${conversationId}`);
+      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT' || status === 'CLOSED') {
+        const log = cleanupRequested ? console.log : console.error;
+        log(`[Notifications] Conversation ${conversationId} channel status: ${status}`, error ?? '');
+      }
+    });
+
     return () => {
+      cleanupRequested = true;
       try {
         void supabase.removeChannel(channel);
       } catch (error) {

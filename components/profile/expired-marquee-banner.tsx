@@ -1,8 +1,8 @@
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import type { SlotCredit } from '@/types/liquidity';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useState } from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import type { SlotCredit } from '@/types/liquidity';
 
 type Props = {
   expiredLodges: SlotCredit[];

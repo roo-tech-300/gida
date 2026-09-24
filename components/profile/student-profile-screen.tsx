@@ -1,29 +1,30 @@
-import { useMemo, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
-import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/utils/web-image-picker';
-import { useQuery } from '@tanstack/react-query';
-import { useAuth } from '@/context/auth-context';
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
-import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { useAuth } from '@/context/auth-context';
 import { useUserSlotCredits } from '@/hooks/use-liquidity';
+import { uploadAvatar } from '@/services/profileService';
+import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
 import { useNotificationPermission } from '@/src/use-notification-permission-platform';
-import { ProfileRow } from './profile-row';
+import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync } from '@/utils/web-image-picker';
+import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
+import { useMemo, useState } from 'react';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActiveAdminCard } from './active-admin-card';
-import { JoinGroupCard } from './join-group-card';
-import { ReservedHousesSection } from './reserved-houses-section';
-import { ProfileHeader } from './profile-header';
 import { ExpiredMarqueeBanner } from './expired-marquee-banner';
+import { JoinGroupCard } from './join-group-card';
 import { PendingLodgeInvites } from './pending-lodge-invite-card';
+import { ProfileHeader } from './profile-header';
+import { ProfileRow } from './profile-row';
+import { ReservedHousesSection } from './reserved-houses-section';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
   const [uploading, setUploading] = useState(false);
+  const [currentTime] = useState(() => Date.now());
   const { showToast } = useAppToast();
   const { status: notificationStatus, enable: enableNotifications } = useNotificationPermission();
   const userId = profile?.id;
@@ -35,7 +36,13 @@ export function StudentProfileScreen() {
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
-  const { data: reservations, isError: reservationsError, isPending: reservationsPending } = useUserSlotCredits();
+  const {
+    data: reservations,
+    isError: reservationsError,
+    isPending: reservationsPending,
+    isRefetching: reservationsRefetching,
+    refetch: refetchReservations,
+  } = useUserSlotCredits();
 
   const expiredLodges = useMemo(() => {
     const fortyEightHoursMs = 48 * 60 * 60 * 1000;
@@ -51,14 +58,14 @@ export function StudentProfileScreen() {
       // Primary: check expired_at
       if (credit.expired_at) {
         const expiredTime = new Date(credit.expired_at).getTime();
-        isWithin48h = Date.now() - expiredTime <= fortyEightHoursMs;
+        isWithin48h = currentTime - expiredTime <= fortyEightHoursMs;
         const expiredDate = new Date(credit.expired_at).toLocaleString();
         console.log('[Profile] Reservation ' + credit.id + ': expired_at=' + expiredDate + ' within 48h: ' + isWithin48h);
       }
       // Fallback: check payment_deadline if expired_at is null
       else if (!credit.expired_at && credit.payment_deadline) {
         const paymentDeadline = new Date(credit.payment_deadline).getTime();
-        isWithin48h = Date.now() - paymentDeadline <= fortyEightHoursMs;
+        isWithin48h = currentTime - paymentDeadline <= fortyEightHoursMs;
         const paymentDeadlineDate = new Date(credit.payment_deadline).toLocaleString();
         console.log('[Profile] Reservation ' + credit.id + ': expired_at=null, payment_deadline=' + paymentDeadlineDate + ' within 48h: ' + isWithin48h);
       }
@@ -70,7 +77,7 @@ export function StudentProfileScreen() {
       if (isWithin48h) lodges.push(credit);
     });
     return lodges;
-  }, [reservations]);
+  }, [currentTime, reservations]);
 
   const roommateCompletion = useMemo(() => {
     const roommate = preferences?.roommate;
@@ -175,9 +182,17 @@ export function StudentProfileScreen() {
     <SafeAreaView style={styles.safe}>
       <View style={{ flex: 1 }}>
         <ScrollView
-          bounces={false}
+          bounces
           contentContainerStyle={styles.content}
           keyboardShouldPersistTaps="handled"
+          refreshControl={
+            <RefreshControl
+              refreshing={reservationsRefetching}
+              onRefresh={() => { void refetchReservations(); }}
+              tintColor={DesignColors.primaryBright}
+              colors={[DesignColors.primaryBright]}
+            />
+          }
           showsVerticalScrollIndicator={false}>
           <ProfileHeader
             displayName={displayName}

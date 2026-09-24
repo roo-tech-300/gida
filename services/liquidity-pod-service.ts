@@ -1,8 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
-import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
-import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import { notifyFounderOfJoiner, type PodJoinSource } from '@/services/pod-join-message';
 import {
   PERSIST_FAILURE_MESSAGE,
@@ -12,8 +9,11 @@ import {
   joinPodViaWorker,
   podJoinErrorMessage,
 } from '@/services/pod-join-remote';
-import type { Estate, SlotCredit, Pod, PodMember } from '@/types/liquidity';
+import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import type { DbListing } from '@/types/feed-listing';
+import type { Estate, Pod, PodMember, SlotCredit } from '@/types/liquidity';
+import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
+import { assertRevenueParity, memberAmount } from '@/utils/liquidity-pricing';
 
 export const SIGN_IN_REQUIRED_MESSAGE = 'Please sign in to continue.';
 

@@ -1,6 +1,6 @@
-import { ActivityIndicator, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { ActivityIndicator, ImageBackground, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { SlotCredit } from '@/types/liquidity';
@@ -22,16 +22,10 @@ type Props = {
 };
 
 const PAID_STATUSES: SlotCredit['status'][] = ['paid_unmatched', 'matched', 'subletting'];
-const THREE_DAYS_MS = 3 * 24 * 60 * 60 * 1000;
 
 export function ReservedHousesSection({ reservations, hasError, isLoading }: Props) {
   const router = useRouter();
-  const reserved = reservations.filter((credit) => {
-    if (credit.status !== 'expired') return true;
-    if (!credit.expired_at) return true; // Backward compat: show if no timestamp
-    const expiredTime = new Date(credit.expired_at).getTime();
-    return Date.now() - expiredTime <= THREE_DAYS_MS;
-  });
+  const reserved = reservations.filter((credit) => credit.status !== 'expired');
 
   if (!isLoading && !hasError && reserved.length === 0) {
     return null;

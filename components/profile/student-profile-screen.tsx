@@ -17,6 +17,7 @@ import { ActiveAdminCard } from './active-admin-card';
 import { JoinGroupCard } from './join-group-card';
 import { ReservedHousesSection } from './reserved-houses-section';
 import { ProfileHeader } from './profile-header';
+import { ExpiredMarqueeBanner } from './expired-marquee-banner';
 import { PendingLodgeInvites } from './pending-lodge-invite-card';
 
 export function StudentProfileScreen() {
@@ -35,6 +36,41 @@ export function StudentProfileScreen() {
     staleTime: 5 * 60 * 1000,
   });
   const { data: reservations, isError: reservationsError, isPending: reservationsPending } = useUserSlotCredits();
+
+  const expiredLodges = useMemo(() => {
+    const fortyEightHoursMs = 48 * 60 * 60 * 1000;
+    const lodges: typeof reservations = [];
+    (reservations ?? []).forEach((credit) => {
+      if (credit.status !== 'expired') {
+        console.log(`[Profile] Reservation ${credit.id}: status=${credit.status} - not expired, skipping`);
+        return;
+      }
+
+      let isWithin48h = false;
+
+      // Primary: check expired_at
+      if (credit.expired_at) {
+        const expiredTime = new Date(credit.expired_at).getTime();
+        isWithin48h = Date.now() - expiredTime <= fortyEightHoursMs;
+        const expiredDate = new Date(credit.expired_at).toLocaleString();
+        console.log('[Profile] Reservation ' + credit.id + ': expired_at=' + expiredDate + ' within 48h: ' + isWithin48h);
+      }
+      // Fallback: check payment_deadline if expired_at is null
+      else if (!credit.expired_at && credit.payment_deadline) {
+        const paymentDeadline = new Date(credit.payment_deadline).getTime();
+        isWithin48h = Date.now() - paymentDeadline <= fortyEightHoursMs;
+        const paymentDeadlineDate = new Date(credit.payment_deadline).toLocaleString();
+        console.log('[Profile] Reservation ' + credit.id + ': expired_at=null, payment_deadline=' + paymentDeadlineDate + ' within 48h: ' + isWithin48h);
+      }
+      // Neither timestamp available
+      else {
+        console.log('[Profile] Reservation ' + credit.id + ': no expired_at or payment_deadline - not showing in banner');
+      }
+
+      if (isWithin48h) lodges.push(credit);
+    });
+    return lodges;
+  }, [reservations]);
 
   const roommateCompletion = useMemo(() => {
     const roommate = preferences?.roommate;
@@ -150,6 +186,8 @@ export function StudentProfileScreen() {
             uploading={uploading}
             onAvatarPress={handleAvatarPress}
           />
+
+          <ExpiredMarqueeBanner expiredLodges={expiredLodges} />
 
           <JoinGroupCard />
           <PendingLodgeInvites />

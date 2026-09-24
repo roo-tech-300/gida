@@ -5,14 +5,7 @@ import type {
   MessageAttachment,
   ServerChatMessage,
 } from '@/types/messages';
-import {
-  subscribeToMessageNotifications,
-  getNotificationTitle,
-  getNotificationBody,
-  messagingInstance,
-} from '@/src/notifications';
-// @ts-ignore
-import messaging from '@react-native-firebase/messaging';
+import { subscribeToMessageNotifications } from '@/src/notifications';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 type ConversationRow = {
@@ -238,11 +231,7 @@ export async function sendMessage(input: SendMessageInput): Promise<ServerChatMe
   }
   console.log('[MsgService] Message inserted — id:', data.id);
 
-  // Broadcast push notification to conversation participants
-  const newMessage = mapMessageRow(data as MessageRow);
-  await broadcastMessageToConversation(input.conversationId, newMessage);
-
-  return newMessage;
+  return mapMessageRow(data as MessageRow);
 }
 
 export async function markConversationRead(conversationId: string, readerId: string): Promise<void> {
@@ -253,47 +242,6 @@ export async function markConversationRead(conversationId: string, readerId: str
 
   if (error) {
     console.error('[MessageService] Failed to mark conversation read:', error.message);
-  }
-}
-
-async function broadcastMessageToConversation(
-  conversationId: string,
-  message: ServerChatMessage
-): Promise<void> {
-  const { data: conversation } = await supabase
-    .from('conversations')
-    .select('participant_a, participant_b')
-    .eq('id', conversationId)
-    .single();
-
-  if (!conversation) return;
-
-  const participantIds = [conversation.participant_a, conversation.participant_b];
-  const { data: tokens } = await supabase
-    .from('device_tokens')
-    .select('token, platform')
-    .in('user_id', participantIds);
-
-  const notificationTitle = getNotificationTitle(message);
-  const notificationBody = getNotificationBody(message);
-
-  if (!tokens) return;
-
-  for (const { token } of tokens) {
-    try {
-      await messaging.send({
-        notification: {
-          title: notificationTitle,
-          body: notificationBody,
-        },
-        token,
-      });
-    } catch (err) {
-      console.error(
-        `[MessageService] Failed to send push notification:`,
-        err
-      );
-    }
   }
 }
 
@@ -316,8 +264,6 @@ export function subscribeToConversationMessages(
   conversationId: string,
   onInsert: (message: ServerChatMessage) => void,
 ): () => void {
-  // Use the notifications service to handle both Supabase subscription
-  // and push notification display
   return subscribeToMessageNotifications(conversationId, onInsert);
 }
 

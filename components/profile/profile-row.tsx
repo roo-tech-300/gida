@@ -7,13 +7,15 @@ export function ProfileRow({
   icon,
   label,
   value,
+  onPress,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   value?: string;
+  onPress?: () => void;
 }) {
   return (
-    <Pressable style={styles.row}>
+    <Pressable style={styles.row} onPress={onPress} disabled={!onPress}>
       <View style={styles.left}>
         <View style={styles.iconBox}>
           <Ionicons name={icon} size={24} color={DesignColors.onSurfaceVariant} />

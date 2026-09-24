@@ -1,8 +1,8 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { acceptLodgeInvitation, fetchMyPendingInvitations, respondToLodgeInvitation } from '@/services/lodge-invitation-service';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
-import type { PendingLodgeInvitation } from '@/types/liquidity';
+import { acceptLodgeInvitation, fetchMyPendingInvitations, respondToLodgeInvitation } from '@/services/lodge-invitation-service';
 import type { DbListing } from '@/types/feed-listing';
+import type { PendingLodgeInvitation } from '@/types/liquidity';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type LodgeInviteAction = 'accept' | 'decline';
 export type LodgeInviteActionResult = PurchaseSlotCreditResult | null;
@@ -41,6 +41,7 @@ export function useRespondToLodgeInvitation() {
       queryClient.invalidateQueries({ queryKey: ['my-lodge-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });
+      queryClient.invalidateQueries({ queryKey: ['open-pods'] });
     },
     onError: (error) => {
       console.error('[useRespondToLodgeInvitation] Mutation failed:', error);

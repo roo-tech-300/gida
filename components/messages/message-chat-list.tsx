@@ -1,10 +1,10 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef } from 'react';
 import {
-  FlatList,
-  RefreshControl,
-  StyleSheet,
-  type ViewToken,
-  type ListRenderItemInfo,
+    ActivityIndicator,
+    FlatList,
+    StyleSheet,
+    View,
+    type ListRenderItemInfo,
 } from 'react-native';
 
 import { MessageBubble } from '@/components/messages/message-bubble';
@@ -20,9 +20,9 @@ type MessageChatListProps = {
   myId?: string;
   participantName?: string | null;
   participantAvatar?: string | null;
-  isRefetching: boolean;
-  onRefresh: () => void;
   onRetry: (messageId: string) => void;
+  onLoadEarlier?: () => void;
+  isLoadingEarlier?: boolean;
 };
 
 export function MessageChatList({
@@ -31,34 +31,31 @@ export function MessageChatList({
   myId,
   participantName,
   participantAvatar,
-  isRefetching,
-  onRefresh,
   onRetry,
+  onLoadEarlier,
+  isLoadingEarlier = false,
 }: MessageChatListProps) {
   const listRef = useRef<FlatList<ChatMessage | string> | null>(null);
-  const [stickToBottom, setStickToBottom] = useState(true);
+  const prevLatestMessageIdRef = useRef<string | null>(messages[0]?.id ?? null);
 
   const listItems = useMemo(() => {
     const items: (string | ChatMessage)[] = [...messages];
     if (!unreadBoundaryId) return items;
     const boundaryIndex = items.findIndex((message) => typeof message !== 'string' && message.id === unreadBoundaryId);
     if (boundaryIndex === -1) return items;
-    items.splice(boundaryIndex, 0, UNREAD_DIVIDER_KEY);
+    items.splice(boundaryIndex + 1, 0, UNREAD_DIVIDER_KEY);
     return items;
   }, [messages, unreadBoundaryId]);
 
-  const scrollToBottom = () => {
-    listRef.current?.scrollToEnd({ animated: false });
-  };
-
-  const handleContentSizeChange = () => {
-    if (stickToBottom) scrollToBottom();
-  };
-
-  const handleViewableItemsChanged = useRef(({ viewableItems }: { viewableItems: ViewToken[] }) => {
-    const last = messages[messages.length - 1];
-    setStickToBottom(Boolean(last && viewableItems.some((item) => item.item === last)));
-  });
+  useEffect(() => {
+    const latest = messages[0];
+    if (latest && latest.id !== prevLatestMessageIdRef.current) {
+      prevLatestMessageIdRef.current = latest.id;
+      if (latest.senderId === myId) {
+        listRef.current?.scrollToOffset({ offset: 0, animated: true });
+      }
+    }
+  }, [messages, myId]);
 
   const renderItem = ({ item }: ListRenderItemInfo<string | ChatMessage>) =>
     typeof item === 'string' ? (
@@ -73,18 +70,29 @@ export function MessageChatList({
       />
     );
 
+  const renderFooter = () => {
+    if (!isLoadingEarlier) return null;
+    return (
+      <View style={styles.loadingFooter}>
+        <ActivityIndicator size="small" color={DesignColors.primary} />
+      </View>
+    );
+  };
+
   return (
     <FlatList
       ref={listRef}
       data={listItems}
+      inverted
       keyExtractor={(item) => (typeof item === 'string' ? item : item.id)}
       showsVerticalScrollIndicator={false}
       contentContainerStyle={styles.listContent}
-      onContentSizeChange={handleContentSizeChange}
-      onScrollToIndexFailed={() => scrollToBottom()}
-      onViewableItemsChanged={handleViewableItemsChanged.current}
-      viewabilityConfig={{ viewAreaCoveragePercentThreshold: 30 }}
-      refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={onRefresh} tintColor={DesignColors.primary} />}
+      onEndReached={onLoadEarlier}
+      onEndReachedThreshold={0.2}
+      ListFooterComponent={renderFooter}
+      initialNumToRender={15}
+      maxToRenderPerBatch={15}
+      windowSize={11}
       renderItem={renderItem}
     />
   );
@@ -93,7 +101,12 @@ export function MessageChatList({
 const styles = StyleSheet.create({
   listContent: {
     paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.md,
-    paddingBottom: DesignSpacing.sm,
+    paddingTop: DesignSpacing.sm,
+    paddingBottom: DesignSpacing.md,
+  },
+  loadingFooter: {
+    paddingVertical: DesignSpacing.md,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

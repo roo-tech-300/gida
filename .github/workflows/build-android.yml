@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - builds
+      - dev
 
 concurrency:
   group: build-android-${{ github.ref }}
@@ -52,15 +53,23 @@ jobs:
       - name: Set gradlew executable permissions
         run: chmod +x android/gradlew
 
-      - name: Build release APK
+      - name: Build APK
         working-directory: android
         env:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
-        run: ./gradlew assembleRelease --no-daemon --stacktrace --info
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "Building development APK for dev branch"
+            ./gradlew assembleDebug --no-daemon --stacktrace --info
+          else
+            echo "Building production APK for builds branch"
+            ./gradlew assembleRelease --no-daemon --stacktrace --info
+          fi
 
-      - name: Create GitHub Release
+      - name: Create GitHub Release for production builds
+        if: github.ref_name == 'builds'
         uses: softprops/action-gh-release@v2
         with:
           tag_name: build-${{ github.run_number }}
@@ -68,3 +77,11 @@ jobs:
           body: Automated release APK built from commit ${{ github.sha }}.
           files: android/app/build/outputs/apk/release/*.apk
           fail_on_unmatched_files: true
+
+      - name: Upload dev APK artifact
+        if: github.ref_name == 'dev'
+        uses: actions/upload-artifact@v4
+        with:
+          name: android-dev-apk-${{ github.run_number }}
+          path: android/app/build/outputs/apk/debug/*.apk
+          if-no-files-found: error

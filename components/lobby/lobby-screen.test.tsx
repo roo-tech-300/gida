@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, fireEvent } from '@testing-library/react-native';
+import { render } from '@testing-library/react-native';
 import { ToastProvider } from '@/components/ui/toast-card';
 import { useUserSlotCredits, useActivePods } from '@/hooks/use-liquidity';
 import { MOCK_SLOT_CREDITS, MOCK_PODS } from '@/dummy/liquidity-mock';
@@ -9,6 +9,7 @@ import type { SlotCredit } from '@/types/liquidity';
 jest.mock('@/hooks/use-liquidity', () => ({
   useUserSlotCredits: jest.fn(),
   useActivePods: jest.fn(),
+  usePhysicalRoom: jest.fn(() => ({ data: null })),
 }));
 
 jest.mock('@/services/liquidity-service', () => ({
@@ -17,6 +18,8 @@ jest.mock('@/services/liquidity-service', () => ({
 
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({ push: jest.fn(), back: jest.fn() })),
+  useFocusEffect: jest.fn(),
+  useLocalSearchParams: jest.fn(() => ({})),
 }));
 
 function mockLobbyData(credits: SlotCredit[] = MOCK_SLOT_CREDITS, pods = MOCK_PODS) {
@@ -45,34 +48,28 @@ describe('LobbyScreen & Peer Matching Integration', () => {
     jest.clearAllTimers();
   });
 
-  it('renders slot credit pass, pod formation status, and peer profile badges', async () => {
-    const { getByTestId, getByText, getAllByText } = await render(
+  it('renders the slot pass, payment status, and current group', async () => {
+    const { getByTestId, getByText } = await render(
       <ToastProvider>
         <LobbyScreen />
       </ToastProvider>,
     );
 
-    expect(getByText('ROOMMATE MATCHING & CONFIRMATION')).toBeTruthy();
+    expect(getByText('Payment confirmed')).toBeTruthy();
     expect(getByTestId('slot-pass-card')).toBeTruthy();
-
-    expect(getByText('COMPATIBLE PEERS IN LOBBY (3)')).toBeTruthy();
-
-    expect(getByText('Chinedu Okeke')).toBeTruthy();
-    expect(getByText('Computer Science • UNILAG (Main Campus)')).toBeTruthy();
-    expect(getAllByText(/Cleanliness: 5\/5/)).toHaveLength(2);
-    expect(getByText('Night owl (2 AM)')).toBeTruthy();
+    expect(getByText('YOUR GROUP')).toBeTruthy();
+    expect(getByText('You (Current User)')).toBeTruthy();
+    expect(getByText('1/4')).toBeTruthy();
   });
 
-  it('triggers invite notifications when invite buttons are tapped', async () => {
+  it('shows group management for an active pod', async () => {
     const { getByTestId } = await render(
       <ToastProvider>
         <LobbyScreen />
       </ToastProvider>,
     );
 
-    const inviteBtn = getByTestId('invite-btn-peer-201');
-    fireEvent.press(inviteBtn);
-    expect(inviteBtn).toBeTruthy();
+    expect(getByTestId('manage-group-btn')).toBeTruthy();
   });
 
   it('shows a Pay Now CTA when the credit is still pending payment', async () => {
@@ -85,7 +82,7 @@ describe('LobbyScreen & Peer Matching Integration', () => {
       </ToastProvider>,
     );
 
-    expect(getByText(/Payment required to confirm your spot/)).toBeTruthy();
+    expect(getByText('Payment required')).toBeTruthy();
     expect(getByTestId('lobby-pay-now')).toBeTruthy();
   });
 });

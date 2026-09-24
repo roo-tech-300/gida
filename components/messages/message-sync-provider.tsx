@@ -1,21 +1,19 @@
-import { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
-import { AppState } from 'react-native';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useQueryClient } from '@tanstack/react-query';
+import { createContext, useCallback, useContext, useEffect, useMemo, useRef } from 'react';
+import { AppState } from 'react-native';
 
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
+import { getOrCreateConversation, sendMessage, subscribeToConversationChanges } from '@/services/messageService';
 import { getPendingOutbox, markMessageFailed, markOutboxSynced } from '@/services/offline-outbox-store';
-import { getOrCreateConversation, sendMessage } from '@/services/messageService';
 
 type MessageSyncContextValue = {
   flushOutbox: () => Promise<void>;
-  isFlushing: boolean;
 };
 
 const MessageSyncContext = createContext<MessageSyncContextValue>({
   flushOutbox: async () => {},
-  isFlushing: false,
 });
 
 export function useMessageSync(): MessageSyncContextValue {
@@ -28,7 +26,6 @@ export function MessageSyncProvider({ children }: { children: React.ReactNode })
   const queryClient = useQueryClient();
   const { isConnected } = useNetInfo();
   const { showToast } = useAppToast();
-  const [isFlushing, setIsFlushing] = useState(false);
   const flushingRef = useRef(false);
 
   const flushOutbox = useCallback(async (): Promise<void> => {
@@ -38,7 +35,6 @@ export function MessageSyncProvider({ children }: { children: React.ReactNode })
     if (pending.length === 0) return;
 
     flushingRef.current = true;
-    setIsFlushing(true);
     let failedCount = 0;
 
     for (const queued of pending) {
@@ -61,7 +57,6 @@ export function MessageSyncProvider({ children }: { children: React.ReactNode })
     }
 
     flushingRef.current = false;
-    setIsFlushing(false);
     queryClient.invalidateQueries({ queryKey: ['conversations', myId] });
 
     if (failedCount > 0) {
@@ -74,13 +69,26 @@ export function MessageSyncProvider({ children }: { children: React.ReactNode })
   }, [isConnected, flushOutbox]);
 
   useEffect(() => {
+    if (!myId) return;
+
+    const unsubscribe = subscribeToConversationChanges(() => {
+      void queryClient.invalidateQueries({ queryKey: ['conversations', myId] });
+    });
+
+    return unsubscribe;
+  }, [myId, queryClient]);
+
+  useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
-      if (state === 'active') void flushOutbox();
+      if (state === 'active') {
+        void flushOutbox();
+        if (myId) void queryClient.invalidateQueries({ queryKey: ['conversations', myId] });
+      }
     });
     return () => subscription.remove();
-  }, [flushOutbox]);
+  }, [flushOutbox, myId, queryClient]);
 
-  const value = useMemo(() => ({ flushOutbox, isFlushing }), [flushOutbox, isFlushing]);
+  const value = useMemo(() => ({ flushOutbox }), [flushOutbox]);
 
   return <MessageSyncContext.Provider value={value}>{children}</MessageSyncContext.Provider>;
 }

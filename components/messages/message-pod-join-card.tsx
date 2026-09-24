@@ -1,7 +1,7 @@
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { PodJoinAttachment } from '@/types/messages';
@@ -16,7 +16,7 @@ export function MessagePodJoinCard({
   const router = useRouter();
   const joinedViaInvite = attachment.source === 'code';
 
-  const handleViewLodge = () => router.push(`/property/${attachment.listingId}`);
+  const handleViewLodge = () => router.push({ pathname: '/property/lobby', params: { listingId: attachment.listingId } });
 
   return (
     <View style={styles.card}>

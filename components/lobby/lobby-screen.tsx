@@ -1,39 +1,40 @@
-import { useState, useCallback, useMemo } from 'react';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Image, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter , useFocusEffect, useLocalSearchParams } from 'expo-router';
 
-import { Ionicons } from '@expo/vector-icons';
-import { DesignColors } from '@/constants/design';
-import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
-import { removeMemberFromPod, inviteRoommateToPod } from '@/services/liquidity-service';
-import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
-import { useAppToast } from '@/components/ui/toast-card';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
-import { SlotPass } from './slot-pass';
-import { LobbyMemberList } from './lobby-member-list';
-import { InlineInviteSearch } from './inline-invite-search';
-import { ManageGroupModal } from './manage-group-modal';
+import { useAppToast } from '@/components/ui/toast-card';
+import { DesignColors } from '@/constants/design';
 import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
+import { inviteRoommateToPod, removeMemberFromPod } from '@/services/liquidity-service';
+import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
+import { Ionicons } from '@expo/vector-icons';
+import { InlineInviteSearch } from './inline-invite-search';
+import { LobbyMemberList } from './lobby-member-list';
 import { styles } from './lobby-screen.styles';
+import { ManageGroupModal } from './manage-group-modal';
+import { SlotPass } from './slot-pass';
 
 export function LobbyScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ creditId?: string | string[] }>();
-  const creditIdParam = params.creditId;
-  const creditId = Array.isArray(creditIdParam) ? creditIdParam[0] : creditIdParam;
+  const params = useLocalSearchParams<{ listingId?: string }>();
+  const listingId = params.listingId;
   const {
     data: credits,
     refetch: refetchCredits,
     isLoading: creditsLoading,
     isError: creditsError,
   } = useUserSlotCredits();
-  const credit = credits?.find((c) => c.id === creditId) ?? credits?.[0];
+  const credit = listingId
+    ? credits?.find((c) => c.listing_id === listingId)
+    : credits?.[0];
   const {
     data: pods,
     refetch: refetchPods,
     isLoading: podsLoading,
-  } = useActivePods(undefined, credit?.listing_id);
+  } = useActivePods(undefined, listingId);
 
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
@@ -186,7 +187,7 @@ export function LobbyScreen() {
               <Text style={styles.bannerTitle}>Payment required</Text>
               <ClaimCountdown expiresAt={credit.payment_deadline} variant="inline" />
             </View>
-            <Pressable style={styles.bannerAction} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })}>
+            <Pressable testID="lobby-pay-now" style={styles.bannerAction} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })}>
               <Text style={styles.bannerActionText}>Pay</Text>
             </Pressable>
           </View>
@@ -199,11 +200,8 @@ export function LobbyScreen() {
             </View>
             <View style={styles.bannerInfo}>
               <Text style={[styles.bannerTitle, styles.bannerExpiredTitle]}>Hold expired</Text>
-              <Text style={styles.bannerDesc}>Reserve again to restart the window.</Text>
+              <Text style={styles.bannerDesc}>Reserve again to take any action.</Text>
             </View>
-            <Pressable style={[styles.bannerAction, styles.bannerExpiredAction]} onPress={() => router.push('/explore')}>
-              <Text style={styles.bannerExpiredActionText}>View</Text>
-            </Pressable>
           </View>
         )}
 

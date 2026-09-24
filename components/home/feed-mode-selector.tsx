@@ -46,6 +46,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
 ) {
   const insets = useSafeAreaInsets();
   const [isOpen, setIsOpen] = useState(false);
+  const [overlayHeight, setOverlayHeight] = useState(0);
   const isOpenRef = useRef(false);
   const anim = useRef(new Animated.Value(0)).current;
 
@@ -87,7 +88,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
 
   const slideY = anim.interpolate({
     inputRange: [0, 1],
-    outputRange: [-900, 0],
+    outputRange: [overlayHeight > 0 ? -overlayHeight : -10000, 0],
   });
 
   const select = useCallback(
@@ -101,6 +102,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
   return (
     <View style={styles.wrapper} pointerEvents="box-none">
       <Animated.View
+        onLayout={({ nativeEvent }) => setOverlayHeight(nativeEvent.layout.height)}
         style={[styles.overlay, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
         pointerEvents={isOpen ? 'auto' : 'none'}
         {...overlayPan.panHandlers}

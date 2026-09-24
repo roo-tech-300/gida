@@ -1,6 +1,6 @@
 import { useRouter } from 'expo-router';
 import { useState } from 'react';
-import { Platform, StyleSheet, Text, View } from 'react-native';
+import { StyleSheet, Text, View } from 'react-native';
 
 import { AmenityGrid } from '@/components/onboarding/onboarding-amenity-grid';
 import { OnboardingGlassCard } from '@/components/onboarding/onboarding-glass-card';
@@ -18,7 +18,6 @@ import {
 import { useOnboarding } from '@/context/onboarding-context';
 import { useAuth } from '@/context/auth-context';
 import { saveOnboardingProfile } from '@/services/profileService';
-import { requestNotificationPermission, getFCMToken } from '@/src/notifications';
 import { AMENITY_OPTIONS, LAYOUT_OPTIONS } from '@/types/onboarding';
 import type { LayoutType, Amenity } from '@/types/onboarding';
 
@@ -51,16 +50,6 @@ export default function OnboardingLayoutScreen() {
       return;
     }
 
-        // Request notification permission (native only - web handled in root layout)
-    if (Platform.OS !== 'web') {
-      const notificationEnabled = await requestNotificationPermission();
-      if (!notificationEnabled) {
-        showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
-      } else {
-        await getFCMToken();
-      }
-    }
-
     setSaving(true);
     try {
       await saveOnboardingProfile(profile.id, data);
@@ -71,21 +60,6 @@ export default function OnboardingLayoutScreen() {
       }
 
       router.replace('/(tabs)');
-
-      if (Platform.OS !== 'web') {
-        void (async () => {
-          try {
-            const notificationEnabled = await requestNotificationPermission();
-            if (!notificationEnabled) {
-              showToast({ type: 'info', message: 'Notifications disabled. Some features may be limited.' });
-            } else {
-              await getFCMToken();
-            }
-          } catch (notificationErr) {
-            console.error('[Onboarding] Notification permission request failed:', notificationErr);
-          }
-        })();
-      }
     } catch (err) {
       console.error('[Onboarding] Failed to save:', err);
       showToast({ type: 'error', message: 'Failed to save preferences. Please try again.' });

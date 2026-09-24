@@ -29,6 +29,10 @@ export function OfflineBanner() {
     }
   }, [isOnline, translateY, opacity]);
 
+  // The banner stays mounted when "hidden" (it is only faded + translated),
+  // and an opacity-0 view is still hit-testable — so it must never accept
+  // touches, otherwise it silently swallows taps aimed at whatever sits
+  // underneath it (e.g. the bottom navigation row).
   return (
     <Animated.View
       style={[
@@ -39,7 +43,7 @@ export function OfflineBanner() {
           opacity,
         },
       ]}
-      pointerEvents="box-none"
+      pointerEvents="none"
     >
       <View style={styles.banner}>
         <View style={styles.iconWrap}>

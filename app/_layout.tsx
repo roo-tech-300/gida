@@ -11,6 +11,7 @@ import { MessageSyncProvider } from '@/components/messages/message-sync-provider
 import { OfflineBanner } from '@/components/ui/offline-banner';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
+import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
@@ -65,14 +66,15 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 }
 
 export default function RootLayout() {
-  console.log('[PROBE] RootLayout rendered');
   useNotificationPermissionPlatform();
+
   return (
     <QueryClientProvider client={queryClient}>
       <AppConfigProvider>
         <AuthProvider>
           <OnboardingProvider>
             <ToastProvider>
+              <ForegroundNotificationListener />
               <OfflineBanner />
               <MessageSyncProvider>
                 <AuthGate>

@@ -61,6 +61,7 @@ export function useCreateSlotCredit() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });
+      queryClient.invalidateQueries({ queryKey: ['open-pods'] });
     },
     onError: (error) => {
       console.error('[useCreateSlotCredit] Mutation failed:', error);

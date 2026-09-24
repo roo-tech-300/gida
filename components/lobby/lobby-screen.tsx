@@ -28,7 +28,7 @@ export function LobbyScreen() {
     isError: creditsError,
   } = useUserSlotCredits();
   const credit = listingId
-    ? credits?.find((c) => c.listing_id === listingId) ?? credits?.[0]
+    ? credits?.find((c) => c.listing_id === listingId)
     : credits?.[0];
   const {
     data: pods,

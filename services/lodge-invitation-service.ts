@@ -3,7 +3,7 @@ import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
-import { useQueryClient } from '@tanstack/react-query';
+import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
 import type { SlotCredit , PendingLodgeInvitation } from '@/types/liquidity';
 
 import type { DbListing } from '@/types/feed-listing';

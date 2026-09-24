@@ -41,6 +41,7 @@ export function useRespondToLodgeInvitation() {
       queryClient.invalidateQueries({ queryKey: ['my-lodge-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['user-slot-credits'] });
       queryClient.invalidateQueries({ queryKey: ['active-pods'] });
+      queryClient.invalidateQueries({ queryKey: ['open-pods'] });
     },
     onError: (error) => {
       console.error('[useRespondToLodgeInvitation] Mutation failed:', error);

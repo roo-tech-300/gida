@@ -113,63 +113,6 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; podId: string; synced: boolean };
 
 export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource }): Promise<PurchaseSlotCreditResult> {
-  const userId = await currentUserId();
-  if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
-
-  const pod = await findPodByGroupCode(args.code);
-  if (!pod) {
-    throw new Error('Invite code not found. Ask your friend to share their invite code.');
-  }
-
-  // Self-healing guard: real member rows are the source of truth, never the
-  // drift-prone current_total_intent counter.
-  const target = pod.target_occupancy ?? args.propertyTier;
-  const activeMembers = pod.members.filter((m) => (m.intent_size ?? 1) > 0);
-  if (activeMembers.length >= target) {
-    throw new Error('This group is already full. Pick another invite code or a lower occupancy.');
-  }
-  if (activeMembers.some((m) => m.user_id === userId)) {
-    throw new PodJoinError('ALREADY_MEMBER', podJoinErrorMessage('ALREADY_MEMBER'));
-  }
-
-  const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, pod.property_tier, target, generateInviteCode());
-  credit.amount_paid = memberAmount(args.listing.price_amount, target, activeMembers.length);
-
-  const outcome = await joinPodViaWorker(pod.group_code ?? args.code);
-  if (outcome.kind === 'failed') {
-    throw outcome.error;
-  }
-  if (outcome.kind === 'joined') {
-    applyRemoteCredit(credit, outcome.credit);
-  } else {
-    await joinPodViaRpc(pod.group_code ?? args.code, credit);
-  }
-
-  const nextTotal = activeMembers.length + 1;
-  if (nextTotal >= target) {
-    const finalizedMembers = [...activeMembers, buildMember(userId, credit.id, credit.amount_paid)];
-    assertRevenueParity(finalizedMembers, args.listing.price_amount);
-  }
-
-  const founder = pod.members.find((m) => (m.intent_size ?? 1) > 0 && m.user_id !== userId);
-  if (founder) {
-    try {
-      await notifyFounderOfJoiner({
-        podId: pod.id,
-        joinerUserId: userId,
-        founderUserId: founder.user_id,
-        listing: args.listing,
-        source: args.source ?? 'code',
-        seatNumber: nextTotal,
-        totalSeats: target,
-      });
-    } catch (error) {
-      console.error('[LiquidityService] Failed to notify founder of joiner:', error);
-    }
-  }
-
-  return { credit, podId: pod.id, synced: true };
-}
 
 export type InvitedFriend = { id: string; name: string };
 

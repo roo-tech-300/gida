@@ -16,7 +16,7 @@ export function MessagePodJoinCard({
   const router = useRouter();
   const joinedViaInvite = attachment.source === 'code';
 
-  const handleViewLodge = () => router.push(`/property/${attachment.listingId}`);
+  const handleViewLodge = () => router.push({ pathname: '/property/lobby', query: { listingId: attachment.listingId } });
 
   return (
     <View style={styles.card}>

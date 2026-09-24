@@ -19,21 +19,22 @@ import { styles } from './lobby-screen.styles';
 
 export function LobbyScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ creditId?: string | string[] }>();
-  const creditIdParam = params.creditId;
-  const creditId = Array.isArray(creditIdParam) ? creditIdParam[0] : creditIdParam;
+  const params = useLocalSearchParams<{ listingId?: string }>();
+  const listingId = params.listingId;
   const {
     data: credits,
     refetch: refetchCredits,
     isLoading: creditsLoading,
     isError: creditsError,
   } = useUserSlotCredits();
-  const credit = credits?.find((c) => c.id === creditId) ?? credits?.[0];
+  const credit = listingId
+    ? credits?.find((c) => c.listing_id === listingId) ?? credits?.[0]
+    : credits?.[0];
   const {
     data: pods,
     refetch: refetchPods,
     isLoading: podsLoading,
-  } = useActivePods(undefined, credit?.listing_id);
+  } = useActivePods(undefined, listingId);
 
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);
@@ -199,11 +200,8 @@ export function LobbyScreen() {
             </View>
             <View style={styles.bannerInfo}>
               <Text style={[styles.bannerTitle, styles.bannerExpiredTitle]}>Hold expired</Text>
-              <Text style={styles.bannerDesc}>Reserve again to restart the window.</Text>
+              <Text style={styles.bannerDesc}>Reserve again to take any action.</Text>
             </View>
-            <Pressable style={[styles.bannerAction, styles.bannerExpiredAction]} onPress={() => router.push('/explore')}>
-              <Text style={styles.bannerExpiredActionText}>View</Text>
-            </Pressable>
           </View>
         )}
 

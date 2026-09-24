@@ -73,7 +73,10 @@ const styles = StyleSheet.create({
     borderTopColor: DesignColors.cardBorder,
   },
   item: {
+    flex: 1,
     alignItems: 'center',
+    justifyContent: 'center',
+    minHeight: 48,
     gap: 4,
     paddingVertical: 4,
   },

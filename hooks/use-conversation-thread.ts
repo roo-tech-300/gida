@@ -43,13 +43,17 @@ function refreshThreadCache(queryClient: ReturnType<typeof useQueryClient>, conv
     for (const message of existing) byId.set(message.id, message);
     for (const message of localMessages) byId.set(message.id, message);
     const merged = [...byId.values()].sort(
-      (a, b) => (a.localCreatedAt ?? a.clientSentAt) - (b.localCreatedAt ?? b.clientSentAt),
+      (a, b) => (b.localCreatedAt ?? b.clientSentAt) - (a.localCreatedAt ?? a.clientSentAt),
     );
-    const pageParams =
-      oldData && Array.isArray(oldData.pageParams) && oldData.pageParams.length > 0
-        ? oldData.pageParams
-        : [0];
-    return { pages: [merged], pageParams };
+    const pageSize = 50;
+    const pages: ChatMessage[][] = [];
+    for (let index = 0; index < merged.length; index += pageSize) {
+      pages.push(merged.slice(index, index + pageSize));
+    }
+    return {
+      pages,
+      pageParams: pages.map((_, index) => index),
+    };
   });
 }
 
@@ -157,7 +161,7 @@ export function useConversationThread(otherId: string) {
       }
     }
     return [...byId.values()].sort(
-      (a, b) => (a.localCreatedAt ?? a.clientSentAt) - (b.localCreatedAt ?? b.clientSentAt),
+      (a, b) => (b.localCreatedAt ?? b.clientSentAt) - (a.localCreatedAt ?? a.clientSentAt),
     );
   }, [messagesQuery.data]);
 
@@ -176,5 +180,8 @@ export function useConversationThread(otherId: string) {
     sendMessage: send.mutateAsync,
     isSending: send.isPending,
     sendError: send.error,
+    hasNextPage: Boolean(messagesQuery.hasNextPage),
+    isFetchingNextPage: messagesQuery.isFetchingNextPage,
+    fetchNextPage: messagesQuery.fetchNextPage,
   };
 }

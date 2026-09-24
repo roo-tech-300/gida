@@ -1,8 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
-import { memberAmount, assertRevenueParity } from '@/utils/liquidity-pricing';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
-import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import { notifyFounderOfJoiner, type PodJoinSource } from '@/services/pod-join-message';
 import {
   PERSIST_FAILURE_MESSAGE,
@@ -12,8 +9,11 @@ import {
   joinPodViaWorker,
   podJoinErrorMessage,
 } from '@/services/pod-join-remote';
-import type { Estate, SlotCredit, Pod, PodMember, PodVerificationStatus } from '@/types/liquidity';
+import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import type { DbListing } from '@/types/feed-listing';
+import type { Estate, Pod, PodMember, SlotCredit } from '@/types/liquidity';
+import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
+import { assertRevenueParity, memberAmount } from '@/utils/liquidity-pricing';
 
 export const SIGN_IN_REQUIRED_MESSAGE = 'Please sign in to continue.';
 
@@ -86,19 +86,6 @@ export async function findPodByGroupCode(code: string): Promise<Pod | undefined>
   return undefined;
 }
 
-async function getPodById(podId: string): Promise<Pod> {
-  const { data, error } = await supabase
-    .from('pods')
-    .select('*, members:pod_members(*)')
-    .eq('id', podId)
-    .maybeSingle();
-  if (error || !data) {
-    console.error('[LiquidityService] Failed to load pod:', error?.message ?? 'not found');
-    throw new Error('Pod not found.');
-  }
-  return data as Pod;
-}
-
 export async function removeMemberFromPod(podId: string, targetUserId: string): Promise<Pod> {
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
@@ -112,23 +99,19 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
 
 export type PurchaseSlotCreditResult = { credit: SlotCredit; podId: string; synced: boolean };
 
-export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource }): Promise<PurchaseSlotCreditResult> {
+export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource; onSuccess?: () => void }): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
   const pod = await findPodByGroupCode(args.code);
-  if (!pod) {
-    throw new Error('Invite code not found. Ask your friend to share their invite code.');
-  }
+  if (!pod) throw new Error('Invite code not found. Ask your friend to share their invite code.');
 
-  // Self-healing guard: real member rows are the source of truth, never the
-  // drift-prone current_total_intent counter.
   const target = pod.target_occupancy ?? args.propertyTier;
-  const activeMembers = pod.members.filter((m) => (m.intent_size ?? 1) > 0);
+  const activeMembers = pod.members.filter((member) => (member.intent_size ?? 1) > 0);
   if (activeMembers.length >= target) {
     throw new Error('This group is already full. Pick another invite code or a lower occupancy.');
   }
-  if (activeMembers.some((m) => m.user_id === userId)) {
+  if (activeMembers.some((member) => member.user_id === userId)) {
     throw new PodJoinError('ALREADY_MEMBER', podJoinErrorMessage('ALREADY_MEMBER'));
   }
 
@@ -136,38 +119,33 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   credit.amount_paid = memberAmount(args.listing.price_amount, target, activeMembers.length);
 
   const outcome = await joinPodViaWorker(pod.group_code ?? args.code);
-  if (outcome.kind === 'failed') {
-    throw outcome.error;
-  }
+  if (outcome.kind === 'failed') throw outcome.error;
   if (outcome.kind === 'joined') {
     applyRemoteCredit(credit, outcome.credit);
   } else {
     await joinPodViaRpc(pod.group_code ?? args.code, credit);
   }
+  credit.pod_id = outcome.kind === 'joined' ? outcome.credit.podId ?? pod.id : pod.id;
 
   const nextTotal = activeMembers.length + 1;
   if (nextTotal >= target) {
-    const finalizedMembers = [...activeMembers, buildMember(userId, credit.id, credit.amount_paid)];
-    assertRevenueParity(finalizedMembers, args.listing.price_amount);
+    assertRevenueParity([...activeMembers, buildMember(userId, credit.id, credit.amount_paid)], args.listing.price_amount);
   }
 
-  const founder = pod.members.find((m) => (m.intent_size ?? 1) > 0 && m.user_id !== userId);
+  const founder = activeMembers.find((member) => member.user_id !== userId);
   if (founder) {
-    try {
-      await notifyFounderOfJoiner({
-        podId: pod.id,
-        joinerUserId: userId,
-        founderUserId: founder.user_id,
-        listing: args.listing,
-        source: args.source ?? 'code',
-        seatNumber: nextTotal,
-        totalSeats: target,
-      });
-    } catch (error) {
-      console.error('[LiquidityService] Failed to notify founder of joiner:', error);
-    }
+    void notifyFounderOfJoiner({
+      podId: pod.id,
+      joinerUserId: userId,
+      founderUserId: founder.user_id,
+      listing: args.listing,
+      source: args.source ?? 'code',
+      seatNumber: nextTotal,
+      totalSeats: target,
+    });
   }
 
+  args.onSuccess?.();
   return { credit, podId: pod.id, synced: true };
 }
 

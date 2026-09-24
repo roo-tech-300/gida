@@ -1,10 +1,10 @@
 import { supabase } from '@/lib/supabase';
-import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
-import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
-import { resolveEstateForListing } from '@/utils/liquidity-estate';
-import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
-import type { SlotCredit , PendingLodgeInvitation } from '@/types/liquidity';
+import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
+import type { PendingLodgeInvitation, SlotCredit } from '@/types/liquidity';
+import { resolveEstateForListing } from '@/utils/liquidity-estate';
+import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
+import { chunkInIds, fetchProfilesInChunks } from '@/utils/profile-chunking';
 
 import type { DbListing } from '@/types/feed-listing';
 
@@ -25,7 +25,7 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
   const listingIds = [...new Set(rows.map((row) => row.pod.listing_id).filter((id): id is string => Boolean(id)))];
 
   try {
-    const [{ data: inviterProfiles }, { data: existingCredits }] = await Promise.all([
+    const [inviterProfiles, { data: existingCredits }] = await Promise.all([
       inviterIds.length > 0
         ? fetchProfilesInChunks(inviterIds)
         : { data: null, error: null } as const,

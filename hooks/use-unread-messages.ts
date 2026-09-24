@@ -20,7 +20,7 @@ export function useUnreadMessages() {
     const loadInitial = async () => {
       const { data, error } = await supabase
         .from('conversations')
-        .select('unread_a, unread_b')
+        .select('participant_a, participant_b, unread_a, unread_b')
         .or(`participant_a.eq.${userId},participant_b.eq.${userId}`);
 
       if (!error && data) {

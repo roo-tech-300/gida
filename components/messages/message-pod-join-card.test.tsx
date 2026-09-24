@@ -4,6 +4,15 @@ import { MessagePodJoinCard } from '@/components/messages/message-pod-join-card'
 import { MessageBubble } from '@/components/messages/message-bubble';
 import type { PodJoinAttachment, ChatMessage } from '@/types/messages';
 
+jest.mock('@react-native-community/netinfo', () => ({
+  __esModule: true,
+  default: {
+    fetch: jest.fn(async () => ({ isConnected: true, isInternetReachable: true })),
+    addEventListener: jest.fn(() => jest.fn()),
+  },
+  useNetInfo: jest.fn(() => ({ isConnected: true, isInternetReachable: true })),
+}));
+
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({ push: jest.fn(), back: jest.fn() })),
 }));

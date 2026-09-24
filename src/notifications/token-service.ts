@@ -13,7 +13,7 @@ export const upsertDeviceToken = async (token: string): Promise<void> => {
     const currentUser = (await supabase.auth.getUser()).data.user;
     if (!currentUser) return;
 
-    await supabase.from('device_tokens').upsert(
+    const { error } = await supabase.from('device_tokens').upsert(
       {
         user_id: currentUser.id,
         token,
@@ -22,6 +22,9 @@ export const upsertDeviceToken = async (token: string): Promise<void> => {
       },
       { onConflict: 'user_id,platform' },
     );
+    if (error) {
+      console.error('[Notifications] Supabase rejected device token upsert:', error);
+    }
   } catch (error) {
     console.error('[Notifications] Failed to persist device token:', error);
   }

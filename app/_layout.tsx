@@ -11,6 +11,7 @@ import { MessageSyncProvider } from '@/components/messages/message-sync-provider
 import { OfflineBanner } from '@/components/ui/offline-banner';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
+import { IS_APP_LAUNCHED } from '@/constants/launch';
 import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
@@ -42,6 +43,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       if (isWeb) {
         if (!inLandingGroup && !inAuthGroup) {
           router.replace('/(landing)');
+        }
+        return;
+      }
+      if (!IS_APP_LAUNCHED) {
+        if (!inLandingGroup) {
+          router.replace('/(landing)/coming-soon');
         }
         return;
       }

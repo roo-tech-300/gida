@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import Animated, { FadeInUp } from 'react-native-reanimated';
 
 import { AuthButton } from '@/components/auth/auth-button';
 import { AuthInput } from '@/components/auth/auth-input';
@@ -39,7 +40,7 @@ export function WaitlistForm({ onJoined }: WaitlistFormProps) {
   };
 
   return (
-    <View style={styles.container}>
+    <Animated.View entering={FadeInUp.duration(400)} style={styles.container}>
       <AuthInput
         label="Email address"
         placeholder="you@example.com"
@@ -55,14 +56,18 @@ export function WaitlistForm({ onJoined }: WaitlistFormProps) {
         returnKeyType="done"
         onSubmitEditing={handleSubmit}
       />
-      <AuthButton label="Join the waitlist" onPress={handleSubmit} isLoading={isPending} />
-    </View>
+      <View style={styles.submitSpacer}>
+        <AuthButton label="Join the waitlist" onPress={handleSubmit} isLoading={isPending} />
+      </View>
+    </Animated.View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
-    gap: DesignSpacing.sm,
     width: '100%',
+  },
+  submitSpacer: {
+    marginTop: DesignSpacing.md,
   },
 });

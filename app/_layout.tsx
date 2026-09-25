@@ -13,6 +13,7 @@ import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
+import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
 
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
@@ -75,6 +76,7 @@ export default function RootLayout() {
           <OnboardingProvider>
             <ToastProvider>
               <ForegroundNotificationListener />
+              <NotificationNavigationListener />
               <OfflineBanner />
               <MessageSyncProvider>
                 <AuthGate>

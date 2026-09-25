@@ -91,6 +91,17 @@ export function calculateSeparateBillingPerPerson(totalPrice: number, intentSize
 
 export const PAYMENT_WINDOW_MS = 3 * 24 * 3600 * 1000;
 
+/**
+ * Exact per-person share: the rent split into identical naira amounts, kept to
+ * kobo precision. Unlike allocateEvenShares, join order never changes anybody's
+ * figure, so every member of a pod pays precisely the same amount.
+ */
+export function calculateEqualShare(rentNgn: number, memberCount: number): number {
+  if (!Number.isFinite(rentNgn) || rentNgn < 0) return 0;
+  if (!Number.isInteger(memberCount) || memberCount <= 0) return 0;
+  return Math.round((rentNgn / memberCount) * 100) / 100;
+}
+
 export function allocateEvenShares(total: number, count: number): { shares: number[]; total: number } {
   if (count <= 0 || total < 0) {
     return { shares: [], total: 0 };
@@ -109,12 +120,19 @@ export type RevenueParity = {
   overage: number;
 };
 
+const REVENUE_PARITY_TOLERANCE_NGN = 0.01;
+
+const toMoneyUnits = (value: number): number => Math.round(value * 100);
+
 export function verifyRevenueParity(expectedTotal: number, memberAmounts: number[]): RevenueParity {
   const totalCollected = memberAmounts.reduce((sum, amount) => sum + amount, 0);
   const shortfall = Math.max(0, expectedTotal - totalCollected);
   const overage = Math.max(0, totalCollected - expectedTotal);
+  const collectedUnits = toMoneyUnits(totalCollected);
+  const expectedUnits = toMoneyUnits(expectedTotal);
+  const toleranceUnits = Math.max(1, toMoneyUnits(REVENUE_PARITY_TOLERANCE_NGN) * memberAmounts.length);
   return {
-    isParity: expectedTotal > 0 && totalCollected === expectedTotal,
+    isParity: expectedTotal > 0 && Math.abs(collectedUnits - expectedUnits) <= toleranceUnits,
     totalCollected,
     expectedTotal,
     shortfall,

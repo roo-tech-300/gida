@@ -6,7 +6,7 @@ import { ClaimSplitSummary } from '@/components/claim/claim-split-summary';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import type { Pod, PodMember } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
-import { calculateBaseRent, derivePropertyTier } from '@/utils/liquidity-math';
+import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 
 const FALLBACK_PRICE = 1200000;
 
@@ -72,7 +72,7 @@ type Props = {
 export function OpenPodDetail({ pod, listing, onOpenProfile, onJoin, joining }: Props) {
   const propertyTier = derivePropertyTier(listing.property_tier, listing.max_roommates);
   const priceAmount = listing.price_amount ?? FALLBACK_PRICE;
-  const price = calculateBaseRent(priceAmount, pod.target_occupancy);
+  const price = calculateEqualShare(priceAmount, pod.target_occupancy);
 
   return (
     <View style={styles.flex}>

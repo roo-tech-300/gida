@@ -11,9 +11,8 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
-import { calculateBaseRent } from '@/utils/liquidity-math';
-
-const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
+import { formatNaira } from '@/utils/format-naira';
+import { calculateEqualShare } from '@/utils/liquidity-math';
 
 export function SoloClaimScreen({ listingId }: { listingId: string }) {
   const { data: detail, isLoading } = useListing(listingId);
@@ -51,7 +50,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
     }
   }, [dbListing, purchaseSlot, showToast]);
 
-  const price = calculateBaseRent(priceAmount, 1);
+  const price = calculateEqualShare(priceAmount, 1);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

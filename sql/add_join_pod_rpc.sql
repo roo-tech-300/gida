@@ -9,8 +9,10 @@
 --     non-expired members, NEVER from the stored current_total_intent counter.
 --     Drifted counters (e.g. extra members on an over-capacity pod) converge on
 --     the next join/remove/reconcile instead of corrupting new joins.
---   * Even-share math matches allocateEvenShares/memberAmount exactly:
---     share[i] = floor(rent/target) + (i < rent % target ? 1 : 0), i = active count.
+--   * EQUAL shares: every member pays the pod's locked per-person share
+--     (locked_share from the earliest non-expired member credit when available,
+--     otherwise ROUND(live listing rent / target, 2)). Join order never changes
+--     anybody's figure, so founder and joiners always pay exactly the same amount.
 --     Rent-only: no platform fee is added.
 --
 -- Run order: AFTER sql/add_liquidity_pool_schema.sql, sql/add_target_occupancy_and_join.sql
@@ -44,6 +46,7 @@ DECLARE
   v_active INTEGER;
   v_rent BIGINT;
   v_share NUMERIC;
+  v_locked_share NUMERIC;
   v_new_intent INTEGER;
   v_finalized BOOLEAN;
   v_credit_id UUID;
@@ -91,8 +94,24 @@ BEGIN
 
   SELECT price_amount::BIGINT INTO v_rent FROM listings WHERE id = v_pod.listing_id;
 
-  -- memberAmount(rent, target, index = v_active): even split, first members absorb the remainder.
-  v_share := FLOOR(v_rent / v_target) + CASE WHEN v_active < (v_rent % v_target) THEN 1 ELSE 0 END;
+  -- Founder numbers win: reuse the earliest non-expired member's locked share so
+  -- every joiner pays exactly what the founder paid, even if the listing price
+  -- changed after the pod was created. ROUND to kobo; never floor + remainder.
+  SELECT sc.amount_paid INTO v_locked_share
+  FROM pod_members pm
+  JOIN slot_credits sc ON sc.id = pm.slot_credit_id
+  WHERE pm.pod_id = v_pod.id
+    AND sc.status <> 'expired'
+    AND sc.amount_paid IS NOT NULL
+    AND sc.amount_paid > 0
+  ORDER BY sc.created_at ASC, sc.id ASC
+  LIMIT 1;
+
+  IF v_locked_share IS NULL THEN
+    v_share := ROUND(v_rent::NUMERIC / NULLIF(v_target, 0), 2);
+  ELSE
+    v_share := v_locked_share;
+  END IF;
 
   v_new_intent := v_active + 1;
   v_finalized := v_new_intent >= v_target;

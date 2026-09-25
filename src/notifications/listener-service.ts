@@ -1,6 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import type { MessageAttachment, ServerChatMessage } from '@/types/messages';
-import { onMessage, onTokenRefresh } from '@react-native-firebase/messaging';
+import { onMessage, onTokenRefresh, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
 import { useEffect } from 'react';
 import { getNativeMessaging } from './native-messaging';
 import { upsertDeviceToken } from './token-service';
@@ -11,6 +11,17 @@ import {
     type MessageReceivedHandler,
     type NotificationSubscription,
 } from './types';
+
+const backgroundMessaging = getNativeMessaging();
+if (backgroundMessaging) {
+  try {
+    setBackgroundMessageHandler(backgroundMessaging, async (remoteMessage) => {
+      console.log('[Notifications] Background message received:', remoteMessage.messageId ?? 'no message id');
+    });
+  } catch (error) {
+    console.error('[Notifications] Failed to register background handler:', error);
+  }
+}
 
 const safeUnsubscribe = (label: string, unsubscribe: NotificationSubscription | undefined): void => {
   try {

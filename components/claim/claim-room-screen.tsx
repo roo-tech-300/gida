@@ -12,7 +12,7 @@ import { RoommateLinkCard } from '@/components/claim/roommate-link-card';
 import { useListing } from '@/hooks/use-listing';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
-import { calculateBaseRent, derivePropertyTier } from '@/utils/liquidity-math';
+import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
@@ -42,7 +42,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
     setSelectedTargetOccupancy(newOccupancy);
   };
 
-  const price = calculateBaseRent(priceAmount, selectedTargetOccupancy);
+  const price = calculateEqualShare(priceAmount, selectedTargetOccupancy);
 
   const handleSecureSpace = useCallback(async () => {
     if (!dbListing) return;

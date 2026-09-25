@@ -1,4 +1,4 @@
-import { useCallback, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
@@ -9,7 +9,7 @@ import { WizardHeader } from '@/components/claim/wizard-header';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 import { useListing } from '@/hooks/use-listing';
-import { calculateBaseRent, derivePropertyTier } from '@/utils/liquidity-math';
+import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 import { findPodByGroupCode, currentUserId } from '@/services/liquidity-pod-service';
 import type { Pod } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
@@ -33,7 +33,9 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
   const [error, setError] = useState<string | null>(null);
   const [validating, setValidating] = useState(false);
   const codeRef = useRef(code);
-  codeRef.current = code;
+  useEffect(() => {
+    codeRef.current = code;
+  }, [code]);
 
   const { data: detail, isLoading: listingLoading } = useListing(pod?.listing_id ?? '');
   const dbListing: DbListing | undefined = detail?.dbListing;
@@ -44,7 +46,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
   const priceLabel = `Max Capacity: ${propertyTier} • ₦${priceAmount.toLocaleString()}/yr`;
   const seatNumber = pod ? pod.current_total_intent + 1 : 0;
   const joinTarget = pod?.target_occupancy ?? 1;
-  const price = calculateBaseRent(priceAmount, joinTarget);
+  const price = calculateEqualShare(priceAmount, joinTarget);
 
   const changeCode = (value: string) => {
     setCode(value);

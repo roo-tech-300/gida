@@ -132,8 +132,8 @@ export const FOOTER_LINKS: LandingFooterLinks = {
   copyright: '© 2026 Gida Apartments. All rights reserved.',
   email: 'help@gida.apartments',
   emailUrl: 'mailto:help@gida.apartments',
-  whatsapp: '+234 806 118 6486',
-  whatsappUrl: 'https://wa.me/2348061186486',
+  whatsapp: '+234 708 914 1002',
+  whatsappUrl: 'https://wa.me/2347089141002',
   legalLinks: [
     { label: 'Privacy Policy', url: '/privacy.html' },
     { label: 'Terms of Service', url: '/terms.html' },

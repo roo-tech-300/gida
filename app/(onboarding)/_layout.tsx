@@ -16,6 +16,7 @@ export default function OnboardingLayout() {
           <Stack.Screen name="onboarding-gender" />
           <Stack.Screen name="preferences-budget" />
           <Stack.Screen name="preferences-layout" />
+          <Stack.Screen name="app-tour" />
         </Stack>
         <StatusBar style="light" />
       </>

@@ -59,7 +59,7 @@ export default function OnboardingLayoutScreen() {
         console.error('[Onboarding] Failed to refresh profile after save:', refreshErr);
       }
 
-      router.replace('/(tabs)');
+      router.push('/(onboarding)/app-tour');
     } catch (err) {
       console.error('[Onboarding] Failed to save:', err);
       showToast({ type: 'error', message: 'Failed to save preferences. Please try again.' });

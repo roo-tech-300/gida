@@ -1,15 +1,14 @@
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { ReplayTourModal } from '@/components/tour/replay-tour-modal';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useUserSlotCredits } from '@/hooks/use-liquidity';
-import { uploadAvatar } from '@/services/profileService';
 import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
 import { useNotificationPermission } from '@/src/use-notification-permission-platform';
-import { launchImageLibraryAsync, requestMediaLibraryPermissionsAsync } from '@/utils/web-image-picker';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
-import { useMemo, useState } from 'react';
+import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActiveAdminCard } from './active-admin-card';
@@ -19,16 +18,23 @@ import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
 import { ReservedHousesSection } from './reserved-houses-section';
+import { useAvatarUpload } from './use-avatar-upload';
+import { useExpiredLodges } from './use-expired-lodges';
+import { useRoommateCompletion } from './use-roommate-completion';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
-  const [uploading, setUploading] = useState(false);
+  const [tourModalOpen, setTourModalOpen] = useState(false);
   const [currentTime] = useState(() => Date.now());
   const { showToast } = useAppToast();
   const { status: notificationStatus, enable: enableNotifications } = useNotificationPermission();
   const userId = profile?.id;
   const displayName = profile?.full_name ?? 'Student';
+
+  const { uploading, handleAvatarPress } = useAvatarUpload(userId, refreshProfile, showToast);
+  const closeTour = useCallback(() => setTourModalOpen(false), []);
+  const openTour = useCallback(() => setTourModalOpen(true), []);
 
   const { data: preferences, isLoading: preferencesLoading } = useQuery({
     queryKey: ['my-roommate-preferences', userId],
@@ -44,62 +50,8 @@ export function StudentProfileScreen() {
     refetch: refetchReservations,
   } = useUserSlotCredits();
 
-  const expiredLodges = useMemo(() => {
-    const fortyEightHoursMs = 48 * 60 * 60 * 1000;
-    const lodges: typeof reservations = [];
-    (reservations ?? []).forEach((credit) => {
-      if (credit.status !== 'expired') {
-        console.log(`[Profile] Reservation ${credit.id}: status=${credit.status} - not expired, skipping`);
-        return;
-      }
-
-      let isWithin48h = false;
-
-      // Primary: check expired_at
-      if (credit.expired_at) {
-        const expiredTime = new Date(credit.expired_at).getTime();
-        isWithin48h = currentTime - expiredTime <= fortyEightHoursMs;
-        const expiredDate = new Date(credit.expired_at).toLocaleString();
-        console.log('[Profile] Reservation ' + credit.id + ': expired_at=' + expiredDate + ' within 48h: ' + isWithin48h);
-      }
-      // Fallback: check payment_deadline if expired_at is null
-      else if (!credit.expired_at && credit.payment_deadline) {
-        const paymentDeadline = new Date(credit.payment_deadline).getTime();
-        isWithin48h = currentTime - paymentDeadline <= fortyEightHoursMs;
-        const paymentDeadlineDate = new Date(credit.payment_deadline).toLocaleString();
-        console.log('[Profile] Reservation ' + credit.id + ': expired_at=null, payment_deadline=' + paymentDeadlineDate + ' within 48h: ' + isWithin48h);
-      }
-      // Neither timestamp available
-      else {
-        console.log('[Profile] Reservation ' + credit.id + ': no expired_at or payment_deadline - not showing in banner');
-      }
-
-      if (isWithin48h) lodges.push(credit);
-    });
-    return lodges;
-  }, [currentTime, reservations]);
-
-  const roommateCompletion = useMemo(() => {
-    const roommate = preferences?.roommate;
-    const living = preferences?.living;
-    const fields = [
-      roommate?.sleep_schedule,
-      roommate?.cleanliness_level,
-      roommate?.guest_policy,
-      roommate?.study_habitat,
-      roommate?.personality_vibe,
-      living?.min_budget,
-      living?.max_budget,
-      living?.preferred_area,
-      profile?.bio,
-      profile?.school,
-    ];
-    const filled = fields.filter((value) => {
-      if (typeof value === 'number') return true;
-      return Boolean(value && String(value).trim());
-    }).length;
-    return Math.round((filled / fields.length) * 100);
-  }, [preferences, profile?.bio, profile?.school]);
+  const expiredLodges = useExpiredLodges(reservations, currentTime);
+  const roommateCompletion = useRoommateCompletion(preferences, profile);
 
   const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
   const cleanlinessLevel = preferences?.roommate?.cleanliness_level ?? 'Not set yet';
@@ -120,34 +72,6 @@ export function StudentProfileScreen() {
     } catch (error) {
       console.error('[Profile] Logout failed:', error);
       setSigningOut(false);
-    }
-  };
-
-  const handleAvatarPress = async () => {
-    const permission = await requestMediaLibraryPermissionsAsync();
-    if (!permission.granted) {
-      showToast({ message: 'Photo access is required to change your avatar.', type: 'error' });
-      return;
-    }
-    const result = await launchImageLibraryAsync({
-      mediaTypes: ['images'],
-      allowsEditing: true,
-      aspect: [1, 1],
-      quality: 0.8,
-    });
-    if (result.canceled || !profile) return;
-
-    setUploading(true);
-    try {
-      const uri = result.assets[0].uri;
-      await uploadAvatar(profile.id, uri);
-      await refreshProfile();
-      showToast({ message: 'Profile picture updated.', type: 'success' });
-    } catch (error) {
-      console.error('[Profile] Avatar upload failed:', error);
-      showToast({ message: error instanceof Error ? error.message : 'Failed to upload avatar.', type: 'error' });
-    } finally {
-      setUploading(false);
     }
   };
 
@@ -232,6 +156,12 @@ export function StudentProfileScreen() {
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Account & Safety</Text>
             <ProfileRow
+              icon="compass-outline"
+              label="App Tour & Guide"
+              value="View Features"
+              onPress={openTour}
+            />
+            <ProfileRow
               icon="notifications-outline"
               label="Notifications"
               value={notificationValue}
@@ -271,6 +201,7 @@ export function StudentProfileScreen() {
         </ScrollView>
 
         <DiscoverBottomNav activeTab="profile" />
+        <ReplayTourModal visible={tourModalOpen} onClose={closeTour} />
       </View>
     </SafeAreaView>
   );

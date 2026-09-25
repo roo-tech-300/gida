@@ -22,7 +22,7 @@ export type OnboardingData = {
   mustHaveAmenities: Amenity[];
 };
 
-export const ONBOARDING_STEPS = 4;
+export const ONBOARDING_STEPS = 5;
 
 export const BUDGET_PRESETS = [
   { label: '₦100k', value: 100000 },

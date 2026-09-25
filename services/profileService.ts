@@ -24,8 +24,7 @@ export async function fetchUserProfile(userId: string): Promise<ProfileRecord | 
 
 export function isOnboardingComplete(profile: ProfileRecord | null | undefined): boolean {
   if (!profile) return false;
-  if (profile.onboarded) return true;
-  return Boolean(profile.city?.trim());
+  return Boolean(profile.onboarded);
 }
 
 export async function saveOnboardingProfile(userId: string, data: OnboardingData) {
@@ -37,7 +36,6 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
       username: (data.username && data.username.trim()) || null,
       is_student: true,
       school: 'Federal University of Technology, Minna (FUT Minna)',
-      onboarded: true,
     })
     .eq('id', userId);
 
@@ -63,6 +61,17 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
 
   if (livingError) {
     throw new Error(livingError.message);
+  }
+}
+
+export async function completeOnboardingProfile(userId: string): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ onboarded: true })
+    .eq('id', userId);
+
+  if (error) {
+    throw new Error(error.message);
   }
 }
 

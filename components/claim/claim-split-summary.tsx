@@ -1,15 +1,13 @@
 import { StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { formatNaira } from '@/utils/format-naira';
 
 type Props = {
   price: number;
 };
 
 export function ClaimSplitSummary({ price }: Props) {
-  const formatNaira = (amount: number) =>
-    `₦${amount.toLocaleString('en-US')}`;
-
   return (
     <View style={styles.totalBlock}>
       <Text style={styles.totalLabel}>Your Price</Text>

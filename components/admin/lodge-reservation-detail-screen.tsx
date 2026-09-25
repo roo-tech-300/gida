@@ -9,9 +9,8 @@ import { useAuth } from '@/context/auth-context';
 import { useAdminLodgeDetail, useAcceptLodgeReservation, useRejectLodgeReservation } from '@/hooks/use-admin-lodge-reservations';
 import { useAppToast } from '@/components/ui/toast-card';
 import { notifyUserOfDecision } from '@/services/lodge-reservation-notify';
+import { formatNaira } from '@/utils/format-naira';
 import type { AdminLodgeDetail, AdminLodgeMember } from '@/services/admin-lodge-verification-service';
-
-const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
 export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
   const { profile } = useAuth();

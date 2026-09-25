@@ -8,7 +8,7 @@ import { ClaimReviewStep } from '@/components/claim/claim-review-step';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import { StepTransition } from '@/components/claim/step-transition';
-import { calculateBaseRent } from '@/utils/liquidity-math';
+import { calculateEqualShare } from '@/utils/liquidity-math';
 import { styles } from './claim-room-modal.styles';
 
 type Props = {
@@ -71,7 +71,7 @@ export function ClaimWizardBody({
   onFriendRemove,
 }: Props) {
   const pricingOccupancy = isBuyout ? 1 : 1 + roommateCount;
-  const price = calculateBaseRent(priceAmount, pricingOccupancy);
+  const price = calculateEqualShare(priceAmount, pricingOccupancy);
 
   const footerLabel = isConfirmStep ? 'Reserve My Spot' : 'Continue';
   const footerLoading = isPurchasing || (step === 1 && wantsRoommates === true && openPodsLoading);

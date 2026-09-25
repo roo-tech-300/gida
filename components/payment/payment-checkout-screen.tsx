@@ -8,6 +8,7 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as WebBrowser from 'expo-web-browser';
 import { DesignColors } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
+import { formatNaira } from '@/utils/format-naira';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useUserSlotCredits, useExpireSlotCredit } from '@/hooks/use-liquidity';
 import { useInitializeLodgePayment } from '@/hooks/use-lodge-payment';
@@ -16,8 +17,6 @@ import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
 import { styles } from './payment-checkout.styles';
-
-const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
 
 function TopBar({ title }: { title: string }) {
   return (
@@ -119,7 +118,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
       if (Platform.OS === 'web') {
         if (typeof window !== 'undefined') {
-          window.location.href = result.authorizationUrl;
+          window.location.assign(result.authorizationUrl);
         }
         return;
       }

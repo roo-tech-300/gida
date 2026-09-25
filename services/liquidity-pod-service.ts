@@ -13,7 +13,7 @@ import { sendRoommateInviteDm } from '@/services/roommate-invite-message';
 import type { DbListing } from '@/types/feed-listing';
 import type { Estate, Pod, PodMember, SlotCredit } from '@/types/liquidity';
 import { PAYMENT_WINDOW_MS } from '@/utils/liquidity-math';
-import { assertRevenueParity, memberAmount } from '@/utils/liquidity-pricing';
+import { assertRevenueParity, memberEqualAmount } from '@/utils/liquidity-pricing';
 
 export const SIGN_IN_REQUIRED_MESSAGE = 'Please sign in to continue.';
 
@@ -116,7 +116,7 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   }
 
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, pod.property_tier, target, generateInviteCode());
-  credit.amount_paid = memberAmount(args.listing.price_amount, target, activeMembers.length);
+  credit.amount_paid = memberEqualAmount(args.listing.price_amount, target);
 
   const outcome = await joinPodViaWorker(pod.group_code ?? args.code);
   if (outcome.kind === 'failed') throw outcome.error;
@@ -193,7 +193,7 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
 
   const code = args.createCode?.trim() || generateInviteCode();
   const credit = buildCredit(userId, args.estateId, args.estate, args.listing.id, args.propertyTier, args.targetOccupancy, code);
-  credit.amount_paid = memberAmount(args.listing.price_amount, args.targetOccupancy, 0);
+  credit.amount_paid = memberEqualAmount(args.listing.price_amount, args.targetOccupancy);
   console.log('[PodService] Credit built — id:', credit.id, 'status:', credit.status, 'amount:', credit.amount_paid);
 
   const matchedGender = args.creatorGender === 'MALE' || args.creatorGender === 'FEMALE' ? args.creatorGender : 'ANY';

@@ -214,6 +214,43 @@ describe('reserve flow (server-backed)', () => {
       'You already have a spot reserved on this property.',
     );
   });
+
+  it('prices the founder share as an identical equal split of the locked rent', async () => {
+    const creditInserts: unknown[] = [];
+    const memberInserts: unknown[] = [];
+    const creditsChain = makeChain();
+    creditsChain.insert = jest.fn((payload: unknown) => {
+      creditInserts.push(payload);
+      return creditsChain;
+    });
+    const creditQueryResults = [
+      { data: null, error: null },
+      { data: { id: CREDIT_ID }, error: null },
+    ];
+    creditsChain.maybeSingle = jest.fn(async () => creditQueryResults.shift() ?? { data: null, error: null });
+
+    const membersChain = makeChain();
+    membersChain.insert = jest.fn((payload: unknown) => {
+      memberInserts.push(payload);
+      return membersChain;
+    });
+
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        slot_credits: creditsChain,
+        pods: successChain({ id: POD_ID }),
+        pod_members: membersChain,
+        pod_invitations: rowsChain([]),
+      }),
+    );
+
+    const { credit } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+
+    expect(credit.amount_paid).toBe(600000);
+    expect(creditInserts[0]).toMatchObject({ amount_paid: 600000, target_occupancy: 2 });
+    expect(memberInserts[0]).toMatchObject({ amount_paid: 600000 });
+  });
 });
 
 describe('pods and invites', () => {

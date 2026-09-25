@@ -5,6 +5,7 @@ import {
   getAvailableIntentOptions,
   calculateSeparateBillingPerPerson,
   allocateEvenShares,
+  calculateEqualShare,
   verifyRevenueParity,
   derivePropertyTier,
   NO_LIMIT_TIER,
@@ -183,6 +184,24 @@ describe('Legacy Intent Math & Revenue Parity', () => {
     });
   });
 
+  describe('Equal Share (identical per-person amount)', () => {
+    it('splits ₦450,000 across 2 people as ₦225,000 each', () => {
+      expect(calculateEqualShare(450000, 2)).toBe(225000);
+    });
+
+    it('keeps kobo precision so every member pays exactly the same figure', () => {
+      expect(calculateEqualShare(1000000, 3)).toBe(333333.33);
+      expect(calculateEqualShare(101, 4)).toBe(25.25);
+    });
+
+    it('returns 0 for invalid inputs', () => {
+      expect(calculateEqualShare(450000, 0)).toBe(0);
+      expect(calculateEqualShare(450000, -2)).toBe(0);
+      expect(calculateEqualShare(-100, 2)).toBe(0);
+      expect(calculateEqualShare(Number.NaN, 2)).toBe(0);
+    });
+  });
+
   describe('Revenue Parity Verification', () => {
     it('confirms parity when collected shares equal the expected total', () => {
       const parity = verifyRevenueParity(1000000, [333334, 333333, 333333]);
@@ -190,6 +209,11 @@ describe('Legacy Intent Math & Revenue Parity', () => {
       expect(parity.totalCollected).toBe(1000000);
       expect(parity.shortfall).toBe(0);
       expect(parity.overage).toBe(0);
+    });
+
+    it('accepts kobo-level rounding on equal decimal shares', () => {
+      expect(verifyRevenueParity(450000, [225000, 225000]).isParity).toBe(true);
+      expect(verifyRevenueParity(1000000, [333333.33, 333333.33, 333333.33]).isParity).toBe(true);
     });
 
     it('flags over-collection from naive per-member ceil billing', () => {

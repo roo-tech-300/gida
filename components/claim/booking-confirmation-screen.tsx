@@ -5,8 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
 import { useUserSlotCredits } from '@/hooks/use-liquidity';
-
-const formatNaira = (amount: number) => `₦${amount.toLocaleString('en-US')}`;
+import { formatNaira } from '@/utils/format-naira';
 
 export function BookingConfirmationScreen({ creditId }: { creditId: string }) {
   const router = useRouter();

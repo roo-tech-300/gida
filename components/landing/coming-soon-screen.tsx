@@ -34,9 +34,9 @@ export function ComingSoonScreen() {
           </Animated.View>
 
           <Animated.View entering={FadeInDown.duration(500).delay(80)} style={styles.copySection}>
-            <Text style={styles.title}>Gida is coming</Text>
+            <Text style={styles.title}>The full app is almost ready</Text>
             <Text style={styles.subtitle}>
-              We&apos;re putting the finishing touches on the app and it&apos;ll be deployed soon. Drop your email below and we&apos;ll notify you the moment it&apos;s ready — no spam, just one message at launch.
+              Gida has launched, and we&apos;re now in the final stage of building the full mobile experience. Drop your email below and we&apos;ll notify you the moment it&apos;s ready — no spam, just one message at launch.
             </Text>
           </Animated.View>
 

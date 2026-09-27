@@ -6,7 +6,7 @@ import Animated, { FadeInDown, FadeInUp, FadeOut, ZoomIn } from 'react-native-re
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { AuthBrandHeader } from '@/components/auth/auth-brand-header';
-import { LinkCard } from '@/components/landing/link-card';
+import { SocialLinksFooter } from '@/components/landing/social-links-footer';
 import { WaitlistForm } from '@/components/landing/waitlist-form';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { WAITLIST_WHATSAPP_CHANNEL_URL } from '@/constants/launch';
@@ -34,9 +34,9 @@ export function ComingSoonScreen() {
           </Animated.View>
 
           <Animated.View entering={FadeInDown.duration(500).delay(80)} style={styles.copySection}>
-            <Text style={styles.title}>The full app is almost ready</Text>
+            <Text style={styles.title}>Gida is almost ready</Text>
             <Text style={styles.subtitle}>
-              Gida has launched, and we&apos;re now in the final stage of building the full mobile experience. Drop your email below and we&apos;ll notify you the moment it&apos;s ready — no spam, just one message at launch.
+              We&apos;re putting the finishing touches on the app. Join the waitlist and we&apos;ll let you know the moment it&apos;s live.
             </Text>
           </Animated.View>
 
@@ -46,17 +46,7 @@ export function ComingSoonScreen() {
                 <Ionicons name="checkmark" size={28} color={DesignColors.onPrimary} />
               </Animated.View>
               <Text style={styles.joinedTitle}>You&apos;re on the list!</Text>
-              <Text style={styles.joinedSubtitle}>
-                While you wait, stay in touch with us via our link tree:
-              </Text>
-              <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.linkList}>
-                <LinkCard
-                  icon="logo-whatsapp"
-                  label="WhatsApp Channel"
-                  sublabel="Sneak peeks, updates & the launch date"
-                  onPress={() => openLink(WAITLIST_WHATSAPP_CHANNEL_URL)}
-                />
-              </Animated.View>
+              <Text style={styles.joinedSubtitle}>While you wait, come say hi on social:</Text>
             </Animated.View>
           ) : (
             <Animated.View exiting={FadeOut.duration(150)}>
@@ -65,6 +55,7 @@ export function ComingSoonScreen() {
           )}
         </View>
       </KeyboardAvoidingView>
+      <SocialLinksFooter onOpenLink={openLink} />
     </SafeAreaView>
   );
 }
@@ -123,10 +114,5 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     textAlign: 'center',
-  },
-  linkList: {
-    width: '100%',
-    gap: DesignSpacing.sm,
-    marginTop: DesignSpacing.xs,
   },
 });

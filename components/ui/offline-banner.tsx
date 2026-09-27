@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -9,8 +9,8 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 export function OfflineBanner() {
   const { isOnline } = useAuth();
   const insets = useSafeAreaInsets();
-  const translateY = useRef(new Animated.Value(80)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
+  const [translateY] = useState(() => new Animated.Value(80));
+  const [opacity] = useState(() => new Animated.Value(0));
   const isVisible = useRef(false);
 
   useEffect(() => {
@@ -29,10 +29,11 @@ export function OfflineBanner() {
     }
   }, [isOnline, translateY, opacity]);
 
-  // The banner stays mounted when "hidden" (it is only faded + translated),
-  // and an opacity-0 view is still hit-testable — so it must never accept
-  // touches, otherwise it silently swallows taps aimed at whatever sits
-  // underneath it (e.g. the bottom navigation row).
+  // Keep the hidden banner out of static HTML, where its offline message could
+  // otherwise become the only text crawlers see on the homepage.
+  const label = isOnline ? null : <Text style={styles.text}>You&apos;re offline</Text>;
+
+  // An opacity-0 view is still hit-testable, so the banner must not accept touches.
   return (
     <Animated.View
       style={[
@@ -49,7 +50,7 @@ export function OfflineBanner() {
         <View style={styles.iconWrap}>
           <Ionicons name="cloud-offline-outline" size={18} color={DesignColors.onSurface} />
         </View>
-        <Text style={styles.text}>You&apos;re offline</Text>
+        {label}
       </View>
     </Animated.View>
   );

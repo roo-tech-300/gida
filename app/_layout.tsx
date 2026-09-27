@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react';
-import { Platform } from 'react-native';
-import { Stack, useRouter, useSegments } from 'expo-router';
+import { Platform, StyleSheet, View } from 'react-native';
+import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-clients';
 import { AppConfigProvider } from '@/context/app-context';
@@ -9,6 +9,7 @@ import { OnboardingProvider } from '@/context/onboarding-context';
 import { ToastProvider } from '@/components/ui/toast-card';
 import { MessageSyncProvider } from '@/components/messages/message-sync-provider';
 import { OfflineBanner } from '@/components/ui/offline-banner';
+import { DefaultHead } from '@/components/seo/default-head';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { DesignColors } from '@/constants/design';
 import { IS_APP_LAUNCHED } from '@/constants/launch';
@@ -78,6 +79,7 @@ export default function RootLayout() {
 
   return (
     <QueryClientProvider client={queryClient}>
+      <DefaultHead />
       <AppConfigProvider>
         <AuthProvider>
           <OnboardingProvider>

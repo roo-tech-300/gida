@@ -18,8 +18,15 @@ export default function Root({ children }: { children: React.ReactNode }) {
         <ScrollViewStyleReset />
         <style>{`
           html, body, #root {
+            width: 100%;
+            min-width: 320px;
             height: 100%;
+            min-height: 100%;
             background-color: ${DesignColors.surfaceContainerLowest};
+          }
+          html, body {
+            margin: 0;
+            overflow-x: hidden;
           }
           body {
             font-family: 'Outfit', Inter, system-ui, -apple-system, sans-serif;

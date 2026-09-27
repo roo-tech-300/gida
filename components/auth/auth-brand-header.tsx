@@ -5,11 +5,12 @@ import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/con
 
 type AuthBrandHeaderProps = {
   size?: 'large' | 'compact';
+  logoSize?: number;
 };
 
-export function AuthBrandHeader({ size = 'large' }: AuthBrandHeaderProps) {
+export function AuthBrandHeader({ size = 'large', logoSize: responsiveLogoSize }: AuthBrandHeaderProps) {
   const isLarge = size === 'large';
-  const logoSize = isLarge ? 120 : 64;
+  const logoSize = responsiveLogoSize ?? (isLarge ? 120 : 64);
 
   return (
     <View style={[styles.container, isLarge ? styles.containerLarge : styles.containerCompact]}>
@@ -17,7 +18,7 @@ export function AuthBrandHeader({ size = 'large' }: AuthBrandHeaderProps) {
         <Image
           accessibilityLabel="Gida logo"
           source={require('@/assets/images/logo.png')}
-          style={{ width: logoSize, height: logoSize }}
+          style={{ width: logoSize, height: Math.round(logoSize * 1.095) }}
           contentFit="contain"
         />
       </View>

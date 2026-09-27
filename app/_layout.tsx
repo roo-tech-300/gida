@@ -20,12 +20,14 @@ import { NotificationNavigationListener } from '@/components/notifications/notif
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
   const segments = useSegments();
+  const pathname = usePathname();
   const router = useRouter();
 
   useEffect(() => {
     if (isLoading) return;
 
     const isWeb = Platform.OS === 'web';
+    const isPublicWebHome = isWeb && pathname === '/';
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
@@ -42,7 +44,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       }
       if (isWeb) {
-        if (!inLandingGroup && !inAuthGroup) {
+        if (!isPublicWebHome && !inLandingGroup && !inAuthGroup) {
           router.replace('/(landing)');
         }
         return;
@@ -67,7 +69,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (isAuthenticated && profile?.onboarded && (inAuthGroup || inOnboardingGroup || inLandingGroup)) {
       router.replace('/(tabs)');
     }
-  }, [isLoading, isAuthenticated, hasSession, profile, segments, router]);
+  }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router]);
 
   if (isLoading) return <SplashScreen />;
 

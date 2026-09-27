@@ -12,3 +12,7 @@ mkdirSync(outputDirectory, { recursive: true });
 cpSync(publicDirectory, outputDirectory, { recursive: true, force: true });
 copyFileSync(resolve(publicDirectory, 'landing/index.html'), resolve(outputDirectory, 'index.html'));
 copyFileSync(resolve(publicDirectory, 'landing/gida.png'), resolve(outputDirectory, 'gida.png'));
+cpSync(resolve(publicDirectory, 'landing/Screenshots'), resolve(outputDirectory, 'Screenshots'), {
+  recursive: true,
+  force: true,
+});

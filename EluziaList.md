@@ -15,6 +15,7 @@ Make only `https://gida.apartments/` eligible for Google indexing. Keep app rout
 - [x] `public/404.html` provides a branded not-found page.
 - [x] The production web root is built from the existing marketing page in `public/landing/index.html`; its metadata canonicalizes `/`, and a small no-JavaScript fallback includes the core headline and links.
 - [x] The public marketing page assets are referenced at `/landing/...`; the build copies its relative `gida.png` asset to the web root as required by the built bundle.
+- [x] The marketing bundle requests its slideshow images relative to `/`; the post-export script copies `public/landing/Screenshots` to `dist/Screenshots` so those requests resolve on Vercel.
 - [x] Expo Router sitemap generation is disabled in `app.json`.
 - [x] Vercel is configured for clean URLs and known dynamic app-route rewrites. The broad catch-all was removed so unknown paths can return a real 404.
 - [x] `scripts/copy-public-assets.mjs` copies public static files into `dist` after Expo export; local export initially omitted the new SEO files, and this script now ensures Vercel receives them.

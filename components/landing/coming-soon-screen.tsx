@@ -47,7 +47,7 @@ export function ComingSoonScreen() {
               </Animated.View>
               <Text style={styles.joinedTitle}>You&apos;re on the list!</Text>
               <Text style={styles.joinedSubtitle}>
-                While you wait, stay in the loop with us here:
+                While you wait, stay in touch with us via our link tree:
               </Text>
               <Animated.View entering={FadeInUp.duration(400).delay(200)} style={styles.linkList}>
                 <LinkCard

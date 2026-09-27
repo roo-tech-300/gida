@@ -2,10 +2,12 @@
   "buildCommand": "npx expo export --platform web",
   "outputDirectory": "dist",
   "rewrites": [
+    { "source": "/coming-soon", "destination": "/coming-soon.html" },
     { "source": "/onboarding", "destination": "/index.html" },
     { "source": "/property/:path*", "destination": "/index.html" },
     { "source": "/roommate/:path*", "destination": "/index.html" },
     { "source": "/messages/:path*", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/(.*)", "destination": "/index.html" }
   ]
 }

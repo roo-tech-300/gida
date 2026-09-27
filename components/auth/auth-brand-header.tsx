@@ -25,7 +25,7 @@ export function AuthBrandHeader({ size = 'large', logoSize: responsiveLogoSize }
       {isLarge ? (
         <>
           <Text style={[styles.name, styles.nameLarge]}>GIDA</Text>
-          <Text style={styles.tagline}>Find verified off-k listings in Gidan Kwano and Bosso.</Text>
+          <Text style={styles.tagline}>Find verified off-k listings in Gidan Kwano</Text>
         </>
       ) : null}
     </View>

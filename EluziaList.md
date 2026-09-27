@@ -4,27 +4,32 @@
 
 Make only `https://gida.apartments/` eligible for Google indexing. Keep app routes and the legal pages out of search results.
 
-## Current status (checked 27 September 2026)
+## Current status
 
-- SEO metadata exists in `components/seo/default-head.tsx` and is mounted in `app/_layout.tsx`.
-- `public/landing/index.html` has title, description, canonical, Open Graph, and Twitter metadata.
-- `public/privacy.html` and `public/terms.html` have `noindex, nofollow` metadata.
-- Expo Router-generated sitemap is disabled in `app.json`.
-- Vercel is configured to run `npx expo export --platform web` and serve `dist`.
-- `public/robots.txt`, `public/sitemap.xml`, and `public/404.html` are missing.
-- The app's `/` route currently redirects based on authentication; the signed-out landing route is gated to the coming-soon screen. The target indexable marketing homepage from the previous checklist is not implemented in this checkout.
-- The current canonical/metadata describes the general platform and uses `https://gida.apartments`; verify it matches the actual homepage content before launch.
-- Fix applied: `Head` is a default export in this installed Expo Router version. `DefaultHead` must use `import Head from 'expo-router/head'`.
+- [x] SEO metadata component exists in `components/seo/default-head.tsx`, is mounted in `app/_layout.tsx`, and uses Expo Router's default `Head` export.
+- [x] `DefaultHead` now sets `index, follow` and the homepage canonical only on `/`; other app routes get `noindex, nofollow` and no homepage canonical.
+- [x] `public/landing/index.html` has title, description, canonical, Open Graph, and Twitter metadata.
+- [x] `public/privacy.html` and `public/terms.html` have `noindex, nofollow` metadata.
+- [x] `public/robots.txt` allows only `/` and points crawlers to the sitemap.
+- [x] `public/sitemap.xml` contains only `https://gida.apartments/`.
+- [x] `public/404.html` provides a branded not-found page.
+- [x] The production web root is built from the existing marketing page in `public/landing/index.html`; its metadata canonicalizes `/`, and a small no-JavaScript fallback includes the core headline and links.
+- [x] The public marketing page assets are referenced at `/landing/...`; the build copies its relative `gida.png` asset to the web root as required by the built bundle.
+- [x] Expo Router sitemap generation is disabled in `app.json`.
+- [x] Vercel is configured for clean URLs and known dynamic app-route rewrites. The broad catch-all was removed so unknown paths can return a real 404.
+- [x] `scripts/copy-public-assets.mjs` copies public static files into `dist` after Expo export; local export initially omitted the new SEO files, and this script now ensures Vercel receives them.
+- [x] Local export confirmed `dist/robots.txt`, `dist/sitemap.xml`, `dist/404.html`, and `dist/coming-soon.html` are present; `dist/coming-soon.html` has `noindex` metadata.
+- [x] The chosen SEO homepage is the existing marketing landing page, published at `/` by the Vercel post-export asset-copy step. Native root routing remains unchanged.
+- [x] Root-page canonical, title, description, and social metadata now belong to the marketing page rather than the generic app head.
+- [ ] Deploy and verify Vercel clean-URL routing, `/coming-soon` refresh, and HTTP status for unknown paths; local export alone cannot verify Vercel status behavior.
 
-## A. Code work required before deployment
+## A. Code work completed; verify after deployment
 
-1. **Decide the exact public homepage.** If the goal remains an indexable marketing page at `/`, implement it as the root web route with server/static-rendered visible content. Do not redirect crawlers to an empty shell or gated app screen. Keep signed-in app routing working for users.
-2. **Set homepage metadata to match visible copy.** Provide a distinct title, description, canonical URL (`https://gida.apartments/`), Open Graph tags, and Twitter card metadata. Avoid a canonical pointing at `/` from every app route. Apply `noindex` to non-public app routes using route-appropriate metadata.
-3. **Add `public/robots.txt`.** Allow crawling of `/` and disallow app/private routes. Do not disallow the entire site: crawlers must be able to fetch the homepage and read its metadata. Keep rules consistent with the sitemap and route policy.
-4. **Add `public/sitemap.xml`.** Include exactly one canonical URL: `https://gida.apartments/`. Make sure Expo export copies it to `dist/sitemap.xml`.
-5. **Add a real 404 page/behavior.** Ensure unknown URLs return HTTP 404 (not a successful homepage rewrite) and show a useful branded not-found page. Validate Vercel's routing rules against Expo's generated paths.
-6. **Review static export and SEO output locally.** Run `npx expo export --platform web`; inspect `dist/index.html`, `dist/robots.txt`, `dist/sitemap.xml`, and the 404 output. Confirm homepage text and metadata are in the HTML without requiring client-side JavaScript.
-7. **Keep app routes out of search results.** Validate route metadata/headers for sign-in, onboarding, property, roommate, messages, and admin paths. `robots.txt` disallow rules alone do not guarantee de-indexing; use `noindex` where crawlers can access pages, and do not block crawling of pages whose `noindex` must be read.
+The root is built from the existing marketing site. Its metadata canonicalizes `/`; `robots.txt` allows only `/`; and the sitemap lists only `/`. The post-export script copies these static files into `dist` and publishes the marketing HTML at the root. App route metadata uses `noindex, nofollow` and omits the homepage canonical. Vercel uses clean URLs, explicit app-route rewrites, and a branded 404 file; the broad catch-all has been removed so unknown routes can return 404.
+
+Local validation completed: `npx tsc --noEmit`, `npx expo export --platform web`, copying public files into `dist`, inspecting the generated homepage and SEO files, and checking `vercel.json` plus `git diff --check`. Expo's Metro cache reported a corrupt cache and fell back to a full crawl; export completed successfully.
+
+The remaining step is production verification. In particular, confirm Vercel serves `/coming-soon` after a hard refresh, app routes still load, and a random unknown URL returns HTTP 404.
 
 ## B. Deploy (owner action)
 
@@ -42,7 +47,8 @@ Make only `https://gida.apartments/` eligible for Google indexing. Keep app rout
 - [ ] `https://gida.apartments/sitemap.xml` returns valid XML with only `https://gida.apartments/`.
 - [ ] `https://gida.apartments/privacy.html` and `/terms.html` load for people and include `noindex, nofollow`.
 - [ ] Representative private/app routes are excluded from indexing as intended.
-- [ ] A random nonexistent path shows the branded 404 and returns HTTP 404.
+- [ ] `/coming-soon` survives a hard refresh.
+- [ ] A random nonexistent path shows the branded 404 and returns HTTP 404 after the catch-all rewrite removal.
 - [ ] Canonical URL, host, and HTTPS behavior are consistent (one canonical homepage URL; redirects converge on it).
 
 Do not submit the sitemap to Google until all checks above pass.

@@ -1,13 +1,12 @@
 {
-  "buildCommand": "npx expo export --platform web",
+  "buildCommand": "npx expo export --platform web && node scripts/copy-public-assets.mjs",
   "outputDirectory": "dist",
+  "cleanUrls": true,
   "rewrites": [
-    { "source": "/coming-soon", "destination": "/coming-soon.html" },
-    { "source": "/onboarding", "destination": "/index.html" },
-    { "source": "/property/:path*", "destination": "/index.html" },
-    { "source": "/roommate/:path*", "destination": "/index.html" },
-    { "source": "/messages/:path*", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" },
-    { "source": "/(.*)", "destination": "/index.html" }
+    { "source": "/onboarding", "destination": "/" },
+    { "source": "/property/:path*", "destination": "/" },
+    { "source": "/roommate/:path*", "destination": "/" },
+    { "source": "/messages/:path*", "destination": "/" },
+    { "source": "/admin/:path*", "destination": "/" }
   ]
 }

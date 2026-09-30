@@ -12,7 +12,7 @@
 * { box-sizing: border-box; }
 html { scroll-behavior: smooth; }
 body {
-  min-width: 320px;
+  min-width: 0;
   min-height: 100vh;
   margin: 0;
   color: var(--text);
@@ -37,6 +37,7 @@ h1 { max-width: 780px; margin: 0 0 14px; color: var(--gold); font: 500 clamp(2.2
 .content h2 { margin: 0 0 12px; font-size: clamp(1.35rem, 3vw, 1.8rem); }
 .content h3 { margin: 22px 0 8px; font-size: 1.1rem; }
 .content p, .content li { color: var(--text); }
+.content p, .content li, .link-card, .footer a { overflow-wrap: anywhere; }
 .content p { margin: 0 0 14px; }
 .content ul, .content ol { margin: 10px 0 16px; padding-left: 1.35rem; }
 .content li { padding-left: 4px; margin-bottom: 8px; }

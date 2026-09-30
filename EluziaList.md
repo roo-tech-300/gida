@@ -20,6 +20,9 @@ Make only `https://gida.apartments/` eligible for Google indexing. Keep app rout
 - [x] Vercel is configured for clean URLs and known dynamic app-route rewrites. The broad catch-all was removed so unknown paths can return a real 404.
 - [x] `scripts/copy-public-assets.mjs` copies public static files into `dist` after Expo export; local export initially omitted the new SEO files, and this script now ensures Vercel receives them.
 - [x] Local export confirmed `dist/robots.txt`, `dist/sitemap.xml`, `dist/404.html`, and `dist/coming-soon.html` are present; `dist/coming-soon.html` has `noindex` metadata.
+- [x] Draft Minna, Gidan Kwano, Bosso, and Minna house-finding pages are available as static pages under `public/housing/` and `public/guides/`, styled with `public/housing-pages.css`.
+- [x] The draft pages explicitly use `noindex, nofollow`; robots policy and sitemap remain root-only until the pages are reviewed and approved.
+- [x] The public asset-copy step includes the new static pages and stylesheet in the Vercel export.
 - [x] The chosen SEO homepage is the existing marketing landing page, published at `/` by the Vercel post-export asset-copy step. Native root routing remains unchanged.
 - [x] Root-page canonical, title, description, and social metadata now belong to the marketing page rather than the generic app head.
 - [ ] Deploy and verify Vercel clean-URL routing, `/coming-soon` refresh, and HTTP status for unknown paths; local export alone cannot verify Vercel status behavior.

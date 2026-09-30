@@ -17,6 +17,13 @@ import { ForegroundNotificationListener } from '@/components/notifications/foreg
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
 
+const PUBLIC_WEB_CONTENT_PATHS: readonly string[] = [
+  '/housing/minna',
+  '/housing/gidan-kwano',
+  '/housing/bosso',
+  '/guides/how-to-find-house-minna',
+];
+
 function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
   const segments = useSegments();
@@ -28,10 +35,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
     const isWeb = Platform.OS === 'web';
     const isPublicWebHome = isWeb && pathname === '/';
+    const isPublicWebContent = isWeb && PUBLIC_WEB_CONTENT_PATHS.includes(pathname);
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
+
+    if (isPublicWebHome || isPublicWebContent) return;
 
     if (!isAuthenticated) {
       // Valid session but the profile row hasn't loaded yet (e.g. offline on
@@ -44,7 +54,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       }
       if (isWeb) {
-        if (!isPublicWebHome && !inLandingGroup && !inAuthGroup) {
+        if (!inLandingGroup && !inAuthGroup) {
           router.replace('/(landing)');
         }
         return;

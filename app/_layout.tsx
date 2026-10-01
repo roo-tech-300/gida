@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Platform, StyleSheet, View } from 'react-native';
 import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -29,19 +29,25 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const segments = useSegments();
   const pathname = usePathname();
   const router = useRouter();
+  const pendingPropertyPath = useRef<string | null>(null);
 
   useEffect(() => {
+    const isWeb = Platform.OS === 'web';
+    const isPropertyPath = /^\/property\/[^/]+\/?$/.test(pathname);
+    if (!isWeb && isPropertyPath && (!isAuthenticated || !profile?.onboarded)) {
+      pendingPropertyPath.current = pathname;
+    }
     if (isLoading) return;
 
-    const isWeb = Platform.OS === 'web';
     const isPublicWebHome = isWeb && pathname === '/';
     const isPublicWebContent = isWeb && PUBLIC_WEB_CONTENT_PATHS.includes(pathname);
+    const isPublicWebProperty = isWeb && /^\/property\/[^/]+\/?$/.test(pathname);
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (isPublicWebHome || isPublicWebContent) return;
+    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty) return;
 
     if (!isAuthenticated) {
       // Valid session but the profile row hasn't loaded yet (e.g. offline on
@@ -76,8 +82,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       return;
     }
 
-    if (isAuthenticated && profile?.onboarded && (inAuthGroup || inOnboardingGroup || inLandingGroup)) {
-      router.replace('/(tabs)');
+    if (isAuthenticated && profile?.onboarded && (
+      inAuthGroup || inOnboardingGroup || inLandingGroup || pendingPropertyPath.current !== null
+    )) {
+      const requestedProperty = pendingPropertyPath.current;
+      pendingPropertyPath.current = null;
+      router.replace(requestedProperty ? (requestedProperty as never) : '/(tabs)');
     }
   }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router]);
 

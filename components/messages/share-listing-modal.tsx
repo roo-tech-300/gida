@@ -4,7 +4,7 @@ import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useEscapeKey } from '@/components/claim/use-escape-key';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -16,6 +16,8 @@ import { sendMessage } from '@/services/messageService';
 import { createOutboxMessage } from '@/services/offline-outbox-store';
 import { toListingAttachment } from '@/utils/listing-attachment';
 import { getInitials } from '@/utils/initials';
+import { getPropertyShareMessage, getPropertyShareUrl } from '@/utils/property-share-link';
+import { copyTextToClipboard } from '@/utils/clipboard';
 import type { FeedListing } from '@/types/feed-listing';
 import type { Conversation } from '@/types/messages';
 
@@ -72,6 +74,26 @@ export function ShareListingModal({
     }
   };
 
+  const handleExternalShare = async () => {
+    const url = getPropertyShareUrl(listing.id);
+    onClose();
+    if (Platform.OS === 'web' && typeof navigator !== 'undefined' && typeof navigator.share !== 'function') {
+      const copied = await copyTextToClipboard(url);
+      if (copied) {
+        showToast({ message: 'Property link copied to clipboard.', type: 'success' });
+        return;
+      }
+    }
+    try {
+      await Share.share({
+        message: getPropertyShareMessage(listing.title, listing.price, url),
+      }, { dialogTitle: `Share ${listing.title}` });
+    } catch (error) {
+      console.error('[ShareListing] Failed to open external share sheet:', error);
+      showToast({ message: 'Could not share this home. Please try again.', type: 'error' });
+    }
+  };
+
   return (
     <Modal transparent visible={visible} animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
@@ -93,8 +115,15 @@ export function ShareListingModal({
             </View>
           </View>
 
-          <Text style={styles.title}>Share with a roommate</Text>
-          <Text style={styles.subtitle}>Pick a chat — the home will be sent as a shared card.</Text>
+          <Text style={styles.title}>Share this home</Text>
+          <Text style={styles.subtitle}>Send a link outside Gida or share a listing card in a Gida chat.</Text>
+
+          <Pressable style={styles.externalShareButton} onPress={() => void handleExternalShare()}>
+            <Ionicons name="share-social-outline" size={20} color={DesignColors.onPrimary} />
+            <Text style={styles.externalShareLabel}>Share outside Gida</Text>
+          </Pressable>
+
+          <Text style={styles.chatLabel}>Share in a Gida chat</Text>
 
           {isLoading ? (
             <ActivityIndicator style={styles.loading} color={DesignColors.primary} />

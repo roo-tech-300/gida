@@ -17,6 +17,18 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         ],
       },
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          {
+            scheme: 'https',
+            host: 'www.gida.apartments',
+            pathPrefix: '/property/',
+          },
+        ],
+      },
     ],
   },
 });

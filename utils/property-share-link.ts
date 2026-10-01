@@ -1,4 +1,4 @@
-const SITE_ORIGIN = 'https://gida.apartments';
+const SITE_ORIGIN = 'https://www.gida.apartments';
 
 export function getPropertyShareUrl(listingId: string): string {
   return `${SITE_ORIGIN}/property/${encodeURIComponent(listingId)}`;

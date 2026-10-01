@@ -48,6 +48,7 @@ export type LodgeReservationAttachment = {
   type: 'lodge_reservation';
   podId: string;
   listingId: string;
+  creditId: string;
   title: string;
   image: string | null;
   location: string;

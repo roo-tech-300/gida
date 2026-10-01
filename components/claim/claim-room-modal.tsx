@@ -142,7 +142,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       showToast({ message, type: 'success' });
       console.log('[ClaimModal] 4. Notifying admin...');
       try {
-        await notifyAdminOfReservation({ podId, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
+        await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: profile?.full_name ?? 'A resident' });
         console.log('[ClaimModal] 5. Admin notified successfully');
       } catch (notifyErr) {
         console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
@@ -159,20 +159,13 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     async (pod: Pod) => {
       if (!dbListing || !pod.group_code) return;
       try {
-        const { credit, podId } = await purchaseSlot({
+        const { credit } = await purchaseSlot({
           listing: dbListing,
           targetOccupancy: pod.target_occupancy,
           joinCode: pod.group_code,
           source: 'recommendation',
         });
         showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
-        console.log('[ClaimModal] JoinOpenPod — Notifying admin...');
-        try {
-          await notifyAdminOfReservation({ podId, listingId: dbListing.id, userName: profile?.full_name ?? 'A resident' });
-          console.log('[ClaimModal] JoinOpenPod — Admin notified');
-        } catch (notifyErr) {
-          console.error('[ClaimModal] JoinOpenPod — Admin notification FAILED:', notifyErr);
-        }
         onClose();
         router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
       } catch (error) {
@@ -180,7 +173,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         showToast({ message, type: 'error' });
       }
     },
-    [dbListing, purchaseSlot, showToast, onClose, profile?.full_name],
+    [dbListing, purchaseSlot, showToast, onClose],
   );
 
   const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;

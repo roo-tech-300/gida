@@ -9,6 +9,7 @@ import { MessageListingCard } from '@/components/messages/message-listing-card';
 import { MessageTourCard } from '@/components/messages/message-tour-card';
 import { MessageRoommateInviteCard } from '@/components/messages/message-roommate-invite-card';
 import { MessagePodJoinCard } from '@/components/messages/message-pod-join-card';
+import { MessageLodgeReservationCard } from '@/components/messages/message-lodge-reservation-card';
 
 export function MessageBubble({
   message,
@@ -40,6 +41,8 @@ export function MessageBubble({
           <MessageRoommateInviteCard attachment={message.attachment} isMe={isMe} participantName={participantName} />
         ) : message.attachment?.type === 'pod_join' ? (
           <MessagePodJoinCard attachment={message.attachment} isMe={isMe} />
+        ) : message.attachment?.type === 'lodge_reservation' ? (
+          <MessageLodgeReservationCard attachment={message.attachment} isMe={isMe} />
         ) : null}
         {message.body && !isRoommateInvite && !isPodJoin ? (
           <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>

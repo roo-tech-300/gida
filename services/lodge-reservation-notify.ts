@@ -6,6 +6,7 @@ import type { LodgeReservationAttachment, LodgeDecisionAttachment } from '@/type
 type NotifyAdminInput = {
   podId: string;
   listingId: string;
+  creditId: string;
   userName: string;
 };
 
@@ -39,6 +40,7 @@ export async function notifyAdminOfReservation(input: NotifyAdminInput): Promise
       type: 'lodge_reservation',
       podId: input.podId,
       listingId: input.listingId,
+      creditId: input.creditId,
       title: listing.title ?? 'Gida Property',
       image: listing.primary_image ?? null,
       location: [listing.location_landmark, listing.city].filter(Boolean).join(', '),

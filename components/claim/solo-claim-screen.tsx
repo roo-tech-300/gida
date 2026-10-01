@@ -37,7 +37,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
       }
       console.log('[SoloClaim] 5. Calling notifyAdminOfReservation...');
       try {
-        await notifyAdminOfReservation({ podId, listingId: dbListing.id, userName: 'A resident' });
+        await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: 'A resident' });
         console.log('[SoloClaim] 8. notifyAdminOfReservation completed successfully');
       } catch (notifyErr) {
         console.error('[SoloClaim] 8. notifyAdminOfReservation FAILED:', notifyErr);

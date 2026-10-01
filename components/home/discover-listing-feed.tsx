@@ -2,6 +2,7 @@ import { forwardRef, useCallback, useRef, useState } from 'react';
 import { FlatList, RefreshControl, StyleSheet } from 'react-native';
 
 import { DiscoverListingCard } from '@/components/home/discover-listing-card';
+import { LoadingFooter } from '@/components/ui/loading-footer';
 import { type FeedListing } from '@/types/feed-listing';
 import { DesignColors } from '@/constants/design';
 
@@ -17,6 +18,7 @@ type Props = {
   onScrollOffsetChange?: (offset: number) => void;
   onEndReached?: () => void;
   onEndReachedThreshold?: number;
+  isLoadingMore?: boolean;
 };
 
 export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(function DiscoverListingFeed(
@@ -32,6 +34,7 @@ export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(func
     onScrollOffsetChange,
     onEndReached,
     onEndReachedThreshold,
+    isLoadingMore = false,
   },
   ref,
 ) {
@@ -87,6 +90,7 @@ export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(func
       onScroll={(e) => onScrollOffsetChange?.(e.nativeEvent.contentOffset.y)}
       onEndReached={onEndReached}
       onEndReachedThreshold={onEndReachedThreshold ?? 0.5}
+      ListFooterComponent={<LoadingFooter isLoading={isLoadingMore} />}
       refreshControl={
         <RefreshControl
           refreshing={refreshing}

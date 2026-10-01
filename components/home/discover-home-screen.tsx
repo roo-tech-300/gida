@@ -139,6 +139,7 @@ export function DiscoverHomeScreen() {
                 onScrollOffsetChange={(offset) => { scrollOffsetRef.current = offset; }}
                 onEndReached={loadMore}
                 onEndReachedThreshold={0.5}
+                isLoadingMore={useRecommended ? recommended.isFetchingNextPage : fallback.isFetchingNextPage}
               />
             )}
             {isLoading && mode === 'listings' && (

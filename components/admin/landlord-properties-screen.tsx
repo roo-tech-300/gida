@@ -17,6 +17,7 @@ import { LandlordPropertyCard } from '@/components/admin/landlord-property-card'
 import { getInitials } from '@/utils/get-initials';
 import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
 import { useAppToast } from '@/components/ui/toast-card';
+import { LoadingFooter } from '@/components/ui/loading-footer';
 import { PaginatedFlatList } from '@/components/ui/paginated-flat-list';
 import type { LandlordListing } from '@/services/landlord-service';
 
@@ -29,7 +30,12 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
   const landlord = landlords?.find((l) => l.id === landlordId) ?? null;
 
   // Fetch paginated listings
-  const { data: listings, isLoading: listingsLoading, fetchNextPage } = useLandlordListingsPaginated(landlordId);
+  const {
+    data: listings,
+    isLoading: listingsLoading,
+    fetchNextPage,
+    isFetchingNextPage,
+  } = useLandlordListingsPaginated(landlordId);
   const combinedLoading = landlordsLoading || listingsLoading;
 
   const listingItems = useMemo(
@@ -84,6 +90,7 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
           renderItem={({ item }) => <LandlordPropertyCard property={item} />}
           onEndReached={fetchNextPage}
           onEndReachedThreshold={0.5}
+          ListFooterComponent={<LoadingFooter isLoading={isFetchingNextPage} />}
         />
       )}
 

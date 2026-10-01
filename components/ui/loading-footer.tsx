@@ -1,28 +1,33 @@
 import React from 'react';
-import { View, Text, ActivityIndicator, StyleSheet } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
+
+import { DesignColors } from '@/constants/design';
 
 type LoadingFooterProps = {
+  /** Whether the next page is currently in flight. */
   isLoading: boolean;
-  hideWhenIdle?: boolean;
+  /** Optional caption rendered once loading finishes (e.g. "No more listings"). */
   text?: string;
 };
 
-export const LoadingFooter = ({
-  isLoading,
-  hideWhenIdle = false,
-  text = 'Loading more…',
-}: LoadingFooterProps) => {
-  if (!isLoading || hideWhenIdle) {
-    return null;
+/**
+ * Shared footer for paginated lists. It renders wherever new content arrives: at the
+ * bottom of a normal list, and at the top of an `inverted` chat list.
+ */
+export const LoadingFooter = ({ isLoading, text }: LoadingFooterProps) => {
+  if (isLoading) {
+    return (
+      <View style={styles.container}>
+        <ActivityIndicator size="small" color={DesignColors.primary} />
+      </View>
+    );
   }
+
+  if (!text) return null;
 
   return (
     <View style={styles.container}>
-      {isLoading ? (
-        <ActivityIndicator size="small" color="#4F46E5" />
-      ) : (
-        <Text style={styles.text}>{text}</Text>
-      )}
+      <Text style={styles.text}>{text}</Text>
     </View>
   );
 };
@@ -35,6 +40,6 @@ const styles = StyleSheet.create({
   },
   text: {
     textAlign: 'center',
-    color: 'gray',
+    color: DesignColors.onSurfaceVariant,
   },
 });

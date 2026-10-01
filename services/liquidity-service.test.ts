@@ -211,7 +211,7 @@ describe('reserve flow (server-backed)', () => {
     );
 
     await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
-      'You already have a spot reserved on this property.',
+      'You already have an active reservation for this property.',
     );
   });
 

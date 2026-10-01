@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { ALREADY_RESERVED_MESSAGE, hasActiveBooking } from '@/services/booking-guard-service';
 import { derivePropertyTier, isValidTargetOccupancy, podOpenSlotStatus } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
 import { currentUserId, findPodByGroupCode, joinPodByCode, createFounderCredit, removeMemberFromPod, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
@@ -36,6 +37,7 @@ export async function findUserCreditForProperty(userId: string | null, listingId
       .select('*')
       .eq('user_id', userId)
       .eq('listing_id', listingId)
+      .neq('status', 'expired')
       .maybeSingle();
     if (!error && data) return data as SlotCredit;
   } catch (error) {
@@ -56,10 +58,18 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
   console.log('[LiquidityService] userId:', userId);
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
 
+  // Backend check first: the database rejects a second active booking for
+  // this listing (expired bookings never block a new one).
+  const activeBookingId = await hasActiveBooking(input.listing.id);
+  if (activeBookingId) {
+    console.log('[LiquidityService] Active booking on backend:', activeBookingId);
+    throw new Error(ALREADY_RESERVED_MESSAGE);
+  }
+
   const existing = await findUserCreditForProperty(userId, input.listing.id);
   console.log('[LiquidityService] Existing credit:', existing?.id ?? 'none', 'status:', existing?.status ?? 'n/a');
   if (existing && existing.status !== 'expired') {
-    throw new Error('You already have a spot reserved on this property.');
+    throw new Error(ALREADY_RESERVED_MESSAGE);
   }
 
   const { estateId, estate } = await resolveEstateForListing(input.listing);

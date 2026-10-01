@@ -22,10 +22,12 @@ function makeChain(): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
+  chain.neq = jest.fn(() => chain);
   chain.single = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.maybeSingle = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.insert = jest.fn(() => chain);
   chain.update = jest.fn(() => chain);
+  chain.delete = jest.fn(() => chain);
   return chain;
 }
 

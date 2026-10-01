@@ -22,9 +22,11 @@ function makeChain(): Chain {
   const chain: Chain = {};
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
+  chain.neq = jest.fn(() => chain);
   chain.maybeSingle = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.insert = jest.fn(() => chain);
   chain.update = jest.fn(() => chain);
+  chain.delete = jest.fn(() => chain);
   return chain;
 }
 
@@ -112,7 +114,7 @@ describe('purchaseSlotCredit dedupe (one spot per user per listing)', () => {
 
     await expect(
       purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 }),
-    ).rejects.toThrow('already have a spot reserved');
+    ).rejects.toThrow('already have an active reservation');
   });
 
   it('allows a purchase for a different listing', async () => {
@@ -147,7 +149,7 @@ describe('purchaseSlotCredit dedupe (one spot per user per listing)', () => {
 
     await expect(
       purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2, joinCode: 'GIDA-POD-SOMECODE12' }),
-    ).rejects.toThrow('already have a spot reserved');
+    ).rejects.toThrow('already have an active reservation');
   });
 
   it('surfaces the server credit through findUserCreditForProperty', async () => {
@@ -157,5 +159,79 @@ describe('purchaseSlotCredit dedupe (one spot per user per listing)', () => {
 
     const credit = await findUserCreditForProperty(TEST_USER, LISTING.id);
     expect(credit?.id).toBe(CREDIT_ID);
+  });
+});
+
+describe('backend booking guard (has_active_booking RPC)', () => {
+  it('rejects at button press when the database reports an active booking — without inserting', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: CREDIT_ID, error: null });
+    const slotCreditsChain = makeChain();
+
+    supabaseMock.from.mockImplementation(chainFor({ slot_credits: slotCreditsChain }));
+
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
+      'You already have an active reservation for this property.',
+    );
+    expect(supabaseMock.rpc).toHaveBeenCalledWith('has_active_booking', { p_listing_id: LISTING.id });
+    expect(slotCreditsChain.insert).not.toHaveBeenCalled();
+  });
+
+  it('allows a new booking when only expired bookings exist', async () => {
+    // The RPC excludes expired rows, so it reports no active booking...
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: null });
+    const slotCreditsChain = makeChain();
+    const results = [
+      { data: { id: CREDIT_ID, status: 'expired' }, error: null }, // local lookup still returns the expired row
+      { data: { id: SECOND_CREDIT_ID }, error: null }, // insert succeeds
+    ];
+    slotCreditsChain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
+
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        pods: successChain({ id: POD_ID }),
+        slot_credits: slotCreditsChain,
+      }),
+    );
+
+    const { credit, synced } = await purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 });
+    expect(synced).toBe(true);
+    expect(credit.id).toBe(SECOND_CREDIT_ID);
+    expect(slotCreditsChain.insert).toHaveBeenCalled();
+  });
+
+  it('maps a unique-index violation at insert time to the friendly reservation message', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: null });
+    const slotCreditsChain = makeChain();
+    const results = [
+      { data: null, error: null }, // local lookup: nothing active
+      { data: null, error: { message: 'duplicate key value violates unique constraint "slot_credits_user_listing_key"', code: '23505' } },
+    ];
+    slotCreditsChain.maybeSingle = jest.fn(async () => results.shift() ?? { data: null, error: { message: 'no more results' } });
+
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        estates: successChain({ id: ESTATE_ID }),
+        pods: successChain({ id: POD_ID }),
+        slot_credits: slotCreditsChain,
+      }),
+    );
+
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
+      'You already have an active reservation for this property.',
+    );
+  });
+
+  it('falls back to the local check when the RPC is unreachable', async () => {
+    supabaseMock.rpc.mockResolvedValue({ data: null, error: { message: 'network down' } });
+    supabaseMock.from.mockImplementation(
+      chainFor({
+        slot_credits: successChain({ id: CREDIT_ID, user_id: TEST_USER, listing_id: LISTING.id, status: 'booked_pending_claim' }),
+      }),
+    );
+
+    await expect(purchaseSlotCredit({ listing: LISTING, targetOccupancy: 2 })).rejects.toThrow(
+      'You already have an active reservation for this property.',
+    );
   });
 });

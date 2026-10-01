@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { ALREADY_RESERVED_MESSAGE, isAlreadyReservedError } from '@/services/booking-guard-service';
 import type { SlotCredit, Pod } from '@/types/liquidity';
 
 export async function insertCredit(credit: SlotCredit, userId: string): Promise<string | undefined> {
@@ -22,11 +23,19 @@ export async function insertCredit(credit: SlotCredit, userId: string): Promise<
       .maybeSingle();
     if (error || !data) {
       console.error('[Persistence] Slot credit insert FAILED:', error?.message ?? 'no data', error?.code);
+      // The DB trigger / unique index reject a second active booking — surface
+      // that as the friendly message instead of the generic persist failure.
+      if (error && isAlreadyReservedError(error.message, error.code)) {
+        throw new Error(ALREADY_RESERVED_MESSAGE);
+      }
       return undefined;
     }
     console.log('[Persistence] Slot credit inserted — id:', data.id);
     return data.id;
   } catch (error) {
+    if (error instanceof Error && error.message === ALREADY_RESERVED_MESSAGE) {
+      throw error;
+    }
     console.error('[Persistence] Exception during slot credit insert:', error);
     return undefined;
   }
@@ -76,12 +85,33 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
       return null;
     }
     console.log('[Persistence] Pod inserted — id:', data.id);
-    const persisted = await persistFounderCredit(credit, data.id, userId);
+    let persisted: boolean;
+    try {
+      persisted = await persistFounderCredit(credit, data.id, userId);
+    } catch (creditError) {
+      // Active-booking rejection: remove the pod we just created so no orphan
+      // row is left behind, then surface the friendly message to the UI.
+      if (creditError instanceof Error && creditError.message === ALREADY_RESERVED_MESSAGE) {
+        console.warn('[Persistence] Booking rejected by backend — rolling back orphan pod:', data.id);
+        try {
+          const { error: rollbackError } = await supabase.from('pods').delete().eq('id', data.id);
+          if (rollbackError) {
+            console.error('[Persistence] Orphan pod rollback failed:', rollbackError.message);
+          }
+        } catch (rollbackError) {
+          console.error('[Persistence] Orphan pod rollback failed:', rollbackError);
+        }
+      }
+      throw creditError;
+    }
     console.log('[Persistence] Founder credit persisted:', persisted);
     if (!persisted) return null;
     pod.id = data.id;
     return data.id;
   } catch (error) {
+    if (error instanceof Error && error.message === ALREADY_RESERVED_MESSAGE) {
+      throw error;
+    }
     console.error('[Persistence] Exception during pod persistence:', error);
     return null;
   }

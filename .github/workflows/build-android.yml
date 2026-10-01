@@ -43,6 +43,59 @@ jobs:
       - name: Prebuild Android project
         run: npx expo prebuild --platform android
 
+      - name: Configure production signing
+        if: github.ref_name == 'builds'
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          set -euo pipefail
+          for secret_name in ANDROID_KEYSTORE_BASE64 ANDROID_KEYSTORE_PASSWORD ANDROID_KEY_ALIAS ANDROID_KEY_PASSWORD; do
+            if [ -z "${!secret_name}" ]; then
+              echo "Required GitHub secret $secret_name is missing."
+              exit 1
+            fi
+          done
+
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > android/app/release.keystore
+          test -s android/app/release.keystore
+
+          python3 - <<'PY'
+          import re
+          from pathlib import Path
+
+          gradle_file = Path("android/app/build.gradle")
+          contents = gradle_file.read_text()
+          new_config = """    signingConfigs {
+              debug {
+                  storeFile file('debug.keystore')
+                  storePassword 'android'
+                  keyAlias 'androiddebugkey'
+                  keyPassword 'android'
+              }
+              release {
+                  storeFile file('release.keystore')
+                  storePassword System.getenv('ANDROID_KEYSTORE_PASSWORD')
+                  keyAlias System.getenv('ANDROID_KEY_ALIAS')
+                  keyPassword System.getenv('ANDROID_KEY_PASSWORD')
+              }
+          }"""
+          contents, config_count = re.subn(r"(?ms)^    signingConfigs \{\n.*?^    \}", lambda _: new_config, contents, count=1)
+          if config_count != 1:
+              raise SystemExit("Could not locate the expected Expo signingConfigs block; refusing to build with uncertain signing.")
+          contents, release_count = re.subn(
+              r"(?ms)(^        release \{\n.*?^            signingConfig )signingConfigs\.debug",
+              r"\1signingConfigs.release",
+              contents,
+              count=1,
+          )
+          if release_count != 1:
+              raise SystemExit("Could not locate debug signing in the release build type.")
+          gradle_file.write_text(contents)
+          PY
+
       - name: Setup Java & Cache Gradle
         uses: actions/setup-java@v5
         with:
@@ -59,6 +112,9 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
         run: |
           if [ "${{ github.ref_name }}" = "dev" ]; then
             echo "Building development APK for dev branch"
@@ -67,6 +123,18 @@ jobs:
             echo "Building production APK for builds branch"
             ./gradlew assembleRelease --no-daemon --stacktrace --info
           fi
+
+      - name: Verify production APK signature
+        if: github.ref_name == 'builds'
+        run: |
+          set -euo pipefail
+          APK="android/app/build/outputs/apk/release/app-release.apk"
+          APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
+          if [ -z "$APKSIGNER" ]; then
+            echo "Could not find apksigner in the Android SDK build-tools."
+            exit 1
+          fi
+          "$APKSIGNER" verify --print-certs "$APK"
 
       - name: Create GitHub Release for production builds
         if: github.ref_name == 'builds'

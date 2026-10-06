@@ -1,4 +1,25 @@
+logs for current build apk 1-49
+
 Run if [ "builds" = "dev" ]; then
+  if [ "builds" = "dev" ]; then
+    echo "Building development APK for dev branch"
+    ./gradlew assembleDebug --no-daemon --stacktrace --info
+  else
+    echo "Building production APK for builds branch"
+    ./gradlew assembleRelease --no-daemon --stacktrace --info
+  fi
+  shell: /usr/bin/bash -e {0}
+  env:
+    EXPO_PUBLIC_SUPABASE_URL: ***
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: ***
+    EXPO_PUBLIC_WORKER_URL: ***
+    EXPO_UPDATES_CHANNEL: production
+    JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+    JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+    MAVEN_ARGS: -ntp
+    ANDROID_KEYSTORE_PASSWORD: ***
+    ANDROID_KEY_ALIAS: ***
+    ANDROID_KEY_PASSWORD: ***
 Building production APK for builds branch
 Initialized native services in: /home/runner/.gradle/native
 Initialized jansi services in: /home/runner/.gradle/native
@@ -15,8 +36,8 @@ For more details see https://docs.gradle.org/9.3.1/release-notes.html
 To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
 Starting process 'Gradle build daemon'. Working directory: /home/runner/.gradle/daemon/9.3.1 Command: /usr/lib/jvm/temurin-17-jdk-amd64/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -XX:MaxMetaspaceSize=512m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country -Duser.language=en -Duser.variant -cp /home/runner/.gradle/wrapper/dists/gradle-9.3.1-bin/23ovyewtku6u96viwx3xl3oks/gradle-9.3.1/lib/gradle-daemon-main-9.3.1.jar -javaagent:/home/runner/.gradle/wrapper/dists/gradle-9.3.1-bin/23ovyewtku6u96viwx3xl3oks/gradle-9.3.1/lib/agents/gradle-instrumentation-agent-9.3.1.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.3.1
 Successfully started process 'Gradle build daemon'
-An attempt to start the daemon took 0.98 secs.
-The client will now receive all logging from the daemon (pid: 2373). The daemon log file: /home/runner/.gradle/daemon/9.3.1/daemon-2373.out.log
+An attempt to start the daemon took 1.18 secs.
+The client will now receive all logging from the daemon (pid: 2354). The daemon log file: /home/runner/.gradle/daemon/9.3.1/daemon-2354.out.log
 Daemon will be stopped at the end of the build 
 Using 4 worker leases.
 Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=true, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=true, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
@@ -28,354 +49,58 @@ Starting Build
 Caching disabled for Groovy DSL script compilation (cp_settings) because:
   Build cache is disabled
   Not worth caching.
-Compiling settings file '/home/runner/work/gida/gida/android/settings.gradle' using SubsetScriptTransformer.
+
+
+
+
+
+  logs for last successful build apk 1-49
+Run if [ "builds" = "dev" ]; then
+  if [ "builds" = "dev" ]; then
+    echo "Building development APK for dev branch"
+    ./gradlew assembleDebug --no-daemon --stacktrace --info
+  else
+    echo "Building production APK for builds branch"
+    ./gradlew assembleRelease --no-daemon --stacktrace --info
+  fi
+  shell: /usr/bin/bash -e {0}
+  env:
+    EXPO_PUBLIC_SUPABASE_URL: ***
+    EXPO_PUBLIC_SUPABASE_ANON_KEY: ***
+    EXPO_PUBLIC_WORKER_URL: ***
+    JAVA_HOME: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+    JAVA_HOME_17_X64: /opt/hostedtoolcache/Java_Temurin-Hotspot_jdk/17.0.20-1/x64
+    MAVEN_ARGS: -ntp
+    ANDROID_KEYSTORE_PASSWORD: ***
+    ANDROID_KEY_ALIAS: ***
+    ANDROID_KEY_PASSWORD: ***
+Building production APK for builds branch
+Initialized native services in: /home/runner/.gradle/native
+Initialized jansi services in: /home/runner/.gradle/native
+
+Welcome to Gradle 9.3.1!
+
+Here are the highlights of this release:
+ - Test reporting improvements
+ - Error and warning improvements
+ - Build authoring improvements
+
+For more details see https://docs.gradle.org/9.3.1/release-notes.html
+
+To honour the JVM settings for this build a single-use Daemon process will be forked. For more on this, please refer to https://docs.gradle.org/9.3.1/userguide/gradle_daemon.html#sec:disabling_the_daemon in the Gradle documentation.
+Starting process 'Gradle build daemon'. Working directory: /home/runner/.gradle/daemon/9.3.1 Command: /usr/lib/jvm/temurin-17-jdk-amd64/bin/java --add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.lang.invoke=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.api=ALL-UNNAMED --add-exports=jdk.compiler/com.sun.tools.javac.util=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.prefs/java.util.prefs=ALL-UNNAMED --add-opens=java.base/java.nio.charset=ALL-UNNAMED --add-opens=java.base/java.net=ALL-UNNAMED --add-opens=java.base/java.util.concurrent=ALL-UNNAMED --add-opens=java.base/java.util.concurrent.atomic=ALL-UNNAMED --add-opens=java.xml/javax.xml.namespace=ALL-UNNAMED --add-opens=java.base/java.time=ALL-UNNAMED -XX:MaxMetaspaceSize=512m -Xmx2048m -Dfile.encoding=UTF-8 -Duser.country -Duser.language=en -Duser.variant -cp /home/runner/.gradle/wrapper/dists/gradle-9.3.1-bin/23ovyewtku6u96viwx3xl3oks/gradle-9.3.1/lib/gradle-daemon-main-9.3.1.jar -javaagent:/home/runner/.gradle/wrapper/dists/gradle-9.3.1-bin/23ovyewtku6u96viwx3xl3oks/gradle-9.3.1/lib/agents/gradle-instrumentation-agent-9.3.1.jar org.gradle.launcher.daemon.bootstrap.GradleDaemon 9.3.1
+Successfully started process 'Gradle build daemon'
+An attempt to start the daemon took 1.038 secs.
+The client will now receive all logging from the daemon (pid: 2363). The daemon log file: /home/runner/.gradle/daemon/9.3.1/daemon-2363.out.log
+Daemon will be stopped at the end of the build 
+Using 4 worker leases.
+Operational build model parameters: {requiresToolingModels=false, parallelProjectExecution=true, configureOnDemand=false, configurationCache=false, configurationCacheParallelStore=false, configurationCacheParallelLoad=true, isolatedProjects=false, parallelProjectConfiguration=false, intermediateModelCache=false, parallelToolingApiActions=true, invalidateCoupledProjects=false, modelAsProjectDependency=false, resilientModelBuilding=false}
+Received JVM installation metadata from '/usr/lib/jvm/temurin-17-jdk-amd64': {JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64, JAVA_VERSION=17.0.20.1, JAVA_VENDOR=Eclipse Adoptium, RUNTIME_NAME=OpenJDK Runtime Environment, RUNTIME_VERSION=17.0.20.1+1, VM_NAME=OpenJDK 64-Bit Server VM, VM_VERSION=17.0.20.1+1, VM_VENDOR=Eclipse Adoptium, OS_ARCH=amd64}
+Watching the file system is configured to be enabled if available
+Now considering [/home/runner/work/gida/gida/android] as hierarchies to watch
+File system watching is active
+Starting Build
 Starting process 'command 'node''. Working directory: /home/runner/work/gida/gida/android Command: node --print require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })
 Successfully started process 'command 'node''
 Starting process 'command 'node''. Working directory: /home/runner/work/gida/gida/android Command: node --print require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })
 Successfully started process 'command 'node''
-Now considering [/home/runner/work/gida/gida/node_modules/@react-native/gradle-plugin, /home/runner/work/gida/gida/android] as hierarchies to watch
-Generating Gradle API jar: /home/runner/.gradle/caches/9.3.1/generated-gradle-jars/gradle-api-9.3.1.jar
-Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage1) because:
-  Build cache is disabled
-Resource missing. [HTTP GET: https://repo.maven.apache.org/maven2/org/gradle/toolchains/foojay-resolver-convention/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin/1.0.0/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin-1.0.0.pom]
-Resource missing. [HTTP GET: https://dl.google.com/dl/android/maven2/org/gradle/toolchains/foojay-resolver-convention/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin/1.0.0/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin-1.0.0.pom]
-Downloading https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver-convention/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin/1.0.0/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin-1.0.0.pom to /home/runner/.gradle/.tmp/gradle_download11090802094480313362bin
-Resource missing. [HTTP HEAD: https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver-convention/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin/1.0.0/org.gradle.toolchains.foojay-resolver-convention.gradle.plugin-1.0.0.jar]
-Resolved plugin [id: 'org.gradle.toolchains.foojay-resolver-convention', version: '1.0.0']
-Resource missing. [HTTP GET: https://repo.maven.apache.org/maven2/org/gradle/toolchains/foojay-resolver/1.0.0/foojay-resolver-1.0.0.pom]
-Resource missing. [HTTP GET: https://dl.google.com/dl/android/maven2/org/gradle/toolchains/foojay-resolver/1.0.0/foojay-resolver-1.0.0.pom]
-Downloading https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver/1.0.0/foojay-resolver-1.0.0.pom to /home/runner/.gradle/.tmp/gradle_download4572164580429731655bin
-Downloading https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver/1.0.0/foojay-resolver-1.0.0.module to /home/runner/.gradle/.tmp/gradle_download12410464193771644023bin
-Downloading https://plugins.gradle.org/m2/org/gradle/toolchains/foojay-resolver/1.0.0/foojay-resolver-1.0.0.jar to /home/runner/.gradle/.tmp/gradle_download15492834571634197618bin
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.gradle.toolchains/foojay-resolver/1.0.0/72c0af50bc9156fb2a9429ed152abb4417bb6eaf/foojay-resolver-1.0.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/e3d8514d507420dc8d43f1d71aa0dbbd/transformed/.gradle-instrumented-classpath.marker because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/e3d8514d507420dc8d43f1d71aa0dbbd/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/e3d8514d507420dc8d43f1d71aa0dbbd/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.gradle.toolchains/foojay-resolver/1.0.0/72c0af50bc9156fb2a9429ed152abb4417bb6eaf/foojay-resolver-1.0.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/832ba5d4ff0237776bf5c9c2b7a3d4d8/transformed/.gradle-instrumented-classpath.marker because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/832ba5d4ff0237776bf5c9c2b7a3d4d8/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.gradle.toolchains/foojay-resolver/1.0.0/72c0af50bc9156fb2a9429ed152abb4417bb6eaf/foojay-resolver-1.0.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for Kotlin DSL accessors for settings 'gradle-plugin' because:
-  Build cache is disabled
-Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage2) because:
-  Build cache is disabled
-Now considering [/home/runner/work/gida/gida/node_modules/expo-modules-autolinking/android/expo-gradle-plugin, /home/runner/work/gida/gida/node_modules/@react-native/gradle-plugin, /home/runner/work/gida/gida/android] as hierarchies to watch
-Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage1) because:
-  Build cache is disabled
-Caching disabled for Kotlin DSL accessors for settings 'expo-gradle-plugin' because:
-  Build cache is disabled
-Caching disabled for Kotlin DSL script compilation (Settings/TopLevel/stage2) because:
-  Build cache is disabled
-Caching disabled for generation of dependency accessors for libs because:
-  Build cache is disabled
-  Not worth caching.
-
-> Configure project :gradle-plugin
-Evaluating project ':gradle-plugin' using build file '/home/runner/work/gida/gida/node_modules/@react-native/gradle-plugin/build.gradle.kts'.
-Caching disabled for Kotlin DSL version catalog plugin accessors for classpath 'cdf88acdc18d99441b0380e85e20f817' because:
-  Build cache is disabled
-Caching disabled for Kotlin DSL plugin specs accessors for classpath 'cdf88acdc18d99441b0380e85e20f817' because:
-  Build cache is disabled
-Caching disabled for Kotlin DSL script compilation (Project/TopLevel/stage1) because:
-  Build cache is disabled
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/2.1.20/org.jetbrains.kotlin.jvm.gradle.plugin-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download4817705805384144806bin
-Resource missing. [HTTP HEAD: https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/jvm/org.jetbrains.kotlin.jvm.gradle.plugin/2.1.20/org.jetbrains.kotlin.jvm.gradle.plugin-2.1.20.jar]
-Resolved plugin [id: 'org.jetbrains.kotlin.jvm', version: '2.1.20', apply: false]
-Resource missing. [HTTP GET: https://repo.maven.apache.org/maven2/com/ncorti/ktfmt/gradle/com.ncorti.ktfmt.gradle.gradle.plugin/0.22.0/com.ncorti.ktfmt.gradle.gradle.plugin-0.22.0.pom]
-Resource missing. [HTTP GET: https://dl.google.com/dl/android/maven2/com/ncorti/ktfmt/gradle/com.ncorti.ktfmt.gradle.gradle.plugin/0.22.0/com.ncorti.ktfmt.gradle.gradle.plugin-0.22.0.pom]
-Downloading https://plugins.gradle.org/m2/com/ncorti/ktfmt/gradle/com.ncorti.ktfmt.gradle.gradle.plugin/0.22.0/com.ncorti.ktfmt.gradle.gradle.plugin-0.22.0.pom to /home/runner/.gradle/.tmp/gradle_download15829932357991271805bin
-Resource missing. [HTTP HEAD: https://plugins.gradle.org/m2/com/ncorti/ktfmt/gradle/com.ncorti.ktfmt.gradle.gradle.plugin/0.22.0/com.ncorti.ktfmt.gradle.gradle.plugin-0.22.0.jar]
-Resolved plugin [id: 'com.ncorti.ktfmt.gradle', version: '0.22.0']
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.1.20/kotlin-gradle-plugin-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download6743914447386348767bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.1.20/kotlin-gradle-plugins-bom-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download17671444858579584121bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugins-bom/2.1.20/kotlin-gradle-plugins-bom-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download13006119349719348018bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.1.20/kotlin-gradle-plugin-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download1963335328406396784bin
-Resource missing. [HTTP GET: https://repo.maven.apache.org/maven2/com/ncorti/ktfmt/gradle/plugin/0.22.0/plugin-0.22.0.pom]
-Resource missing. [HTTP GET: https://dl.google.com/dl/android/maven2/com/ncorti/ktfmt/gradle/plugin/0.22.0/plugin-0.22.0.pom]
-Downloading https://plugins.gradle.org/m2/com/ncorti/ktfmt/gradle/plugin/0.22.0/plugin-0.22.0.pom to /home/runner/.gradle/.tmp/gradle_download1884514801995465143bin
-Downloading https://plugins.gradle.org/m2/com/ncorti/ktfmt/gradle/plugin/0.22.0/plugin-0.22.0.module to /home/runner/.gradle/.tmp/gradle_download11838036384745328552bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-klib-commonizer-api/2.1.20/kotlin-klib-commonizer-api-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download6087016166538681081bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea-proto/2.1.20/kotlin-gradle-plugin-idea-proto-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download9499898795755089945bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-statistics/2.1.20/kotlin-build-statistics-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download1642091495276494864bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.1.20/kotlin-gradle-plugin-idea-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download9789025827883069158bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-klib-metadata/2.1.20/kotlin-util-klib-metadata-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download7459349825488878779bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.1.20/kotlin-gradle-plugin-api-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download4345819859639978472bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.1.20/kotlin-gradle-plugin-model-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download5452733585235438601bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.1.20/kotlin-gradle-plugin-idea-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download18058882546732530839bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/fus-statistics-gradle-plugin/2.1.20/fus-statistics-gradle-plugin-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download5866845845627335947bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.1.20/kotlin-gradle-plugin-api-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download9324738339005886812bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.1.20/kotlin-gradle-plugin-model-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download4983119028190183698bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/fus-statistics-gradle-plugin/2.1.20/fus-statistics-gradle-plugin-2.1.20.module to /home/runner/.gradle/.tmp/gradle_download8685645497736547297bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-runner/2.1.20/kotlin-compiler-runner-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download1833146945352760260bin
-Downloading https://repo.maven.apache.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.pom to /home/runner/.gradle/.tmp/gradle_download9063823725517491756bin
-Downloading https://repo.maven.apache.org/maven2/io/github/java-diff-utils/java-diff-utils-parent/4.15/java-diff-utils-parent-4.15.pom to /home/runner/.gradle/.tmp/gradle_download16963664160260547590bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.21/kotlin-stdlib-2.2.21.pom to /home/runner/.gradle/.tmp/gradle_download16435694505035179523bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.21/kotlin-stdlib-2.2.21.module to /home/runner/.gradle/.tmp/gradle_download9188824297588168605bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-annotations/2.1.20/kotlin-gradle-plugin-annotations-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download9357223482812444988bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-tooling-core/2.1.20/kotlin-tooling-core-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download13801123538230806727bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-native-utils/2.1.20/kotlin-native-utils-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download1067396730399324455bin
-Downloading https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.pom to /home/runner/.gradle/.tmp/gradle_download7480541196093982463bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.1.20/kotlin-build-tools-api-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download6418974805605296396bin
-Downloading https://repo.maven.apache.org/maven2/com/google/code/gson/gson-parent/2.11.0/gson-parent-2.11.0.pom to /home/runner/.gradle/.tmp/gradle_download5214903555421916349bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-klib/2.1.20/kotlin-util-klib-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download7613052540634673358bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-io/2.1.20/kotlin-util-io-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download12425343387578876596bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.pom to /home/runner/.gradle/.tmp/gradle_download8814333783755395241bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-client/2.1.20/kotlin-daemon-client-2.1.20.pom to /home/runner/.gradle/.tmp/gradle_download5831839273083927887bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-bom/1.8.0/kotlinx-coroutines-bom-1.8.0.pom to /home/runner/.gradle/.tmp/gradle_download12656462624653839119bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.module to /home/runner/.gradle/.tmp/gradle_download12589345368766023456bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.pom to /home/runner/.gradle/.tmp/gradle_download1564487634872719347bin
-Downloading https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.27.0/error_prone_annotations-2.27.0.pom to /home/runner/.gradle/.tmp/gradle_download8580919899373257210bin
-Downloading https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_parent/2.27.0/error_prone_parent-2.27.0.pom to /home/runner/.gradle/.tmp/gradle_download1737296383651372829bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/annotations/13.0/annotations-13.0.jar to /home/runner/.gradle/.tmp/gradle_download756932323860186737bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-model/2.1.20/kotlin-gradle-plugin-model-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download6903615449754787037bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-stdlib/2.2.21/kotlin-stdlib-2.2.21.jar to /home/runner/.gradle/.tmp/gradle_download3121149878930811331bin
-Downloading https://plugins.gradle.org/m2/com/ncorti/ktfmt/gradle/plugin/0.22.0/plugin-0.22.0.jar to /home/runner/.gradle/.tmp/gradle_download9976771115611109218bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/fus-statistics-gradle-plugin/2.1.20/fus-statistics-gradle-plugin-2.1.20-gradle85.jar to /home/runner/.gradle/.tmp/gradle_download7960731922830666730bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.1.20/kotlin-gradle-plugin-api-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download18260633296095753165bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-api/2.1.20/kotlin-gradle-plugin-api-2.1.20-gradle85.jar to /home/runner/.gradle/.tmp/gradle_download13520458355907228184bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea-proto/2.1.20/kotlin-gradle-plugin-idea-proto-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download9210289584134813391bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin/2.1.20/kotlin-gradle-plugin-2.1.20-gradle85.jar to /home/runner/.gradle/.tmp/gradle_download17129896731197259687bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-idea/2.1.20/kotlin-gradle-plugin-idea-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download18023107860875390992bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-klib-commonizer-api/2.1.20/kotlin-klib-commonizer-api-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download14841235703153381539bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-statistics/2.1.20/kotlin-build-statistics-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download13393691358405873434bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-klib-metadata/2.1.20/kotlin-util-klib-metadata-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download14103267950498366750bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-compiler-runner/2.1.20/kotlin-compiler-runner-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download15477948298823488071bin
-Downloading https://repo.maven.apache.org/maven2/io/github/java-diff-utils/java-diff-utils/4.15/java-diff-utils-4.15.jar to /home/runner/.gradle/.tmp/gradle_download7974138956879097366bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-tooling-core/2.1.20/kotlin-tooling-core-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download747132542670943345bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-gradle-plugin-annotations/2.1.20/kotlin-gradle-plugin-annotations-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download1779713313025064871bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-native-utils/2.1.20/kotlin-native-utils-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download17829378318624669337bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-build-tools-api/2.1.20/kotlin-build-tools-api-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download16221096858738691066bin
-Downloading https://repo.maven.apache.org/maven2/com/google/code/gson/gson/2.11.0/gson-2.11.0.jar to /home/runner/.gradle/.tmp/gradle_download10943497198374671715bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-klib/2.1.20/kotlin-util-klib-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download11763579938926532745bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-util-io/2.1.20/kotlin-util-io-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download7084489944127994017bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlin/kotlin-daemon-client/2.1.20/kotlin-daemon-client-2.1.20.jar to /home/runner/.gradle/.tmp/gradle_download11801342816800937481bin
-Downloading https://repo.maven.apache.org/maven2/org/jetbrains/kotlinx/kotlinx-coroutines-core-jvm/1.8.0/kotlinx-coroutines-core-jvm-1.8.0.jar to /home/runner/.gradle/.tmp/gradle_download920233107889284002bin
-Downloading https://repo.maven.apache.org/maven2/com/google/errorprone/error_prone_annotations/2.27.0/error_prone_annotations-2.27.0.jar to /home/runner/.gradle/.tmp/gradle_download5033508516351539462bin
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/com.ncorti.ktfmt.gradle/plugin/0.22.0/24cd22681dfce1033233cd248f048f18005839e8/plugin-0.22.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.2.21/fa374a986e128314c3db00a20aae55f72a258511/kotlin-stdlib-2.2.21.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.1.20/fa71fac34c72b1d65385f2141e6eb9a87d8f443f/kotlin-gradle-plugin-model-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/fus-statistics-gradle-plugin/2.1.20/d9276c17544f4c4eeaab2ac3e0a325e0d8e202ea/fus-statistics-gradle-plugin-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin/2.1.20/f2928b44391e91d349790c08ce4152888e4abeaf/kotlin-gradle-plugin-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea-proto/2.1.20/4dc8aa2e663de283c50ea298d3f677d8f0539fa8/kotlin-gradle-plugin-idea-proto-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.1.20/a484174f066eb1ed37bc9066d33419dbb2147b71/kotlin-gradle-plugin-idea-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.1.20/19c6c7e695e8fc2f2214153d830e71e95c5fb867/kotlin-klib-commonizer-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-statistics/2.1.20/de710f9f3dea6912f4d1074d061a4002736bf45e/kotlin-build-statistics-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-klib-metadata/2.1.20/bb2c7b2d5fda851d4b4077f30e4bc1596788de9/kotlin-util-klib-metadata-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-compiler-runner/2.1.20/2bb6bf0157ec05f78b1132cae7f822bfe04ead88/kotlin-compiler-runner-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/io.github.java-diff-utils/java-diff-utils/4.15/a8b782ac93bf6c714526ac880adef7c52a87dad7/java-diff-utils-4.15.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-tooling-core/2.1.20/f97205e762c89f284965a6044c122a3ca5c34128/kotlin-tooling-core-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-annotations/2.1.20/61dd4d2a6f587fa89dbcbb7dbd5acc1a1148fd7f/kotlin-gradle-plugin-annotations-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-native-utils/2.1.20/e09c9c87435b5bc1c168565b30d0235fddb5b26b/kotlin-native-utils-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-build-tools-api/2.1.20/2b93b2f25cb547decd609bfa1b07c5897c1dc483/kotlin-build-tools-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/com.google.code.gson/gson/2.11.0/527175ca6d81050b53bdd4c457a6d6e017626b0e/gson-2.11.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-klib/2.1.20/fc11bad0e1921e86d2b56bd470769f1c3f9831ba/kotlin-util-klib-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-util-io/2.1.20/9777b81bdf2a888edfe856654426217e0ac33cf2/kotlin-util-io-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-daemon-client/2.1.20/43d04948a1eb10a3787e9e88b2304d8f629db12c/kotlin-daemon-client-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlinx/kotlinx-coroutines-core-jvm/1.8.0/ac1dc37a30a93150b704022f8d895ee1bd3a36b3/kotlinx-coroutines-core-jvm-1.8.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for InstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/com.google.errorprone/error_prone_annotations/2.27.0/91b2c29d8a6148b5e2e4930f070d4840e2e48e34/error_prone_annotations-2.27.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/0c1862f78371651f3779b46b328a3d20/transformed/.gradle-instrumented-classpath.marker because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/a26b73524c2c645949d207c23fa9e8b0/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/0c1862f78371651f3779b46b328a3d20/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/47372c3e6d91f6aa916e1adf420637bd/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/a26b73524c2c645949d207c23fa9e8b0/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/47372c3e6d91f6aa916e1adf420637bd/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/6883c47e00e8518ca52f67854b41d318/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/0c1862f78371651f3779b46b328a3d20/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/com.ncorti.ktfmt.gradle/plugin/0.22.0/24cd22681dfce1033233cd248f048f18005839e8/plugin-0.22.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.1.20/fa71fac34c72b1d65385f2141e6eb9a87d8f443f/kotlin-gradle-plugin-model-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e124b9315e40803d1b9d6617e1771fd/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/868738f8db991fc1d1e7d3e7fb5eda32/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/391ff17150a949cfe2ed6dfb60780fd1/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-stdlib/2.2.21/fa374a986e128314c3db00a20aae55f72a258511/kotlin-stdlib-2.2.21.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-model/2.1.20/fa71fac34c72b1d65385f2141e6eb9a87d8f443f/kotlin-gradle-plugin-model-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/07b41026d16dfab1287c93e017991c87/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains/annotations/13.0/919f0dfe192fb4e063e7dacadee7f8bb9a2672a9/annotations-13.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e780c63c4110955aa2e03cac29528e6/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/639e575539a126c497997714ce6b170f/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e780c63c4110955aa2e03cac29528e6/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/639e575539a126c497997714ce6b170f/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/com.ncorti.ktfmt.gradle/plugin/0.22.0/24cd22681dfce1033233cd248f048f18005839e8/plugin-0.22.0.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/fus-statistics-gradle-plugin/2.1.20/d9276c17544f4c4eeaab2ac3e0a325e0d8e202ea/fus-statistics-gradle-plugin-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/83324fc70c25daa12282021c490d575d/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/300638df4fa416e2e697eee47e7e116c/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/4727e0d2afc7ea05de70e561ef9b01f6/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/fus-statistics-gradle-plugin/2.1.20/d9276c17544f4c4eeaab2ac3e0a325e0d8e202ea/fus-statistics-gradle-plugin-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/9ffec83cbf5d884d654a632624740e4e/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/9ffec83cbf5d884d654a632624740e4e/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/a546c47c42a7e0518dae8b62f462e3e1/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-api/2.1.20/e9e45fb71c59d76e30ed774235e76c710b61ae64/kotlin-gradle-plugin-api-2.1.20-gradle85.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/bd051dd6938bf53458d8a392b1777c6d/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/bd051dd6938bf53458d8a392b1777c6d/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.1.20/a484174f066eb1ed37bc9066d33419dbb2147b71/kotlin-gradle-plugin-idea-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/3ce4adb671b4508380310c2c80fb1bd7/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-gradle-plugin-idea/2.1.20/a484174f066eb1ed37bc9066d33419dbb2147b71/kotlin-gradle-plugin-idea-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e84d9717ba563016dc77d93afe37bd4/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e84d9717ba563016dc77d93afe37bd4/transformed/analysis/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.1.20/19c6c7e695e8fc2f2214153d830e71e95c5fb867/kotlin-klib-commonizer-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/9.3.1/transforms/2e18c58b52ccd79b9d1ffdff53278dcc/transformed/merge/instrumentation-dependencies.bin because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for ExternalDependencyInstrumentingArtifactTransform: /home/runner/.gradle/caches/modules-2/files-2.1/org.jetbrains.kotlin/kotlin-klib-commonizer-api/2.1.20/19c6c7e695e8fc2f2214153d830e71e95c5fb867/kotlin-klib-commonizer-api-2.1.20.jar because:
-  Build cache is disabled
-  Caching not enabled.
-Caching disabled for MergeInstrumentationAnalysisTransform: /home/runner/.gradle/caches/9.3.1/transforms/65c591e2b12abca3a4bcfba4a90f0eed/transformed/analysis/instrumentation-hierarchy.bin because:
-  Build cache is disabled

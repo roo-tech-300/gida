@@ -121,6 +121,18 @@ jobs:
       - name: Set gradlew executable permissions
         run: chmod +x android/gradlew
 
+      - name: Diagnose Gradle settings startup
+        working-directory: android
+        run: |
+          set -euo pipefail
+          echo "Gradle startup probe at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          node --version
+          echo "Resolving React Native Gradle plugin..."
+          timeout 120s node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"
+          echo "Resolving Expo modules autolinking..."
+          timeout 120s node --print "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })"
+          echo "Gradle settings Node probes completed."
+
       - name: Build APK
         working-directory: android
         env:

@@ -36,7 +36,7 @@ jobs:
 
       - name: Validate Expo project ID
         env:
-          EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
         run: test -n "$EXPO_PROJECT_ID" || { echo "Set the EXPO_PROJECT_ID repository variable before building OTA-enabled APKs."; exit 1; }
 
       - name: Set update channel
@@ -55,7 +55,7 @@ jobs:
 
       - name: Prebuild Android project
         env:
-          EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
         run: npx expo prebuild --platform android
 
       - name: Configure production signing

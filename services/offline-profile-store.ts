@@ -15,6 +15,7 @@ function getDb(): SQLite.SQLiteDatabase {
         email TEXT,
         full_name TEXT,
         username TEXT,
+        matric_number TEXT,
         avatar_url TEXT,
         bio TEXT,
         gender TEXT,
@@ -33,6 +34,15 @@ function getDb(): SQLite.SQLiteDatabase {
         cached_at INTEGER NOT NULL
       );
     `);
+    // Lightweight migration for installs that cached before matric_number existed.
+    try {
+      const cols = db.getAllSync<{ name: string }>('PRAGMA table_info(cached_profile)');
+      if (!cols.some((c) => c.name === 'matric_number')) {
+        db.execSync('ALTER TABLE cached_profile ADD COLUMN matric_number TEXT');
+      }
+    } catch (migrationError) {
+      console.error('[OfflineProfileStore] Failed to migrate cached_profile:', migrationError);
+    }
   }
   return db;
 }
@@ -42,16 +52,17 @@ export function cacheProfile(profile: AuthProfile): void {
     const database = getDb();
     database.runSync(
       `INSERT OR REPLACE INTO cached_profile (
-        id, email, full_name, username, avatar_url, bio, gender,
+        id, email, full_name, username, matric_number, avatar_url, bio, gender,
         is_student, is_admin, admin_role, assigned_region_id,
         city, school, onboarded, show_in_roommate_feed,
         birth_year, entry_year, program_duration, religion, cached_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         profile.id,
         profile.email ?? null,
         profile.full_name ?? null,
         profile.username ?? null,
+        profile.matric_number ?? null,
         profile.avatar_url ?? null,
         profile.bio ?? null,
         profile.gender ?? null,
@@ -83,6 +94,7 @@ export function getCachedProfile(): AuthProfile | null {
       email: string | null;
       full_name: string | null;
       username: string | null;
+      matric_number: string | null;
       avatar_url: string | null;
       bio: string | null;
       gender: string | null;
@@ -107,6 +119,7 @@ export function getCachedProfile(): AuthProfile | null {
       email: row.email,
       full_name: row.full_name,
       username: row.username,
+      matric_number: row.matric_number ?? null,
       avatar_url: row.avatar_url,
       bio: row.bio,
       gender: row.gender as AuthProfile['gender'],

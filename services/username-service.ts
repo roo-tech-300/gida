@@ -46,11 +46,14 @@ export async function loadOnboardingPrefill(userId: string): Promise<PrefillResu
   try {
     const { data: profile, error: profileError } = await supabase
       .from('profiles')
-      .select('gender')
+      .select('gender, matric_number')
       .eq('id', userId)
       .maybeSingle();
     if (!profileError && profile?.gender) {
       prefill.gender = profile.gender as OnboardingData['gender'];
+    }
+    if (!profileError && profile?.matric_number) {
+      prefill.matricNumber = String(profile.matric_number);
     }
 
     const { data: living, error: livingError } = await supabase

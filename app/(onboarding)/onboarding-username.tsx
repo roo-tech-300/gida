@@ -74,6 +74,10 @@ export default function OnboardingUsernameScreen() {
     updateData({ username: normalizeUsername(text) });
   }, [updateData]);
 
+  const handleMatricChange = useCallback((text: string) => {
+    updateData({ matricNumber: text });
+  }, [updateData]);
+
   const canContinue = check.kind === 'available';
 
   const handleContinue = () => {
@@ -148,6 +152,30 @@ export default function OnboardingUsernameScreen() {
         </View>
       </OnboardingGlassCard>
 
+      <OnboardingGlassCard>
+        <View style={styles.header}>
+          <Text style={styles.title}>Matric number <Text style={styles.optionalTag}>(optional)</Text></Text>
+          <Text style={styles.subtitle}>
+            Helps verify your student status. You can skip this and continue.
+          </Text>
+        </View>
+
+        <View style={styles.inputWrap}>
+          <Ionicons name="id-card-outline" size={20} color={DesignColors.onSurfaceVariant} style={styles.matricIcon} />
+          <TextInput
+            style={styles.input}
+            placeholder="e.g. FUTM/2023/12345"
+            placeholderTextColor={DesignColors.outline}
+            value={data.matricNumber}
+            onChangeText={handleMatricChange}
+            autoCapitalize="characters"
+            autoCorrect={false}
+            autoComplete="off"
+            textContentType="none"
+          />
+        </View>
+      </OnboardingGlassCard>
+
       <OnboardingNavRow
         showBack={false}
         continueDisabled={!canContinue}
@@ -218,5 +246,14 @@ const styles = StyleSheet.create({
   },
   takenText: {
     color: DesignColors.error,
+  },
+  optionalTag: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    fontWeight: '400',
+  },
+  matricIcon: {
+    marginRight: DesignSpacing.sm,
   },
 });

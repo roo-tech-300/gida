@@ -34,6 +34,7 @@ export type AuthProfile = {
   email: string | null;
   full_name: string | null;
   username: string | null;
+  matric_number: string | null;
   avatar_url: string | null;
   bio: string | null;
   gender: 'MALE' | 'FEMALE' | null;

@@ -6,6 +6,7 @@ export type ProfileRecord = {
   id: string;
   full_name?: string | null;
   username?: string | null;
+  matric_number?: string | null;
   avatar_url?: string | null;
   city?: string | null;
   is_student?: boolean | null;
@@ -34,6 +35,7 @@ export async function saveOnboardingProfile(userId: string, data: OnboardingData
       city: 'Minna',
       gender: data.gender || null,
       username: (data.username && data.username.trim()) || null,
+      matric_number: (data.matricNumber && data.matricNumber.trim()) || null,
       is_student: true,
       school: 'Federal University of Technology, Minna (FUT Minna)',
     })

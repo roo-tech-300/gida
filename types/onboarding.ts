@@ -14,6 +14,7 @@ export type Amenity =
 
 export type OnboardingData = {
   username: string;
+  matricNumber: string;
   gender: Gender | '';
   minBudget: string;
   maxBudget: string;
@@ -92,6 +93,7 @@ export function getCampusesForSchool(school: string): { id: string; label: strin
 
 export const defaultOnboardingData = (): OnboardingData => ({
   username: '',
+  matricNumber: '',
   gender: '',
   minBudget: '100000',
   maxBudget: '250000',

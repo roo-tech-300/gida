@@ -7,6 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { BackButton } from '@/components/ui/back-button';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { LandlordSearch } from '@/components/admin/landlord-search';
+import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -27,6 +28,7 @@ export function CreateListingCoreSpecsScreen() {
   const { data, setStep1 } = useCreateListingForm();
   const { step1 } = data;
   const { showToast } = useAppToast();
+  const exitWizard = useExitListingWizard();
 
   const canProceed = step1.title.trim() && step1.landlordId && step1.layoutType && step1.price;
   const handleForward = () => {
@@ -43,7 +45,7 @@ export function CreateListingCoreSpecsScreen() {
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
+          <BackButton hasBackground={false} onPress={exitWizard} />
           <Text style={styles.stepIndicator}>Step 1 of 5</Text>
         </View>
 
@@ -334,16 +336,16 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   termBadgeText: { fontSize: 16, fontWeight: '600', color: DesignColors.onPrimaryContainer, fontFamily },
-  unitCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16 },
-  unitLeft: { gap: 2 },
+  unitCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, gap: 12 },
+  unitLeft: { flex: 1, flexShrink: 1, gap: 2 },
   unitDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 16 },
+  stepper: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
   stepperBtn: {
-    width: 40, height: 40, borderRadius: 20,
+    width: 36, height: 36, borderRadius: 18,
     borderWidth: 1, borderColor: DesignColors.glassBorder,
     alignItems: 'center', justifyContent: 'center',
   },
-  unitCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 32, textAlign: 'center' },
+  unitCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, minWidth: 32, textAlign: 'center' },
   ctaRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },
   ctaBtn: {
     width: 56, height: 56, borderRadius: 28,

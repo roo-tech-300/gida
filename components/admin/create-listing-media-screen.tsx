@@ -13,8 +13,9 @@ import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-picker-modal';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 import { useCreateListing } from '@/hooks/use-create-listing';
-import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing } from '@/services/listing-service';
+import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, type CreateListingInput } from '@/services/listing-service';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { supabase } from '@/lib/supabase';
@@ -30,6 +31,7 @@ export function CreateListingMediaScreen() {
   const { showToast } = useAppToast();
   const queryClient = useQueryClient();
   const { profile } = useAuth();
+  const exitWizard = useExitListingWizard();
   const [pickerOpen, setPickerOpen] = useState(false);
   const [isPublishing, setIsPublishing] = useState(false);
   const [heroLoading, setHeroLoading] = useState(false);
@@ -63,8 +65,7 @@ export function CreateListingMediaScreen() {
     }
   };
 
-  const buildListingInput = () => {
-    const coords = step2.coords!;
+  const buildListingInput = (): CreateListingInput => {
     const isFlat = step1.layoutType === 'flat';
     const bedroomCount = isFlat ? step1.bedrooms : 0;
     const bathroomCount = isFlat ? step1.bathrooms : step1.layoutType === 'self_contain' ? 1 : 0;
@@ -74,7 +75,7 @@ export function CreateListingMediaScreen() {
       description: step1.description.trim() || null,
       landlord_id: step1.landlordId,
       category: 'student_housing',
-      layout_type: step1.layoutType,
+      layout_type: step1.layoutType!,
       price_amount: parseFloat(step1.price.replace(/,/g, '')),
       lease_term: 'per_annum',
       units_available: step1.units,
@@ -86,8 +87,8 @@ export function CreateListingMediaScreen() {
       location_landmark: step2.landmark.trim(),
       city: profile?.city || 'Minna',
       campus: step2.selectedCampus || step2.selectedSchool,
-      latitude: coords.latitude,
-      longitude: coords.longitude,
+      latitude: step2.coords?.latitude ?? null,
+      longitude: step2.coords?.longitude ?? null,
       is_shared_bathroom: step3.selectedAmenities.includes('is_shared_bathroom'),
       is_shared_kitchen: step3.selectedAmenities.includes('is_shared_kitchen'),
       has_borehole: step3.selectedAmenities.includes('has_borehole'),
@@ -105,12 +106,14 @@ export function CreateListingMediaScreen() {
       })(),
       total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
       region_path: step2.regionPath.length > 0 ? step2.regionPath : null,
+      enable_self_guided_tour: step2.enableSelfGuidedTour,
+      enable_guided_tour: step2.enableGuidedTour,
     };
   };
 
   const handleCreate = async () => {
     const listingInput = buildListingInput();
-    const { id } = await createMutate(listingInput as any);
+    const { id } = await createMutate(listingInput);
 
     let primaryUrl = null;
     if (step5.heroImage) {
@@ -135,13 +138,18 @@ export function CreateListingMediaScreen() {
 
     showToast({ message: 'Listing published successfully!', type: 'success' });
     reset();
+    // Same stale-stack reasoning as handleUpdate: drop the wizard slides
+    // before landing on inventory so back never returns into the wizard.
+    if (router.canDismiss()) {
+      router.dismissAll();
+    }
     router.replace('/admin/total-inventory');
   };
 
   const handleUpdate = async () => {
     const id = editListingId!;
 
-    const updatePayload: any = { ...buildListingInput() };
+    const updatePayload: Partial<CreateListingInput> = { ...buildListingInput() };
     delete updatePayload.category;
     if (!step2.transferAdminId) {
       delete updatePayload.admin_id;
@@ -164,7 +172,7 @@ export function CreateListingMediaScreen() {
       }
       await updateListingPrimaryImage(id, newHeroUrl);
     } else {
-      await updateListingPrimaryImage(id, null as any);
+      await updateListingPrimaryImage(id, null);
     }
 
     const finalUrls: string[] = [];
@@ -209,7 +217,14 @@ export function CreateListingMediaScreen() {
     queryClient.invalidateQueries({ queryKey: ['listings'] });
     showToast({ message: 'Listing updated successfully!', type: 'success' });
     reset();
-    router.replace(`/admin/listing/${id}` as any);
+    // Clear the wizard slides off the stack first: `replace` alone only swaps
+    // the top route (step 5), leaving steps 1-4 underneath — so the details
+    // screen's back button would pop back into step 4. Dismissing first drops
+    // the whole wizard, then replace lands cleanly on the details page.
+    if (router.canDismiss()) {
+      router.dismissAll();
+    }
+    router.replace(`/admin/listing/${id}`);
   };
 
   const handlePublish = async () => {
@@ -253,8 +268,9 @@ export function CreateListingMediaScreen() {
       } else {
         await handleCreate();
       }
-    } catch (error: any) {
-      const msg = error?.message || String(error);
+    } catch (error) {
+      console.error('[CreateListing] Failed to save listing:', error);
+      const msg = error instanceof Error ? error.message : String(error);
       showToast({ message: msg || 'Failed to save listing.', type: 'error' });
     } finally {
       setIsPublishing(false);
@@ -267,7 +283,7 @@ export function CreateListingMediaScreen() {
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
-          <BackButton hasBackground={false} />
+          <BackButton hasBackground={false} onPress={exitWizard} />
           <Text style={styles.stepIndicator}>Step 5 of 5</Text>
         </View>
 

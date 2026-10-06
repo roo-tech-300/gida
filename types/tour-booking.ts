@@ -19,6 +19,8 @@ export type TourListingBrief = {
   price_amount: number;
   latitude: number | null;
   longitude: number | null;
+  enable_self_guided_tour: boolean;
+  enable_guided_tour: boolean;
 };
 
 export type TourBookingWithListing = TourBooking & {

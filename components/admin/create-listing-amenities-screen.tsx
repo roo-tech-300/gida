@@ -5,7 +5,9 @@ import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { BackButton } from '@/components/ui/back-button';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 type Amenity = {
@@ -30,6 +32,7 @@ const amenities: Amenity[] = [
 export function CreateListingAmenitiesScreen() {
   const { data, setStep3 } = useCreateListingForm();
   const { step3 } = data;
+  const exitWizard = useExitListingWizard();
   const selectedSet = new Set(step3.selectedAmenities);
   const [inputValue, setInputValue] = useState('');
 
@@ -57,7 +60,7 @@ export function CreateListingAmenitiesScreen() {
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
-          <View />
+          <BackButton hasBackground={false} onPress={exitWizard} />
           <Text style={styles.stepIndicator}>Step 3 of 5</Text>
         </View>
 

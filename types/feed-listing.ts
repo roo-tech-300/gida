@@ -57,8 +57,8 @@ export type DbListing = {
   admin_id: string;
   lease_term: string;
   units_available: number;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   campus: string | null;
   rules: string[];
   max_roommates: number;
@@ -66,6 +66,8 @@ export type DbListing = {
   property_tier?: number;
   abstract_slots_available?: number;
   region_path?: string[] | null;
+  enable_self_guided_tour?: boolean;
+  enable_guided_tour?: boolean;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -107,8 +109,8 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     category: item.category || '',
     featured: item.featured || false,
     layoutType: item.layout_type,
-    latitude: Number(item.latitude) || 6.5244,
-    longitude: Number(item.longitude) || 3.3792,
+    latitude: item.latitude != null ? Number(item.latitude) : 6.5244,
+    longitude: item.longitude != null ? Number(item.longitude) : 3.3792,
     locationFee: 500,
     isLocationUnlocked: false,
     estateId: item.estate_id,
@@ -154,9 +156,13 @@ export function dbToListingForm(item: DbListing) {
       selectedSchool: item.campus,
       selectedCampus: item.campus,
       landmark: item.location_landmark,
-      coords: { latitude: Number(item.latitude), longitude: Number(item.longitude) },
+      coords: item.latitude != null && item.longitude != null
+        ? { latitude: Number(item.latitude), longitude: Number(item.longitude) }
+        : null,
       regionPath: item.region_path ?? [],
       transferAdminId: item.admin_id,
+      enableSelfGuidedTour: item.enable_self_guided_tour ?? true,
+      enableGuidedTour: item.enable_guided_tour ?? true,
     },
     step3: {
       selectedAmenities: amenityBooleans.filter((key) => item[key]),

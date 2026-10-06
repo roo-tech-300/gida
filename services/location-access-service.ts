@@ -73,13 +73,24 @@ export async function unlockLocationForLodge(args: { creditId: string; listingId
   }
 }
 
-export async function initializeLocationPayment(listingId: string): Promise<InitializeLocationPaymentResult> {
+export async function initializeLocationPayment(
+  listingId: string,
+): Promise<InitializeLocationPaymentResult> {
   const userId = await currentUserId();
   if (!workerUrl()) {
     return { simulated: true };
   }
   if (!userId) {
     throw new Error('You must be signed in to unlock location access.');
+  }
+
+  const { data: listing } = await supabase
+    .from('listings')
+    .select('enable_self_guided_tour')
+    .eq('id', listingId)
+    .maybeSingle();
+  if (listing && (listing as { enable_self_guided_tour?: boolean | null }).enable_self_guided_tour === false) {
+    throw new Error('Solo visits are turned off for this listing right now.');
   }
 
   const { data: existingAccess } = await supabase

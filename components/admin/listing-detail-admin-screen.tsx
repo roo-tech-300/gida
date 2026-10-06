@@ -50,7 +50,7 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
     const formData = dbToListingForm(dbListing);
     formData.step5.galleryImages = photos || [];
     prefillForEdit(formData, property.id);
-    router.push('/admin/create-listing-core-specs' as any);
+    router.push('/admin/create-listing-core-specs');
   };
 
   return (
@@ -98,6 +98,11 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
         </View>
 
         <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
+
+        <View style={styles.tourStateSection}>
+          <Text style={styles.sectionTitle}>Tour Availability</Text>
+          <TourAvailabilityState dbListing={dbListing} />
+        </View>
       </PropertyBottomSheet>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
@@ -134,6 +139,41 @@ function StatItem({ label, value }: { label: string; value: string }) {
     <View style={styles.statItem}>
       <Text style={styles.statValue}>{value}</Text>
       <Text style={styles.statLabel}>{label}</Text>
+    </View>
+  );
+}
+
+function TourStateRow({ label, enabled }: { label: string; enabled: boolean }) {
+  return (
+    <View style={styles.tourRow}>
+      <Text style={styles.tourLabel}>{label}</Text>
+      <View style={[styles.tourPill, enabled ? styles.tourPillOn : styles.tourPillOff]}>
+        <Text style={[styles.tourPillText, enabled ? styles.tourPillTextOn : styles.tourPillTextOff]}>
+          {enabled ? 'Enabled' : 'Disabled'}
+        </Text>
+      </View>
+    </View>
+  );
+}
+
+function TourAvailabilityState({ dbListing }: { dbListing: DbListing }) {
+  const selfGuided = dbListing.enable_self_guided_tour ?? true;
+  const guided = dbListing.enable_guided_tour ?? true;
+  const hasLocation = dbListing.latitude != null && dbListing.longitude != null;
+  const toursOff = !selfGuided && !guided;
+
+  return (
+    <View style={styles.tourCard}>
+      <TourStateRow label="Self-guided tour" enabled={selfGuided} />
+      <TourStateRow label="Guided tour" enabled={guided} />
+      <TourStateRow label="Location mapped" enabled={hasLocation} />
+      {toursOff || !hasLocation ? (
+        <Text style={styles.tourNote}>
+          {!hasLocation
+            ? 'No mapped location — the Tour button is hidden from students until GPS coordinates are set.'
+            : 'Both tour types are off — the Tour button is hidden from students. Change this in Edit.'}
+        </Text>
+      ) : null}
     </View>
   );
 }
@@ -255,6 +295,58 @@ const styles = StyleSheet.create({
     ...DesignTypography.bodyMd,
     color: DesignColors.onSurface,
     fontFamily,
+  },
+  tourStateSection: {
+    marginBottom: DesignSpacing.xl,
+  },
+  tourCard: {
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderRadius: DesignRadius.sm,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    padding: DesignSpacing.md,
+    gap: DesignSpacing.sm,
+  },
+  tourRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+  },
+  tourLabel: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+  },
+  tourPill: {
+    paddingHorizontal: 12,
+    paddingVertical: 4,
+    borderRadius: 999,
+    borderWidth: 1,
+  },
+  tourPillOn: {
+    backgroundColor: DesignColors.successContainer,
+    borderColor: DesignColors.successContainer,
+  },
+  tourPillOff: {
+    backgroundColor: DesignColors.dangerContainer,
+    borderColor: DesignColors.dangerContainer,
+  },
+  tourPillText: {
+    ...DesignTypography.labelSm,
+    fontFamily,
+    fontWeight: '700',
+  },
+  tourPillTextOn: {
+    color: DesignColors.success,
+  },
+  tourPillTextOff: {
+    color: DesignColors.danger,
+  },
+  tourNote: {
+    ...DesignTypography.bodyMd,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    lineHeight: 20,
   },
   actionBar: {
     position: 'absolute',

@@ -6,12 +6,15 @@ import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { BackButton } from '@/components/ui/back-button';
 import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingRegionSelect } from '@/components/admin/listing-region-select';
 import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
+import { TourEnablementToggle } from '@/components/admin/tour-enablement-toggle';
+import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
@@ -21,6 +24,7 @@ export function CreateListingLocationScreen() {
   const { step2 } = data;
   const { showToast } = useAppToast();
   const alert = useCustomAlert();
+  const exitWizard = useExitListingWizard();
   const [lockLoading, setLockLoading] = useState(false);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
@@ -84,7 +88,7 @@ export function CreateListingLocationScreen() {
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
-          <View />
+          <BackButton hasBackground={false} onPress={exitWizard} />
           <Text style={styles.stepIndicator}>Step 2 of 5</Text>
         </View>
 
@@ -201,6 +205,15 @@ export function CreateListingLocationScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Tours</Text>
+          <TourEnablementToggle
+            enableSelfGuided={step2.enableSelfGuidedTour}
+            enableGuided={step2.enableGuidedTour}
+            onChange={(next) => setStep2(next)}
+          />
+        </View>
+
+        <View style={styles.fieldGroup}>
           <View style={styles.gpsCard}>
             <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <View style={styles.gpsHeader}>
@@ -222,7 +235,7 @@ export function CreateListingLocationScreen() {
                 color={step2.coords ? DesignColors.surfaceContainerLowest : DesignColors.secondary}
               />
               <Text style={[styles.lockBtnText, step2.coords && styles.lockBtnTextActive]}>
-                {lockLoading ? 'Locking...' : step2.coords ? `${step2.coords.latitude.toFixed(4)}, ${step2.coords.longitude.toFixed(4)}` : 'Lock Live Location'}
+                {lockLoading ? 'Locking...' : step2.coords?.latitude != null && step2.coords?.longitude != null ? `${step2.coords.latitude.toFixed(4)}, ${step2.coords.longitude.toFixed(4)}` : 'Lock Live Location'}
               </Text>
             </Pressable>
             <View style={styles.mapDeco}>

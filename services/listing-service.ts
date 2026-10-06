@@ -30,8 +30,8 @@ export type CreateListingInput = {
   location_landmark: string;
   city: string;
   campus: string | null;
-  latitude: number;
-  longitude: number;
+  latitude: number | null;
+  longitude: number | null;
   is_shared_bathroom: boolean;
   is_shared_kitchen: boolean;
   has_borehole: boolean;
@@ -46,6 +46,8 @@ export type CreateListingInput = {
   total_floors: number | null;
   property_tier?: number | null;
   region_path?: string[] | null;
+  enable_self_guided_tour: boolean;
+  enable_guided_tour: boolean;
 };
 
 export type CreateListingPhoto = {
@@ -102,6 +104,8 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
       total_floors: input.total_floors,
       property_tier: input.property_tier ?? null,
       region_path: input.region_path ?? null,
+      enable_self_guided_tour: input.enable_self_guided_tour,
+      enable_guided_tour: input.enable_guided_tour,
       primary_image: null,
     })
     .select('id')
@@ -138,7 +142,7 @@ export async function uploadListingImage(
 
 export async function updateListingPrimaryImage(
   listingId: string,
-  imageUrl: string,
+  imageUrl: string | null,
 ): Promise<void> {
   const { error } = await supabase
     .from('listings')
@@ -163,6 +167,8 @@ export type UpdateListingInput = {
   price_amount?: number;
   status?: string;
   region_path?: string[] | null;
+  enable_self_guided_tour?: boolean;
+  enable_guided_tour?: boolean;
 };
 
 export async function updateListing(listingId: string, input: UpdateListingInput): Promise<void> {

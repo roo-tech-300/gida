@@ -25,6 +25,8 @@ type Props = {
   locationFee?: number;
   onClose: () => void;
   onAssistedTour: () => void;
+  enableGuided?: boolean;
+  enableSelfGuided?: boolean;
 };
 
 type Step = 'type' | 'unassisted';
@@ -39,6 +41,8 @@ export function BookTourModal({
   locationFee,
   onClose,
   onAssistedTour,
+  enableGuided = true,
+  enableSelfGuided = true,
 }: Props) {
   const [step, setStep] = useState<Step>('type');
   const [paymentOpen, setPaymentOpen] = useState(false);
@@ -80,6 +84,16 @@ export function BookTourModal({
   };
 
   const fee = (locationFee ?? 500).toLocaleString('en-US');
+  const guidedAvailable = enableGuided;
+  const selfGuidedAvailable = enableSelfGuided;
+  const toursAvailable = guidedAvailable || selfGuidedAvailable;
+
+  useEffect(() => {
+    if (!visible) return;
+    if (step === 'unassisted' && !selfGuidedAvailable) {
+      setStep('type');
+    }
+  }, [visible, step, selfGuidedAvailable]);
 
   const handlePay = async (): Promise<boolean> => {
     try {
@@ -156,24 +170,37 @@ export function BookTourModal({
                   Choose how you&apos;d like to explore <Text style={styles.bold}>{propertyTitle}</Text>.
                 </Text>
 
-                <View style={styles.optionList}>
-                  <TourOptionCard
-                    icon="people-outline"
-                    label="GUIDED"
-                    title="Guided Full Inspection"
-                    description="Explore the inside with a Gida Agent. Full interior access, inspect amenities, and ask questions on the spot."
-                    feeLabel="₦2,000 guided tour"
-                    onPress={onAssistedTour}
-                  />
-                  <TourOptionCard
-                    icon="navigate-outline"
-                    label="SOLO"
-                    title="Location & Exterior Check"
-                    description="Visit on your own time. Perfect for scoping out the neighborhood and exact location (exterior only)."
-                    feeLabel={`₦${fee} exterior unlock`}
-                    onPress={() => setStep('unassisted')}
-                  />
-                </View>
+                {!toursAvailable ? (
+                  <View style={styles.unavailableBox}>
+                    <Text style={styles.unavailableTitle}>Tours aren&apos;t available</Text>
+                    <Text style={styles.unavailableText}>
+                      The host has turned off tours for this listing right now. Check back later.
+                    </Text>
+                  </View>
+                ) : (
+                  <View style={styles.optionList}>
+                    {enableGuided ? (
+                      <TourOptionCard
+                        icon="people-outline"
+                        label="GUIDED"
+                        title="Guided Full Inspection"
+                        description="Explore the inside with a Gida Agent. Full interior access, inspect amenities, and ask questions on the spot."
+                        feeLabel="₦2,000 guided tour"
+                        onPress={onAssistedTour}
+                      />
+                    ) : null}
+                    {enableSelfGuided ? (
+                      <TourOptionCard
+                        icon="navigate-outline"
+                        label="SOLO"
+                        title="Location & Exterior Check"
+                        description="Visit on your own time. Perfect for scoping out the neighborhood and exact location (exterior only)."
+                        feeLabel={`₦${fee} exterior unlock`}
+                        onPress={() => setStep('unassisted')}
+                      />
+                    ) : null}
+                  </View>
+                )}
               </ScrollView>
             ) : (
               <LocationCheckStep

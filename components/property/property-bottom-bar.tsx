@@ -16,6 +16,7 @@ type Props = {
 
 export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, showSpinner = false, liked = false, onToggleSave }: Props) {
   const insets = useSafeAreaInsets();
+  const showTour = !!onVisitProperty;
 
   return (
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
@@ -31,19 +32,19 @@ export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPr
         />
       </Pressable>
 
-      <View style={styles.tourWrap}>
-        {onVisitProperty && (
+      {showTour ? (
+        <View style={styles.tourWrap}>
           <Pressable accessibilityRole="button" onPress={onVisitProperty} style={styles.tourButton}>
             <Ionicons name="calendar-outline" size={18} color={DesignColors.textPrimary} />
             <Text style={styles.tourText}>Tour</Text>
           </Pressable>
-        )}
-      </View>
+        </View>
+      ) : null}
 
       <Pressable
         accessibilityRole="button"
         onPress={showSpinner ? undefined : onCtaPress}
-        style={[styles.primaryCtaButton, showSpinner && { opacity: 0.7 }]}
+        style={[styles.primaryCtaButton, showTour && styles.primaryCtaButtonWithTour, showSpinner && { opacity: 0.7 }]}
         disabled={showSpinner}
       >
         {showSpinner ? (
@@ -111,6 +112,12 @@ const styles = StyleSheet.create({
     height: 48,
     backgroundColor: DesignColors.primary,
     borderRadius: DesignRadius.full,
+  },
+  // When Tour is shown, both buttons share the row equally (each flex: 1).
+  // When Tour is hidden, the primary CTA keeps flex: 1 but the empty tour
+  // slot is gone entirely, so it naturally stretches across the freed space.
+  primaryCtaButtonWithTour: {
+    flex: 1,
   },
   primaryCtaText: {
     ...DesignTypography.bodyMd,

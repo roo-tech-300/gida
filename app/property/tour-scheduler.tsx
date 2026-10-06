@@ -1,5 +1,5 @@
 import { ActivityIndicator, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 
 import { TourAdminBlockedScreen } from '@/components/property/tour-admin-blocked-screen';
 import { TourSchedulerModal } from '@/components/property/tour-scheduler-modal';
@@ -22,6 +22,17 @@ export default function TourSchedulerRoute() {
 
   if (!data) {
     return <View style={styles.center} />;
+  }
+
+  if (data.dbListing.enable_guided_tour === false) {
+    return (
+      <TourAdminBlockedScreen
+        onRetry={() => router.back()}
+        showRetry={false}
+        title="Tours are turned off"
+        message="The host isn&apos;t offering guided tours for this listing right now. Check back later."
+      />
+    );
   }
 
   if (adminError || !admin) {

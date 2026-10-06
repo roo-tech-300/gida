@@ -36,7 +36,7 @@ async function fetchListings(ids: string[]): Promise<Map<string, TourListingBrie
   for (const chunk of chunks) {
     const { data } = await supabase
       .from('listings')
-      .select('id, title, location_landmark, city, primary_image, price_amount, latitude, longitude')
+      .select('id, title, location_landmark, city, primary_image, price_amount, latitude, longitude, enable_self_guided_tour, enable_guided_tour')
       .in('id', chunk);
     for (const row of (data as (TourListingBrief & { id: string })[] | null) ?? []) {
       listings.set(row.id, row);

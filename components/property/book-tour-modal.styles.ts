@@ -263,4 +263,27 @@ export const styles = StyleSheet.create({
     color: DesignColors.primaryBright,
     fontFamily,
   },
+  unavailableBox: {
+    alignItems: 'center',
+    gap: 8,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderRadius: DesignRadius.md,
+    padding: 20,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+  },
+  unavailableTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: DesignColors.onSurface,
+    fontFamily,
+    textAlign: 'center',
+  },
+  unavailableText: {
+    fontSize: 13,
+    lineHeight: 18,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    textAlign: 'center',
+  },
 });

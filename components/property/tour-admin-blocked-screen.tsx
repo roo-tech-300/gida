@@ -5,21 +5,33 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
-export function TourAdminBlockedScreen({ onRetry }: { onRetry: () => void }) {
+type Props = {
+  onRetry: () => void;
+  title?: string;
+  message?: string;
+  showRetry?: boolean;
+};
+
+export function TourAdminBlockedScreen({
+  onRetry,
+  title,
+  message,
+  showRetry = true,
+}: Props) {
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
       <View style={styles.center}>
         <View style={styles.iconWrap}>
           <Ionicons name="shield-outline" size={40} color={DesignColors.primaryBright} />
         </View>
-        <Text style={styles.title}>Tours aren&apos;t available right now</Text>
-        <Text style={styles.subtitle}>
-          We couldn&apos;t load the house admin for this property. Please try again in a moment.
-        </Text>
-        <Pressable onPress={onRetry} style={({ pressed }) => [styles.retryButton, pressed && styles.retryPressed]}>
+        <Text style={styles.title}>{title ?? "Tours aren't available right now"}</Text>
+        <Text style={styles.subtitle}>{message ?? "We couldn't load the house admin for this property. Please try again in a moment."}</Text>
+        {showRetry ? (
+          <Pressable onPress={onRetry} style={({ pressed }) => [styles.retryButton, pressed && styles.retryPressed]}>
           <Ionicons name="refresh" size={18} color={DesignColors.onPrimary} />
           <Text style={styles.retryText}>Try Again</Text>
-        </Pressable>
+          </Pressable>
+        ) : null}
         <Pressable onPress={() => router.back()} style={styles.backLink}>
           <Text style={styles.backText}>Go Back</Text>
         </Pressable>

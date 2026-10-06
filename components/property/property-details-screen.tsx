@@ -126,6 +126,9 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     router.push(`/property/tour-scheduler?id=${property.id}`);
   };
 
+  const toursEnabled = (dbListing?.enable_guided_tour ?? true) || (dbListing?.enable_self_guided_tour ?? true);
+  const hasLocation = dbListing == null || (dbListing.latitude != null && dbListing.longitude != null);
+  const toursAvailable = toursEnabled && hasLocation;
   const isSaved = savedIds.includes(property.id);
 
   const handleToggleSave = () => {
@@ -233,7 +236,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         ctaLabel={ctaLabel}
         ctaIcon={ctaIcon}
         onCtaPress={onCtaPress}
-        onVisitProperty={() => setTourModalOpen(true)}
+        onVisitProperty={toursAvailable || !!activeTour ? () => setTourModalOpen(true) : undefined}
         showSpinner={ctaPending}
         liked={isSaved}
         onToggleSave={handleToggleSave}
@@ -254,6 +257,8 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         latitude={property.latitude}
         longitude={property.longitude}
         locationFee={property.locationFee}
+        enableGuided={(dbListing?.enable_guided_tour ?? true) || !!activeTour}
+        enableSelfGuided={dbListing?.enable_self_guided_tour ?? true}
         onClose={() => setTourModalOpen(false)}
         onAssistedTour={handleAssistedTour}
       />

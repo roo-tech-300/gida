@@ -20,7 +20,7 @@ export type TourAvailabilityEntry = {
 
 export type ReserveTourResult = {
   booking: TourBooking | null;
-  error?: 'slot_full' | 'already_booked' | 'admin_unavailable' | 'failed';
+  error?: 'slot_full' | 'already_booked' | 'admin_unavailable' | 'listing_not_found' | 'no_location' | 'tours_disabled' | 'failed';
 };
 
 export async function fetchTourAvailability(listingId: string, adminId?: string | null, limit = 30): Promise<TourAvailabilityEntry[]> {
@@ -63,6 +63,22 @@ export async function reserveTour(args: {
     return { booking: null, error: 'failed' };
   }
   try {
+    const listingBrief = await fetchTourListingBrief(args.listingId);
+    if (!listingBrief) {
+      return { booking: null, error: 'listing_not_found' };
+    }
+
+    // Check if listing has location enabled for tours
+    if (listingBrief.latitude === null || listingBrief.longitude === null) {
+      return { booking: null, error: 'no_location' };
+    }
+
+    // This RPC books a guided (admin-accompanied) tour, so the guided flag is
+    // what gates it. Self-guided visits do not go through this flow.
+    if (!listingBrief.enable_guided_tour) {
+      return { booking: null, error: 'tours_disabled' };
+    }
+
     const { data, error } = await supabase.rpc('reserve_tour', {
       p_listing_id: args.listingId,
       p_admin_id: args.adminId,
@@ -79,6 +95,15 @@ export async function reserveTour(args: {
       }
       if (message.includes('admin_unavailable')) {
         return { booking: null, error: 'admin_unavailable' };
+      }
+      if (message.includes('tours_disabled')) {
+        return { booking: null, error: 'tours_disabled' };
+      }
+      if (message.includes('no_location')) {
+        return { booking: null, error: 'no_location' };
+      }
+      if (message.includes('listing_not_found')) {
+        return { booking: null, error: 'listing_not_found' };
       }
       if (message.includes('23505') || message.includes('duplicate')) {
         return { booking: null, error: 'already_booked' };
@@ -200,7 +225,7 @@ export type TourBookingNotifyInput = {
 async function fetchTourListingBrief(listingId: string): Promise<TourListingBrief | null> {
   const { data, error } = await supabase
     .from('listings')
-    .select('title, location_landmark, city, primary_image, price_amount, latitude, longitude')
+    .select('title, location_landmark, city, primary_image, price_amount, latitude, longitude, enable_self_guided_tour, enable_guided_tour')
     .eq('id', listingId)
     .maybeSingle();
   if (error || !data) {

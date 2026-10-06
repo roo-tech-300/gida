@@ -92,7 +92,7 @@ export const styles = StyleSheet.create({
     fontWeight: '700',
   },
   chatLabel: {
-    ...DesignTypography.labelMd,
+    ...DesignTypography.labelLg,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     marginBottom: DesignSpacing.sm,

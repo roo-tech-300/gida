@@ -7,13 +7,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { BackButton } from '@/components/ui/back-button';
 import { useCreateListingForm } from '@/context/create-listing-context';
+import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 
 const ROOMMATE_OPTIONS = [1, 2, 3, 4];
 
 export function CreateListingRulesScreen() {
   const { data, setStep4 } = useCreateListingForm();
   const { step4 } = data;
+  const exitWizard = useExitListingWizard();
   const [inputValue, setInputValue] = useState('');
 
   const addRule = (rule: string) => {
@@ -33,7 +36,7 @@ export function CreateListingRulesScreen() {
         style={{ flex: 1, backgroundColor: DesignColors.surfaceContainerLowest }}
       >
         <View style={styles.topBar}>
-          <View />
+          <BackButton hasBackground={false} onPress={exitWizard} />
           <Text style={styles.stepIndicator}>Step 4 of 5</Text>
         </View>
 

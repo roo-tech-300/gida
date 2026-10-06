@@ -104,6 +104,19 @@ export function TourSchedulerModal({
         return;
       }
 
+      if (reserve.error === 'tours_disabled') {
+        showToast({ message: 'Tours are no longer available for this listing.', type: 'error' });
+        return;
+      }
+      if (reserve.error === 'no_location') {
+        showToast({ message: "This listing doesn't have a mapped location yet, so tours can't be scheduled.", type: 'error' });
+        return;
+      }
+      if (reserve.error === 'listing_not_found') {
+        showToast({ message: 'This listing is no longer available.', type: 'error' });
+        return;
+      }
+
       let bookingId: string;
       let bookingDate: string;
       let bookingTime: string;

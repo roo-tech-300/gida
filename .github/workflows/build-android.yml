@@ -31,6 +31,13 @@ jobs:
           node-version: 22
           cache: npm
 
+      - name: Setup Java & Cache Gradle
+        uses: actions/setup-java@v5
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: gradle
+
       - name: Install dependencies
         run: npm ci
 
@@ -111,27 +118,8 @@ jobs:
           gradle_file.write_text(contents)
           PY
 
-      - name: Setup Java & Cache Gradle
-        uses: actions/setup-java@v5
-        with:
-          distribution: temurin
-          java-version: 17
-          cache: gradle
-
       - name: Set gradlew executable permissions
         run: chmod +x android/gradlew
-
-      - name: Diagnose Gradle settings startup
-        working-directory: android
-        run: |
-          set -euo pipefail
-          echo "Gradle startup probe at $(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          node --version
-          echo "Resolving React Native Gradle plugin..."
-          timeout 120s node --print "require.resolve('@react-native/gradle-plugin/package.json', { paths: [require.resolve('react-native/package.json')] })"
-          echo "Resolving Expo modules autolinking..."
-          timeout 120s node --print "require.resolve('expo-modules-autolinking/package.json', { paths: [require.resolve('expo/package.json')] })"
-          echo "Gradle settings Node probes completed."
 
       - name: Build APK
         working-directory: android
@@ -142,13 +130,14 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseParallelGC' -Dorg.gradle.caching=true -Dorg.gradle.parallel=true"
         run: |
           if [ "${{ github.ref_name }}" = "dev" ]; then
             echo "Building development APK for dev branch"
-            ./gradlew assembleDebug --no-daemon --stacktrace --info
+            ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
           else
             echo "Building production APK for builds branch"
-            ./gradlew assembleRelease --no-daemon --stacktrace --info
+            ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
           fi
 
       - name: Verify production APK signature

@@ -9,7 +9,12 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   },
   updates: {
     ...config.updates,
+    enabled: true,
     url: `https://u.expo.dev/${process.env.EXPO_PROJECT_ID ?? '010b9c26-acf0-4e9c-b630-247857b66151'}`,
+    requestHeaders: {
+      ...config.updates?.requestHeaders,
+      'expo-channel-name': process.env.EXPO_UPDATES_CHANNEL ?? 'production',
+    },
     checkAutomatically: 'ON_LOAD',
     fallbackToCacheTimeout: 0,
   },

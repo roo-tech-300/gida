@@ -3,6 +3,23 @@ import type { ExpoConfig, ConfigContext } from 'expo/config';
 export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: config.name ?? 'gida',
+  slug: config.slug ?? 'Gida',
+  runtimeVersion: {
+    policy: 'appVersion',
+  },
+  updates: {
+    ...config.updates,
+    url: `https://u.expo.dev/${process.env.EXPO_PROJECT_ID ?? '010b9c26-acf0-4e9c-b630-247857b66151'}`,
+    checkAutomatically: 'ON_LOAD',
+    fallbackToCacheTimeout: 0,
+  },
+  extra: {
+    ...config.extra,
+    eas: {
+      ...config.extra?.eas,
+      projectId: process.env.EXPO_PROJECT_ID ?? '010b9c26-acf0-4e9c-b630-247857b66151',
+    },
+  },
   android: {
     ...config.android,
     intentFilters: [

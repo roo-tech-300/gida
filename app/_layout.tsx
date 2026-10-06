@@ -16,6 +16,7 @@ import { IS_APP_LAUNCHED } from '@/constants/launch';
 import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
+import { checkForAppUpdate } from '@/src/lib/updates/updates';
 
 const PUBLIC_WEB_CONTENT_PATHS: readonly string[] = [
   '/housing/minna',
@@ -98,6 +99,10 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
 export default function RootLayout() {
   useNotificationPermissionPlatform();
+
+  useEffect(() => {
+    void checkForAppUpdate();
+  }, []);
 
   return (
     <QueryClientProvider client={queryClient}>

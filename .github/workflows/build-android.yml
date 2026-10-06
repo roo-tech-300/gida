@@ -34,6 +34,19 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Validate Expo project ID
+        env:
+          EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
+        run: test -n "$EXPO_PROJECT_ID" || { echo "Set the EXPO_PROJECT_ID repository variable before building OTA-enabled APKs."; exit 1; }
+
+      - name: Set update channel
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            echo "EXPO_UPDATES_CHANNEL=tester" >> "$GITHUB_ENV"
+          else
+            echo "EXPO_UPDATES_CHANNEL=production" >> "$GITHUB_ENV"
+          fi
+
       - name: Create .env file
         run: |
           echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> .env
@@ -41,6 +54,8 @@ jobs:
           echo "EXPO_PUBLIC_WORKER_URL=${{ secrets.EXPO_PUBLIC_WORKER_URL }}" >> .env
 
       - name: Prebuild Android project
+        env:
+          EXPO_PROJECT_ID: ${{ vars.EXPO_PROJECT_ID }}
         run: npx expo prebuild --platform android
 
       - name: Configure production signing

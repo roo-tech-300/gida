@@ -31,15 +31,72 @@
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
     <script type="module" crossorigin src="/landing/assets/index-C72Ql4WQ.js"></script>
     <link rel="stylesheet" crossorigin href="/landing/assets/index-NGWS6tDq.css">
+    <style>
+      .download-app-link[hidden] {
+        display: none;
+      }
+
+      .download-app-link {
+        position: fixed;
+        right: 24px;
+        bottom: 24px;
+        z-index: 1000;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+        min-height: 48px;
+        padding: 12px 20px;
+        border: 1px solid #b8944f;
+        border-radius: 9999px;
+        background: linear-gradient(135deg, #b8944f, #9d7e43);
+        box-shadow: 0 8px 24px #9d7e4359;
+        color: #fff;
+        font: 600 0.875rem "Outfit", sans-serif;
+        letter-spacing: 0.04em;
+        text-decoration: none;
+      }
+
+      .download-app-link:hover {
+        background: linear-gradient(135deg, #5c3c01, #b8944f);
+        color: #fff;
+      }
+
+      @media (max-width: 540px) {
+        .download-app-link {
+          right: 16px;
+          bottom: 16px;
+          left: 16px;
+        }
+      }
+    </style>
   </head>
   <body>
     <div id="root"></div>
+    <a
+      class="download-app-link"
+      href="https://github.com/roo-tech-300/gida/releases/latest/download/Gida.apk"
+      aria-label="Download the Gida Android app"
+      hidden
+    >
+      <svg aria-hidden="true" width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
+        <path d="M17.6 9.48 19.44 6.3a.5.5 0 0 0-.87-.5l-1.86 3.22a11.4 11.4 0 0 0-9.42 0L5.43 5.8a.5.5 0 1 0-.87.5L6.4 9.48A10.2 10.2 0 0 0 2 17h20a10.2 10.2 0 0 0-4.4-7.52ZM7.5 13.25a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Zm9 0a.75.75 0 1 1 0-1.5.75.75 0 0 1 0 1.5Z" />
+        <path d="M4 18h16v1a2 2 0 0 1-2 2h-1v1.5a1 1 0 0 1-2 0V21H9v1.5a1 1 0 0 1-2 0V21H6a2 2 0 0 1-2-2v-1Z" />
+      </svg>
+      Download Android app
+    </a>
     <noscript>
       <main>
         <h1>Student housing and lodges in Nigeria</h1>
         <p>Find verified student lodges, connect with compatible roommates, and get settled with Gida.</p>
         <p><a href="/signup">Get started</a> · <a href="/login">Log in</a></p>
+        <p><a href="https://github.com/roo-tech-300/gida/releases/latest/download/Gida.apk">Get the app (Android APK)</a></p>
       </main>
     </noscript>
+    <script>
+      const isAndroidPhone = /Android/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
+      const downloadAppLink = document.querySelector('.download-app-link');
+      if (isAndroidPhone && downloadAppLink) downloadAppLink.hidden = false;
+    </script>
   </body>
 </html>

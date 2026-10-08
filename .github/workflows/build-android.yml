@@ -140,11 +140,19 @@ jobs:
             ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
           fi
 
+      - name: Rename APK
+        run: |
+          if [ "${{ github.ref_name }}" = "dev" ]; then
+            mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Gida.apk
+          else
+            mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/Gida.apk
+          fi
+
       - name: Verify production APK signature
         if: github.ref_name == 'builds'
         run: |
           set -euo pipefail
-          APK="android/app/build/outputs/apk/release/app-release.apk"
+          APK="android/app/build/outputs/apk/release/Gida.apk"
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
           if [ -z "$APKSIGNER" ]; then
             echo "Could not find apksigner in the Android SDK build-tools."
@@ -159,7 +167,7 @@ jobs:
           tag_name: build-${{ github.run_number }}
           name: "Android build #${{ github.run_number }}"
           body: Automated release APK built from commit ${{ github.sha }}.
-          files: android/app/build/outputs/apk/release/*.apk
+          files: android/app/build/outputs/apk/release/Gida.apk
           fail_on_unmatched_files: true
 
       - name: Upload dev APK artifact
@@ -167,5 +175,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: android-dev-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/*.apk
+          path: android/app/build/outputs/apk/debug/Gida.apk
           if-no-files-found: error

@@ -78,6 +78,8 @@ export default function OnboardingUsernameScreen() {
     updateData({ matricNumber: text });
   }, [updateData]);
 
+  const [focused, setFocused] = useState<'username' | 'matric' | null>(null);
+
   const canContinue = check.kind === 'available';
 
   const handleContinue = () => {
@@ -102,77 +104,87 @@ export default function OnboardingUsernameScreen() {
 
       <OnboardingGlassCard>
         <View style={styles.header}>
-          <Text style={styles.title}>Choose your username</Text>
+          <Text style={styles.title}>Set up your profile</Text>
           <Text style={styles.subtitle}>
-            This is how friends and roommates will tell you apart. It’s unique to you and can’t be shared.
+            Choose a unique username so friends and roommates can find you.
           </Text>
         </View>
 
-        <View style={styles.inputWrap}>
-          <Text style={styles.atSign}>@</Text>
-          <TextInput
-            style={styles.input}
-            placeholder="username"
-            placeholderTextColor={DesignColors.outline}
-            value={normalized}
-            onChangeText={handleChange}
-            autoCapitalize="none"
-            autoCorrect={false}
-            autoComplete="off"
-            textContentType="none"
-          />
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>USERNAME</Text>
+          <View style={[styles.inputWrap, focused === 'username' && styles.inputFocused]}>
+            <Text style={styles.atSign}>@</Text>
+            <TextInput
+              style={styles.input}
+              placeholder="username"
+              placeholderTextColor={DesignColors.outline}
+              value={normalized}
+              onChangeText={handleChange}
+              autoCapitalize="none"
+              autoCorrect={false}
+              autoComplete="off"
+              textContentType="none"
+              onFocus={() => setFocused('username')}
+              onBlur={() => setFocused(null)}
+            />
+          </View>
+
+          <View style={styles.statusRow}>
+            {check.kind === 'checking' ? (
+              <>
+                <Ionicons name="time-outline" size={15} color={DesignColors.onSurfaceVariant} />
+                <Text style={styles.statusText}>Checking availability…</Text>
+              </>
+            ) : check.kind === 'available' ? (
+              <>
+                <Ionicons name="checkmark-circle" size={15} color={DesignColors.success} />
+                <Text style={[styles.statusText, styles.availableText]}>@{normalized} is available!</Text>
+              </>
+            ) : check.kind === 'taken' ? (
+              <>
+                <Ionicons name="close-circle" size={15} color={DesignColors.error} />
+                <Text style={[styles.statusText, styles.takenText]}>@{normalized} is taken. Try another.</Text>
+              </>
+            ) : check.kind === 'invalid' ? (
+              <>
+                <Ionicons name="alert-circle" size={15} color={DesignColors.error} />
+                <Text style={[styles.statusText, styles.takenText]}>
+                  Use 3+ characters: letters, numbers, dots or underscores.
+                </Text>
+              </>
+            ) : (
+              <Text style={styles.statusText}>Only lowercase letters, numbers, dots and underscores (no spaces).</Text>
+            )}
+          </View>
         </View>
 
-        <View style={styles.statusRow}>
-          {check.kind === 'checking' ? (
-            <>
-              <Ionicons name="time-outline" size={15} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.statusText}>Checking availability…</Text>
-            </>
-          ) : check.kind === 'available' ? (
-            <>
-              <Ionicons name="checkmark-circle" size={15} color={DesignColors.success} />
-              <Text style={[styles.statusText, styles.availableText]}>@{normalized} is available!</Text>
-            </>
-          ) : check.kind === 'taken' ? (
-            <>
-              <Ionicons name="close-circle" size={15} color={DesignColors.error} />
-              <Text style={[styles.statusText, styles.takenText]}>@{normalized} is taken. Try another.</Text>
-            </>
-          ) : check.kind === 'invalid' ? (
-            <>
-              <Ionicons name="alert-circle" size={15} color={DesignColors.error} />
-              <Text style={[styles.statusText, styles.takenText]}>
-                Use 3+ characters: letters, numbers, dots or underscores.
-              </Text>
-            </>
-          ) : (
-            <Text style={styles.statusText}>Only lowercase letters, numbers, dots and underscores (no spaces).</Text>
-          )}
+        <View style={styles.dividerRow}>
+          <View style={styles.dividerLine} />
+          <Text style={styles.optionalPill}>OPTIONAL</Text>
+          <View style={styles.dividerLine} />
         </View>
-      </OnboardingGlassCard>
 
-      <OnboardingGlassCard>
-        <View style={styles.header}>
-          <Text style={styles.title}>Matric number <Text style={styles.optionalTag}>(optional)</Text></Text>
-          <Text style={styles.subtitle}>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.fieldLabel}>MATRIC NUMBER</Text>
+          <View style={[styles.inputWrap, focused === 'matric' && styles.inputFocused]}>
+            <Ionicons name="school-outline" size={20} color={DesignColors.onSurfaceVariant} style={styles.matricIcon} />
+            <TextInput
+              style={styles.input}
+              placeholder="e.g. FUTM/2023/12345"
+              placeholderTextColor={DesignColors.outline}
+              value={data.matricNumber}
+              onChangeText={handleMatricChange}
+              autoCapitalize="characters"
+              autoCorrect={false}
+              autoComplete="off"
+              textContentType="none"
+              onFocus={() => setFocused('matric')}
+              onBlur={() => setFocused(null)}
+            />
+          </View>
+          <Text style={styles.helperText}>
             Helps verify your student status. You can skip this and continue.
           </Text>
-        </View>
-
-        <View style={styles.inputWrap}>
-          <Ionicons name="id-card-outline" size={20} color={DesignColors.onSurfaceVariant} style={styles.matricIcon} />
-          <TextInput
-            style={styles.input}
-            placeholder="e.g. FUTM/2023/12345"
-            placeholderTextColor={DesignColors.outline}
-            value={data.matricNumber}
-            onChangeText={handleMatricChange}
-            autoCapitalize="characters"
-            autoCorrect={false}
-            autoComplete="off"
-            textContentType="none"
-          />
         </View>
       </OnboardingGlassCard>
 
@@ -187,8 +199,9 @@ export default function OnboardingUsernameScreen() {
 
 const styles = StyleSheet.create({
   header: {
-    gap: DesignSpacing.xs,
+    gap: DesignSpacing.sm,
     alignItems: 'center',
+    marginBottom: DesignSpacing.sm,
   },
   title: {
     ...DesignTypography.headlineLg,
@@ -201,18 +214,32 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     textAlign: 'center',
-    lineHeight: 20,
+    lineHeight: 22,
+    paddingHorizontal: DesignSpacing.sm,
+  },
+  fieldGroup: {
+    gap: DesignSpacing.sm,
+  },
+  fieldLabel: {
+    ...DesignTypography.labelCaps,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    letterSpacing: 1.4,
+    opacity: 0.85,
   },
   inputWrap: {
     flexDirection: 'row',
     alignItems: 'center',
-    height: 56,
+    height: 58,
     borderRadius: DesignRadius.lg,
     backgroundColor: DesignColors.surfaceContainerHigh,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
     paddingHorizontal: DesignSpacing.md,
-    marginTop: DesignSpacing.md,
+  },
+  inputFocused: {
+    borderColor: DesignColors.primary,
+    backgroundColor: DesignColors.surfaceContainerHighest,
   },
   atSign: {
     ...DesignTypography.bodyLg,
@@ -232,13 +259,21 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 6,
-    marginTop: DesignSpacing.sm + 2,
+    marginTop: DesignSpacing.xs,
+    minHeight: 18,
   },
   statusText: {
     ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     flexShrink: 1,
+  },
+  helperText: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    opacity: 0.85,
+    lineHeight: 18,
   },
   availableText: {
     color: DesignColors.success,
@@ -247,11 +282,30 @@ const styles = StyleSheet.create({
   takenText: {
     color: DesignColors.error,
   },
-  optionalTag: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
+  dividerRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    marginVertical: DesignSpacing.xs,
+  },
+  dividerLine: {
+    flex: 1,
+    height: 1,
+    backgroundColor: DesignColors.cardBorder,
+  },
+  optionalPill: {
+    ...DesignTypography.labelCaps,
+    fontSize: 10,
+    color: DesignColors.primaryBright,
     fontFamily,
-    fontWeight: '400',
+    letterSpacing: 1.6,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
+    borderRadius: DesignRadius.full,
+    paddingHorizontal: DesignSpacing.sm,
+    paddingVertical: 4,
+    overflow: 'hidden',
   },
   matricIcon: {
     marginRight: DesignSpacing.sm,

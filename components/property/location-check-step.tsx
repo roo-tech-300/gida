@@ -10,6 +10,7 @@ type Props = {
   latitude?: number;
   longitude?: number;
   isUnlocked: boolean;
+  checkingAccess?: boolean;
   fee: string;
   onUnlock: () => void;
   onGetDirections: () => void;
@@ -21,6 +22,7 @@ export function LocationCheckStep({
   latitude,
   longitude,
   isUnlocked,
+  checkingAccess = false,
   fee,
   onUnlock,
   onGetDirections,
@@ -101,6 +103,7 @@ export function LocationCheckStep({
           accessibilityRole="button"
           style={styles.footerBtn}
           onPress={isUnlocked ? onGetDirections : onUnlock}
+          disabled={checkingAccess}
         >
           <Ionicons
             name={isUnlocked ? 'navigate' : 'lock-open-outline'}
@@ -108,7 +111,7 @@ export function LocationCheckStep({
             color={DesignColors.onPrimary}
           />
           <Text style={styles.footerBtnText}>
-            {isUnlocked ? 'Get Directions' : 'Unlock Location & Directions'}
+            {checkingAccess ? 'Checking payment status…' : isUnlocked ? 'Get Directions' : 'Unlock Location & Directions'}
           </Text>
         </Pressable>
       </View>

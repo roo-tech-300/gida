@@ -4,7 +4,11 @@ export interface UserProfileInput {
     fullName: string;
 }
 
-export async function registerUserAccount(email: string, password: string, profile: UserProfileInput){
+export interface UserRegistrationResult {
+    requiresEmailConfirmation: boolean;
+}
+
+export async function registerUserAccount(email: string, password: string, profile: UserProfileInput): Promise<UserRegistrationResult> {
     const { data: authData, error: authError } = await supabase.auth.signUp({
         email,
         password,
@@ -22,8 +26,18 @@ export async function registerUserAccount(email: string, password: string, profi
         console.error("No user data returned after registration.");
         throw new Error("No user data returned after registration.");
     }
-    return authData.user;
+    return {
+        requiresEmailConfirmation: authData.session === null,
+    };
 };
+
+export async function resendSignupConfirmation(email: string): Promise<void> {
+    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    if (error) {
+        console.error('[Auth] Failed to resend signup confirmation:', error.message);
+        throw new Error(error.message);
+    }
+}
 
 export async function loginUserAccount(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({

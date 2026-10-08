@@ -1,13 +1,11 @@
 import { useState, useCallback } from 'react';
-import { ActivityIndicator, Image, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter , useFocusEffect } from 'expo-router';
 
 import { Ionicons } from '@expo/vector-icons';
-import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 import * as WebBrowser from 'expo-web-browser';
 import { DesignColors } from '@/constants/design';
-import { BackButton } from '@/components/ui/back-button';
 import { formatNaira } from '@/utils/format-naira';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useUserSlotCredits, useExpireSlotCredit } from '@/hooks/use-liquidity';
@@ -16,73 +14,15 @@ import { verifyLodgePayment } from '@/services/lodge-payment-service';
 import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
+import { CheckoutReservationError } from '@/components/payment/checkout-reservation-error';
+import { CheckoutAmountCard, CheckoutHeroCard, CheckoutTopBar } from '@/components/payment/checkout-summary-cards';
 import { styles } from './payment-checkout.styles';
 
-function TopBar({ title }: { title: string }) {
-  return (
-    <View style={styles.topBar}>
-      <BackButton hasBackground={false} />
-      <Text style={styles.topBarTitle}>{title}</Text>
-    </View>
-  );
-}
-
-function GlassHeroCard({ estateName, imageUri, intentSize, targetOccupancy }: { estateName: string; imageUri?: string | null; intentSize: number; targetOccupancy: number }) {
-  return (
-    <View style={styles.heroCard}>
-      {imageUri ? (
-        <>
-          <Image source={{ uri: imageUri }} style={styles.heroImage} />
-          <View style={styles.heroGradient}>
-            <Svg height="100%" width="100%">
-              <Defs>
-                <LinearGradient id="heroMask" x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0%" stopColor={DesignColors.surface} stopOpacity="0" />
-                  <Stop offset="50%" stopColor={DesignColors.surface} stopOpacity="0.5" />
-                  <Stop offset="100%" stopColor={DesignColors.surface} stopOpacity="0.95" />
-                </LinearGradient>
-              </Defs>
-              <Rect width="100%" height="100%" fill="url(#heroMask)" />
-            </Svg>
-          </View>
-        </>
-      ) : (
-        <View style={styles.heroFallback}>
-          <Ionicons name="business-outline" size={28} color={DesignColors.primaryBright} />
-        </View>
-      )}
-      <View style={styles.heroInfo}>
-        <Text style={styles.heroLabel}>RESIDENCE</Text>
-        <Text style={styles.heroTitle} numberOfLines={1}>{estateName}</Text>
-        <View style={styles.heroMeta}>
-          <View style={styles.heroMetaItem}>
-            <Ionicons name="layers-outline" size={13} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.heroMetaText}>Buying {intentSize} of {targetOccupancy}</Text>
-          </View>
-        </View>
-      </View>
-    </View>
-  );
-}
-
-function GlassAmountCard({ amount }: { amount: number }) {
-  return (
-    <View style={styles.amountCard}>
-      <View style={styles.amountHeader}>
-        <View style={styles.amountBar} />
-        <Text style={styles.amountLabel}>TOTAL DUE TODAY</Text>
-      </View>
-      <Text style={styles.amountValue} testID="checkout-amount">{formatNaira(amount)}</Text>
-      <View style={styles.amountDivider} />
-      <Text style={styles.amountNote}>Covers your share of rent.</Text>
-    </View>
-  );
-}
-
+const PAID_CREDIT_STATUSES = new Set(['paid_unmatched', 'matched', 'subletting']);
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: credits, isLoading, isFetching, status, refetch } = useUserSlotCredits();
+  const { data: credits, isLoading, isFetching, status, error, refetch } = useUserSlotCredits();
   const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
 
@@ -93,7 +33,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const [locallyExpired, setLocallyExpired] = useState(false);
 
   const credit = credits?.find((c) => c.id === creditId);
-  const isPaid = credit?.status === 'paid_unmatched' || locallyPaid;
+  const isPaid = (credit ? PAID_CREDIT_STATUSES.has(credit.status) : false) || locallyPaid;
   const isExpired = credit?.status === 'expired' || locallyExpired;
   const isPendingVerification = credit?.pod_verification_status === 'pending_verification';
   const isRejected = credit?.pod_verification_status === 'rejected';
@@ -104,10 +44,33 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
     if (!credit) return;
     try {
       setIsProcessing(true);
+      const paymentCheck = await refetch();
+      if (paymentCheck.isError || !paymentCheck.data) {
+        showToast({ message: 'We could not confirm your payment status. Please try again.', type: 'error' });
+        return;
+      }
+      const latestCredit = paymentCheck.data.find((item) => item.id === creditId);
+      if (!latestCredit) {
+        showToast({ message: 'Reservation not found. Refresh and try again.', type: 'error' });
+        return;
+      }
+      if (PAID_CREDIT_STATUSES.has(latestCredit.status)) {
+        setLocallyPaid(true);
+        showToast({ message: 'You have already paid for this lodge.', type: 'info' });
+        return;
+      }
+      if (latestCredit.status === 'expired' || latestCredit.pod_verification_status === 'rejected') {
+        showToast({ message: 'This reservation is no longer eligible for payment.', type: 'error' });
+        return;
+      }
+      if (latestCredit.pod_verification_status === 'pending_verification') {
+        showToast({ message: 'Your reservation is still awaiting admin approval.', type: 'info' });
+        return;
+      }
       const result = await initPayment({
         creditId,
-        listingId: credit.listing_id ?? '',
-        targetOccupancy: credit.target_occupancy,
+        listingId: latestCredit.listing_id ?? '',
+        targetOccupancy: latestCredit.target_occupancy,
       });
       if (result.simulated) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
@@ -159,26 +122,21 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   if (waitingOnFetch) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
+      <CheckoutTopBar title="Payment" />
       <View style={styles.center}><ActivityIndicator size="large" color={DesignColors.primary} /></View>
     </SafeAreaView>
   );
 
   if (!credit) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
-      <View style={styles.center}>
-        <View style={styles.glassCenterCard}>
-          <View style={styles.errorBadge}><Ionicons name="alert-circle-outline" size={32} color={DesignColors.error} /></View>
-          <Text style={styles.mutedText}>Reservation not found.</Text>
-        </View>
-      </View>
+      <CheckoutTopBar title="Payment" />
+      <CheckoutReservationError hasError={!!error} onRetry={() => { void refetch(); }} />
     </SafeAreaView>
   );
 
   if (isPaid) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
+      <CheckoutTopBar title="Payment" />
       <View style={styles.center} testID="checkout-success">
         <View style={styles.glassCenterCard}>
           <View style={styles.successBadge}><Ionicons name="checkmark" size={40} color={DesignColors.surface} /></View>
@@ -203,7 +161,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   if (isExpired) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
+      <CheckoutTopBar title="Payment" />
       <View style={styles.center}>
         <View style={styles.glassCenterCard}>
           <View style={styles.errorBadge}><Ionicons name="time-outline" size={40} color={DesignColors.error} /></View>
@@ -221,7 +179,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   if (isPendingVerification) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
+      <CheckoutTopBar title="Payment" />
       <View style={styles.center}>
         <View style={styles.glassCenterCard}>
           <View style={styles.pendingBadge}>
@@ -238,7 +196,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   if (isRejected) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Payment" />
+      <CheckoutTopBar title="Payment" />
       <View style={styles.center}>
         <View style={styles.glassCenterCard}>
           <View style={[styles.pendingBadge, { backgroundColor: DesignColors.surfaceContainerHigh, borderColor: DesignColors.borderSoft }]}>
@@ -260,12 +218,12 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <TopBar title="Secure Your Spot" />
+      <CheckoutTopBar title="Secure Your Spot" />
       <ScrollView bounces={false} contentContainerStyle={styles.content}>
-        <GlassHeroCard estateName={estateName} imageUri={credit.estate?.primary_image} intentSize={credit.intent_size} targetOccupancy={credit.target_occupancy} />
+        <CheckoutHeroCard estateName={estateName} imageUri={credit.estate?.primary_image} intentSize={credit.intent_size} targetOccupancy={credit.target_occupancy} />
         {!isPaid && !isExpired && <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />}
         <ReservationManagementCard credit={credit} />
-        <GlassAmountCard amount={amount} />
+        <CheckoutAmountCard amount={amount} />
       </ScrollView>
       <View style={styles.footer}>
         <Pressable

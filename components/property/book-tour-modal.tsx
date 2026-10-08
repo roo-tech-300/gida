@@ -7,6 +7,8 @@ import { useQueryClient } from '@tanstack/react-query';
 import { DesignColors } from '@/constants/design';
 import { useDraggableSheet } from '@/components/claim/use-draggable-sheet';
 import { useUnlockedListings } from '@/hooks/use-location-access';
+import { useWebModalEscape } from '@/hooks/use-web-modal-escape';
+import { useAppToast } from '@/components/ui/toast-card';
 import { initializeLocationPayment, verifyLocationPayment } from '@/services/location-access-service';
 import { extractReference } from '@/utils/paystack';
 import { openDirectionsInMaps } from '@/utils/open-maps';
@@ -46,8 +48,10 @@ export function BookTourModal({
 }: Props) {
   const [step, setStep] = useState<Step>('type');
   const [paymentOpen, setPaymentOpen] = useState(false);
+  const [isCheckingPayment, setIsCheckingPayment] = useState(false);
   const [unlockedOverride, setUnlockedOverride] = useState<boolean | null>(null);
-  const { data: unlockedIds } = useUnlockedListings();
+  const { data: unlockedIds, isLoading: isCheckingAccess, refetch: refetchAccess } = useUnlockedListings();
+  const { showToast } = useAppToast();
   const queryClient = useQueryClient();
   const { panHandlers, sheetHeight } = useDraggableSheet();
 
@@ -61,26 +65,32 @@ export function BookTourModal({
     }
   }, [visible]);
 
-  useEffect(() => {
-    if (Platform.OS !== 'web') return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.key === 'Escape' && visible) {
-        onClose();
-      }
-    };
-    if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-      window.addEventListener('keydown', handleKeyDown);
-    }
-    return () => {
-      if (typeof window !== 'undefined' && typeof window.removeEventListener === 'function') {
-        window.removeEventListener('keydown', handleKeyDown);
-      }
-    };
-  }, [visible, onClose]);
+  useWebModalEscape(visible, onClose);
 
   const handleGetDirections = () => {
     openDirectionsInMaps({ latitude, longitude, placeName: propertyTitle, placeArea: propertyLocation });
+  };
+
+  const handleUnlockPress = async () => {
+    if (isCheckingAccess || isCheckingPayment) return;
+    setIsCheckingPayment(true);
+    try {
+      const status = await refetchAccess();
+      if (status.isError || !status.data) {
+        showToast({ message: 'Could not confirm whether this location is already unlocked. Please retry.', type: 'error' });
+        return;
+      }
+      if (status.data.includes(propertyId)) {
+        setUnlockedOverride(true);
+        return;
+      }
+      setPaymentOpen(true);
+    } catch (error) {
+      console.error('[BookTourModal] Failed to check location payment:', error);
+      showToast({ message: 'Could not confirm location access. Please retry.', type: 'error' });
+    } finally {
+      setIsCheckingPayment(false);
+    }
   };
 
   const fee = (locationFee ?? 500).toLocaleString('en-US');
@@ -127,6 +137,7 @@ export function BookTourModal({
       return verified.unlocked;
     } catch (error) {
       console.error('[BookTourModal] Unlock payment flow failed:', error);
+      showToast({ message: error instanceof Error ? error.message : 'Payment could not be completed. Please try again.', type: 'error' });
       return false;
     }
   };
@@ -208,8 +219,9 @@ export function BookTourModal({
                 latitude={latitude}
                 longitude={longitude}
                 isUnlocked={isUnlocked}
+                checkingAccess={isCheckingAccess || isCheckingPayment}
                 fee={fee}
-                onUnlock={() => setPaymentOpen(true)}
+                onUnlock={() => { void handleUnlockPress(); }}
                 onGetDirections={handleGetDirections}
                 onBack={() => setStep('type')}
               />

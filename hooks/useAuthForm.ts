@@ -21,7 +21,11 @@ export function useAuthForm() {
         setLoading(true);
         try {
             const profileData: UserProfileInput = { fullName };
-            await registerUserAccount(email, password, profileData);
+            const registration = await registerUserAccount(email, password, profileData);
+            if (registration.requiresEmailConfirmation) {
+                router.replace({ pathname: '/(auth)/verify-email', params: { email } });
+                return;
+            }
             await refreshProfile();
             showToast({type: 'success', message: "Registration successful!"});
             router.replace('/(onboarding)');
@@ -45,6 +49,10 @@ export function useAuthForm() {
     } catch (err) {
       setLoading(false);
       const message = err instanceof Error ? err.message : 'An error occurred during login. Please try again.';
+      if (/email[_ ]not confirmed/i.test(message)) {
+        router.replace({ pathname: '/(auth)/verify-email', params: { email } });
+        return;
+      }
       showToast({ title: 'Login Failed', message, type: 'error' });
     }
   };

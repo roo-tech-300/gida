@@ -15,7 +15,9 @@ export function useVerifyLocationPayment() {
   return useMutation<VerifyPaymentResult, Error, string>({
     mutationFn: (reference) => verifyLocationPayment(reference),
     onSuccess: (result) => {
-      if (result.unlocked) {
+      if (result.unlocked && result.kind === 'tour') {
+        queryClient.invalidateQueries({ queryKey: ['tour-bookings'] });
+      } else if (result.unlocked) {
         queryClient.invalidateQueries({ queryKey: ['location-access'] });
       }
     },

@@ -1,15 +1,10 @@
 import { supabase } from '@/lib/supabase';
-import { buildCallbackUrl, type InitializeLocationPaymentResult } from '@/services/location-access-service';
 import { currentUserId } from '@/services/liquidity-pod-service';
 import { getOrCreateConversation, sendMessage } from '@/services/messageService';
 import type { TourBooking, TourBookingWithListing, TourListingBrief } from '@/types/tour-booking';
 import type { TourAttachment } from '@/types/messages';
 
 export const GUIDED_TOUR_FEE_NGN = 2000;
-
-function workerUrl(): string {
-  return (process.env.EXPO_PUBLIC_WORKER_URL ?? '').replace(/\/$/, '');
-}
 
 export type TourAvailabilityEntry = {
   date: string;
@@ -116,56 +111,6 @@ export async function reserveTour(args: {
     console.error('[TourBooking] reserve exception:', error);
     return { booking: null, error: 'failed' };
   }
-}
-
-export async function payForTour(args: {
-  listingId: string;
-  bookingId: string;
-  date: string;
-  time: string;
-}): Promise<InitializeLocationPaymentResult> {
-  const userId = await currentUserId();
-  if (!workerUrl()) {
-    return { simulated: true };
-  }
-  if (!userId) {
-    throw new Error('You must be signed in to book a tour.');
-  }
-
-  const { data: userData } = await supabase.auth.getUser();
-  const email = userData.user?.email;
-  if (!email) {
-    throw new Error('You must be signed in to book a tour.');
-  }
-
-  const callbackUrl = buildCallbackUrl(args.listingId, {
-    kind: 'tour',
-    bookingId: args.bookingId,
-    date: args.date,
-    time: args.time,
-  });
-
-  const response = await fetch(`${workerUrl()}/api/paystack/initialize`, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      userId,
-      listingId: args.listingId,
-      email,
-      callbackUrl,
-      kind: 'tour',
-      tourBookingId: args.bookingId,
-    }),
-  });
-  if (!response.ok) {
-    throw new Error('Payment service is unavailable. Please try again.');
-  }
-
-  const result = (await response.json()) as { authorizationUrl?: string; reference?: string };
-  if (!result.authorizationUrl || !result.reference) {
-    throw new Error('Payment service returned an invalid response.');
-  }
-  return { simulated: false, authorizationUrl: result.authorizationUrl, reference: result.reference };
 }
 
 export async function fetchTourBookings(): Promise<TourBookingWithListing[]> {

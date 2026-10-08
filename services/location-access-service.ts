@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 import { currentUserId } from '@/services/liquidity-pod-service';
+import { getPaymentAuthorizationHeader } from '@/services/payment-api';
 
 const CALLBACK_ROUTE = 'property/location-unlock-callback';
 
@@ -39,13 +40,12 @@ export async function fetchUnlockedListingIds(): Promise<string[]> {
   }
   try {
     const { data, error } = await supabase.from('location_access_payments').select('listing_id').eq('user_id', userId);
-    if (error || !data) {
-      return [];
-    }
+    if (error) throw new Error(error.message);
+    if (!data) throw new Error('Location access status was not returned.');
     return data.map((row) => row.listing_id);
   } catch (error) {
     console.error('[LocationAccess] Failed to fetch unlocked listings:', error);
-    return [];
+    throw error;
   }
 }
 
@@ -84,21 +84,29 @@ export async function initializeLocationPayment(
     throw new Error('You must be signed in to unlock location access.');
   }
 
-  const { data: listing } = await supabase
+  const { data: listing, error: listingError } = await supabase
     .from('listings')
     .select('enable_self_guided_tour')
     .eq('id', listingId)
     .maybeSingle();
+  if (listingError) {
+    console.error('[LocationAccess] Failed to check listing availability:', listingError.message);
+    throw new Error('Could not check this property. Please try again.');
+  }
   if (listing && (listing as { enable_self_guided_tour?: boolean | null }).enable_self_guided_tour === false) {
     throw new Error('Solo visits are turned off for this listing right now.');
   }
 
-  const { data: existingAccess } = await supabase
+  const { data: existingAccess, error: accessError } = await supabase
     .from('location_access_payments')
     .select('id')
     .eq('user_id', userId)
     .eq('listing_id', listingId)
     .maybeSingle();
+  if (accessError) {
+    console.error('[LocationAccess] Failed to check existing access:', accessError.message);
+    throw new Error('Could not confirm location access status. Please try again.');
+  }
   if (existingAccess) {
     throw new Error('Location access is already unlocked for this property.');
   }
@@ -108,17 +116,15 @@ export async function initializeLocationPayment(
   if (!email) {
     throw new Error('You must be signed in to unlock location access.');
   }
+  const authHeaders = await getPaymentAuthorizationHeader();
 
   const response = await fetch(`${workerUrl()}/api/paystack/initialize`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders },
     body: JSON.stringify({ userId, listingId, email, callbackUrl: buildCallbackUrl(listingId) }),
   });
-  if (!response.ok) {
-    throw new Error('Payment service is unavailable. Please try again.');
-  }
-
-  const result = (await response.json()) as { authorizationUrl?: string; reference?: string };
+  const result = (await response.json()) as { error?: string; authorizationUrl?: string; reference?: string };
+  if (!response.ok) throw new Error(result.error ?? 'Payment service is unavailable. Please try again.');
   if (!result.authorizationUrl || !result.reference) {
     throw new Error('Payment service returned an invalid response.');
   }
@@ -130,9 +136,10 @@ export async function verifyLocationPayment(reference: string): Promise<VerifyPa
     return { unlocked: false, kind: 'location' };
   }
   try {
+    const authHeaders = await getPaymentAuthorizationHeader();
     const response = await fetch(`${workerUrl()}/api/paystack/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ reference }),
     });
     if (!response.ok) {

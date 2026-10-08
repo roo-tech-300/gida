@@ -2,6 +2,7 @@ import { Platform } from 'react-native';
 
 import { supabase } from '@/lib/supabase';
 import { currentUserId } from '@/services/liquidity-pod-service';
+import { getPaymentAuthorizationHeader } from '@/services/payment-api';
 
 const CALLBACK_ROUTE = 'property/location-unlock-callback';
 
@@ -55,10 +56,11 @@ export async function initializeLodgePayment(
   }
 
   const callbackUrl = buildLodgeCallbackUrl(listingId, creditId, targetOccupancy);
+  const authHeaders = await getPaymentAuthorizationHeader();
 
   const response = await fetch(`${workerUrl()}/api/paystack/initialize`, {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    headers: { 'Content-Type': 'application/json', ...authHeaders },
     body: JSON.stringify({
       userId,
       listingId,
@@ -68,11 +70,8 @@ export async function initializeLodgePayment(
       slotCreditId: creditId,
     }),
   });
-  if (!response.ok) {
-    throw new Error('Payment service is unavailable. Please try again.');
-  }
-
-  const result = (await response.json()) as { authorizationUrl?: string; reference?: string };
+  const result = (await response.json()) as { error?: string; authorizationUrl?: string; reference?: string };
+  if (!response.ok) throw new Error(result.error ?? 'Payment service is unavailable. Please try again.');
   if (!result.authorizationUrl || !result.reference) {
     throw new Error('Payment service returned an invalid response.');
   }
@@ -84,9 +83,10 @@ export async function verifyLodgePayment(reference: string): Promise<VerifyLodge
     return { verified: false };
   }
   try {
+    const authHeaders = await getPaymentAuthorizationHeader();
     const response = await fetch(`${workerUrl()}/api/paystack/verify`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: { 'Content-Type': 'application/json', ...authHeaders },
       body: JSON.stringify({ reference }),
     });
     if (!response.ok) {

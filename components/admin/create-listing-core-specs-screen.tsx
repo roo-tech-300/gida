@@ -30,10 +30,9 @@ export function CreateListingCoreSpecsScreen() {
   const { showToast } = useAppToast();
   const exitWizard = useExitListingWizard();
 
-  const canProceed = step1.title.trim() && step1.landlordId && step1.layoutType && step1.price;
+  const canProceed = step1.title.trim() && step1.layoutType && step1.price;
   const handleForward = () => {
     if (!step1.title.trim()) { showToast({ message: 'Listing title is required.', type: 'error' }); return; }
-    if (!step1.landlordId) { showToast({ message: 'Please select a landlord.', type: 'error' }); return; }
     if (!step1.layoutType) { showToast({ message: 'Please select a layout type.', type: 'error' }); return; }
     if (!step1.price) { showToast({ message: 'Please set a price.', type: 'error' }); return; }
     router.push('/admin/create-listing-location');
@@ -90,7 +89,7 @@ export function CreateListingCoreSpecsScreen() {
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Select Landlord</Text>
+          <Text style={styles.label}>Select Landlord <Text style={styles.optional}>(optional)</Text></Text>
           <LandlordSearch selectedId={step1.landlordId} onSelect={(v) => setStep1({ landlordId: v })} />
         </View>
 

@@ -232,10 +232,6 @@ export function CreateListingMediaScreen() {
       showToast({ message: 'Title is required. Go back to step 1.', type: 'error' });
       return;
     }
-    if (!step1.landlordId) {
-      showToast({ message: 'Please select a landlord in step 1.', type: 'error' });
-      return;
-    }
     if (!step1.layoutType) {
       showToast({ message: 'Please select a layout type in step 1.', type: 'error' });
       return;
@@ -246,14 +242,6 @@ export function CreateListingMediaScreen() {
     }
     if (step4.maxRoommates < 1 || step4.maxRoommates > 4) {
       showToast({ message: 'Max roommates must be between 1 and 4 in step 4.', type: 'error' });
-      return;
-    }
-    if (!step2.coords) {
-      showToast({ message: 'Please lock the GPS location in step 2.', type: 'error' });
-      return;
-    }
-    if (!step2.selectedSchool) {
-      showToast({ message: 'Please select a school in step 2.', type: 'error' });
       return;
     }
     if (!step5.heroImage && step5.galleryImages.length === 0) {

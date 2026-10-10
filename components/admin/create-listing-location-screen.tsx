@@ -9,7 +9,6 @@ import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
 import { useAuth } from '@/context/auth-context';
 import { useCreateListingForm } from '@/context/create-listing-context';
-import { useAppToast } from '@/components/ui/toast-card';
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
 import { ListingRegionSelect } from '@/components/admin/listing-region-select';
 import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
@@ -22,7 +21,6 @@ export function CreateListingLocationScreen() {
   const { profile } = useAuth();
   const { data, setStep2, editListingId } = useCreateListingForm();
   const { step2 } = data;
-  const { showToast } = useAppToast();
   const alert = useCustomAlert();
   const exitWizard = useExitListingWizard();
   const [lockLoading, setLockLoading] = useState(false);
@@ -33,11 +31,9 @@ export function CreateListingLocationScreen() {
     profile?.admin_role === 'super_admin' ||
     (editListingId !== null && profile?.admin_role === 'regional_admin');
 
-  const canProceed = !!(step2.selectedSchool && step2.selectedCampus && step2.coords);
+  const canProceed = true; // Every field on this step is optional.
+
   const handleForward = () => {
-    if (!step2.selectedSchool) { showToast({ message: 'Please select a school.', type: 'error' }); return; }
-    if (!step2.selectedCampus) { showToast({ message: 'Please select a campus.', type: 'error' }); return; }
-    if (!step2.coords) { showToast({ message: 'Please lock the precise layout mapping before continuing.', type: 'error' }); return; }
     router.push('/admin/create-listing-amenities');
   };
 
@@ -52,7 +48,7 @@ export function CreateListingLocationScreen() {
     if (Platform.OS === 'web') {
       alert.showAlert({
         title: 'Not Available on Web',
-        message: 'GPS location locking is not available on the web version. You can manually enter coordinates or skip this step.',
+        message: 'GPS location locking is not available on the web version. You can skip this step, or lock the precise location later from the mobile app.',
         buttons: [{ label: 'OK', style: 'primary' }],
       });
       return;
@@ -100,11 +96,11 @@ export function CreateListingLocationScreen() {
       >
         <View style={styles.hero}>
           <Text style={styles.heroTitle}>Listing Location</Text>
-          <Text style={styles.heroSub}>Set the exact location so students can find you easily</Text>
+          <Text style={styles.heroSub}>Every field here is optional — add location details whenever you have them.</Text>
         </View>
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>School Name</Text>
+          <Text style={styles.label}>School Name <Text style={styles.optional}>(optional)</Text></Text>
           <Pressable style={styles.glassInput} onPress={() => setSchoolOpen(!schoolOpen)}>
             <View style={styles.selectRow}>
               <Text style={[styles.selectValue, !step2.selectedSchool && styles.selectPlaceholder]}>
@@ -139,7 +135,7 @@ export function CreateListingLocationScreen() {
 
         {step2.selectedSchool && campuses.length > 0 && (
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Select Campus</Text>
+            <Text style={styles.label}>Select Campus <Text style={styles.optional}>(optional)</Text></Text>
             <View style={styles.campusList}>
               {campuses.map((c) => {
                 const active = step2.selectedCampus === c.id;
@@ -175,7 +171,7 @@ export function CreateListingLocationScreen() {
         )}
 
         <View style={styles.fieldGroup}>
-          <Text style={styles.label}>Nearest Landmark</Text>
+          <Text style={styles.label}>Nearest Landmark <Text style={styles.optional}>(optional)</Text></Text>
           <View style={styles.glassInput}>
             <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
             <TextInput
@@ -190,7 +186,7 @@ export function CreateListingLocationScreen() {
 
         {canAssignRegion && (
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Region</Text>
+            <Text style={styles.label}>Region <Text style={styles.optional}>(optional)</Text></Text>
             <ListingRegionSelect regionPath={step2.regionPath} onSelect={(path) => setStep2({ regionPath: path })} />
           </View>
         )}
@@ -221,9 +217,11 @@ export function CreateListingLocationScreen() {
                 <Ionicons name="globe-outline" size={32} color={DesignColors.secondary} />
               </View>
               <View style={styles.gpsText}>
-                <Text style={styles.gpsTitle}>Precise Layout Mapping</Text>
+                <Text style={styles.gpsTitle}>
+                  Precise Layout Mapping <Text style={styles.optional}>(optional)</Text>
+                </Text>
                 <Text style={styles.gpsDesc}>
-                  Stand physically inside the property to lock down precise layout mapping.{'\n'}
+                  Optional but recommended: stand physically inside the property to lock down precise layout mapping.{'\n'}
                   This lets students navigate directly to the listing door.
                 </Text>
               </View>
@@ -275,6 +273,7 @@ const styles = StyleSheet.create({
   fieldGroup: { gap: 8 },
   fieldHint: { fontSize: 12, color: DesignColors.onSurfaceVariant, fontFamily, paddingHorizontal: 2 },
   label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
+  optional: { fontSize: 11, fontWeight: '400', color: DesignColors.divider, fontFamily },
   glassInput: { borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder },
   glassBlur: { ...StyleSheet.absoluteFill },
   textInput: { flex: 1, paddingHorizontal: 16, paddingVertical: 14, color: DesignColors.onSurface, fontSize: 16, fontFamily },

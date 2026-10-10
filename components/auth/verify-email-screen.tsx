@@ -50,7 +50,7 @@ export function VerifyEmailScreen() {
           <Ionicons name="mail-unread-outline" size={34} color={DesignColors.primaryBright} />
         </View>
         <Text style={styles.message}>
-          Supabase auth sent a verification link to{email ? ` ${email}` : ' your email address'}. Open the message and tap the link to verify your account.
+          We&apos;ve sent a verification link to{email ? ` ${email}` : ' your email address'}. Open the message and tap the link to activate your account.
         </Text>
         <View style={styles.tip}>
           <Ionicons name="information-circle-outline" size={20} color={DesignColors.primaryBright} />

@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Confirm your email &middot; Gida</title>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&amp;display=swap');
+    @media only screen and (max-width: 600px) {
+      .gida-shell { width: 100% !important; }
+      .gida-card { padding: 28px 20px !important; }
+      .gida-cta { display: block !important; width: 100% !important; box-sizing: border-box; }
+    }
+  </style>
+</head>
+<body style="margin: 0; padding: 0; background-color: #0e0e10; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;">
+
+  <!-- Preheader: the preview text shown in inbox clients -->
+  <div style="display: none; max-height: 0; overflow: hidden; opacity: 0; color: transparent;">
+    One tap and your Gida account is ready. This link expires in a limited time.
+  </div>
+
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" border="0" style="background-color: #0e0e10;">
+    <tr>
+      <td align="center" style="padding: 48px 16px;">
+
+        <table role="presentation" class="gida-shell" width="520" cellspacing="0" cellpadding="0" border="0" style="width: 520px; max-width: 100%;">
+
+          <!-- Brand -->
+          <tr>
+            <td align="center" style="padding-bottom: 32px;">
+              <div style="font-family: 'Inter', sans-serif; font-size: 28px; font-weight: 800; letter-spacing: 10px; color: #b8944f;">
+                GIDA
+              </div>
+              <div style="width: 48px; height: 2px; margin: 12px auto 0; background-color: #9D7E43; font-size: 1px; line-height: 1px;">&nbsp;</div>
+              <div style="padding-top: 10px; font-size: 12px; font-weight: 500; letter-spacing: 2px; text-transform: uppercase; color: #71717a;">
+                Student housing, made simple
+              </div>
+            </td>
+          </tr>
+
+          <!-- Card -->
+          <tr>
+            <td class="gida-card" style="background-color: #1b1b1d; border: 1px solid rgba(157, 126, 67, 0.4); border-radius: 24px; padding: 40px 36px;">
+              <h1 style="margin: 0 0 16px; font-size: 24px; line-height: 32px; font-weight: 700; color: #f2f2f7; text-align: center;">
+                Confirm your email
+              </h1>
+              <p style="margin: 0 0 28px; font-size: 15px; line-height: 24px; color: #c7c4d8; text-align: center;">
+                You&rsquo;re almost in. One tap below confirms
+                <span style="color: #d4ba88; font-weight: 600;">{{ .Email }}</span>
+                and finishes setting up your Gida account.
+              </p>
+
+              <!-- CTA -->
+              <table role="presentation" cellspacing="0" cellpadding="0" border="0" align="center">
+                <tr>
+                  <td align="center" style="border-radius: 16px; background-color: #9D7E43;">
+                    <a class="gida-cta" href="{{ .ConfirmationURL }}" style="display: inline-block; padding: 16px 40px; font-size: 16px; font-weight: 600; color: #0e0e10; text-decoration: none; border-radius: 16px;">
+                      Confirm email address
+                    </a>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin: 24px 0 0; font-size: 13px; line-height: 20px; color: #71717a; text-align: center;">
+                This link is valid for a limited time. If the button doesn&rsquo;t work, copy this into your browser:
+                <br>
+                <a href="{{ .ConfirmationURL }}" style="color: #b8944f; word-break: break-all;">{{ .ConfirmationURL }}</a>
+              </p>
+              <p style="margin: 12px 0 0; font-size: 13px; line-height: 20px; color: #71717a; text-align: center;">
+                Didn&rsquo;t sign up for Gida? You can safely ignore this email.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td align="center" style="padding: 32px 16px 0;">
+              <p style="margin: 0; font-size: 12px; line-height: 18px; color: #71717a;">
+                &copy; 2026 Gida &mdash; verified lodges, compatible roommates, secure payments.
+              </p>
+              <p style="margin: 8px 0 0; font-size: 12px; line-height: 18px;">
+                <a href="https://gida.apartments" style="color: #b8944f; font-weight: 600; text-decoration: none;">gida.apartments</a>
+              </p>
+            </td>
+          </tr>
+
+        </table>
+
+      </td>
+    </tr>
+  </table>
+
+</body>
+</html>

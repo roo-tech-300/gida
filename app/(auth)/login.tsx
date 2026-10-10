@@ -1,4 +1,4 @@
-import { Link } from 'expo-router';
+import { Link, useRouter } from 'expo-router';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AuthButton } from '@/components/auth/auth-button';
@@ -11,6 +11,7 @@ import { useAuthForm } from '@/hooks/useAuthForm';
 export default function LoginScreen() {
 
   const { email, setEmail, password, setPassword, loading, handleLogin } = useAuthForm();
+  const router = useRouter();
 
   return (
     <AuthScreenLayout
@@ -48,7 +49,10 @@ export default function LoginScreen() {
           onChangeText={setPassword}
         />
 
-        <Pressable accessibilityRole="button" style={styles.forgotWrap}>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => router.push('/(auth)/forgot-password')}
+          style={styles.forgotWrap}>
           <Text style={styles.forgot}>Forgot password?</Text>
         </Pressable>
 

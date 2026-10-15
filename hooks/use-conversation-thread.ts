@@ -3,8 +3,14 @@ import { useNetInfo } from '@react-native-community/netinfo';
 import { useEffect, useMemo, useState } from 'react';
 
 import { useAuth } from '@/context/auth-context';
-import { getMessagesForConversation, markLocalMessagesRead, saveIncomingMessages, upsertThreadFromConversation } from '@/services/offline-message-store';
-import { createOutboxMessage, markMessageFailed, markOutboxSynced } from '@/services/offline-outbox-store';
+import { getMessagesForConversation, getSupersededLocalIds, markLocalMessagesRead, saveIncomingMessages, upsertThreadFromConversation } from '@/services/offline-message-store';
+import {
+  beginOutboxAttempt,
+  createOutboxMessage,
+  endOutboxAttempt,
+  markMessageFailed,
+  markOutboxSynced,
+} from '@/services/offline-outbox-store';
 import {
   fetchMessagesPaginated,
   getOrCreateConversation,
@@ -39,8 +45,16 @@ function refreshThreadCache(queryClient: ReturnType<typeof useQueryClient>, conv
 
   queryClient.setQueryData<InfiniteData<ChatMessage[]>>(['messages', conversationId], (oldData) => {
     const existing = (oldData?.pages ?? []).flat();
+    // When a queued row syncs, its SQLite id is renamed to the server id, but the
+    // cache still holds the optimistic copy under the old device id. Without this
+    // filter both survive the merge below and the user sees the message twice
+    // (until a refetch rebuilds the cache from server data).
+    const supersededIds = getSupersededLocalIds(conversationId);
     const byId = new Map<string, ChatMessage>();
-    for (const message of existing) byId.set(message.id, message);
+    for (const message of existing) {
+      if (supersededIds.has(message.id)) continue;
+      byId.set(message.id, message);
+    }
     for (const message of localMessages) byId.set(message.id, message);
     const merged = [...byId.values()].sort(
       (a, b) => (b.localCreatedAt ?? b.clientSentAt) - (a.localCreatedAt ?? a.clientSentAt),
@@ -127,6 +141,9 @@ export function useConversationThread(otherId: string) {
 
       if (isConnected === false) return local;
 
+      // Exclude this row from flushOutbox while the network call is in flight
+      // so a concurrent AppState/connectivity flush can't double-send it.
+      beginOutboxAttempt(local.id);
       try {
         const sent = await sendMessage({
           conversationId,
@@ -143,6 +160,8 @@ export function useConversationThread(otherId: string) {
         markMessageFailed(local.id);
         refreshThreadCache(queryClient, conversationId);
         throw error;
+      } finally {
+        endOutboxAttempt(local.id);
       }
     },
     onSuccess: () => {

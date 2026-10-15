@@ -50,7 +50,26 @@ export function getPendingOutbox(): QueuedOutboundMessage[] {
       WHERE status IN ('outbox','failed') AND other_user_id IS NOT NULL
       ORDER BY local_created_at ASC`,
   );
-  return rows.map(parseOutboxRow);
+  // Rows currently inside a network send are still marked 'outbox' in SQLite;
+  // excluding them here stops flushOutbox from re-sending an in-flight message
+  // (e.g. when AppState/connectivity fires mid-send) and creating a real
+  // server-side duplicate.
+  return rows.filter((row) => !inFlightIds.has(row.id)).map(parseOutboxRow);
+}
+
+/**
+ * Local ids with an active sendMessage() network call. Module-level (not React
+ * state) so the chat screen's send mutation and the MessageSyncProvider's
+ * flush loop share the same registry.
+ */
+const inFlightIds = new Set<string>();
+
+export function beginOutboxAttempt(localId: string): void {
+  inFlightIds.add(localId);
+}
+
+export function endOutboxAttempt(localId: string): void {
+  inFlightIds.delete(localId);
 }
 
 export function markOutboxSynced(localId: string, serverId: string, conversationId: string, serverCreatedAt: string, readAt: string | null): void {
@@ -58,9 +77,10 @@ export function markOutboxSynced(localId: string, serverId: string, conversation
   const newId = serverId && serverId !== localId ? serverId : localId;
   database.runSync(
     `UPDATE local_messages
-        SET id = ?, conversation_id = ?, status = 'synced', server_created_at = ?, read_at = ?
+        SET previous_local_id = CASE WHEN id <> ? THEN id ELSE previous_local_id END,
+            id = ?, conversation_id = ?, status = 'synced', server_created_at = ?, read_at = ?
       WHERE id = ?`,
-    [newId, conversationId, serverCreatedAt, readAt, localId],
+    [newId, newId, conversationId, serverCreatedAt, readAt, localId],
   );
   updateThreadPreview(database, conversationId);
 }

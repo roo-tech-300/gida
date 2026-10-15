@@ -17,6 +17,8 @@ export type LocalMessageRow = {
   status: string;
   server_created_at: string | null;
   read_at: string | null;
+  /** Set when a queued local row is renamed to its server id; holds the original device id. */
+  previous_local_id: string | null;
 };
 
 type LocalThreadRow = {
@@ -49,7 +51,8 @@ export function getDb(): SQLite.SQLiteDatabase {
         local_created_at INTEGER NOT NULL,
         status TEXT NOT NULL DEFAULT 'synced',
         server_created_at TEXT,
-        read_at TEXT
+        read_at TEXT,
+        previous_local_id TEXT
       );
       CREATE INDEX IF NOT EXISTS idx_local_messages_conv ON local_messages (conversation_id, local_created_at, client_sent_at);
       CREATE INDEX IF NOT EXISTS idx_local_messages_other ON local_messages (other_user_id);
@@ -65,6 +68,10 @@ export function getDb(): SQLite.SQLiteDatabase {
         unread INTEGER NOT NULL DEFAULT 0
       );
     `);
+    // migrate: pre-existing DBs lack previous_local_id
+    if (!db.getAllSync<{ name: string }>('PRAGMA table_info(local_messages)').some((c) => c.name === 'previous_local_id')) {
+      db.execSync('ALTER TABLE local_messages ADD COLUMN previous_local_id TEXT;');
+    }
   }
   return db;
 }
@@ -139,11 +146,25 @@ function promoteQueuedTwin(database: SQLite.SQLiteDatabase, conversationId: stri
   if (!twin) return false;
   database.runSync(
     `UPDATE local_messages
-        SET id = ?, body = ?, attachment = ?, client_sent_at = ?, server_created_at = ?, read_at = ?, status = 'synced', other_user_id = NULL
+        SET previous_local_id = id, id = ?, body = ?, attachment = ?, client_sent_at = ?, server_created_at = ?, read_at = ?, status = 'synced', other_user_id = NULL
       WHERE id = ?`,
     [message.id, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.clientSentAt, message.createdAt, message.readAt, twin.id],
   );
   return true;
+}
+
+/**
+ * Ids that were replaced by a server id during sync (queued row rename).
+ * The React Query cache may still hold the message under one of these
+ * device-local ids — callers must drop those stale optimistic entries.
+ */
+export function getSupersededLocalIds(conversationId: string): Set<string> {
+  const rows = getDb().getAllSync<{ previous_local_id: string }>(
+    `SELECT previous_local_id FROM local_messages
+      WHERE conversation_id = ? AND previous_local_id IS NOT NULL`,
+    [conversationId],
+  );
+  return new Set(rows.map((row) => row.previous_local_id));
 }
 
 export function saveIncomingMessages(conversationId: string, incoming: ServerChatMessage[]): ChatMessage[] {

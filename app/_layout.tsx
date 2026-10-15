@@ -1,22 +1,22 @@
-import React, { useEffect, useRef } from 'react';
-import { Platform, StyleSheet, View } from 'react-native';
-import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
-import { QueryClientProvider } from '@tanstack/react-query';
-import { queryClient } from '@/lib/query-clients';
+import { MessageSyncProvider } from '@/components/messages/message-sync-provider';
+import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
+import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
+import { DefaultHead } from '@/components/seo/default-head';
+import { SplashScreen } from '@/components/splash/splash-screen';
+import { OfflineBanner } from '@/components/ui/offline-banner';
+import { ToastProvider } from '@/components/ui/toast-card';
+import { DesignColors } from '@/constants/design';
+import { IS_APP_LAUNCHED } from '@/constants/launch';
 import { AppConfigProvider } from '@/context/app-context';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
-import { ToastProvider } from '@/components/ui/toast-card';
-import { MessageSyncProvider } from '@/components/messages/message-sync-provider';
-import { OfflineBanner } from '@/components/ui/offline-banner';
-import { DefaultHead } from '@/components/seo/default-head';
-import { SplashScreen } from '@/components/splash/splash-screen';
-import { DesignColors } from '@/constants/design';
-import { IS_APP_LAUNCHED } from '@/constants/launch';
-import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
-import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
-import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
+import { queryClient } from '@/lib/query-clients';
 import { checkForAppUpdate } from '@/src/lib/updates/updates';
+import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
+import { QueryClientProvider } from '@tanstack/react-query';
+import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
+import React, { useEffect, useRef } from 'react';
+import { Platform } from 'react-native';
 
 const PUBLIC_WEB_CONTENT_PATHS: readonly string[] = [
   '/housing/minna',

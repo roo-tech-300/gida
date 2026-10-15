@@ -49,8 +49,6 @@ export function ComposerReplyPreview({ reply, senderName, onClear }: Props) {
         },
       ]}
     >
-      <View style={styles.stripe} />
-
       <View style={styles.info}>
         <View style={styles.badgeRow}>
           <Ionicons name="arrow-undo-outline" size={11} color={DesignColors.primaryBright} />
@@ -79,21 +77,17 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 10,
-    padding: 8,
-    paddingLeft: 0,
+    paddingVertical: DesignSpacing.sm - 2,
+    paddingLeft: DesignSpacing.sm,
+    paddingRight: DesignSpacing.sm - 2,
     marginBottom: DesignSpacing.xs + 2,
-    borderRadius: DesignRadius.md,
+    borderRadius: DesignRadius.sm,
     backgroundColor: DesignColors.surfaceContainerHigh,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
+    borderLeftWidth: 3,
+    borderLeftColor: DesignColors.primaryBright,
     overflow: 'hidden',
-  },
-  stripe: {
-    width: 3,
-    alignSelf: 'stretch',
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.primaryBright,
-    marginLeft: 2,
   },
   info: {
     flex: 1,

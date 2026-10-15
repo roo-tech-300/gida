@@ -11,7 +11,7 @@ import { MessageRoommateInviteCard } from '@/components/messages/message-roommat
 import { MessagePodJoinCard } from '@/components/messages/message-pod-join-card';
 import { MessageLodgeReservationCard } from '@/components/messages/message-lodge-reservation-card';
 
-/** Quoted reply strip rendered INSIDE a bubble (a reply message's quote). */
+/** Quoted reply strip rendered INSIDE the bubble, above the reply text. */
 function ReplyQuote({
   reply,
   label,
@@ -22,16 +22,13 @@ function ReplyQuote({
   isMe: boolean;
 }) {
   return (
-    <View style={[styles.quote, isMe && styles.quoteMe]}>
-      <View style={[styles.quoteStripe, isMe && styles.quoteStripeMe]} />
-      <View style={styles.quoteInfo}>
-        <Text style={[styles.quoteLabel, isMe && styles.quoteLabelMe]} numberOfLines={1}>
-          {label}
-        </Text>
-        <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]} numberOfLines={1}>
-          {reply.body.trim() || 'Attachment'}
-        </Text>
-      </View>
+    <View style={[styles.quote, isMe ? styles.quoteMe : styles.quoteThem]}>
+      <Text style={[styles.quoteLabel, isMe && styles.quoteLabelMe]} numberOfLines={1}>
+        {label}
+      </Text>
+      <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]} numberOfLines={1}>
+        {reply.body.trim() || 'Attachment'}
+      </Text>
     </View>
   );
 }
@@ -154,50 +151,42 @@ const styles = StyleSheet.create({
     borderBottomRightRadius: 4,
   },
   quote: {
-    flexDirection: 'row',
-    gap: DesignSpacing.sm - 2,
-    backgroundColor: 'rgba(0, 0, 0, 0.20)',
+    alignSelf: 'stretch',
     borderRadius: DesignRadius.sm,
-    padding: DesignSpacing.sm - 2,
-    marginBottom: 6,
-    overflow: 'hidden',
+    paddingHorizontal: DesignSpacing.sm + 2,
+    paddingVertical: DesignSpacing.xs + 2,
+    marginBottom: DesignSpacing.sm - 2,
+    borderLeftWidth: 3,
+  },
+  quoteThem: {
+    backgroundColor: DesignColors.surfaceContainerHighest,
+    borderLeftColor: DesignColors.primaryBright,
   },
   quoteMe: {
-    backgroundColor: 'rgba(255, 255, 255, 0.35)',
-  },
-  quoteStripe: {
-    width: 3,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.primaryBright,
-  },
-  quoteStripeMe: {
-    backgroundColor: DesignColors.primaryFixed,
-  },
-  quoteInfo: {
-    flex: 1,
-    gap: 1,
+    backgroundColor: 'rgba(0, 0, 0, 0.18)',
+    borderLeftColor: DesignColors.primaryFixed,
   },
   quoteLabel: {
     ...DesignTypography.labelSm,
-    fontSize: 10,
+    fontSize: 11,
     color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '700',
-    letterSpacing: 0.3,
-    textTransform: 'uppercase',
+    marginBottom: 1,
   },
   quoteLabelMe: {
-    color: DesignColors.onPrimaryContainer,
+    color: DesignColors.primaryFixed,
   },
   quoteSnippet: {
     ...DesignTypography.labelSm,
     fontSize: 12,
-    color: DesignColors.onSurface,
+    color: DesignColors.onSurfaceVariant,
     fontFamily,
+    lineHeight: 16,
   },
   quoteSnippetMe: {
     color: DesignColors.onPrimaryContainer,
-    opacity: 0.8,
+    opacity: 0.85,
   },
   text: {
     ...DesignTypography.bodyMd,

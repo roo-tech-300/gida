@@ -19,12 +19,13 @@ import {
   subscribeToConversationMessages,
   type SendMessageInput,
 } from '@/services/messageService';
-import type { ChatMessage, ListingAttachment, ServerChatMessage } from '@/types/messages';
+import type { ChatMessage, ListingAttachment, MessageReply, ServerChatMessage } from '@/types/messages';
 import { usePaginatedQuery } from '@/hooks/use-paginated-query';
 
 export type SendDraft = {
   body: string;
   attachment: ListingAttachment | null;
+  replyTo: MessageReply | null;
 };
 
 function refreshThreadCache(queryClient: ReturnType<typeof useQueryClient>, conversationId: string): void {
@@ -135,6 +136,7 @@ export function useConversationThread(otherId: string) {
         senderId: myId,
         body: draft.body,
         attachment: draft.attachment,
+        replyTo: draft.replyTo,
         clientSentAt,
       });
       refreshThreadCache(queryClient, conversationId);
@@ -150,6 +152,7 @@ export function useConversationThread(otherId: string) {
           senderId: myId,
           body: draft.body,
           attachment: draft.attachment,
+          replyTo: draft.replyTo,
           clientSentAt,
         } satisfies SendMessageInput);
         markOutboxSynced(local.id, sent.id, conversationId, sent.createdAt, sent.readAt);

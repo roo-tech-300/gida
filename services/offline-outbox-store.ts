@@ -1,8 +1,9 @@
-import type { ChatMessage, MessageAttachment, QueuedOutboundMessage } from '@/types/messages';
+import type { ChatMessage, MessageAttachment, MessageReply, QueuedOutboundMessage } from '@/types/messages';
 import {
   getDb,
   nextLocalStamp,
   parseAttachment,
+  parseReply,
   toChatMessage,
   updateThreadPreview,
   type LocalMessageRow,
@@ -15,6 +16,7 @@ export type OutboxInput = {
   senderId: string;
   body: string;
   attachment: MessageAttachment | null;
+  replyTo?: MessageReply | null;
   clientSentAt: number;
 };
 
@@ -26,6 +28,7 @@ function parseOutboxRow(row: LocalMessageRow): QueuedOutboundMessage {
     senderId: row.sender_id,
     body: row.body ?? '',
     attachment: parseAttachment(row.attachment),
+    replyTo: parseReply(row.reply_to),
     clientSentAt: row.client_sent_at,
   };
 }
@@ -35,9 +38,9 @@ export function createOutboxMessage(input: OutboxInput): ChatMessage {
   const id = input.id ?? `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
   database.runSync(
     `INSERT OR IGNORE INTO local_messages
-       (id, conversation_id, other_user_id, sender_id, body, attachment, client_sent_at, local_created_at, status, server_created_at, read_at)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'outbox', NULL, NULL)`,
-    [id, input.conversationId, input.otherUserId, input.senderId, input.body, input.attachment ? JSON.stringify(input.attachment) : null, input.clientSentAt, nextLocalStamp()],
+       (id, conversation_id, other_user_id, sender_id, body, attachment, reply_to, client_sent_at, local_created_at, status, server_created_at, read_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'outbox', NULL, NULL)`,
+    [id, input.conversationId, input.otherUserId, input.senderId, input.body, input.attachment ? JSON.stringify(input.attachment) : null, input.replyTo ? JSON.stringify(input.replyTo) : null, input.clientSentAt, nextLocalStamp()],
   );
   const row = database.getFirstSync<LocalMessageRow>('SELECT * FROM local_messages WHERE id = ?', [id])!;
   if (input.conversationId) updateThreadPreview(database, input.conversationId);

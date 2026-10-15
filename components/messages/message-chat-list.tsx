@@ -21,6 +21,7 @@ type MessageChatListProps = {
   participantName?: string | null;
   participantAvatar?: string | null;
   onRetry: (messageId: string) => void;
+  onLongPressMessage?: (message: ChatMessage) => void;
   onLoadEarlier?: () => void;
   isLoadingEarlier?: boolean;
 };
@@ -32,6 +33,7 @@ export function MessageChatList({
   participantName,
   participantAvatar,
   onRetry,
+  onLongPressMessage,
   onLoadEarlier,
   isLoadingEarlier = false,
 }: MessageChatListProps) {
@@ -67,6 +69,7 @@ export function MessageChatList({
         participantName={participantName}
         isMe={item.senderId === myId}
         onRetry={onRetry}
+        onLongPress={onLongPressMessage}
       />
     );
 

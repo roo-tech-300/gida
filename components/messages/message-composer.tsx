@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import type { ListingAttachment } from '@/types/messages';
+import type { ListingAttachment, MessageReply } from '@/types/messages';
 import { ComposerAttachmentPreview } from './composer-attachment-preview';
+import { ComposerReplyPreview } from './composer-reply-preview';
 
 type MessageComposerProps = {
   draft: string;
@@ -12,6 +13,9 @@ type MessageComposerProps = {
   onOpenAttachments: () => void;
   attachment?: ListingAttachment | null;
   onClearAttachment?: () => void;
+  replyTo?: MessageReply | null;
+  replyToName?: string | null;
+  onClearReply?: () => void;
 };
 
 export function MessageComposer({
@@ -21,6 +25,9 @@ export function MessageComposer({
   onOpenAttachments,
   attachment,
   onClearAttachment,
+  replyTo,
+  replyToName,
+  onClearReply,
 }: MessageComposerProps) {
   const canSend = draft.trim().length > 0 || Boolean(attachment);
 
@@ -28,6 +35,10 @@ export function MessageComposer({
     <View style={styles.composerShell}>
       {attachment ? (
         <ComposerAttachmentPreview attachment={attachment} onClear={onClearAttachment} />
+      ) : null}
+
+      {replyTo ? (
+        <ComposerReplyPreview reply={replyTo} senderName={replyToName} onClear={onClearReply ?? (() => {})} />
       ) : null}
 
       <View style={styles.composer}>

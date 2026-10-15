@@ -1,6 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
-import type { ChatMessage, Conversation, MessageAttachment, ServerChatMessage } from '@/types/messages';
+import type { ChatMessage, Conversation, MessageAttachment, MessageReply, ServerChatMessage } from '@/types/messages';
 
 const DB_NAME = 'gida_offline.db';
 export const SENT_PREVIEW_FALLBACK = 'Shared a listing';
@@ -12,6 +12,7 @@ export type LocalMessageRow = {
   sender_id: string;
   body: string | null;
   attachment: string | null;
+  reply_to: string | null;
   client_sent_at: number;
   local_created_at: number;
   status: string;
@@ -47,6 +48,7 @@ export function getDb(): SQLite.SQLiteDatabase {
         sender_id TEXT NOT NULL,
         body TEXT,
         attachment TEXT,
+        reply_to TEXT,
         client_sent_at INTEGER NOT NULL,
         local_created_at INTEGER NOT NULL,
         status TEXT NOT NULL DEFAULT 'synced',
@@ -72,6 +74,10 @@ export function getDb(): SQLite.SQLiteDatabase {
     if (!db.getAllSync<{ name: string }>('PRAGMA table_info(local_messages)').some((c) => c.name === 'previous_local_id')) {
       db.execSync('ALTER TABLE local_messages ADD COLUMN previous_local_id TEXT;');
     }
+    // migrate: pre-existing DBs lack reply_to
+    if (!db.getAllSync<{ name: string }>('PRAGMA table_info(local_messages)').some((c) => c.name === 'reply_to')) {
+      db.execSync('ALTER TABLE local_messages ADD COLUMN reply_to TEXT;');
+    }
   }
   return db;
 }
@@ -92,6 +98,16 @@ export function parseAttachment(raw: string | null): MessageAttachment | null {
   }
 }
 
+export function parseReply(raw: string | null): MessageReply | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as MessageReply;
+  } catch (error) {
+    console.error('[OfflineStore] Failed to parse reply:', error);
+    return null;
+  }
+}
+
 export function toChatMessage(row: LocalMessageRow): ChatMessage {
   return {
     id: row.id,
@@ -99,6 +115,7 @@ export function toChatMessage(row: LocalMessageRow): ChatMessage {
     senderId: row.sender_id,
     body: row.body ?? '',
     attachment: parseAttachment(row.attachment),
+    replyTo: parseReply(row.reply_to),
     createdAt: row.server_created_at ?? new Date(row.client_sent_at).toISOString(),
     clientSentAt: row.client_sent_at,
     localCreatedAt: row.local_created_at,
@@ -146,9 +163,9 @@ function promoteQueuedTwin(database: SQLite.SQLiteDatabase, conversationId: stri
   if (!twin) return false;
   database.runSync(
     `UPDATE local_messages
-        SET previous_local_id = id, id = ?, body = ?, attachment = ?, client_sent_at = ?, server_created_at = ?, read_at = ?, status = 'synced', other_user_id = NULL
+        SET previous_local_id = id, id = ?, body = ?, attachment = ?, reply_to = ?, client_sent_at = ?, server_created_at = ?, read_at = ?, status = 'synced', other_user_id = NULL
       WHERE id = ?`,
-    [message.id, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.clientSentAt, message.createdAt, message.readAt, twin.id],
+    [message.id, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.replyTo ? JSON.stringify(message.replyTo) : null, message.clientSentAt, message.createdAt, message.readAt, twin.id],
   );
   return true;
 }
@@ -174,20 +191,20 @@ export function saveIncomingMessages(conversationId: string, incoming: ServerCha
     if (existing) {
       database.runSync(
         `UPDATE local_messages
-            SET conversation_id = ?, body = ?, attachment = ?, client_sent_at = ?,
+            SET conversation_id = ?, body = ?, attachment = ?, reply_to = ?, client_sent_at = ?,
                 server_created_at = ?, read_at = ?,
                 status = CASE WHEN status IN ('outbox','failed') THEN 'synced' ELSE status END
           WHERE id = ?`,
-        [conversationId, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.clientSentAt, message.createdAt, message.readAt, message.id],
+        [conversationId, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.replyTo ? JSON.stringify(message.replyTo) : null, message.clientSentAt, message.createdAt, message.readAt, message.id],
       );
     } else if (promoteQueuedTwin(database, conversationId, message)) {
       // skip: queued twin was renamed to the confirmed server id, keeping its original local ordering stamp.
     } else {
       database.runSync(
         `INSERT INTO local_messages
-           (id, conversation_id, other_user_id, sender_id, body, attachment, client_sent_at, local_created_at, status, server_created_at, read_at)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'synced', ?, ?)`,
-        [message.id, conversationId, null, message.senderId, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.clientSentAt, nextLocalStamp(), message.createdAt, message.readAt],
+           (id, conversation_id, other_user_id, sender_id, body, attachment, reply_to, client_sent_at, local_created_at, status, server_created_at, read_at)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, 'synced', ?, ?)`,
+        [message.id, conversationId, null, message.senderId, message.body, message.attachment ? JSON.stringify(message.attachment) : null, message.replyTo ? JSON.stringify(message.replyTo) : null, message.clientSentAt, nextLocalStamp(), message.createdAt, message.readAt],
       );
     }
   }

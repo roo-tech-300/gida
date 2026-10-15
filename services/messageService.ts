@@ -3,6 +3,7 @@ import type {
   Conversation,
   ListingAttachment,
   MessageAttachment,
+  MessageReply,
   ServerChatMessage,
 } from '@/types/messages';
 import { subscribeToMessageNotifications } from '@/src/notifications';
@@ -26,6 +27,7 @@ type MessageRow = {
   sender_id: string;
   body: string | null;
   attachment: ListingAttachment | null;
+  reply_to: MessageReply | null;
   created_at: string;
   client_sent_at: number | null;
   read_at: string | null;
@@ -48,6 +50,7 @@ function mapMessageRow(row: MessageRow): ServerChatMessage {
     senderId: row.sender_id,
     body: row.body ?? '',
     attachment: row.attachment,
+    replyTo: row.reply_to ?? null,
     createdAt: row.created_at,
     clientSentAt: row.client_sent_at ?? Date.parse(row.created_at),
     readAt: row.read_at,
@@ -208,6 +211,7 @@ export type SendMessageInput = {
   senderId: string;
   body: string;
   attachment: MessageAttachment | null;
+  replyTo?: MessageReply | null;
   clientSentAt: number;
 };
 
@@ -220,6 +224,9 @@ export async function sendMessage(input: SendMessageInput): Promise<ServerChatMe
       sender_id: input.senderId,
       body: input.body.trim() || null,
       attachment: input.attachment,
+      // Only include the reply snapshot when set — a missing reply_to column
+      // (migration not yet applied) must not break plain messages.
+      ...(input.replyTo ? { reply_to: input.replyTo } : {}),
       client_sent_at: input.clientSentAt,
     })
     .select('*')

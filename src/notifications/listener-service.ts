@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { MessageAttachment, ServerChatMessage } from '@/types/messages';
+import type { MessageAttachment, MessageReply, ServerChatMessage } from '@/types/messages';
 import { onMessage, onTokenRefresh, setBackgroundMessageHandler } from '@react-native-firebase/messaging';
 import { useEffect } from 'react';
 import { getNativeMessaging } from './native-messaging';
@@ -37,6 +37,7 @@ type RealtimeMessageRow = {
   sender_id: string;
   body: string | null;
   attachment: MessageAttachment | null;
+  reply_to: MessageReply | null;
   created_at: string;
   client_sent_at: number | null;
   read_at: string | null;
@@ -48,6 +49,7 @@ const mapRealtimeMessage = (row: RealtimeMessageRow): ServerChatMessage => ({
   senderId: row.sender_id,
   body: row.body ?? '',
   attachment: row.attachment,
+  replyTo: row.reply_to ?? null,
   createdAt: row.created_at,
   clientSentAt: row.client_sent_at ?? Date.parse(row.created_at),
   readAt: row.read_at,

@@ -5,6 +5,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 
 import { MessageAttachmentSheet } from '@/components/messages/message-attachment-sheet';
+import { MessageActionsSheet } from '@/components/messages/message-actions-sheet';
 import { MessageChatHeader } from '@/components/messages/message-chat-header';
 import { MessageChatList } from '@/components/messages/message-chat-list';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
@@ -18,7 +19,8 @@ import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/con
 import { useConversationThread } from '@/hooks/use-conversation-thread';
 import { useContextualNotificationPrompt } from '@/hooks/use-contextual-notification-prompt';
 import { useInitialChatAttachment } from '@/hooks/use-initial-chat-attachment';
-import type { ListingAttachment } from '@/types/messages';
+import type { ChatMessage, ListingAttachment, MessageReply } from '@/types/messages';
+import { copyTextToClipboard } from '@/utils/clipboard';
 
 export function MessageChatScreen() {
   const router = useRouter();
@@ -35,6 +37,9 @@ export function MessageChatScreen() {
   const [attachmentOverride, setAttachmentOverride] = useState<ListingAttachment | null | undefined>(undefined);
   const [attachSheetVisible, setAttachSheetVisible] = useState(false);
   const [pickerSource, setPickerSource] = useState<PickerSource | null>(null);
+  // Long-pressed message (drives the actions sheet) and the message being replied to.
+  const [actionMessage, setActionMessage] = useState<ChatMessage | null>(null);
+  const [replyTarget, setReplyTarget] = useState<MessageReply | null>(null);
 
   // Seeded when arriving via the listing "Enquire" button (?attachListingId=...).
   // Resolved from the shared ['listing', id] cache — no extra fetch in practice.
@@ -69,14 +74,45 @@ export function MessageChatScreen() {
     const text = draft.trim();
     if ((!text && !attachment) || isSending) return;
     try {
-      await sendMessage({ body: text, attachment });
+      await sendMessage({ body: text, attachment, replyTo: replyTarget });
       setDraft('');
       setAttachmentOverride(null);
+      setReplyTarget(null);
       triggerPromptIfAppropriate();
     } catch (error) {
       console.error('[MessageChat] Failed to send message:', error);
       showToast({ message: 'Message could not be sent. Please try again.', type: 'error' });
     }
+  };
+
+  const handleLongPressMessage = (message: ChatMessage) => {
+    setActionMessage(message);
+  };
+
+  const handleReplyAction = () => {
+    if (!actionMessage) return;
+    setReplyTarget({
+      messageId: actionMessage.id,
+      senderId: actionMessage.senderId,
+      body: actionMessage.body,
+    });
+    setActionMessage(null);
+  };
+
+  const handleCopyAction = async () => {
+    const target = actionMessage;
+    setActionMessage(null);
+    if (!target) return;
+    const text = target.body.trim();
+    if (!text) {
+      showToast({ message: 'This message has no text to copy.', type: 'info' });
+      return;
+    }
+    const copied = await copyTextToClipboard(text);
+    showToast({
+      message: copied ? 'Message copied to clipboard.' : 'Could not copy message.',
+      type: copied ? 'success' : 'error',
+    });
   };
 
   const handleBack = () => {
@@ -119,6 +155,7 @@ export function MessageChatScreen() {
               void flushOutbox();
               showToast({ message: 'Retrying queued message…', type: 'info' });
             }}
+            onLongPressMessage={handleLongPressMessage}
             onLoadEarlier={() => {
               if (hasNextPage && !isFetchingNextPage) {
                 void fetchNextPage();
@@ -135,8 +172,19 @@ export function MessageChatScreen() {
           onOpenAttachments={() => setAttachSheetVisible(true)}
           attachment={attachment}
           onClearAttachment={attachment ? () => setAttachmentOverride(null) : undefined}
+          replyTo={replyTarget}
+          replyToName={replyTarget && replyTarget.senderId === myId ? 'yourself' : participant?.name}
+          onClearReply={() => setReplyTarget(null)}
         />
       </SafeKeyboardView>
+
+      <MessageActionsSheet
+        visible={actionMessage !== null}
+        onClose={() => setActionMessage(null)}
+        onReply={handleReplyAction}
+        onCopy={() => void handleCopyAction()}
+        canCopy={Boolean(actionMessage?.body.trim())}
+      />
 
       <MessageAttachmentSheet
         visible={attachSheetVisible}

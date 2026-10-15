@@ -1,4 +1,4 @@
-import type { ChatMessage, MessageAttachment, QueuedOutboundMessage } from '@/types/messages';
+import type { ChatMessage, MessageAttachment, MessageReply, QueuedOutboundMessage } from '@/types/messages';
 import { nextLocalStamp } from '@/services/offline-message-store';
 
 export type OutboxInput = {
@@ -8,6 +8,7 @@ export type OutboxInput = {
   senderId: string;
   body: string;
   attachment: MessageAttachment | null;
+  replyTo?: MessageReply | null;
   clientSentAt: number;
 };
 
@@ -19,6 +20,7 @@ export function createOutboxMessage(input: OutboxInput): ChatMessage {
     senderId: input.senderId,
     body: input.body,
     attachment: input.attachment,
+    replyTo: input.replyTo,
     createdAt: new Date(input.clientSentAt).toISOString(),
     clientSentAt: input.clientSentAt,
     localCreatedAt: nextLocalStamp(),

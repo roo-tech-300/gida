@@ -1,4 +1,4 @@
-import type { ChatMessage, Conversation, MessageAttachment, ServerChatMessage } from '@/types/messages';
+import type { ChatMessage, Conversation, MessageAttachment, MessageReply, ServerChatMessage } from '@/types/messages';
 
 export const SENT_PREVIEW_FALLBACK = 'Shared a listing';
 
@@ -9,6 +9,7 @@ export type LocalMessageRow = {
   sender_id: string;
   body: string | null;
   attachment: string | null;
+  reply_to: string | null;
   client_sent_at: number;
   local_created_at: number;
   status: string;
@@ -36,6 +37,16 @@ export function parseAttachment(raw: string | null): MessageAttachment | null {
   }
 }
 
+export function parseReply(raw: string | null): MessageReply | null {
+  if (!raw) return null;
+  try {
+    return JSON.parse(raw) as MessageReply;
+  } catch (error) {
+    console.error('[OfflineStore] Failed to parse reply:', error);
+    return null;
+  }
+}
+
 export function toChatMessage(row: LocalMessageRow): ChatMessage {
   return {
     id: row.id,
@@ -43,6 +54,7 @@ export function toChatMessage(row: LocalMessageRow): ChatMessage {
     senderId: row.sender_id,
     body: row.body ?? '',
     attachment: parseAttachment(row.attachment),
+    replyTo: parseReply(row.reply_to),
     createdAt: row.server_created_at ?? new Date(row.client_sent_at).toISOString(),
     clientSentAt: row.client_sent_at,
     localCreatedAt: row.local_created_at,
@@ -70,6 +82,7 @@ export function saveIncomingMessages(_conversationId: string, incoming: ServerCh
       senderId: message.senderId,
       body: message.body,
       attachment: message.attachment,
+      replyTo: message.replyTo,
       createdAt: message.createdAt,
       clientSentAt: message.clientSentAt,
       localCreatedAt: message.clientSentAt,

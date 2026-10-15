@@ -67,6 +67,13 @@ export type LodgeDecisionAttachment = {
 
 export type MessageAttachment = ListingAttachment | TourAttachment | RoommateInviteAttachment | PodJoinAttachment | LodgeReservationAttachment | LodgeDecisionAttachment;
 
+/** Snapshot of the message a reply points at, stored as JSONB on the message row. */
+export type MessageReply = {
+  messageId: string;
+  senderId: string;
+  body: string;
+};
+
 /** A message as it exists on the server (no device-local ordering fields). */
 export type ServerChatMessage = {
   id: string;
@@ -74,6 +81,8 @@ export type ServerChatMessage = {
   senderId: string;
   body: string;
   attachment: MessageAttachment | null;
+  /** Present when this message replies to an earlier one; optional for older rows. */
+  replyTo?: MessageReply | null;
   createdAt: string;
   clientSentAt: number;
   readAt: string | null;
@@ -95,6 +104,7 @@ export type QueuedOutboundMessage = {
   senderId: string;
   body: string;
   attachment: MessageAttachment | null;
+  replyTo?: MessageReply | null;
   clientSentAt: number;
 };
 

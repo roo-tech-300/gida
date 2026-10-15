@@ -45,6 +45,7 @@ export function MessageSyncProvider({ children }: { children: React.ReactNode })
           senderId: myId,
           body: queued.body,
           attachment: queued.attachment,
+          replyTo: queued.replyTo,
           clientSentAt: queued.clientSentAt,
         });
         markOutboxSynced(queued.id, sent.id, conversation.id, sent.createdAt, sent.readAt);

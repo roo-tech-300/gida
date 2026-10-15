@@ -4,6 +4,10 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   ...config,
   name: config.name ?? 'gida',
   slug: 'gida',
+  // Explicit URL scheme so Paystack's post-payment redirect
+  // (gida://property/location-unlock-callback?...) is recognized by the OS
+  // and hands the user back to the app from the payment browser tab.
+  scheme: 'gida',
   runtimeVersion: {
     policy: 'appVersion',
   },
@@ -49,6 +53,19 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
             scheme: 'https',
             host: 'www.gida.apartments',
             pathPrefix: '/property/',
+          },
+        ],
+      },
+      // Deep link for the payment callback: lets the Paystack checkout tab
+      // redirect (gida://property/location-unlock-callback?...) reopen the app.
+      {
+        action: 'VIEW',
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          {
+            scheme: 'gida',
+            host: 'property',
+            pathPrefix: '/location-unlock-callback',
           },
         ],
       },

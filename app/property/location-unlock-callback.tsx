@@ -51,7 +51,10 @@ export default function LocationUnlockCallbackScreen() {
             if (targetOccupancy === 1) {
               router.replace(`/property/booking?id=${encodeURIComponent(creditId)}`);
             } else {
-              router.replace('/property/lobby');
+              router.replace({
+                pathname: '/property/lobby',
+                params: creditId ? { creditId } : undefined,
+              });
             }
             return;
           }

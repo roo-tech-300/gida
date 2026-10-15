@@ -92,7 +92,7 @@ export function BookingConfirmationScreen({ creditId }: { creditId: string }) {
       </ScrollView>
 
       <View style={styles.footer}>
-        <Pressable style={styles.primaryButton} onPress={() => router.push('/explore')} testID="booking-back-to-properties">
+        <Pressable style={styles.primaryButton} onPress={() => router.push('/(tabs)')} testID="booking-back-to-properties">
           <Text style={styles.primaryText}>Back to Properties</Text>
         </Pressable>
         {!isSolo && (

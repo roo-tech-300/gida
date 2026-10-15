@@ -22,6 +22,8 @@ jest.mock('expo-router', () => ({
   useLocalSearchParams: jest.fn(() => ({})),
 }));
 
+const { useLocalSearchParams } = jest.requireMock('expo-router');
+
 function mockLobbyData(credits: SlotCredit[] = MOCK_SLOT_CREDITS, pods = MOCK_PODS) {
   (useUserSlotCredits as jest.Mock).mockReturnValue({
     data: credits,
@@ -84,5 +86,53 @@ describe('LobbyScreen & Peer Matching Integration', () => {
 
     expect(getByText('Payment required')).toBeTruthy();
     expect(getByTestId('lobby-pay-now')).toBeTruthy();
+  });
+
+  it('prefers the credit matching the creditId param over a stale expired credit', async () => {
+    const expiredCredit = { ...MOCK_SLOT_CREDITS[0], id: 'expired-credit', status: 'expired' as const };
+    const paidCredit = { ...MOCK_SLOT_CREDITS[0], id: 'paid-credit', status: 'paid_unmatched' as const };
+    // Stale expired row first in the array — the old credits[0] fallback
+    // would have picked it and shown the expired banner.
+    mockLobbyData([expiredCredit, paidCredit]);
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ creditId: 'paid-credit' });
+
+    const { queryByText, getByText } = await render(
+      <ToastProvider>
+        <LobbyScreen />
+      </ToastProvider>,
+    );
+
+    expect(getByText('Payment confirmed')).toBeTruthy();
+    expect(queryByText('Hold expired')).toBeNull();
+  });
+
+  it('prefers a non-expired credit when no params are passed', async () => {
+    const expiredCredit = { ...MOCK_SLOT_CREDITS[0], id: 'expired-credit', status: 'expired' as const };
+    const paidCredit = { ...MOCK_SLOT_CREDITS[0], id: 'paid-credit', status: 'paid_unmatched' as const };
+    mockLobbyData([expiredCredit, paidCredit]);
+    (useLocalSearchParams as jest.Mock).mockReturnValue({});
+
+    const { queryByText, getByText } = await render(
+      <ToastProvider>
+        <LobbyScreen />
+      </ToastProvider>,
+    );
+
+    expect(getByText('Payment confirmed')).toBeTruthy();
+    expect(queryByText('Hold expired')).toBeNull();
+  });
+
+  it('shows the expired banner for a genuinely expired credit selected by creditId', async () => {
+    const expiredCredit = { ...MOCK_SLOT_CREDITS[0], id: 'expired-credit', status: 'expired' as const };
+    mockLobbyData([expiredCredit]);
+    (useLocalSearchParams as jest.Mock).mockReturnValue({ creditId: 'expired-credit' });
+
+    const { getByText } = await render(
+      <ToastProvider>
+        <LobbyScreen />
+      </ToastProvider>,
+    );
+
+    expect(getByText('Hold expired')).toBeTruthy();
   });
 });

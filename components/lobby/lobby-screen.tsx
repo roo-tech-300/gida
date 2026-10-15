@@ -19,7 +19,8 @@ import { SlotPass } from './slot-pass';
 
 export function LobbyScreen() {
   const router = useRouter();
-  const params = useLocalSearchParams<{ listingId?: string }>();
+  const params = useLocalSearchParams<{ listingId?: string; creditId?: string }>();
+  const creditId = params.creditId;
   const listingId = params.listingId;
   const {
     data: credits,
@@ -27,14 +28,21 @@ export function LobbyScreen() {
     isLoading: creditsLoading,
     isError: creditsError,
   } = useUserSlotCredits();
-  const credit = listingId
-    ? credits?.find((c) => c.listing_id === listingId)
-    : credits?.[0];
+  // Prefer the exact credit when navigated with a creditId (checkout,
+  // confirmation, profile, property details all pass creditId). Otherwise
+  // fall back to the listing match, preferring a non-expired credit, so a
+  // stale expired row can never shadow the active one.
+  const credit = creditId
+    ? credits?.find((c) => c.id === creditId)
+    : listingId
+      ? credits?.find((c) => c.listing_id === listingId && c.status !== 'expired')
+        ?? credits?.find((c) => c.listing_id === listingId)
+      : credits?.find((c) => c.status !== 'expired') ?? credits?.[0];
   const {
     data: pods,
     refetch: refetchPods,
     isLoading: podsLoading,
-  } = useActivePods(undefined, listingId);
+  } = useActivePods(undefined, credit?.listing_id ?? listingId);
 
   const [refreshing, setRefreshing] = useState(false);
   const [manageModalVisible, setManageModalVisible] = useState(false);

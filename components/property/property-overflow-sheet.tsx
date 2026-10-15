@@ -80,7 +80,7 @@ export function PropertyOverflowSheet({ visible, onClose, saved, onToggleSave, o
                 <View style={styles.iconWrap}>
                   <Ionicons name="chatbubble-ellipses-outline" size={18} color={DesignColors.onSurface} />
                 </View>
-                <Text style={styles.rowLabel}>Conversation</Text>
+                <Text style={styles.rowLabel}>Contact Admin</Text>
               </Pressable>
             </>
           ) : null}

@@ -56,6 +56,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       }
       if (PAID_CREDIT_STATUSES.has(latestCredit.status)) {
         setLocallyPaid(true);
+        setLocallyExpired(false);
         showToast({ message: 'You have already paid for this lodge.', type: 'info' });
         return;
       }
@@ -75,6 +76,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       if (result.simulated) {
         await new Promise((resolve) => setTimeout(resolve, 1500));
         setLocallyPaid(true);
+        setLocallyExpired(false);
         return;
       }
       if (!result.authorizationUrl) return;
@@ -96,6 +98,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       const verified = await verifyLodgePayment(reference);
       if (verified.verified) {
         setLocallyPaid(true);
+        setLocallyExpired(false);
       } else {
         showToast({ message: 'Payment is pending confirmation. Your spot is held — please check back shortly.', type: 'info' });
       }

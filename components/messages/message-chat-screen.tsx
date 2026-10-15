@@ -133,7 +133,7 @@ export function MessageChatScreen() {
           onDraftChange={setDraft}
           onSend={() => void handleSend()}
           onOpenAttachments={() => setAttachSheetVisible(true)}
-          selectedAttachmentLabel={attachment?.title}
+          attachment={attachment}
           onClearAttachment={attachment ? () => setAttachmentOverride(null) : undefined}
         />
       </SafeKeyboardView>

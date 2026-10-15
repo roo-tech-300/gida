@@ -1,14 +1,16 @@
 import { Ionicons } from '@expo/vector-icons';
-import { Pressable, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import type { ListingAttachment } from '@/types/messages';
+import { ComposerAttachmentPreview } from './composer-attachment-preview';
 
 type MessageComposerProps = {
   draft: string;
   onDraftChange: (value: string) => void;
   onSend: () => void;
   onOpenAttachments: () => void;
-  selectedAttachmentLabel?: string;
+  attachment?: ListingAttachment | null;
   onClearAttachment?: () => void;
 };
 
@@ -17,44 +19,38 @@ export function MessageComposer({
   onDraftChange,
   onSend,
   onOpenAttachments,
-  selectedAttachmentLabel,
+  attachment,
   onClearAttachment,
 }: MessageComposerProps) {
-  const canSend = draft.trim().length > 0 || Boolean(selectedAttachmentLabel);
+  const canSend = draft.trim().length > 0 || Boolean(attachment);
 
   return (
     <View style={styles.composerShell}>
-      {selectedAttachmentLabel ? (
-        <View style={styles.hintRow}>
-          <Ionicons name="home-outline" size={13} color={DesignColors.onSurfaceVariant} />
-          <Text style={styles.hint} numberOfLines={1}>{selectedAttachmentLabel}</Text>
-          {onClearAttachment ? (
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel="Remove attachment"
-              onPress={onClearAttachment}
-              hitSlop={8}
-              style={styles.hintClear}
-            >
-              <Ionicons name="close" size={14} color={DesignColors.onSurfaceVariant} />
-            </Pressable>
-          ) : null}
-        </View>
+      {attachment ? (
+        <ComposerAttachmentPreview attachment={attachment} onClear={onClearAttachment} />
       ) : null}
+
       <View style={styles.composer}>
-        <Pressable onPress={onOpenAttachments} style={styles.iconButton}>
+        <Pressable onPress={onOpenAttachments} style={styles.iconButton} accessibilityLabel="Add attachment">
           <Ionicons name="add" size={22} color={DesignColors.onSurface} />
         </Pressable>
+
         <TextInput
           multiline
-          placeholder="Message"
+          placeholder={attachment ? 'Add a message about this listing…' : 'Message'}
           placeholderTextColor={DesignColors.onSurfaceVariant}
           style={styles.input}
           value={draft}
           onChangeText={onDraftChange}
           textAlignVertical="top"
         />
-        <Pressable onPress={onSend} disabled={!canSend} style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}>
+
+        <Pressable
+          onPress={onSend}
+          disabled={!canSend}
+          style={[styles.sendButton, !canSend && styles.sendButtonDisabled]}
+          accessibilityLabel="Send message"
+        >
           <Ionicons name="send" size={18} color={canSend ? DesignColors.onPrimaryContainer : DesignColors.outline} />
         </Pressable>
       </View>
@@ -69,22 +65,6 @@ const styles = StyleSheet.create({
     paddingBottom: DesignSpacing.md,
     backgroundColor: 'transparent',
   },
-  hintRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: DesignSpacing.xs,
-    paddingHorizontal: DesignSpacing.sm,
-  },
-  hint: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    flex: 1,
-  },
-  hintClear: {
-    padding: 4,
-  },
   composer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
@@ -94,7 +74,6 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainer,
     borderWidth: 1,
     borderColor: DesignColors.cardBorder,
-    boxShadow: `0 10px 24px ${DesignColors.scrim}`,
     borderCurve: 'continuous',
   },
   iconButton: {

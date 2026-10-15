@@ -251,6 +251,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         saved={isSaved}
         onToggleSave={handleToggleSave}
         onEnquire={canEnquire ? enquire : undefined}
+        onShare={() => setShareModalOpen(true)}
       />
 
       <ImageGalleryModal

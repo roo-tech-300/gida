@@ -54,7 +54,7 @@ export function ComposerReplyPreview({ reply, senderName, onClear }: Props) {
           <Ionicons name="arrow-undo-outline" size={11} color={DesignColors.primaryBright} />
           <Text style={styles.badgeText}>Replying to {senderName ?? 'message'}</Text>
         </View>
-        <Text style={styles.snippet} numberOfLines={1}>
+        <Text style={styles.snippet} numberOfLines={3}>
           {snippet}
         </Text>
       </View>

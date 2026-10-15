@@ -10,6 +10,10 @@ import { MessageTourCard } from '@/components/messages/message-tour-card';
 import { MessageRoommateInviteCard } from '@/components/messages/message-roommate-invite-card';
 import { MessagePodJoinCard } from '@/components/messages/message-pod-join-card';
 import { MessageLodgeReservationCard } from '@/components/messages/message-lodge-reservation-card';
+import { MessageTruncatedText } from '@/components/messages/message-truncated-text';
+
+const BODY_COLLAPSED_LINES = 15;
+const QUOTE_MAX_LINES = 3;
 
 /** Quoted reply strip rendered INSIDE the bubble, above the reply text. */
 function ReplyQuote({
@@ -26,9 +30,8 @@ function ReplyQuote({
       <Text style={[styles.quoteLabel, isMe && styles.quoteLabelMe]} numberOfLines={1}>
         {label}
       </Text>
-      {/* No line clamp: the quote wraps so the bubble widens to fit the longer
-          of the quote/reply texts instead of truncating the quoted message. */}
-      <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]}>
+      {/* Replies quote compactly: 3-line clamp, no read-more toggle. */}
+      <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]} numberOfLines={QUOTE_MAX_LINES}>
         {reply.body.trim() || 'Attachment'}
       </Text>
     </View>
@@ -87,7 +90,11 @@ export function MessageBubble({
         {message.body && !isRoommateInvite && !isPodJoin ? (
           <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>
             {replyTo ? <ReplyQuote reply={replyTo} label={replyLabel} isMe={isMe} /> : null}
-            <Text style={[styles.text, isMe && styles.textMe]}>{message.body}</Text>
+            <MessageTruncatedText
+              text={message.body}
+              collapsedLines={BODY_COLLAPSED_LINES}
+              style={[styles.text, isMe && styles.textMe]}
+            />
           </View>
         ) : null}
         <View style={[styles.footerRow, isMe && styles.footerRowMe]}>

@@ -26,7 +26,9 @@ function ReplyQuote({
       <Text style={[styles.quoteLabel, isMe && styles.quoteLabelMe]} numberOfLines={1}>
         {label}
       </Text>
-      <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]} numberOfLines={1}>
+      {/* No line clamp: the quote wraps so the bubble widens to fit the longer
+          of the quote/reply texts instead of truncating the quoted message. */}
+      <Text style={[styles.quoteSnippet, isMe && styles.quoteSnippetMe]}>
         {reply.body.trim() || 'Attachment'}
       </Text>
     </View>

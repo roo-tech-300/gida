@@ -14,6 +14,8 @@ export type LocalMessageRow = {
   status: string;
   server_created_at: string | null;
   read_at: string | null;
+  /** Kept for type parity with the native store; unused on web. */
+  previous_local_id?: string | null;
 };
 
 let lastLocalStamp = 0;
@@ -81,6 +83,15 @@ export function saveIncomingMessages(_conversationId: string, incoming: ServerCh
 }
 
 export function markLocalMessagesRead(_conversationId: string, _readerId: string): void {}
+
+/**
+ * Web shim: the in-memory store never renames a queued row to a server id
+ * (see createOutboxMessage — nothing is persisted), so there are never any
+ * superseded device ids to drop from the React Query cache.
+ */
+export function getSupersededLocalIds(_conversationId: string): Set<string> {
+  return new Set();
+}
 
 export function upsertThreadFromConversation(_conversation: Conversation): void {}
 

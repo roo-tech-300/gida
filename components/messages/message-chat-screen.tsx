@@ -17,6 +17,7 @@ import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
 import { useContextualNotificationPrompt } from '@/hooks/use-contextual-notification-prompt';
+import { useInitialChatAttachment } from '@/hooks/use-initial-chat-attachment';
 import type { ListingAttachment } from '@/types/messages';
 
 export function MessageChatScreen() {
@@ -30,9 +31,15 @@ export function MessageChatScreen() {
   const { flushOutbox } = useMessageSync();
 
   const [draft, setDraft] = useState('');
-  const [attachment, setAttachment] = useState<ListingAttachment | null>(null);
+  // undefined = follow the Enquire seed; null/attachment = user has chosen (or removed).
+  const [attachmentOverride, setAttachmentOverride] = useState<ListingAttachment | null | undefined>(undefined);
   const [attachSheetVisible, setAttachSheetVisible] = useState(false);
   const [pickerSource, setPickerSource] = useState<PickerSource | null>(null);
+
+  // Seeded when arriving via the listing "Enquire" button (?attachListingId=...).
+  // Resolved from the shared ['listing', id] cache — no extra fetch in practice.
+  const seededAttachment = useInitialChatAttachment();
+  const attachment = attachmentOverride === undefined ? seededAttachment : attachmentOverride;
 
   const { modalVisible, triggerPromptIfAppropriate, closeModal } =
     useContextualNotificationPrompt('first_sent_message');
@@ -64,7 +71,7 @@ export function MessageChatScreen() {
     try {
       await sendMessage({ body: text, attachment });
       setDraft('');
-      setAttachment(null);
+      setAttachmentOverride(null);
       triggerPromptIfAppropriate();
     } catch (error) {
       console.error('[MessageChat] Failed to send message:', error);
@@ -127,6 +134,7 @@ export function MessageChatScreen() {
           onSend={() => void handleSend()}
           onOpenAttachments={() => setAttachSheetVisible(true)}
           selectedAttachmentLabel={attachment?.title}
+          onClearAttachment={attachment ? () => setAttachmentOverride(null) : undefined}
         />
       </SafeKeyboardView>
 
@@ -145,7 +153,7 @@ export function MessageChatScreen() {
         source={pickerSource ?? 'saved'}
         onClose={() => setPickerSource(null)}
         onSelect={(selected) => {
-          setAttachment(selected);
+          setAttachmentOverride(selected);
           showToast({ message: `Listing attached: ${selected.title}`, type: 'success' });
         }}
       />

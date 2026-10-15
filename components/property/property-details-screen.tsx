@@ -12,6 +12,8 @@ import { useTourBookings } from '@/hooks/use-tour-bookings';
 import { useReviews, calculateAverageRating } from '@/hooks/use-reviews';
 import { useReviewEligibility } from '@/hooks/use-review-eligibility';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
+import { useListingEnquire } from '@/hooks/use-listing-enquire';
+import { PropertyOverflowSheet } from './property-overflow-sheet';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
@@ -48,6 +50,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const [claimModalOpen, setClaimModalOpen] = useState(false);
   const [inviteModalOpen, setInviteModalOpen] = useState(false);
   const [shareModalOpen, setShareModalOpen] = useState(false);
+  const [overflowOpen, setOverflowOpen] = useState(false);
 
   const allPhotos = useMemo(() => {
     if (photos && photos.length > 0) return photos;
@@ -130,6 +133,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const hasLocation = dbListing == null || (dbListing.latitude != null && dbListing.longitude != null);
   const toursAvailable = toursEnabled && hasLocation;
   const isSaved = savedIds.includes(property.id);
+  const { canEnquire, enquire } = useListingEnquire(dbListing, property.id);
 
   const handleToggleSave = () => {
     toggleSave.mutate(property.id, {
@@ -237,9 +241,16 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
         ctaIcon={ctaIcon}
         onCtaPress={onCtaPress}
         onVisitProperty={toursAvailable || !!activeTour ? () => setTourModalOpen(true) : undefined}
+        onOpenOverflow={() => setOverflowOpen(true)}
         showSpinner={ctaPending}
-        liked={isSaved}
+      />
+
+      <PropertyOverflowSheet
+        visible={overflowOpen}
+        onClose={() => setOverflowOpen(false)}
+        saved={isSaved}
         onToggleSave={handleToggleSave}
+        onEnquire={canEnquire ? enquire : undefined}
       />
 
       <ImageGalleryModal

@@ -9,6 +9,7 @@ type MessageComposerProps = {
   onSend: () => void;
   onOpenAttachments: () => void;
   selectedAttachmentLabel?: string;
+  onClearAttachment?: () => void;
 };
 
 export function MessageComposer({
@@ -17,12 +18,29 @@ export function MessageComposer({
   onSend,
   onOpenAttachments,
   selectedAttachmentLabel,
+  onClearAttachment,
 }: MessageComposerProps) {
   const canSend = draft.trim().length > 0 || Boolean(selectedAttachmentLabel);
 
   return (
     <View style={styles.composerShell}>
-      {selectedAttachmentLabel ? <Text style={styles.hint}>{selectedAttachmentLabel}</Text> : null}
+      {selectedAttachmentLabel ? (
+        <View style={styles.hintRow}>
+          <Ionicons name="home-outline" size={13} color={DesignColors.onSurfaceVariant} />
+          <Text style={styles.hint} numberOfLines={1}>{selectedAttachmentLabel}</Text>
+          {onClearAttachment ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Remove attachment"
+              onPress={onClearAttachment}
+              hitSlop={8}
+              style={styles.hintClear}
+            >
+              <Ionicons name="close" size={14} color={DesignColors.onSurfaceVariant} />
+            </Pressable>
+          ) : null}
+        </View>
+      ) : null}
       <View style={styles.composer}>
         <Pressable onPress={onOpenAttachments} style={styles.iconButton}>
           <Ionicons name="add" size={22} color={DesignColors.onSurface} />
@@ -51,12 +69,21 @@ const styles = StyleSheet.create({
     paddingBottom: DesignSpacing.md,
     backgroundColor: 'transparent',
   },
+  hintRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    marginBottom: DesignSpacing.xs,
+    paddingHorizontal: DesignSpacing.sm,
+  },
   hint: {
     ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-    marginBottom: DesignSpacing.xs,
-    paddingHorizontal: DesignSpacing.sm,
+    flex: 1,
+  },
+  hintClear: {
+    padding: 4,
   },
   composer: {
     flexDirection: 'row',

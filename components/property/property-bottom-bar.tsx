@@ -9,12 +9,12 @@ type Props = {
   ctaIcon?: keyof typeof Ionicons.glyphMap;
   onCtaPress?: () => void;
   onVisitProperty?: () => void;
+  /** Opens the overflow menu (Save / Enquire). */
+  onOpenOverflow?: () => void;
   showSpinner?: boolean;
-  liked?: boolean;
-  onToggleSave?: () => void;
 };
 
-export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, showSpinner = false, liked = false, onToggleSave }: Props) {
+export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPress, onVisitProperty, onOpenOverflow, showSpinner = false }: Props) {
   const insets = useSafeAreaInsets();
   const showTour = !!onVisitProperty;
 
@@ -22,14 +22,11 @@ export function PropertyBottomBar({ ctaLabel, ctaIcon = 'enter-outline', onCtaPr
     <View style={[styles.bar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
       <Pressable
         accessibilityRole="button"
-        onPress={onToggleSave}
-        style={[styles.favButton, liked && styles.favButtonActive]}
+        accessibilityLabel="More actions"
+        onPress={onOpenOverflow}
+        style={styles.overflowButton}
       >
-        <Ionicons
-          name={liked ? 'heart' : 'heart-outline'}
-          size={22}
-          color={liked ? DesignColors.primaryBright : DesignColors.onSurface}
-        />
+        <Ionicons name="ellipsis-horizontal" size={22} color={DesignColors.onSurface} />
       </Pressable>
 
       {showTour ? (
@@ -73,7 +70,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: DesignColors.borderSoft,
   },
-  favButton: {
+  overflowButton: {
     width: 48,
     height: 48,
     borderRadius: DesignRadius.full,
@@ -82,10 +79,6 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.borderSoft,
     backgroundColor: DesignColors.surfaceContainerLow,
-  },
-  favButtonActive: {
-    borderColor: DesignColors.primaryTintBorder,
-    backgroundColor: DesignColors.primaryTint,
   },
   tourWrap: {
     flex: 1,

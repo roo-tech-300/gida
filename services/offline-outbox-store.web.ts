@@ -31,6 +31,11 @@ export function getPendingOutbox(): QueuedOutboundMessage[] {
   return [];
 }
 
+/** Web shim: there is no offline queue on web, so nothing is ever in flight. */
+export function beginOutboxAttempt(_localId: string): void {}
+
+export function endOutboxAttempt(_localId: string): void {}
+
 export function markOutboxSynced(_localId: string, _serverId: string, _conversationId: string, _serverCreatedAt: string, _readAt: string | null): void {}
 
 export function markMessageFailed(_id: string): void {}

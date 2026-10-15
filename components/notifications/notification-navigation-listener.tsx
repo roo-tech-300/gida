@@ -4,7 +4,7 @@ import { useRouter } from 'expo-router';
 import { getInitialNotification, onNotificationOpenedApp } from '@react-native-firebase/messaging';
 import { getNativeMessaging } from '@/src/notifications/native-messaging';
 
-type ConversationPushData = { conversationId?: string };
+type ConversationPushData = { conversationId?: string; senderId?: string };
 
 export function NotificationNavigationListener() {
   const router = useRouter();
@@ -14,9 +14,16 @@ export function NotificationNavigationListener() {
     const messaging = getNativeMessaging();
     if (!messaging) return;
 
+    // The /messages/[id] route resolves `id` as the OTHER participant's user id
+    // (see MessageChatScreen -> useConversationThread(otherId)), so the sender's
+    // user id must be used here — passing the conversation id lands on a broken
+    // thread because it is looked up as if it were a participant id.
     const openConversation = (data: ConversationPushData): void => {
-      if (!data.conversationId) return;
-      router.push(`/messages/${encodeURIComponent(data.conversationId)}`);
+      if (!data.senderId) {
+        console.warn('[Notifications] Push payload missing senderId — skipping navigation', data);
+        return;
+      }
+      router.push(`/messages/${encodeURIComponent(data.senderId)}`);
     };
 
     let active = true;

@@ -131,6 +131,8 @@ export default function RootLayout() {
                     <Stack.Screen name="property/tour-history" options={{ presentation: 'modal' }} />
                     <Stack.Screen name="messages/[id]" />
                     <Stack.Screen name="roommate/[id]" />
+                    <Stack.Screen name="referral" />
+                    <Stack.Screen name="r/[code]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>
                 </AuthGate>

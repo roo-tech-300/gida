@@ -2,6 +2,12 @@
   "buildCommand": "npx expo export --platform web && node scripts/copy-public-assets.mjs",
   "outputDirectory": "dist",
   "cleanUrls": true,
+  "headers": [
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+    }
+  ],
   "rewrites": [
     { "source": "/r/:code", "destination": "/" },
     { "source": "/onboarding", "destination": "/" },

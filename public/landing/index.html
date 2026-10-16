@@ -95,7 +95,7 @@
     <script>
       // Keep in sync with constants/launch.ts IS_APP_LAUNCHED.
       // When false, the app hasn't launched: hide the Android download button.
-      const IS_APP_LAUNCHED = true;
+      const IS_APP_LAUNCHED = false;
       const isAndroidPhone = /Android/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
       const downloadAppLink = document.querySelector('.download-app-link');
       if (IS_APP_LAUNCHED && isAndroidPhone && downloadAppLink) downloadAppLink.hidden = false;

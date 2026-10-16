@@ -60,7 +60,7 @@ export async function ensureReferralCode(userId: string): Promise<string | null>
 }
 
 export function buildReferralLink(referralCode: string): string {
-  return `https://gida.apartments/r/${encodeURIComponent(referralCode)}`;
+  return `https://www.gida.apartments/r/${encodeURIComponent(referralCode)}`;
 }
 
 export function buildReferralDeepLink(referralCode: string): string {

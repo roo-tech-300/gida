@@ -14,7 +14,7 @@ import { queryClient } from '@/lib/query-clients';
 import { checkForAppUpdate } from '@/src/lib/updates/updates';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { QueryClientProvider } from '@tanstack/react-query';
-import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
+import { Stack, usePathname, useRouter, useSegments, useGlobalSearchParams } from 'expo-router';
 import React, { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
@@ -29,8 +29,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
   const { profile, isLoading, isAuthenticated, hasSession } = useAuth();
   const segments = useSegments();
   const pathname = usePathname();
+  const searchParams = useGlobalSearchParams<{ referralCode?: string | string[] }>();
+  const referralCodeParam = Array.isArray(searchParams?.referralCode)
+    ? searchParams.referralCode[0]
+    : searchParams?.referralCode;
   const router = useRouter();
   const pendingPropertyPath = useRef<string | null>(null);
+  const pendingReferralPath = useRef<string | null>(null);
 
   useEffect(() => {
     const isWeb = Platform.OS === 'web';
@@ -49,7 +54,16 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty || isReferralEntry) return;
+    if (isReferralEntry) {
+      const query = Object.entries(searchParams ?? {})
+        .filter(([, v]) => v !== undefined)
+        .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(Array.isArray(v) ? v[0] ?? '' : v)}`)
+        .join('&');
+      pendingReferralPath.current = query ? `${pathname}?${query}` : pathname;
+      return;
+    }
+
+    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty) return;
 
     if (!isAuthenticated) {
       // Valid session but the profile row hasn't loaded yet (e.g. offline on
@@ -68,6 +82,9 @@ function AuthGate({ children }: { children: React.ReactNode }) {
         return;
       }
       if (!IS_APP_LAUNCHED) {
+        // Referral entries bypass the coming-soon gate: let the stash survive
+        // until ReferralEntry's redirect into (auth) completes.
+        if (inAuthGroup && (pendingReferralPath.current || referralCodeParam)) return;
         if (!inLandingGroup) {
           router.replace('/(landing)/coming-soon');
         }

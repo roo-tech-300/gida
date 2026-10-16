@@ -33,7 +33,7 @@
     <link rel="stylesheet" crossorigin href="/landing/assets/index-NGWS6tDq.css">
     <style>
       .download-app-link[hidden] {
-        display: none;
+        display: none !important;
       }
 
       .download-app-link {
@@ -93,12 +93,17 @@
       </main>
     </noscript>
     <script>
-      // Keep in sync with constants/launch.ts IS_APP_LAUNCHED.
-      // When false, the app hasn't launched: hide the Android download button.
-      const IS_APP_LAUNCHED = false;
+      // Driven by constants/launch.ts via ?launched= from the Expo web shell.
+      // Default false so a standalone visit never shows the APK button pre-launch.
+      const launchedParam = new URLSearchParams(window.location.search).get('launched');
+      const IS_APP_LAUNCHED = launchedParam === '1';
       const isAndroidPhone = /Android/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
       const downloadAppLink = document.querySelector('.download-app-link');
-      if (IS_APP_LAUNCHED && isAndroidPhone && downloadAppLink) downloadAppLink.hidden = false;
+      if (IS_APP_LAUNCHED && isAndroidPhone && downloadAppLink) {
+        downloadAppLink.hidden = false;
+      } else if (downloadAppLink) {
+        downloadAppLink.remove();
+      }
     </script>
   </body>
 </html>

@@ -1,11 +1,15 @@
-import { Redirect, Stack } from 'expo-router';
+import { Redirect, Stack, useLocalSearchParams } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
 
 import { DesignColors } from '@/constants/design';
 import { IS_APP_LAUNCHED } from '@/constants/launch';
 
 export default function AuthLayout() {
-  if (!IS_APP_LAUNCHED) {
+  const params = useLocalSearchParams<{ referralCode?: string }>();
+
+  // Block auth screens when app isn't launched yet — but let referral links
+  // through so /r/:code → signup still works even in pre-launch mode.
+  if (!IS_APP_LAUNCHED && !params.referralCode) {
     return <Redirect href="/(landing)/coming-soon" />;
   }
 

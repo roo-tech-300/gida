@@ -32,18 +32,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
   android: {
     ...config.android,
     intentFilters: [
-      {
-        action: 'VIEW',
-        autoVerify: true,
-        category: ['BROWSABLE', 'DEFAULT'],
-        data: [
-          {
-            scheme: 'https',
-            host: 'gida.apartments',
-            pathPrefix: '/property/',
-          },
-        ],
-      },
+      // Property deep links — www only (apex redirects → can't be autoVerified)
       {
         action: 'VIEW',
         autoVerify: true,
@@ -56,18 +45,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         ],
       },
-      {
-        action: 'VIEW',
-        autoVerify: true,
-        category: ['BROWSABLE', 'DEFAULT'],
-        data: [
-          {
-            scheme: 'https',
-            host: 'gida.apartments',
-            pathPrefix: '/r/',
-          },
-        ],
-      },
+      // Referral deep links — www only
       {
         action: 'VIEW',
         autoVerify: true,
@@ -80,6 +58,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         ],
       },
+      // Custom-scheme fallback for referral (gida://referral?code=…)
       {
         action: 'VIEW',
         category: ['BROWSABLE', 'DEFAULT'],

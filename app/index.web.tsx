@@ -48,7 +48,12 @@ export default function WebIndex() {
 
   return (
     <View style={styles.container}>
-      <iframe ref={iframeRef} src="/landing/index.html" title="Gida" style={frameStyle} />
+      <iframe
+        ref={iframeRef}
+        src={`/landing/index.html?launched=${IS_APP_LAUNCHED ? '1' : '0'}`}
+        title="Gida"
+        style={frameStyle}
+      />
     </View>
   );
 }

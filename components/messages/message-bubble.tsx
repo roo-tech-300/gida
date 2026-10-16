@@ -94,6 +94,7 @@ export function MessageBubble({
               text={message.body}
               collapsedLines={BODY_COLLAPSED_LINES}
               style={[styles.text, isMe && styles.textMe]}
+              linkStyle={isMe ? styles.linkMe : undefined}
             />
           </View>
         ) : null}
@@ -240,5 +241,8 @@ const styles = StyleSheet.create({
     textAlign: 'right',
     marginLeft: 0,
     marginRight: 4,
+  },
+  linkMe: {
+    color: DesignColors.primaryFixed,
   },
 });

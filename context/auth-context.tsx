@@ -48,6 +48,7 @@ export type AuthProfile = {
   show_in_roommate_feed: boolean | null;
   birth_year: number | null;
   entry_year: number | null;
+  referral_code: string | null;
   program_duration: number | null;
   religion: string | null;
 };

@@ -17,10 +17,12 @@ import { JoinGroupCard } from './join-group-card';
 import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
+import { ReferralModal } from './referral-modal';
 import { ReservedHousesSection } from './reserved-houses-section';
 import { useAvatarUpload } from './use-avatar-upload';
 import { useExpiredLodges } from './use-expired-lodges';
 import { useRoommateCompletion } from './use-roommate-completion';
+import { useReferral } from '@/hooks/use-referral';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
@@ -52,6 +54,13 @@ export function StudentProfileScreen() {
 
   const expiredLodges = useExpiredLodges(reservations, currentTime);
   const roommateCompletion = useRoommateCompletion(preferences, profile);
+  const referral = useReferral();
+  const [referralModalOpen, setReferralModalOpen] = useState(false);
+  const openReferral = useCallback(() => setReferralModalOpen(true), []);
+  const closeReferral = useCallback(() => setReferralModalOpen(false), []);
+  const retryReferral = () => {
+    void Promise.all([referral.refetchCode(), referral.refetchEarnings()]);
+  };
 
   const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
   const cleanlinessLevel = preferences?.roommate?.cleanliness_level ?? 'Not set yet';
@@ -152,6 +161,12 @@ export function StudentProfileScreen() {
             <ProfileRow icon="cash-outline" label="Maximum Annual Budget" value={budgetLabel} />
             <ProfileRow icon="chatbubble-ellipses-outline" label="Bio" value={profileBio} />
           </View>
+          {userId && (
+            <View style={styles.section}>
+              <Text style={styles.sectionTitle}>Earn</Text>
+              <ProfileRow icon="gift-outline" label="Refer & Earn" value="Invite friends, get paid" onPress={openReferral} />
+            </View>
+          )}
 
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Account & Safety</Text>
@@ -202,6 +217,7 @@ export function StudentProfileScreen() {
 
         <DiscoverBottomNav activeTab="profile" />
         <ReplayTourModal visible={tourModalOpen} onClose={closeTour} />
+        <ReferralModal visible={referralModalOpen} onClose={closeReferral} link={referral.link} isLoading={referral.isLoading} hasError={referral.hasError} onRetry={retryReferral} />
       </View>
     </SafeAreaView>
   );

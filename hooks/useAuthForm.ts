@@ -13,14 +13,14 @@ export function useAuthForm() {
     const [password, setPassword] = useState('');
     const [fullName, setFullName] = useState('');
 
-    const handleRegister = async () => {
+    const handleRegister = async (referralCode?: string) => {
         if(!email || !password || !fullName){
             showToast({type: 'error', message: "Please fill in all required fields."});
             return;
         }
         setLoading(true);
         try {
-            const profileData: UserProfileInput = { fullName };
+            const profileData: UserProfileInput = { fullName, referralCode };
             const registration = await registerUserAccount(email, password, profileData);
             if (registration.requiresEmailConfirmation) {
                 router.replace({ pathname: '/(auth)/verify-email', params: { email } });

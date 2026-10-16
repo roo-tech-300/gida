@@ -56,6 +56,40 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
           },
         ],
       },
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          {
+            scheme: 'https',
+            host: 'gida.apartments',
+            pathPrefix: '/r/',
+          },
+        ],
+      },
+      {
+        action: 'VIEW',
+        autoVerify: true,
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          {
+            scheme: 'https',
+            host: 'www.gida.apartments',
+            pathPrefix: '/r/',
+          },
+        ],
+      },
+      {
+        action: 'VIEW',
+        category: ['BROWSABLE', 'DEFAULT'],
+        data: [
+          {
+            scheme: 'gida',
+            host: 'referral',
+          },
+        ],
+      },
       // Deep link for the payment callback: lets the Paystack checkout tab
       // redirect (gida://property/location-unlock-callback?...) reopen the app.
       {

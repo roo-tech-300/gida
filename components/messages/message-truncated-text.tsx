@@ -1,4 +1,4 @@
-import { useLayoutEffect, useRef, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import {
   Platform,
   Pressable,
@@ -58,17 +58,15 @@ export function MessageTruncatedText({ text, collapsedLines, style, linkStyle }:
   const prevTextRef = useRef(text);
   const prevCapRef = useRef(collapsedLines);
 
-  // Reset derived truncation state when the message body or line cap changes.
-  // (Derived-state-during-render pattern — see React docs for syncing from props.)
-  if (prevTextRef.current !== text || prevCapRef.current !== collapsedLines) {
+  useEffect(() => {
+    if (prevTextRef.current === text && prevCapRef.current === collapsedLines) return;
     prevTextRef.current = text;
     prevCapRef.current = collapsedLines;
     clampedHeightRef.current = 0;
     probeHeightRef.current = 0;
-    const nextTruncated = hasNewlineOverflow(text, collapsedLines);
-    if (expanded) setExpanded(false);
-    if (isTruncated !== nextTruncated) setIsTruncated(nextTruncated);
-  }
+    setExpanded(false);
+    setIsTruncated(hasNewlineOverflow(text, collapsedLines));
+  }, [text, collapsedLines]);
 
   const markTruncatedIfNeeded = (probeHeight: number, clampedHeight: number) => {
     if (clampedHeight > 0 && probeHeight > clampedHeight + HEIGHT_EPSILON_PX) {

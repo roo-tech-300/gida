@@ -43,12 +43,13 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const isPublicWebHome = isWeb && pathname === '/';
     const isPublicWebContent = isWeb && PUBLIC_WEB_CONTENT_PATHS.includes(pathname);
     const isPublicWebProperty = isWeb && /^\/property\/[^/]+\/?$/.test(pathname);
+    const isReferralEntry = pathname === '/referral' || pathname.startsWith('/r/');
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty) return;
+    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty || isReferralEntry) return;
 
     if (!isAuthenticated) {
       // Valid session but the profile row hasn't loaded yet (e.g. offline on

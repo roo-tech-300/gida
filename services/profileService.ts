@@ -12,6 +12,7 @@ export type ProfileRecord = {
   is_student?: boolean | null;
   school?: string | null;
   onboarded?: boolean | null;
+  referral_code?: string | null;
 };
 
 export async function fetchUserProfile(userId: string): Promise<ProfileRecord | null> {

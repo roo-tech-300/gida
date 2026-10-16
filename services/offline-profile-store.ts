@@ -30,6 +30,7 @@ function getDb(): SQLite.SQLiteDatabase {
         birth_year INTEGER,
         entry_year INTEGER,
         program_duration INTEGER,
+        referral_code TEXT,
         religion TEXT,
         cached_at INTEGER NOT NULL
       );
@@ -39,6 +40,9 @@ function getDb(): SQLite.SQLiteDatabase {
       const cols = db.getAllSync<{ name: string }>('PRAGMA table_info(cached_profile)');
       if (!cols.some((c) => c.name === 'matric_number')) {
         db.execSync('ALTER TABLE cached_profile ADD COLUMN matric_number TEXT');
+      }
+      if (!cols.some((c) => c.name === 'referral_code')) {
+        db.execSync('ALTER TABLE cached_profile ADD COLUMN referral_code TEXT');
       }
     } catch (migrationError) {
       console.error('[OfflineProfileStore] Failed to migrate cached_profile:', migrationError);
@@ -55,7 +59,7 @@ export function cacheProfile(profile: AuthProfile): void {
         id, email, full_name, username, matric_number, avatar_url, bio, gender,
         is_student, is_admin, admin_role, assigned_region_id,
         city, school, onboarded, show_in_roommate_feed,
-        birth_year, entry_year, program_duration, religion, cached_at
+        birth_year, entry_year, program_duration, religion, referral_code, cached_at
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         profile.id,
@@ -78,6 +82,7 @@ export function cacheProfile(profile: AuthProfile): void {
         profile.entry_year ?? null,
         profile.program_duration ?? null,
         profile.religion ?? null,
+        profile.referral_code ?? null,
         Date.now(),
       ],
     );
@@ -110,6 +115,7 @@ export function getCachedProfile(): AuthProfile | null {
       entry_year: number | null;
       program_duration: number | null;
       religion: string | null;
+      referral_code: string | null;
     }>('SELECT * FROM cached_profile LIMIT 1');
 
     if (!row) return null;
@@ -135,6 +141,7 @@ export function getCachedProfile(): AuthProfile | null {
       entry_year: row.entry_year,
       program_duration: row.program_duration,
       religion: row.religion,
+      referral_code: row.referral_code ?? null,
     };
   } catch (error) {
     console.error('[OfflineProfileStore] Failed to read cached profile:', error);

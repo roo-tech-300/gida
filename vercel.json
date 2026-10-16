@@ -3,6 +3,7 @@
   "outputDirectory": "dist",
   "cleanUrls": true,
   "rewrites": [
+    { "source": "/r/:code", "destination": "/" },
     { "source": "/onboarding", "destination": "/" },
     { "source": "/property/:path*", "destination": "/" },
     { "source": "/roommate/:path*", "destination": "/" },

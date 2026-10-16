@@ -2,6 +2,7 @@ import { supabase } from "@/lib/supabase";
 
 export interface UserProfileInput {
     fullName: string;
+    referralCode?: string;
 }
 
 export interface UserRegistrationResult {
@@ -15,6 +16,7 @@ export async function registerUserAccount(email: string, password: string, profi
         options: {
             data: {
                 full_name: profile.fullName,
+                ...(profile.referralCode ? { referral_code: profile.referralCode.trim() } : {}),
             }
         }
     });

@@ -7,9 +7,12 @@ import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/con
 import { useAuthForm } from '@/hooks/useAuthForm';
 import { useState } from 'react';
 import { useAppToast } from '@/components/ui/toast-card';
+import { useLocalSearchParams } from 'expo-router';
 
 export default function SignupScreen() {
   const { showToast } = useAppToast();
+  const { referralCode: referralCodeParam } = useLocalSearchParams<{ referralCode?: string | string[] }>();
+  const referralCode = typeof referralCodeParam === 'string' ? referralCodeParam : undefined;
   const {
     fullName, setFullName,
     email, setEmail,
@@ -24,7 +27,7 @@ export default function SignupScreen() {
       showToast({ type: 'error', message: 'Passwords do not match.' });
       return;
     }
-    handleRegister();
+    handleRegister(referralCode);
   };
 
   return (

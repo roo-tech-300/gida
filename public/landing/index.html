@@ -85,18 +85,20 @@
       </svg>
       Download Android app
     </a>
-    <noscript>
+    <noscript data-app-launch="false">
       <main>
         <h1>Student housing and lodges in Nigeria</h1>
         <p>Find verified student lodges, connect with compatible roommates, and get settled with Gida.</p>
         <p><a href="/signup">Get started</a> · <a href="/login">Log in</a></p>
-        <p><a href="https://github.com/roo-tech-300/gida/releases/latest/download/Gida.apk">Get the app (Android APK)</a></p>
       </main>
     </noscript>
     <script>
+      // Keep in sync with constants/launch.ts IS_APP_LAUNCHED.
+      // When false, the app hasn't launched: hide the Android download button.
+      const IS_APP_LAUNCHED = true;
       const isAndroidPhone = /Android/i.test(navigator.userAgent) && /Mobile/i.test(navigator.userAgent);
       const downloadAppLink = document.querySelector('.download-app-link');
-      if (isAndroidPhone && downloadAppLink) downloadAppLink.hidden = false;
+      if (IS_APP_LAUNCHED && isAndroidPhone && downloadAppLink) downloadAppLink.hidden = false;
     </script>
   </body>
 </html>

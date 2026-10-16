@@ -8,6 +8,54 @@ import { authenticatedUserId, jsonError, requireUuid, type PaymentMetadata } fro
 const PAYSTACK_BASE = 'https://api.paystack.co';
 const LOCATION_ACCESS_FEE_NGN = 500;
 const ASSISTED_TOUR_FEE_NGN = 2000;
+const REFERRAL_PAYMENT_AMOUNT_KOBO = 200000; // ₦2,000 per successful lodge payment by referred user
+
+async function supabaseRest(env: Env, path: string, init?: RequestInit): Promise<Response> {
+  const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
+  const headers = {
+    'Content-Type': 'application/json',
+    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    ...(init?.headers ?? {}),
+  };
+  return fetch(`${baseUrl}/rest/v1/${path}`, { ...init, headers });
+}
+
+async function recordReferralPayment(env: Env, userId: string, reference: string): Promise<boolean> {
+  try {
+    const refResponse = await supabaseRest(
+      env,
+      `referrals?select=id,referrer_id&referred_id=eq.${encodeURIComponent(userId)}`,
+    );
+    if (!refResponse.ok) {
+      console.error('[ReferralPayment] Failed to query referrals:', refResponse.status);
+      return false;
+    }
+    const referrals = (await refResponse.json()) as { id: string; referrer_id: string }[];
+    const referral = referrals[0];
+    if (!referral) return true;
+
+    const insertResponse = await supabaseRest(env, 'referral_payments', {
+      method: 'POST',
+      headers: { Prefer: 'resolution=ignore-duplicates,return=minimal' },
+      body: JSON.stringify({
+        referral_id: referral.id,
+        payout_to: referral.referrer_id,
+        referred_user_id: userId,
+        amount: REFERRAL_PAYMENT_AMOUNT_KOBO,
+        status: 'pending',
+        source_reference: reference,
+      }),
+    });
+    if (insertResponse.ok) return true;
+
+    console.error('[ReferralPayment] Failed to insert referral payment:', insertResponse.status, await insertResponse.text());
+    return false;
+  } catch (error) {
+    console.error('[ReferralPayment] Failed to persist referral payment:', error);
+    return false;
+  }
+}
 
 async function hmacSha512Hex(secret: string, body: string): Promise<string> {
   const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(secret), { name: 'HMAC', hash: 'SHA-512' }, false, ['sign']);
@@ -41,6 +89,9 @@ async function persistSuccess(env: Env, data: NonNullable<PaystackResult['data']
   if (kind === 'lodge' && metadata.slotCreditId) {
     const result = await confirmSlotPayment(env, metadata.slotCreditId, data.reference);
     if (!result.confirmed) return false;
+    if (metadata.userId && !(await recordReferralPayment(env, metadata.userId, data.reference))) {
+      return false;
+    }
   } else {
     const row = paymentRow(kind, metadata, data.reference, data.amount, data.channel);
     if (!row || !(await upsertPayment(env, row))) return false;

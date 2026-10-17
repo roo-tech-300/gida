@@ -84,10 +84,15 @@ function ReferralRow({ item }: { item: ReferralWithProfile }) {
         <Text style={styles.referralName} numberOfLines={1}>{name}</Text>
         <Text style={styles.referralDate}>{formatDate(item.created_at)}</Text>
       </View>
-      {item.has_paid ? (
+      {item.payment_status === 'paid' ? (
         <View style={styles.paidBadge}>
           <Ionicons name="checkmark-circle" size={14} color={DesignColors.success} />
           <Text style={styles.paidBadgeText}>Paid</Text>
+        </View>
+      ) : item.payment_status === 'pending' ? (
+        <View style={styles.awaitingBadge}>
+          <Ionicons name="time-outline" size={14} color={DesignColors.warning} />
+          <Text style={styles.awaitingBadgeText}>Awaiting payout</Text>
         </View>
       ) : (
         <View style={styles.pendingBadge}>
@@ -197,7 +202,7 @@ function WithdrawSheet({
         disabled={isPending}
       >
         {isPending ? (
-          <ActivityIndicator color={DesignColors.onPrimary} />
+          <ActivityIndicator color="#FFFFFF" />
         ) : (
           <Text style={styles.submitBtnText}>Submit Request</Text>
         )}
@@ -296,7 +301,7 @@ export function ReferralScreen() {
             setShowWithdraw(true);
           }}
         >
-          <Ionicons name="cash-outline" size={18} color={DesignColors.onPrimary} />
+          <Ionicons name="cash-outline" size={18} color="#FFFFFF" />
           <Text style={styles.withdrawBtnText}>
             {hasPendingRequest ? 'Withdrawal Pending…' : 'Withdraw Earnings'}
           </Text>
@@ -320,7 +325,7 @@ export function ReferralScreen() {
         ) : null}
 
         <Pressable style={styles.shareBtn} onPress={handleShare}>
-          <Ionicons name="share-social-outline" size={18} color={DesignColors.onPrimary} />
+          <Ionicons name="share-social-outline" size={18} color="#FFFFFF" />
           <Text style={styles.shareBtnText}>Share Link</Text>
         </Pressable>
       </View>
@@ -466,7 +471,7 @@ const styles = StyleSheet.create({
     paddingVertical: 14,
   },
   withdrawBtnDisabled: { opacity: 0.5 },
-  withdrawBtnText: { ...DesignTypography.labelLg, color: DesignColors.onPrimary, fontFamily, fontWeight: '700' },
+  withdrawBtnText: { ...DesignTypography.labelLg, color: '#FFFFFF', fontFamily, fontWeight: '700' },
 
   // Link
   section: { gap: DesignSpacing.sm },
@@ -495,7 +500,7 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     borderColor: DesignColors.primaryTintBorder,
   },
-  shareBtnText: { ...DesignTypography.labelLg, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
+  shareBtnText: { ...DesignTypography.labelLg, color: '#FFFFFF', fontFamily, fontWeight: '700' },
 
   // Filter chips
   chipRow: { flexDirection: 'row', gap: DesignSpacing.sm },
@@ -543,6 +548,16 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.successContainer,
   },
   paidBadgeText: { ...DesignTypography.labelSm, color: DesignColors.success, fontFamily, fontWeight: '700' },
+  awaitingBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+    paddingHorizontal: 8,
+    paddingVertical: 4,
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.warningContainer,
+  },
+  awaitingBadgeText: { ...DesignTypography.labelSm, color: DesignColors.warning, fontFamily, fontWeight: '700' },
   pendingBadge: {
     paddingHorizontal: 8,
     paddingVertical: 4,
@@ -607,7 +622,7 @@ const styles = StyleSheet.create({
     marginTop: DesignSpacing.xs,
   },
   submitBtnDisabled: { opacity: 0.5 },
-  submitBtnText: { ...DesignTypography.labelLg, color: DesignColors.onPrimary, fontFamily, fontWeight: '700' },
+  submitBtnText: { ...DesignTypography.labelLg, color: '#FFFFFF', fontFamily, fontWeight: '700' },
   cancelBtn: { alignItems: 'center', paddingVertical: 8 },
   cancelBtnText: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
 });

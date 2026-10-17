@@ -13,12 +13,19 @@ export type Referral = {
   created_at: string;
 };
 
+export type ReferralPaymentStatus = 'none' | 'pending' | 'paid';
+
 export type ReferralWithProfile = Referral & {
   referred_profile: {
     full_name: string | null;
     avatar_url: string | null;
   } | null;
-  has_paid: boolean; // true if referred user has at least one referral_payment row for this referral
+  /**
+   * 'paid' — admin has disbursed the payout for this referral.
+   * 'pending' — lodge bought, payout still awaiting admin approval.
+   * 'none' — joined, no purchase yet.
+   */
+  payment_status: ReferralPaymentStatus;
 };
 
 export type WithdrawalRequest = {

@@ -49,6 +49,9 @@ export type AuthProfile = {
   birth_year: number | null;
   entry_year: number | null;
   referral_code: string | null;
+  payout_bank_name: string | null;
+  payout_account_number: string | null;
+  payout_account_name: string | null;
   program_duration: number | null;
   religion: string | null;
 };

@@ -1,6 +1,7 @@
 import { supabase } from '@/lib/supabase';
 import type {
   ReferralEarningsSummary,
+  ReferralPaymentStatus,
   ReferralWithProfile,
   WithdrawalRequest,
   WithdrawalRequestWithProfile,
@@ -101,6 +102,39 @@ export async function fetchReferralEarningsSummary(payoutTo: string): Promise<Re
 
 const REFERRAL_PAGE_SIZE = 20;
 
+type PaymentStatusRow = { status?: unknown };
+
+/** 'paid' wins: any disbursed payment means the admin has paid out. */
+function toPaymentStatus(payments: PaymentStatusRow[] | null | undefined): ReferralPaymentStatus {
+  if (!Array.isArray(payments) || payments.length === 0) return 'none';
+  const statuses = payments.map((p) => (typeof p.status === 'string' ? p.status : ''));
+  if (statuses.includes('paid')) return 'paid';
+  return 'pending';
+}
+
+type ReferralProfileRow = {
+  full_name: string | null;
+  avatar_url: string | null;
+} | null;
+
+type ReferralRpcRow = {
+  id: string;
+  referrer_id: string;
+  referred_id: string;
+  referral_code: string;
+  created_at: string;
+  referred_profile: ReferralProfileRow;
+};
+
+type ReferralPaymentRpcRow = {
+  status: unknown;
+  referrals: ReferralRpcRow | null;
+};
+
+type ReferralListRow = ReferralRpcRow & {
+  referral_payments: PaymentStatusRow[] | null;
+};
+
 // Paginated list of people this user referred.
 // filter='all' → everyone | filter='paid' → only those who bought a lodge
 export async function fetchMyReferrals(
@@ -117,6 +151,7 @@ export async function fetchMyReferrals(
       .from('referral_payments')
       .select(`
         referral_id,
+        status,
         referrals!inner (
           id, referrer_id, referred_id, referral_code, created_at,
           referred_profile:profiles!referrals_referred_id_fkey (
@@ -130,23 +165,24 @@ export async function fetchMyReferrals(
 
     if (error) throw error;
 
-    // Deduplicate by referral_id — one referral may have multiple payments
-    const seen = new Set<string>();
-    return (data ?? []).reduce<ReferralWithProfile[]>((acc, row) => {
-      const r = (row as any).referrals;
-      if (!r || seen.has(r.id)) return acc;
-      seen.add(r.id);
-      acc.push({
-        id: r.id,
-        referrer_id: r.referrer_id,
-        referred_id: r.referred_id,
-        referral_code: r.referral_code,
-        created_at: r.created_at,
-        referred_profile: r.referred_profile ?? null,
-        has_paid: true,
-      });
-      return acc;
-    }, []);
+    // Group payments by referral — one referral may have multiple payments
+    const byReferral = new Map<string, { referral: ReferralRpcRow; statuses: string[] }>();
+    for (const row of (data ?? []) as ReferralPaymentRpcRow[]) {
+      const r = row.referrals;
+      if (!r) continue;
+      const entry = byReferral.get(r.id) ?? { referral: r, statuses: [] };
+      if (typeof row.status === 'string') entry.statuses.push(row.status);
+      byReferral.set(r.id, entry);
+    }
+    return [...byReferral.values()].map(({ referral: r, statuses }) => ({
+      id: r.id,
+      referrer_id: r.referrer_id,
+      referred_id: r.referred_id,
+      referral_code: r.referral_code,
+      created_at: r.created_at,
+      referred_profile: r.referred_profile ?? null,
+      payment_status: toPaymentStatus(statuses.map((status) => ({ status }))),
+    }));
   }
 
   // filter === 'all'
@@ -157,7 +193,7 @@ export async function fetchMyReferrals(
       referred_profile:profiles!referrals_referred_id_fkey (
         full_name, avatar_url
       ),
-      referral_payments (id)
+      referral_payments (status)
     `)
     .eq('referrer_id', userId)
     .order('created_at', { ascending: false })
@@ -165,14 +201,14 @@ export async function fetchMyReferrals(
 
   if (error) throw error;
 
-  return (data ?? []).map((r: any) => ({
+  return ((data ?? []) as ReferralListRow[]).map((r) => ({
     id: r.id,
     referrer_id: r.referrer_id,
     referred_id: r.referred_id,
     referral_code: r.referral_code,
     created_at: r.created_at,
     referred_profile: r.referred_profile ?? null,
-    has_paid: Array.isArray(r.referral_payments) && r.referral_payments.length > 0,
+    payment_status: toPaymentStatus(r.referral_payments),
   }));
 }
 

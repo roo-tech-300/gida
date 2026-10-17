@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useCallback, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useCallback, useEffect } from 'react';
 import { Animated, StyleSheet, Text, View, Dimensions, Pressable, SafeAreaView } from 'react-native';
 import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -27,9 +27,9 @@ const TOAST_DURATION = 4000;
 // 2. ANIMATED TOAST CARD (INTERNAL COMPONENT)
 // ==========================================
 function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: string) => void }) {
-  const translateY = useRef(new Animated.Value(-80)).current;
-  const opacity = useRef(new Animated.Value(0)).current;
-  const progress = useRef(new Animated.Value(1)).current;
+  const [translateY] = useState(() => new Animated.Value(-80));
+  const [opacity] = useState(() => new Animated.Value(0));
+  const [progress] = useState(() => new Animated.Value(1));
 
   const handleDismiss = useCallback(() => {
     Animated.parallel([

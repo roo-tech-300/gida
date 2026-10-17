@@ -1,6 +1,11 @@
 import { loginUserAccount, registerUserAccount, UserProfileInput } from "@/services/authService";
 import { useAppToast } from "@/components/ui/toast-card";
 import { useAuth } from "@/context/auth-context";
+import {
+    AUTH_ERROR_TOAST_DURATION_MS,
+    getLoginErrorToast,
+    getSignupErrorToast,
+} from "@/utils/auth-errors";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 
@@ -14,16 +19,19 @@ export function useAuthForm() {
     const [fullName, setFullName] = useState('');
 
     const handleRegister = async (referralCode?: string) => {
-        if(!email || !password || !fullName){
+        const trimmedEmail = email.trim().toLowerCase();
+        const trimmedFullName = fullName.trim();
+        const trimmedReferralCode = referralCode?.trim() ? referralCode.trim() : undefined;
+        if(!trimmedEmail || !password || !trimmedFullName){
             showToast({type: 'error', message: "Please fill in all required fields."});
             return;
         }
         setLoading(true);
         try {
-            const profileData: UserProfileInput = { fullName, referralCode };
-            const registration = await registerUserAccount(email, password, profileData);
+            const profileData: UserProfileInput = { fullName: trimmedFullName, referralCode: trimmedReferralCode };
+            const registration = await registerUserAccount(trimmedEmail, password, profileData);
             if (registration.requiresEmailConfirmation) {
-                router.replace({ pathname: '/(auth)/verify-email', params: { email } });
+                router.replace({ pathname: '/(auth)/verify-email', params: { email: trimmedEmail } });
                 return;
             }
             await refreshProfile();
@@ -32,28 +40,32 @@ export function useAuthForm() {
         } catch (error) {
             console.error("[useAuthForm] Registration failed:", error);
             setLoading(false);
-            showToast({type: 'error', message: "Registration failed. Please try again."});
+            const toast = getSignupErrorToast(error);
+            showToast({ type: 'error', title: toast.title, message: toast.message, durationMs: AUTH_ERROR_TOAST_DURATION_MS });
         }
     }
 
     const handleLogin = async () => {
-    if (!email || !password) {
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedEmail || !password) {
       showToast({ type: 'error', message: 'Please fill in your email and password.' });
       return;
     }
     setLoading(true);
     try {
-      await loginUserAccount(email, password);
+      await loginUserAccount(trimmedEmail, password);
       await refreshProfile();
       router.replace('/(tabs)');
     } catch (err) {
       setLoading(false);
-      const message = err instanceof Error ? err.message : 'An error occurred during login. Please try again.';
-      if (/email[_ ]not confirmed/i.test(message)) {
-        router.replace({ pathname: '/(auth)/verify-email', params: { email } });
+      console.error("[useAuthForm] Login failed:", err);
+      const toast = getLoginErrorToast(err);
+      if (toast.redirectVerifyEmail) {
+        router.replace({ pathname: '/(auth)/verify-email', params: { email: trimmedEmail } });
+        showToast({ title: toast.title, message: toast.message, type: 'info', durationMs: AUTH_ERROR_TOAST_DURATION_MS });
         return;
       }
-      showToast({ title: 'Login Failed', message, type: 'error' });
+      showToast({ title: toast.title, message: toast.message, type: 'error', durationMs: AUTH_ERROR_TOAST_DURATION_MS });
     }
   };
    return {

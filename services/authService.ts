@@ -1,4 +1,5 @@
 import { supabase } from "@/lib/supabase";
+import { throwAuthServiceError } from "@/utils/auth-errors";
 
 export interface UserProfileInput {
     fullName: string;
@@ -10,19 +11,21 @@ export interface UserRegistrationResult {
 }
 
 export async function registerUserAccount(email: string, password: string, profile: UserProfileInput): Promise<UserRegistrationResult> {
+    const normalizedEmail = email.trim().toLowerCase();
+    const normalizedFullName = profile.fullName.trim();
+    const normalizedReferralCode = profile.referralCode?.trim() ? profile.referralCode.trim() : undefined;
     const { data: authData, error: authError } = await supabase.auth.signUp({
-        email,
+        email: normalizedEmail,
         password,
         options: {
             data: {
-                full_name: profile.fullName,
-                ...(profile.referralCode ? { referral_code: profile.referralCode.trim() } : {}),
+                full_name: normalizedFullName,
+                ...(normalizedReferralCode ? { referral_code: normalizedReferralCode } : {}),
             }
         }
     });
     if(authError) {
-        console.error("Error registering user:", authError.message);
-        throw new Error(authError.message);
+        throwAuthServiceError("Error registering user", authError, "Registration failed.");
     }
     if(!authData || !authData.user) {
         console.error("No user data returned after registration.");
@@ -34,21 +37,19 @@ export async function registerUserAccount(email: string, password: string, profi
 };
 
 export async function resendSignupConfirmation(email: string): Promise<void> {
-    const { error } = await supabase.auth.resend({ type: 'signup', email });
+    const { error } = await supabase.auth.resend({ type: 'signup', email: email.trim().toLowerCase() });
     if (error) {
-        console.error('[Auth] Failed to resend signup confirmation:', error.message);
-        throw new Error(error.message);
+        throwAuthServiceError("Failed to resend signup confirmation", error, "Could not resend confirmation email.");
     }
 }
 
 export async function loginUserAccount(email: string, password: string) {
     const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password
     });
     if(error) {
-        console.error("Error logging in user:", error.message);
-        throw new Error(error.message);
+        throwAuthServiceError("Error logging in user", error, "Login failed.");
     }
     return data.user;
 };
@@ -62,18 +63,16 @@ export async function signOutUserAccount() {
 }
 
 export async function requestPasswordResetEmail(email: string): Promise<void> {
-    const { error } = await supabase.auth.resetPasswordForEmail(email);
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase());
     if (error) {
-        console.error('[Auth] Failed to send password reset email:', error.message);
-        throw new Error(error.message);
+        throwAuthServiceError("Failed to send password reset email", error, "Could not send reset email.");
     }
 }
 
 export async function verifyRecoveryCode(email: string, token: string): Promise<void> {
-    const { data, error } = await supabase.auth.verifyOtp({ email, token, type: 'recovery' });
+    const { data, error } = await supabase.auth.verifyOtp({ email: email.trim().toLowerCase(), token: token.trim(), type: 'recovery' });
     if (error) {
-        console.error('[Auth] Failed to verify recovery code:', error.message);
-        throw new Error(error.message);
+        throwAuthServiceError("Failed to verify recovery code", error, "Could not verify reset code.");
     }
     if (!data.session) {
         console.error('[Auth] Recovery code accepted but no session was returned.');

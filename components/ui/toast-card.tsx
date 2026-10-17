@@ -12,10 +12,11 @@ export interface ToastData {
   title?: string;
   message: string;
   type: 'success' | 'error' | 'info';
+  durationMs?: number;
 }
 
 interface ToastContextType {
-  showToast: (config: { title?: string; message: string; type: 'success' | 'error' | 'info' }) => void;
+  showToast: (config: { title?: string; message: string; type: 'success' | 'error' | 'info'; durationMs?: number }) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -43,11 +44,12 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
       Animated.timing(opacity, { toValue: 1, duration: 240, useNativeDriver: true }),
     ]).start();
 
-    Animated.timing(progress, { toValue: 0, duration: TOAST_DURATION, useNativeDriver: true }).start();
+    const duration = toast.durationMs ?? TOAST_DURATION;
+    Animated.timing(progress, { toValue: 0, duration, useNativeDriver: true }).start();
 
-    const timer = setTimeout(handleDismiss, TOAST_DURATION);
+    const timer = setTimeout(handleDismiss, duration);
     return () => clearTimeout(timer);
-  }, [handleDismiss, translateY, opacity, progress]);
+  }, [handleDismiss, translateY, opacity, progress, toast.durationMs]);
 
   const themes = {
     success: { accent: DesignColors.success, icon: 'checkmark-circle', label: 'Success' },
@@ -87,9 +89,9 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const showToast = useCallback(({ title, message, type }: Omit<ToastData, 'id'>) => {
+  const showToast = useCallback(({ title, message, type, durationMs }: Omit<ToastData, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, title, message, type }]);
+    setToasts((prev) => [...prev, { id, title, message, type, durationMs }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {

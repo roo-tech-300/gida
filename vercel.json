@@ -9,14 +9,12 @@
     }
   ],
   "rewrites": [
-    { "source": "/r/:code", "destination": "/index.html" },
+    { "source": "/r/:code", "destination": "/r-invite/index.html" },
     { "source": "/onboarding", "destination": "/index.html" },
     { "source": "/property/:path*", "destination": "/index.html" },
     { "source": "/roommate/:path*", "destination": "/index.html" },
     { "source": "/messages/:path*", "destination": "/index.html" },
-    { "source": "/admin/:path*", "destination": "/index.html" }
-  ],
-  "routes": [
-    { "src": "^/$", "dest": "/landing/index.html" }
+    { "source": "/admin/:path*", "destination": "/index.html" },
+    { "source": "/", "destination": "/landing/index.html" }
   ]
 }

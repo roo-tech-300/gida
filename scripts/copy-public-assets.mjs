@@ -25,3 +25,11 @@ cpSync(resolve(publicDirectory, 'landing/Screenshots'), resolve(outputDirectory,
   recursive: true,
   force: true,
 });
+
+// Copy the referral invite interstitial page to dist/r-invite/
+// Vercel rewrites /r/:code → /r-invite/index.html which shows a proper
+// "You've been invited" page on web/desktop instead of a 404.
+cpSync(resolve(publicDirectory, 'r-invite'), resolve(outputDirectory, 'r-invite'), {
+  recursive: true,
+  force: true,
+});

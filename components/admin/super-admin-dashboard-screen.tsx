@@ -26,6 +26,7 @@ const ACTIONS: ActionItem[] = [
   { key: 'landlords', title: 'Landlords', icon: 'people-outline' },
   { key: 'regions', title: 'Regions', icon: 'globe-outline' },
   { key: 'tours', title: 'Tour Requests', icon: 'calendar-outline' },
+  { key: 'referral-payouts', title: 'Referral Payouts', icon: 'cash-outline' },
 ];
 
 const ACTION_ICON_MAP: Record<string, keyof typeof Ionicons.glyphMap> = {
@@ -74,6 +75,7 @@ export function SuperAdminDashboardScreen() {
       clearUnread();
       router.push('/admin/tours');
     }
+    if (key === 'referral-payouts') router.push('/admin/referral-payouts');
   };
 
   return (

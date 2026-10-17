@@ -8,6 +8,7 @@ import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
 import { useNotificationPermission } from '@/src/use-notification-permission-platform';
 import { Ionicons } from '@expo/vector-icons';
 import { useQuery } from '@tanstack/react-query';
+import { router } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,7 +18,6 @@ import { JoinGroupCard } from './join-group-card';
 import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
-import { ReferralModal } from './referral-modal';
 import { ReservedHousesSection } from './reserved-houses-section';
 import { useAvatarUpload } from './use-avatar-upload';
 import { useExpiredLodges } from './use-expired-lodges';
@@ -55,12 +55,7 @@ export function StudentProfileScreen() {
   const expiredLodges = useExpiredLodges(reservations, currentTime);
   const roommateCompletion = useRoommateCompletion(preferences, profile);
   const referral = useReferral();
-  const [referralModalOpen, setReferralModalOpen] = useState(false);
-  const openReferral = useCallback(() => setReferralModalOpen(true), []);
-  const closeReferral = useCallback(() => setReferralModalOpen(false), []);
-  const retryReferral = () => {
-    void Promise.all([referral.refetchCode(), referral.refetchEarnings()]);
-  };
+  const openReferral = useCallback(() => router.push('/referral-dashboard'), []);
 
   const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
   const cleanlinessLevel = preferences?.roommate?.cleanliness_level ?? 'Not set yet';
@@ -217,7 +212,6 @@ export function StudentProfileScreen() {
 
         <DiscoverBottomNav activeTab="profile" />
         <ReplayTourModal visible={tourModalOpen} onClose={closeTour} />
-        <ReferralModal visible={referralModalOpen} onClose={closeReferral} link={referral.link} isLoading={referral.isLoading} hasError={referral.hasError} onRetry={retryReferral} />
       </View>
     </SafeAreaView>
   );

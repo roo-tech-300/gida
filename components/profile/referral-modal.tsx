@@ -1,6 +1,7 @@
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { copyTextToClipboard } from '@/utils/clipboard';
+import type { ReferralEarningsSummary } from '@/types/referral';
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect } from 'react';
 import { ActivityIndicator, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
@@ -13,14 +14,19 @@ type ReferralModalProps = {
   isLoading: boolean;
   hasError: boolean;
   onRetry: () => void;
+  earnings?: ReferralEarningsSummary;
 };
 
-export function ReferralModal({ visible, onClose, link, isLoading, hasError, onRetry }: ReferralModalProps) {
+export function ReferralModal({ visible, onClose, link, isLoading, hasError, onRetry, earnings }: ReferralModalProps) {
   if (!visible) return null;
-  return <ReferralModalContent onClose={onClose} link={link} isLoading={isLoading} hasError={hasError} onRetry={onRetry} />;
+  return <ReferralModalContent onClose={onClose} link={link} isLoading={isLoading} hasError={hasError} onRetry={onRetry} earnings={earnings} />;
 }
 
-function ReferralModalContent({ onClose, link, isLoading, hasError, onRetry }: Omit<ReferralModalProps, 'visible'>) {
+function formatNaira(kobo: number): string {
+  return `₦${(kobo / 100).toLocaleString('en-US', { minimumFractionDigits: 0 })}`;
+}
+
+function ReferralModalContent({ onClose, link, isLoading, hasError, onRetry, earnings }: Omit<ReferralModalProps, 'visible'>) {
   const { showToast } = useAppToast();
 
   useEffect(() => {
@@ -53,6 +59,10 @@ function ReferralModalContent({ onClose, link, isLoading, hasError, onRetry }: O
     }
   };
 
+  const hasPending = !!earnings && earnings.total_pending > 0;
+  const hasPaid = !!earnings && earnings.total_paid > 0;
+  const hasAnyEarnings = hasPending || hasPaid;
+
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <View style={styles.backdrop}>
@@ -64,6 +74,29 @@ function ReferralModalContent({ onClose, link, isLoading, hasError, onRetry }: O
             </Pressable>
             <Text style={styles.title}>Refer & Earn</Text>
             <Text style={styles.subtitle}>Share your link. When someone joins and pays for a lodge, you earn ₦2,000.</Text>
+
+            {/* Earnings summary */}
+            {hasAnyEarnings && (
+              <View style={styles.earningsRow}>
+                {hasPending && (
+                  <View style={styles.earningsCard}>
+                    <Text style={styles.earningsAmount}>{formatNaira(earnings!.total_pending)}</Text>
+                    <Text style={styles.earningsLabel}>
+                      Pending{earnings!.pending_count > 1 ? ` · ${earnings!.pending_count} referrals` : ''}
+                    </Text>
+                  </View>
+                )}
+                {hasPaid && (
+                  <View style={[styles.earningsCard, styles.earningsCardPaid]}>
+                    <Text style={[styles.earningsAmount, styles.earningsAmountPaid]}>{formatNaira(earnings!.total_paid)}</Text>
+                    <Text style={styles.earningsLabel}>
+                      Paid out{earnings!.paid_count > 1 ? ` · ${earnings!.paid_count} referrals` : ''}
+                    </Text>
+                  </View>
+                )}
+              </View>
+            )}
+
             {link ? (
               <View style={styles.linkBox}>
                 <Text style={styles.linkText} numberOfLines={2}>{link}</Text>
@@ -103,6 +136,12 @@ const styles = StyleSheet.create({
   closeBtn: { alignSelf: 'flex-end', padding: 4 },
   title: { ...DesignTypography.titleMd, color: DesignColors.onSurface, fontFamily },
   subtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
+  earningsRow: { flexDirection: 'row', gap: DesignSpacing.sm },
+  earningsCard: { flex: 1, backgroundColor: DesignColors.surfaceContainerHigh, borderRadius: DesignRadius.lg, padding: DesignSpacing.sm, gap: 2, borderWidth: 1, borderColor: DesignColors.borderSoft },
+  earningsCardPaid: { borderColor: DesignColors.primaryBright + '44' },
+  earningsAmount: { ...DesignTypography.titleMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  earningsAmountPaid: { color: DesignColors.primaryBright },
+  earningsLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   linkBox: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.xs, backgroundColor: DesignColors.surfaceContainerHigh, paddingHorizontal: DesignSpacing.md, paddingVertical: DesignSpacing.sm, borderRadius: DesignRadius.md },
   linkText: { ...DesignTypography.labelSm, color: DesignColors.onSurface, fontFamily, flex: 1 },
   copyBtn: { padding: 4 },

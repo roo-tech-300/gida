@@ -135,7 +135,7 @@ export default {
 
   async fetch(request: Request, env: Env, _ctx: ExecutionContext): Promise<Response> {
     const url = new URL(request.url);
-    if (url.pathname.startsWith('/api/paystack/')) {
+    if (url.pathname.startsWith('/api/paystack/') || url.pathname.startsWith('/api/referral/')) {
       return handlePaystackRequest(request, env);
     }
 

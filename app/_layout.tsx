@@ -149,6 +149,7 @@ export default function RootLayout() {
                     <Stack.Screen name="messages/[id]" />
                     <Stack.Screen name="roommate/[id]" />
                     <Stack.Screen name="referral" />
+                    <Stack.Screen name="referral-dashboard" />
                     <Stack.Screen name="r/[code]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>

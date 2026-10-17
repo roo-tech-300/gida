@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { queryClient } from '@/lib/query-clients';
 import { checkForAppUpdate } from '@/src/lib/updates/updates';
+import { consumePendingPushNavigation } from '@/src/notifications/pending-navigation';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { Stack, usePathname, useRouter, useSegments, useGlobalSearchParams } from 'expo-router';
@@ -66,6 +67,11 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     if (isPublicWebHome || isPublicWebContent || isPublicWebProperty) return;
 
     if (!isAuthenticated) {
+      // A cold-start push may have arrived while logged out — discard it so one
+      // user's thread never leaks into the next login. Skip when a session
+      // exists but the profile is still loading (offline first run); the push
+      // is consumed once auth settles below.
+      if (!hasSession) consumePendingPushNavigation();
       // Valid session but the profile row hasn't loaded yet (e.g. offline on
       // first run): best-effort homepage. The profile fills in silently when
       // connectivity returns, and routing re-evaluates then.
@@ -97,8 +103,21 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     }
 
     if (isAuthenticated && !profile?.onboarded && !inOnboardingGroup) {
+      consumePendingPushNavigation();
       router.replace('/(onboarding)');
       return;
+    }
+
+    // Deferred cold-start push: the notification tap arrived before auth
+    // settled. AuthGate is the single consumer — navigating here guarantees
+    // no later replace() can wipe it.
+    if (isAuthenticated && profile?.onboarded) {
+      const pendingPush = consumePendingPushNavigation();
+      if (pendingPush) {
+        console.log('[Notifications] AuthGate consuming deferred push navigation to', pendingPush);
+        router.push(pendingPush as never);
+        return;
+      }
     }
 
     if (isAuthenticated && profile?.onboarded && (

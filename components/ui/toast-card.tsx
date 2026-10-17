@@ -13,10 +13,11 @@ export interface ToastData {
   message: string;
   type: 'success' | 'error' | 'info';
   durationMs?: number;
+  onPress?: () => void;
 }
 
 interface ToastContextType {
-  showToast: (config: { title?: string; message: string; type: 'success' | 'error' | 'info'; durationMs?: number }) => void;
+  showToast: (config: { title?: string; message: string; type: 'success' | 'error' | 'info'; durationMs?: number; onPress?: () => void }) => void;
 }
 
 const ToastContext = createContext<ToastContextType | undefined>(undefined);
@@ -37,6 +38,15 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
       Animated.timing(opacity, { toValue: 0, duration: 180, useNativeDriver: true }),
     ]).start(() => onDismiss(toast.id));
   }, [onDismiss, toast.id, translateY, opacity]);
+
+  const handlePress = useCallback(() => {
+    try {
+      toast.onPress?.();
+    } catch (error) {
+      console.error('[Toast] onPress action failed:', error);
+    }
+    handleDismiss();
+  }, [toast, handleDismiss]);
 
   useEffect(() => {
     Animated.parallel([
@@ -62,7 +72,7 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
 
   return (
     <Animated.View style={[styles.wrapper, { transform: [{ translateY }], opacity }]}>
-      <Pressable onPress={handleDismiss} style={styles.card} focusable={false} accessible={false}>
+      <Pressable onPress={handlePress} style={styles.card} focusable={false} accessible={typeof toast.onPress === 'function' ? true : false} accessibilityRole={typeof toast.onPress === 'function' ? 'button' : undefined}>
         <WebBlurView intensity={28} tint="dark" style={styles.blur} />
         <View style={[styles.accentBar, { backgroundColor: theme.accent }]} />
         <View style={[styles.iconWrap, { backgroundColor: theme.accent }]}>
@@ -89,9 +99,9 @@ function ToastCard({ toast, onDismiss }: { toast: ToastData; onDismiss: (id: str
 export function ToastProvider({ children }: { children: React.ReactNode }) {
   const [toasts, setToasts] = useState<ToastData[]>([]);
 
-  const showToast = useCallback(({ title, message, type, durationMs }: Omit<ToastData, 'id'>) => {
+  const showToast = useCallback(({ title, message, type, durationMs, onPress }: Omit<ToastData, 'id'>) => {
     const id = Math.random().toString(36).substring(2, 9);
-    setToasts((prev) => [...prev, { id, title, message, type, durationMs }]);
+    setToasts((prev) => [...prev, { id, title, message, type, durationMs, onPress }]);
   }, []);
 
   const removeToast = useCallback((id: string) => {

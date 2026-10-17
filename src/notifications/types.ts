@@ -14,6 +14,7 @@ export const NOOP_UNSUBSCRIBE: NotificationSubscription = (): void => {};
 
 export type ForegroundRemoteMessage = {
   notification?: { title?: string | null; body?: string | null } | null;
+  data?: Record<string, string | undefined>;
   finishNotification?: () => void;
 };
 

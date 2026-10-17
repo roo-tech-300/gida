@@ -332,8 +332,10 @@
     var pathParts = window.location.pathname.split('/').filter(Boolean);
     var referralCode = pathParts[pathParts.length - 1] || '';
 
-    // Build the signup URL with the code preserved
-    var signupUrl = '/r/' + encodeURIComponent(referralCode);
+    // Build the signup URL — goes directly to the Expo SPA signup page
+    // with the referral code as a query parameter.
+    // The Expo app's signup screen reads referralCode from useLocalSearchParams.
+    var signupUrl = 'https://www.gida.apartments/signup?referralCode=' + encodeURIComponent(referralCode);
 
     // Wire up the signup button
     var signupBtn = document.getElementById('signupBtn');

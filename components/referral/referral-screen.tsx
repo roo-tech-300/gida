@@ -141,7 +141,7 @@ function WithdrawSheet({
       // Save bank details to profile for future use
       await saveBankDetails(details);
       await submit({ amount: pendingAmount, bankDetails: details });
-      showToast({ message: 'Withdrawal request submitted. We'll process it shortly.', type: 'success' });
+      showToast({ message: 'Withdrawal request submitted. We will process it shortly.', type: 'success' });
       onClose();
     } catch (err) {
       const msg = err instanceof Error ? err.message : 'Failed to submit request.';

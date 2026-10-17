@@ -154,7 +154,7 @@ function WithdrawSheet({
       <View style={styles.sheetHandle} />
       <Text style={styles.sheetTitle}>Withdraw Earnings</Text>
       <Text style={styles.sheetSubtitle}>
-        You are requesting {formatNaira(pendingAmount)}. We'll process your transfer within 2 business days.
+        You are requesting {formatNaira(pendingAmount)}. We will process your transfer within 2 business days.
       </Text>
 
       <View style={styles.fieldGroup}>
@@ -346,7 +346,7 @@ export function ReferralScreen() {
       </Text>
       <Text style={styles.emptyText}>
         {filter === 'paid'
-          ? 'When someone you referred buys a lodge, they'll show up here.'
+          ? 'When someone you referred buys a lodge, they will show up here.'
           : 'Share your link and your referrals will appear here.'}
       </Text>
     </View>

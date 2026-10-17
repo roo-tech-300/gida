@@ -2,19 +2,19 @@
   "buildCommand": "npx expo export --platform web && node scripts/copy-public-assets.mjs",
   "outputDirectory": "dist",
   "cleanUrls": true,
-  "headers": [
-    {
-      "source": "/.well-known/assetlinks.json",
-      "headers": [{ "key": "Content-Type", "value": "application/json" }]
-    }
-  ],
   "rewrites": [
-    { "source": "/r/:code", "destination": "/r-invite/index.html" },
+    { "source": "/r/:code", "destination": "/r-invite" },
     { "source": "/onboarding", "destination": "/index.html" },
     { "source": "/property/:path*", "destination": "/index.html" },
     { "source": "/roommate/:path*", "destination": "/index.html" },
     { "source": "/messages/:path*", "destination": "/index.html" },
     { "source": "/admin/:path*", "destination": "/index.html" },
     { "source": "/", "destination": "/landing/index.html" }
+  ],
+  "headers": [
+    {
+      "source": "/.well-known/assetlinks.json",
+      "headers": [{ "key": "Content-Type", "value": "application/json" }]
+    }
   ]
 }

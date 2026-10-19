@@ -1,8 +1,7 @@
 import { useState, useCallback } from 'react';
-import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View, Image } from 'react-native';
+import { ActivityIndicator, Platform, Pressable, RefreshControl, ScrollView, Text, View, Image } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter , useFocusEffect } from 'expo-router';
-
 import { Ionicons } from '@expo/vector-icons';
 import * as WebBrowser from 'expo-web-browser';
 import { DesignColors } from '@/constants/design';
@@ -16,22 +15,20 @@ import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
 import { CheckoutReservationError } from '@/components/payment/checkout-reservation-error';
 import { CheckoutAmountCard, CheckoutHeroCard, CheckoutTopBar } from '@/components/payment/checkout-summary-cards';
+import { PayCountdownButton } from './pay-countdown-button';
+import { PaymentRefreshNudge } from './payment-refresh-nudge';
 import { styles } from './payment-checkout.styles';
-
 const PAID_CREDIT_STATUSES = new Set(['paid_unmatched', 'matched', 'subletting']);
 export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   const router = useRouter();
   const { showToast } = useAppToast();
-  const { data: credits, isLoading, isFetching, status, error, refetch } = useUserSlotCredits();
+  const { data: credits, isLoading, isFetching, isRefetching, status, error, refetch } = useUserSlotCredits();
   const { mutateAsync: initPayment } = useInitializeLodgePayment();
   const { mutateAsync: expireCredit } = useExpireSlotCredit();
-
   useFocusEffect(useCallback(() => { refetch(); }, [refetch]));
-
   const [isProcessing, setIsProcessing] = useState(false);
   const [locallyPaid, setLocallyPaid] = useState(false);
   const [locallyExpired, setLocallyExpired] = useState(false);
-
   const credit = credits?.find((c) => c.id === creditId);
   const isPaid = (credit ? PAID_CREDIT_STATUSES.has(credit.status) : false) || locallyPaid;
   const isExpired = credit?.status === 'expired' || locallyExpired;
@@ -109,7 +106,6 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       setIsProcessing(false);
     }
   };
-
   const handleRelease = async () => {
     try {
       await expireCredit(creditId);
@@ -120,9 +116,15 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       showToast({ message, type: 'error' });
     }
   };
-
+  const handleRefresh = useCallback(async () => {
+    try {
+      await refetch();
+    } catch (error) {
+      console.error('[PaymentCheckout] Pull-to-refresh failed:', error);
+      showToast({ message: 'Failed to refresh payment status. Please try again.', type: 'error' });
+    }
+  }, [refetch, showToast]);
   const waitingOnFetch = isLoading || status === 'pending' || (!credit && isFetching);
-
   if (waitingOnFetch) return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <CheckoutTopBar title="Payment" />
@@ -222,26 +224,20 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
       <CheckoutTopBar title="Secure Your Spot" />
-      <ScrollView bounces={false} contentContainerStyle={styles.content}>
+      <ScrollView bounces={false} contentContainerStyle={styles.content} refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={handleRefresh} />}>
         <CheckoutHeroCard estateName={estateName} imageUri={credit.estate?.primary_image} intentSize={credit.intent_size} targetOccupancy={credit.target_occupancy} />
         {!isPaid && !isExpired && <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />}
+        {!isPaid && !isExpired && <PaymentRefreshNudge />}
         <ReservationManagementCard credit={credit} />
         <CheckoutAmountCard amount={amount} />
       </ScrollView>
       <View style={styles.footer}>
-        <Pressable
-          style={[styles.payButton, (isProcessing || locallyExpired) && styles.payButtonDisabled]}
-          onPress={handlePay}
+        <PayCountdownButton
+          amount={amount}
+          onCountdownComplete={handlePay}
           disabled={isProcessing || locallyExpired}
           testID="checkout-pay-btn"
-        >
-          {isProcessing ? <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} /> : (
-            <>
-              <Ionicons name="lock-closed" size={16} color={DesignColors.onPrimaryContainer} />
-              <Text style={styles.payText}>Pay {formatNaira(amount)}</Text>
-            </>
-          )}
-        </Pressable>
+        />
         {locallyExpired && !isProcessing && (
           <Pressable style={styles.releaseLink} onPress={handleRelease} testID="checkout-release-link">
             <Text style={styles.releaseText}>Hold expired — release spot</Text>

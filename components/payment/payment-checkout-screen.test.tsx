@@ -54,7 +54,7 @@ function mockCredits(credits: SlotCredit[]) {
     isLoading: false,
     isRefetching: false,
     isError: false,
-    refetch: jest.fn(),
+    refetch: jest.fn().mockResolvedValue({ data: credits, isError: false }),
   });
 }
 
@@ -92,7 +92,11 @@ describe('PaymentCheckoutScreen (dummy payment flow)', () => {
 
     await act(async () => {
       fireEvent.press(getByTestId('checkout-pay-btn'));
+      await jest.advanceTimersByTimeAsync(5000);
+    });
+    await act(async () => {
       await jest.advanceTimersByTimeAsync(1500);
+      await jest.advanceTimersByTimeAsync(0);
     });
 
     expect(mockInitializePayment).toHaveBeenCalledWith({

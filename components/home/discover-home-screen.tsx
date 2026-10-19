@@ -164,6 +164,7 @@ export function DiscoverHomeScreen() {
 
           {mode === 'listings' ? (
             <HomeSearchBar
+              placeholder="e.g Gidan Kwano, Dama..."
               currentMode={mode}
               onSwipeDown={openModeSelector}
               onOpenSearch={openSearch}

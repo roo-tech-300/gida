@@ -14,12 +14,15 @@ type OnboardingContinueButtonProps = PressableProps & {
   label?: string;
   isLoading?: boolean;
   showArrow?: boolean;
+  /** Text color override for the label. */
+  labelColor?: string;
 };
 
 export function OnboardingContinueButton({
   label = 'Continue',
   isLoading,
   showArrow = true,
+  labelColor = DesignColors.onPrimary,
   disabled,
   style,
   onPress,
@@ -49,8 +52,8 @@ export function OnboardingContinueButton({
         <ActivityIndicator color={DesignColors.onPrimaryContainer} />
       ) : (
         <>
-          <Text style={styles.label}>{label}</Text>
-          {showArrow ? <Ionicons name="arrow-forward" size={20} color={DesignColors.onPrimary} /> : null}
+          <Text style={[styles.label, { color: labelColor }]}>{label}</Text>
+          {showArrow ? <Ionicons name="arrow-forward" size={20} color={labelColor} /> : null}
         </>
       )}
     </Pressable>

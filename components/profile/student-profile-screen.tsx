@@ -19,6 +19,7 @@ import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
 import { ReservedHousesSection } from './reserved-houses-section';
+import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-options';
 import { useAvatarUpload } from './use-avatar-upload';
 import { useExpiredLodges } from './use-expired-lodges';
 import { useRoommateCompletion } from './use-roommate-completion';
@@ -57,8 +58,9 @@ export function StudentProfileScreen() {
   const referral = useReferral();
   const openReferral = useCallback(() => router.push('/referral-dashboard'), []);
 
-  const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
-  const cleanlinessLevel = preferences?.roommate?.cleanliness_level ?? 'Not set yet';
+
+  const sleepSchedule = formatOptionLabel(preferences?.roommate?.sleep_schedule) ?? 'Not set yet';
+  const cleanlinessLevel = formatOptionLabel(preferences?.roommate?.cleanliness_level) ?? 'Not set yet';
   const minBudget = preferences?.living?.min_budget;
   const maxBudget = preferences?.living?.max_budget;
   const budgetLabel = minBudget && maxBudget
@@ -66,7 +68,6 @@ export function StudentProfileScreen() {
     : maxBudget
       ? `Up to ₦${maxBudget.toLocaleString('en-US')}/yr`
       : 'Flexible';
-  const profileBio = profile?.bio ?? 'No bio yet';
   const schoolLabel = profile?.school ?? 'Not set yet';
 
   const handleLogout = async () => {
@@ -138,12 +139,10 @@ export function StudentProfileScreen() {
 
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Personal Information</Text>
-            <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} />
-            <ProfileRow icon="at-outline" label="Username" value={profile?.username ? `@${profile.username}` : 'Not set yet'} />
-            <ProfileRow icon="mail-outline" label="Email Address" value={profile?.email ?? 'Not available'} />
-            <Pressable style={styles.changeUsernameRow} onPress={() => showToast({ message: 'Changing your username is coming soon.', type: 'info' })}>
-              <Text style={styles.changeUsernameText}>Change username</Text>
-            </Pressable>
+            <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} onPress={() => router.push('/personal-info/full-name')} />
+            <ProfileRow icon="at-outline" label="Username" value={profile?.username ? `@${profile.username}` : 'Not set yet'} onPress={() => router.push('/personal-info/username')} />
+            <ProfileRow icon="mail-outline" label="Email Address" value={profile?.email ?? 'Not available'} onPress={() => router.push('/personal-info/email')} />
+            <ProfileRow icon="chatbubble-ellipses-outline" label="Bio" value={profile?.bio ?? 'No bio yet'} onPress={() => router.push('/personal-info/bio')} />
           </View>
 
           <View style={styles.sectionFlat}>
@@ -154,7 +153,6 @@ export function StudentProfileScreen() {
             <ProfileRow icon="moon-outline" label="Sleep Schedule" value={sleepSchedule} />
             <ProfileRow icon="sparkles-outline" label="Cleanliness Level" value={cleanlinessLevel} />
             <ProfileRow icon="cash-outline" label="Maximum Annual Budget" value={budgetLabel} />
-            <ProfileRow icon="chatbubble-ellipses-outline" label="Bio" value={profileBio} />
           </View>
           {userId && (
             <View style={styles.section}>
@@ -228,8 +226,6 @@ const styles = StyleSheet.create({
   sectionHeader: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingRight: DesignSpacing.lg },
   sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingTop: 2, paddingBottom: 2 },
   sectionTitleFlat: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, paddingBottom: DesignSpacing.sm },
-  changeUsernameRow: { paddingVertical: DesignSpacing.sm },
-  changeUsernameText: { ...DesignTypography.labelLg, color: DesignColors.primaryBright, fontFamily, fontWeight: '600' },
   completionBadge: { ...DesignTypography.labelSm, color: DesignColors.primaryBright, fontFamily, fontWeight: '700', paddingTop: DesignSpacing.lg, paddingBottom: DesignSpacing.sm },
   logoutSection: { marginHorizontal: DesignSpacing.marginMobile, paddingTop: DesignSpacing.sm },
   logoutRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.sm, height: 56, borderRadius: DesignRadius.xl, backgroundColor: DesignColors.dangerContainer },

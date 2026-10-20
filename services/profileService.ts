@@ -118,3 +118,43 @@ export async function uploadAvatar(
 
   return publicUrl;
 }
+/**
+ * Updates the user's full name in both Supabase Auth
+ * (user metadata `display_name`) and the `profiles` table.
+ */
+export async function updateDisplayName(userId: string, fullName: string): Promise<void> {
+  const { error: authError } = await supabase.auth.updateUser({
+    data: { display_name: fullName },
+  });
+  if (authError) {
+    throw new Error(authError.message);
+  }
+
+  const { error: profileError } = await supabase
+    .from('profiles')
+    .update({ full_name: fullName })
+    .eq('id', userId);
+  if (profileError) {
+    throw new Error(profileError.message);
+  }
+}
+
+export async function updateProfileUsername(userId: string, username: string): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ username })
+    .eq('id', userId);
+  if (error) {
+    throw new Error(error.message);
+  }
+}
+
+export async function updateProfileBio(userId: string, bio: string): Promise<void> {
+  const { error } = await supabase
+    .from('profiles')
+    .update({ bio: bio.trim() || null })
+    .eq('id', userId);
+  if (error) {
+    throw new Error(error.message);
+  }
+}

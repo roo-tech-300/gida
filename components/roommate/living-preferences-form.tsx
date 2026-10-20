@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, StyleSheet, Text, View } from 'react-native';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 
 import { AuthInput } from '@/components/auth/auth-input';
@@ -32,7 +32,7 @@ export function LivingPreferencesForm() {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | undefined>();
 
-  const { data: living, isError } = useQuery({
+  const { data: living, isError, isPending } = useQuery({
     queryKey: ['living-preferences', userId],
     queryFn: () => fetchLivingPreferences(userId ?? ''),
     enabled: !!userId,
@@ -145,13 +145,21 @@ export function LivingPreferencesForm() {
         <Text style={styles.title}>Living Preferences</Text>
         <Text style={styles.subtitle}>Where you want to live and what you need.</Text>
       </View>
-      <AuthInput label="Minimum budget (₦)" value={minBudget} placeholder="e.g. 150000" keyboardType="decimal-pad" onChangeText={setMinBudget} />
-      <AuthInput label="Maximum budget (₦)" value={maxBudget} placeholder="e.g. 300000" keyboardType="decimal-pad" onChangeText={setMaxBudget} />
-      <AuthInput label="Preferred area" value={preferredArea} placeholder="e.g. Bosso, Tunga" onChangeText={setPreferredArea} />
-      <AuthInput label="Preferred layout" value={preferredLayout} placeholder="e.g. Self-contain" onChangeText={setPreferredLayout} />
-      <AuthInput label="Minimum bedrooms" value={minBedrooms} placeholder="e.g. 1" keyboardType="number-pad" onChangeText={setMinBedrooms} />
-      {error ? <Text style={styles.error}>{error}</Text> : null}
-      <LivingPreferencesSaveButton saving={saving} canSave={canSave} onSave={handleSave} />
+      {isPending ? (
+        <View style={styles.loader}>
+          <ActivityIndicator size="large" color={DesignColors.primary} />
+        </View>
+      ) : (
+        <>
+          <AuthInput label="Minimum budget (₦)" value={minBudget} placeholder="e.g. 150000" keyboardType="decimal-pad" onChangeText={setMinBudget} />
+          <AuthInput label="Maximum budget (₦)" value={maxBudget} placeholder="e.g. 300000" keyboardType="decimal-pad" onChangeText={setMaxBudget} />
+          <AuthInput label="Preferred area" value={preferredArea} placeholder="e.g. Bosso, Tunga" onChangeText={setPreferredArea} />
+          <AuthInput label="Preferred layout" value={preferredLayout} placeholder="e.g. Self-contain" onChangeText={setPreferredLayout} />
+          <AuthInput label="Minimum bedrooms" value={minBedrooms} placeholder="e.g. 1" keyboardType="number-pad" onChangeText={setMinBedrooms} />
+          {error ? <Text style={styles.error}>{error}</Text> : null}
+          <LivingPreferencesSaveButton saving={saving} canSave={canSave} onSave={handleSave} />
+        </>
+      )}
     </OnboardingGlassCard>
   );
 }
@@ -162,5 +170,6 @@ const styles = StyleSheet.create({
   subtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, textAlign: 'center', lineHeight: 22 },
   helper: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily, opacity: 0.85, textAlign: 'center' },
   error: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, textAlign: 'center' },
+  loader: { paddingVertical: DesignSpacing.xl, alignItems: 'center', justifyContent: 'center' },
 });
 

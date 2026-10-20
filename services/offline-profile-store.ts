@@ -60,7 +60,7 @@ export function cacheProfile(profile: AuthProfile): void {
         is_student, is_admin, admin_role, assigned_region_id,
         city, school, onboarded, show_in_roommate_feed,
         birth_year, entry_year, program_duration, religion, referral_code, cached_at
-      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
         profile.id,
         profile.email ?? null,

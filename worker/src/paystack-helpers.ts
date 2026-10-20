@@ -11,6 +11,17 @@ export type PaymentRow = {
   status: string;
 };
 
+export const CORS_HEADERS: Record<string, string> = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-paystack-signature',
+  'Access-Control-Max-Age': '86400',
+};
+
+export function corsPreflight(): Response {
+  return new Response(null, { status: 204, headers: { ...CORS_HEADERS } });
+}
+
 export function json(data: unknown, status = 200): Response {
   return new Response(JSON.stringify(data), {
     status,
@@ -18,7 +29,7 @@ export function json(data: unknown, status = 200): Response {
       'Content-Type': 'application/json',
       'Access-Control-Allow-Origin': '*',
       'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
-      'Access-Control-Allow-Headers': 'Content-Type, Authorization, x-paystack-signature',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, apikey, x-paystack-signature',
     },
   });
 }

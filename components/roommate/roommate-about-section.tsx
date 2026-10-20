@@ -1,15 +1,15 @@
 import { StyleSheet, Text, TextInput } from 'react-native';
 import { OnboardingGlassCard } from '@/components/onboarding/onboarding-glass-card';
 import { RoommateChipSelector } from '@/components/roommate/roommate-chip-selector';
-import { LEVEL_OPTIONS } from '@/components/roommate/roommate-onboarding-options';
+import { LEVEL_OPTIONS, RELIGION_OPTIONS } from '@/components/roommate/roommate-onboarding-options';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 type Props = {
-  bio: string; age: string; level: string | null; religion: string;
+  bio: string; age: string; level: string | null; religion: string | null;
   onBioChange: (v: string) => void;
   onAgeChange: (v: string) => void;
   onLevelChange: (id: string) => void;
-  onReligionChange: (v: string) => void;
+  onReligionChange: (id: string) => void;
 };
 
 export function RoommateAboutSection({
@@ -22,7 +22,7 @@ export function RoommateAboutSection({
       <TextInput placeholder="Write a short bio..." placeholderTextColor={DesignColors.textSecondary} value={bio} onChangeText={onBioChange} multiline numberOfLines={3} style={styles.textArea} />
       <TextInput placeholder="Age" placeholderTextColor={DesignColors.textSecondary} value={age} onChangeText={onAgeChange} keyboardType="numeric" style={styles.textInput} />
       <RoommateChipSelector label="Level" options={LEVEL_OPTIONS} value={level} onSelect={onLevelChange} />
-      <TextInput placeholder="Religion (e.g. Islam, Christianity)" placeholderTextColor={DesignColors.textSecondary} value={religion} onChangeText={onReligionChange} style={styles.textInput} />
+      <RoommateChipSelector label="Religion" options={RELIGION_OPTIONS} value={religion} onSelect={onReligionChange} />
     </OnboardingGlassCard>
   );
 }

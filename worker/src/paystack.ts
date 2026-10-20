@@ -1,7 +1,7 @@
 import type { Env } from './env';
 import { corsPreflight, json } from './paystack-helpers';
-import { handlePaystackEvents } from './paystack-router';
 import { handleInitialize } from './paystack-initialize';
+import { handlePaystackEvents } from './paystack-router';
 
 export async function handlePaystackRequest(request: Request, env: Env): Promise<Response> {
   try {
@@ -22,3 +22,4 @@ export async function handlePaystackRequest(request: Request, env: Env): Promise
     return json({ error: message }, 500);
   }
 }
+ 

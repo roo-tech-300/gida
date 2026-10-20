@@ -23,7 +23,6 @@ import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-opt
 import { useAvatarUpload } from './use-avatar-upload';
 import { useExpiredLodges } from './use-expired-lodges';
 import { useRoommateCompletion } from './use-roommate-completion';
-import { useReferral } from '@/hooks/use-referral';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
@@ -55,20 +54,36 @@ export function StudentProfileScreen() {
 
   const expiredLodges = useExpiredLodges(reservations, currentTime);
   const roommateCompletion = useRoommateCompletion(preferences, profile);
-  const referral = useReferral();
   const openReferral = useCallback(() => router.push('/referral-dashboard'), []);
 
 
-  const sleepSchedule = formatOptionLabel(preferences?.roommate?.sleep_schedule) ?? 'Not set yet';
-  const cleanlinessLevel = formatOptionLabel(preferences?.roommate?.cleanliness_level) ?? 'Not set yet';
-  const minBudget = preferences?.living?.min_budget;
-  const maxBudget = preferences?.living?.max_budget;
-  const budgetLabel = minBudget && maxBudget
-    ? `₦${minBudget.toLocaleString('en-US')} – ₦${maxBudget.toLocaleString('en-US')}/yr`
-    : maxBudget
-      ? `Up to ₦${maxBudget.toLocaleString('en-US')}/yr`
-      : 'Flexible';
+  const roommate = preferences?.roommate;
+  const living = preferences?.living;
+  const minBudget = living?.min_budget;
+  const maxBudget = living?.max_budget;
+  const budgetLabel =
+    minBudget != null && maxBudget != null
+      ? `NGN ${Number(minBudget).toLocaleString('en-US')} - NGN ${Number(maxBudget).toLocaleString('en-US')}/yr`
+      : maxBudget != null
+        ? `Up to NGN ${Number(maxBudget).toLocaleString('en-US')}/yr`
+        : 'Flexible';
   const schoolLabel = profile?.school ?? 'Not set yet';
+  const livingArea = formatOptionLabel(living?.preferred_area);
+  const livingBits = [budgetLabel === 'Flexible' ? null : budgetLabel, livingArea].filter(Boolean);
+  const livingSummary = livingBits.length > 0 ? (livingBits as string[]).join(' | ') : 'Not set yet';
+  const habitBits = [
+    roommate?.sleep_schedule,
+    roommate?.cleanliness_level,
+    roommate?.guest_policy,
+    roommate?.study_habitat,
+    roommate?.personality_vibe,
+    roommate?.religion_preference,
+  ]
+    .map((entry) => formatOptionLabel(entry))
+    .filter(Boolean);
+  if (roommate?.smoker_allowed) habitBits.push('Smoker OK');
+  const roommateSummary =
+    habitBits.length > 0 ? (habitBits as string[]).slice(0, 3).join(' | ') : 'Not set yet';
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -150,9 +165,8 @@ export function StudentProfileScreen() {
               <Text style={styles.sectionTitleFlat}>Roommate Profile</Text>
               <Text style={styles.completionBadge}>{preferencesLoading ? 'Loading...' : `${roommateCompletion}% Complete`}</Text>
             </View>
-            <ProfileRow icon="moon-outline" label="Sleep Schedule" value={sleepSchedule} />
-            <ProfileRow icon="sparkles-outline" label="Cleanliness Level" value={cleanlinessLevel} />
-            <ProfileRow icon="cash-outline" label="Maximum Annual Budget" value={budgetLabel} />
+            <ProfileRow icon="home-outline" label="Living Preference" value={livingSummary} onPress={() => router.push('/roommate-living-preferences')} />
+            <ProfileRow icon="people-outline" label="Roommate Preference" value={roommateSummary} onPress={() => router.push('/roommate-more-settings')} />
           </View>
           {userId && (
             <View style={styles.section}>

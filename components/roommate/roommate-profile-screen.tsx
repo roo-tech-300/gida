@@ -11,6 +11,7 @@ import { useRoommateProfile } from '@/hooks/useRoommateProfile';
 import type { LifestyleChip } from '@/types/roommates';
 
 import { RoommateProfileHeader } from './roommate-profile-header';
+import { formatOptionLabel, religionLabel } from './roommate-onboarding-options';
 import { RoommateMatchBreakdown } from './roommate-match-breakdown';
 import { RoommateProfileAbout } from './roommate-profile-about';
 import { RoommateInfoCard, type InfoItem } from './roommate-info-card';
@@ -31,7 +32,7 @@ function buildLifestyleItems(chips: LifestyleChip[]): InfoItem[] {
   return chips.map((chip) => ({
     icon: CHIP_ICONS[chip.label] ?? 'ellipse-outline',
     label: chip.label,
-    value: chip.value,
+    value: formatOptionLabel(chip.value) ?? chip.value,
   }));
 }
 
@@ -95,7 +96,7 @@ export function RoommateProfileScreen({ roommateId }: { roommateId: string }) {
     { icon: 'calendar-outline', label: 'Move-in', value: roommate.moveInDate },
   ];
   if (roommate.religion) {
-    preferenceItems.push({ icon: 'heart-outline', label: 'Faith', value: roommate.religion });
+    preferenceItems.push({ icon: 'heart-outline', label: 'Faith', value: religionLabel(roommate.religion) ?? roommate.religion });
   }
 
   return (

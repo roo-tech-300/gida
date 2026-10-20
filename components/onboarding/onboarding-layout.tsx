@@ -10,15 +10,20 @@ import { useResponsive } from '@/hooks/use-responsive';
 type OnboardingLayoutProps = {
   children: ReactNode;
   footer?: ReactNode;
+  /** Rendered pinned above the scroll content (e.g. a back button). */
+  header?: ReactNode;
+  /** Vertically centers children (e.g. a single-field edit slide). */
+  centerContent?: boolean;
 };
 
-export function OnboardingLayout({ children, footer }: OnboardingLayoutProps) {
+export function OnboardingLayout({ children, footer, header, centerContent }: OnboardingLayoutProps) {
   const { horizontalMargin, isDesktop } = useResponsive();
 
   return (
     <SafeAreaView style={styles.safe}>
       <AuthBackgroundBubbles />
       <SafeKeyboardView style={styles.flex}>
+        {header}
         <ScrollView
           bounces={false}
           contentContainerStyle={[
@@ -30,7 +35,7 @@ export function OnboardingLayout({ children, footer }: OnboardingLayoutProps) {
           ]}
           keyboardShouldPersistTaps="handled"
           showsVerticalScrollIndicator={false}>
-          <View style={[styles.inner, isDesktop && styles.innerDesktop]}>{children}</View>
+          <View style={[styles.inner, isDesktop && styles.innerDesktop, centerContent && styles.innerCentered]}>{children}</View>
           {footer}
         </ScrollView>
       </SafeKeyboardView>
@@ -58,5 +63,9 @@ const styles = StyleSheet.create({
   },
   innerDesktop: {
     paddingVertical: DesignSpacing.xl,
+  },
+  innerCentered: {
+    flexGrow: 1,
+    justifyContent: 'center',
   },
 });

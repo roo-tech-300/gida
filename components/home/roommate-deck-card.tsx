@@ -1,4 +1,5 @@
 import { WebBlurView } from '@/components/ui/web-blur-view';
+import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-options';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
@@ -31,7 +32,7 @@ function ChipPill({ label, value }: { label: string; value: string }) {
   return (
     <View style={[styles.chip, { borderColor: `${dotColor}30` }]}>
       <View style={[styles.chipDot, { backgroundColor: dotColor, shadowColor: dotColor }]} />
-      <Text style={styles.chipText}>{label}: {value}</Text>
+      <Text style={styles.chipText}>{label}: {formatOptionLabel(value) ?? value}</Text>
     </View>
   );
 }

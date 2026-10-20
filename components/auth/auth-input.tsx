@@ -22,9 +22,11 @@ type AuthInputProps = TextInputProps & {
   label: string;
   error?: string;
   isPassword?: boolean;
+  /** Static adornment rendered to the left of the field (not part of the value). */
+  prefix?: string;
 };
 
-export function AuthInput({ label, error, isPassword, style, ...props }: AuthInputProps) {
+export function AuthInput({ label, error, isPassword, prefix, style, ...props }: AuthInputProps) {
   const [focused, setFocused] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -37,35 +39,38 @@ export function AuthInput({ label, error, isPassword, style, ...props }: AuthInp
   return (
     <View style={styles.wrapper}>
       <Text style={styles.label}>{label}</Text>
-      <View style={[styles.field, { borderColor }, error && styles.fieldError]}>
-        <TextInput
-          {...props}
-          secureTextEntry={isPassword && !visible}
-          placeholderTextColor={DesignColors.textSecondary}
-          onFocus={(e) => {
-            setFocused(true);
-            props.onFocus?.(e);
-          }}
-          onBlur={(e) => {
-            setFocused(false);
-            props.onBlur?.(e);
-          }}
-          style={[styles.input, style]}
-        />
-        {isPassword ? (
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={visible ? 'Hide password' : 'Show password'}
-            hitSlop={8}
-            onPress={() => setVisible((v) => !v)}
-            style={styles.eyeButton}>
-            <Ionicons
-              name={visible ? 'eye-off-outline' : 'eye-outline'}
-              size={20}
-              color={DesignColors.outline}
-            />
-          </Pressable>
-        ) : null}
+      <View style={styles.fieldRow}>
+        {prefix ? <Text style={styles.prefix}>{prefix}</Text> : null}
+        <View style={[styles.field, { borderColor }, error && styles.fieldError]}>
+          <TextInput
+            {...props}
+            secureTextEntry={isPassword && !visible}
+            placeholderTextColor={DesignColors.textSecondary}
+            onFocus={(e) => {
+              setFocused(true);
+              props.onFocus?.(e);
+            }}
+            onBlur={(e) => {
+              setFocused(false);
+              props.onBlur?.(e);
+            }}
+            style={[styles.input, style]}
+          />
+          {isPassword ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={visible ? 'Hide password' : 'Show password'}
+              hitSlop={8}
+              onPress={() => setVisible((v) => !v)}
+              style={styles.eyeButton}>
+              <Ionicons
+                name={visible ? 'eye-off-outline' : 'eye-outline'}
+                size={20}
+                color={DesignColors.outline}
+              />
+            </Pressable>
+          ) : null}
+        </View>
       </View>
       {error ? <Text style={styles.error}>{error}</Text> : null}
     </View>
@@ -81,7 +86,19 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurfaceVariant,
     fontFamily,
   },
+  fieldRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+  },
+  prefix: {
+    ...DesignTypography.bodyLg,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    fontWeight: '700',
+  },
   field: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     minHeight: 56,

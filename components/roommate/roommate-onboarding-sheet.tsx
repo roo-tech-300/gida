@@ -19,7 +19,7 @@ export function RoommateOnboardingSheet({ visible, onDismiss }: Props) {
   const [bio, setBio] = useState('');
   const [age, setAge] = useState('');
   const [level, setLevel] = useState<string | null>(null);
-  const [religion, setReligion] = useState('');
+  const [religion, setReligion] = useState<string | null>(null);
   const [smoker, setSmoker] = useState(false);
   const [sleep, setSleep] = useState<string | null>(null);
   const [cleanliness, setCleanliness] = useState<string | null>(null);
@@ -41,7 +41,7 @@ export function RoommateOnboardingSheet({ visible, onDismiss }: Props) {
                 bio: bio || undefined,
                 birthYear: age ? birthYearFromAge(Number(age)) : undefined,
                 entryYear: level ? entryYearFromLevel(Number(level)) : undefined,
-                religion: religion || undefined,
+                religion: religion ?? undefined,
                 sleepSchedule: sleep || undefined,
                 cleanlinessLevel: cleanliness || undefined,
                 guestPolicy: guests || undefined,

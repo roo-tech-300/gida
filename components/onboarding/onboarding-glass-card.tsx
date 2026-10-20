@@ -5,12 +5,14 @@ import { DesignColors, DesignRadius, DesignSpacing } from '@/constants/design';
 
 type OnboardingGlassCardProps = {
   children: ReactNode;
+  /** Hides the decorative glow circle in the top-right corner. */
+  showGlow?: boolean;
 };
 
-export function OnboardingGlassCard({ children }: OnboardingGlassCardProps) {
+export function OnboardingGlassCard({ children, showGlow = true }: OnboardingGlassCardProps) {
   return (
     <View style={styles.card}>
-      <View style={styles.glow} pointerEvents="none" />
+      {showGlow ? <View style={styles.glow} pointerEvents="none" /> : null}
       {children}
     </View>
   );

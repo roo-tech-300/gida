@@ -6,17 +6,18 @@ import { ONBOARDING_STEPS } from '@/types/onboarding';
 type OnboardingProgressProps = {
   step: number;
   label?: string;
+  totalSteps?: number;
 };
 
-export function OnboardingProgress({ step, label = 'Passport Setup' }: OnboardingProgressProps) {
-  const progress = step / ONBOARDING_STEPS;
+export function OnboardingProgress({ step, label = 'Passport Setup', totalSteps = ONBOARDING_STEPS }: OnboardingProgressProps) {
+  const progress = step / totalSteps;
 
   return (
     <View style={styles.container}>
       <View style={styles.header}>
         <Text style={styles.label}>{label}</Text>
         <Text style={styles.stepText}>
-          Step {step} of {ONBOARDING_STEPS}
+          Step {step} of {totalSteps}
         </Text>
       </View>
       <View style={styles.track}>

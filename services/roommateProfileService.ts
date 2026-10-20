@@ -32,6 +32,47 @@ export async function fetchMyRoommatePreferences(userId: string) {
   };
 }
 
+export async function updateRoommatePreferences(
+  userId: string,
+  data: {
+    sleepSchedule?: string | null;
+    cleanlinessLevel?: string | null;
+    guestPolicy?: string | null;
+    studyHabitat?: string | null;
+    personalityVibe?: string | null;
+    smokerAllowed?: boolean | null;
+    religionPreference?: string | null;
+    /** Current user's own religion (profiles.religion). Used when preference is 'same'. */
+    ownReligion?: string | null;
+  },
+) {
+  let religionPreference = data.religionPreference ?? null;
+  if (religionPreference === 'same') {
+    religionPreference = data.ownReligion?.trim()
+      ? data.ownReligion.trim().toLowerCase()
+      : 'flexible';
+  }
+
+  const { error } = await supabase
+    .from('roommate_preferences')
+    .upsert(
+      {
+        profile_id: userId,
+        sleep_schedule: data.sleepSchedule ?? null,
+        cleanliness_level: data.cleanlinessLevel ?? null,
+        guest_policy: data.guestPolicy ?? null,
+        study_habitat: data.studyHabitat ?? null,
+        personality_vibe: data.personalityVibe ?? null,
+        smoker_allowed: data.smokerAllowed ?? null,
+        religion_preference: religionPreference,
+        updated_at: new Date().toISOString(),
+      },
+      { onConflict: 'profile_id' },
+    );
+
+  if (error) throw error;
+}
+
 export async function saveRoommateProfile(
   userId: string,
   data: RoommateOnboardingData,

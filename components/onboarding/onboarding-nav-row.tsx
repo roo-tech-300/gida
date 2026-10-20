@@ -8,6 +8,7 @@ type OnboardingNavRowProps = {
   onBack?: () => void;
   onContinue: () => void;
   continueLabel?: string;
+  continueLabelColor?: string;
   continueDisabled?: boolean;
   isLoading?: boolean;
   showBack?: boolean;
@@ -17,6 +18,7 @@ export function OnboardingNavRow({
   onBack,
   onContinue,
   continueLabel = 'Continue',
+  continueLabelColor,
   continueDisabled,
   isLoading,
   showBack = true,
@@ -38,6 +40,7 @@ export function OnboardingNavRow({
       <View style={hasBack ? styles.continueWrap : styles.continueFull}>
         <OnboardingContinueButton
           label={continueLabel}
+          labelColor={continueLabelColor}
           onPress={onContinue}
           disabled={continueDisabled}
           isLoading={isLoading}

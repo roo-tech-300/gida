@@ -9,7 +9,6 @@ import { AuthBrandHeader } from '@/components/auth/auth-brand-header';
 import { SocialLinksFooter } from '@/components/landing/social-links-footer';
 import { WaitlistForm } from '@/components/landing/waitlist-form';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { WAITLIST_WHATSAPP_CHANNEL_URL } from '@/constants/launch';
 import { useWindowDimensions } from 'react-native';
 
 export function ComingSoonScreen() {

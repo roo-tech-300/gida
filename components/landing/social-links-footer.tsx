@@ -3,10 +3,10 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import Animated, { FadeInUp } from 'react-native-reanimated';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { WAITLIST_WHATSAPP_CHANNEL_URL } from '@/constants/launch';
+import { SUPPORT_WHATSAPP_CHANNEL_URL } from '@/constants/support';
 
 const SOCIAL_LINKS = [
-  { label: 'WhatsApp', icon: 'logo-whatsapp', url: WAITLIST_WHATSAPP_CHANNEL_URL, color: '#25D366' },
+  { label: 'WhatsApp', icon: 'logo-whatsapp', url: SUPPORT_WHATSAPP_CHANNEL_URL, color: '#25D366' },
   { label: 'Facebook', icon: 'logo-facebook', url: 'https://www.facebook.com/share/1LdcNi7zJE/', color: '#7AA7FF' },
   { label: 'TikTok', icon: 'logo-tiktok', url: 'https://www.tiktok.com/@gida_properties', color: '#F4F2F8' },
   { label: 'Instagram', icon: 'logo-instagram', url: 'https://www.instagram.com/gida_properties', color: '#F19BB2' },

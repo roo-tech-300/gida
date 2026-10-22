@@ -1,4 +1,5 @@
 import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-options';
 import { ReplayTourModal } from '@/components/tour/replay-tour-modal';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -14,12 +15,12 @@ import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, T
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActiveAdminCard } from './active-admin-card';
 import { ExpiredMarqueeBanner } from './expired-marquee-banner';
+import { HelpSupportEntry } from './help-support-entry';
 import { JoinGroupCard } from './join-group-card';
 import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
 import { ReservedHousesSection } from './reserved-houses-section';
-import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-options';
 import { useAvatarUpload } from './use-avatar-upload';
 import { useExpiredLodges } from './use-expired-lodges';
 import { useRoommateCompletion } from './use-roommate-completion';
@@ -190,7 +191,7 @@ export function StudentProfileScreen() {
               onPress={() => void handleNotificationsPress()}
             />
             <ProfileRow icon="shield-checkmark-outline" label="Security & Privacy" />
-            <ProfileRow icon="headset-outline" label="Help & Support" />
+            <HelpSupportEntry />
           </View>
 
           {profile?.admin_role ? (
@@ -218,8 +219,6 @@ export function StudentProfileScreen() {
               )}
             </Pressable>
           </View>
-
-          <Text style={styles.version}>Gida Campus Edition • v4.2.0</Text>
         </ScrollView>
 
         <DiscoverBottomNav activeTab="profile" />

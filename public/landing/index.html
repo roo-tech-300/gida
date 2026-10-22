@@ -106,8 +106,6 @@
     <a
       class="download-app-link"
       href="https://github.com/roo-tech-300/gida/releases/latest/download/Gida.apk"
-      target="_top"
-      rel="noopener"
       aria-label="Download the Gida Android app"
       hidden
     >
@@ -138,20 +136,43 @@
 
         const label = downloadAppLink.querySelector('.download-app-label');
         const defaultLabel = label ? label.textContent : 'Download Android app';
+        const apkUrl = downloadAppLink.getAttribute('href');
+        let downloadFrame = null;
         let resetTimer;
 
-        downloadAppLink.addEventListener('click', () => {
-          // The landing page renders inside an iframe on the Expo web shell.
-          // Without target="_top" the frame itself navigates to GitHub, whose
-          // X-Frame-Options response breaks out to a page and kills the
-          // download when it closes. The link now opens at the top level, and
-          // GitHub's final response uses Content-Disposition: attachment, so
-          // the browser's download manager handles it in the background.
+        const startBackgroundDownload = (url) => {
+          // Load the APK through a hidden iframe instead of navigating the
+          // tab. GitHub answers with Content-Disposition: attachment, so the
+          // browser hands the file to its download manager while the landing
+          // page (and the URL bar) stays exactly where it is. The download
+          // then continues in the background even if the page is closed.
+          if (!downloadFrame) {
+            downloadFrame = document.createElement('iframe');
+            downloadFrame.title = 'Gida APK download';
+            downloadFrame.setAttribute('aria-hidden', 'true');
+            downloadFrame.style.cssText =
+              'position:absolute;width:0;height:0;border:0;visibility:hidden;';
+            document.body.appendChild(downloadFrame);
+          }
+
+          const separator = url.indexOf('?') === -1 ? '?' : '&';
+          downloadFrame.src = url + separator + '_=' + Date.now();
+        };
+
+        downloadAppLink.addEventListener('click', (event) => {
+          if (!apkUrl) {
+            return;
+          }
+
+          event.preventDefault();
+
           downloadAppLink.setAttribute('data-state', 'downloading');
           downloadAppLink.setAttribute('aria-busy', 'true');
           if (label) {
             label.textContent = 'Downloading…';
           }
+
+          startBackgroundDownload(apkUrl);
 
           window.clearTimeout(resetTimer);
           resetTimer = window.setTimeout(() => {

@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useState } from 'react';
-import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import Animated, { FadeInDown, FadeInUp, FadeOut, ZoomIn } from 'react-native-reanimated';
+import Animated, { FadeInDown, FadeOut, ZoomIn } from 'react-native-reanimated';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { AuthBrandHeader } from '@/components/auth/auth-brand-header';
 import { SocialLinksFooter } from '@/components/landing/social-links-footer';
 import { WaitlistForm } from '@/components/landing/waitlist-form';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { useWindowDimensions } from 'react-native';
 
 export function ComingSoonScreen() {
   const { width, height } = useWindowDimensions();

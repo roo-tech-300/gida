@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import {
   ActivityIndicator,
   FlatList,
@@ -209,7 +209,7 @@ export function ReferralPayoutsScreen() {
       staleTime: 60 * 1000,
     });
 
-  const allRequests = data?.pages.flat() ?? [];
+  const allRequests = useMemo(() => data?.pages.flat() ?? [], [data?.pages]);
   const totalAmount = allRequests.reduce((s, r) => s + r.amount, 0);
 
   const { mutateAsync: disburse } = useMutation({

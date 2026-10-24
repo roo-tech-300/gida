@@ -1,4 +1,4 @@
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { AppBottomNav } from '@/components/navigation/app-bottom-nav';
 import { formatOptionLabel } from '@/components/roommate/roommate-onboarding-options';
 import { ReplayTourModal } from '@/components/tour/replay-tour-modal';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -154,6 +154,16 @@ export function StudentProfileScreen() {
           <ReservedHousesSection reservations={reservations ?? []} hasError={reservationsError} isLoading={reservationsPending} />
 
           <View style={styles.sectionFlat}>
+            <Text style={styles.sectionTitleFlat}>Saved</Text>
+            <ProfileRow
+              icon="heart-outline"
+              label="Saved Properties"
+              value="Your shortlist"
+              onPress={() => router.push('/saved')}
+            />
+          </View>
+
+          <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Personal Information</Text>
             <ProfileRow icon="person-outline" label="Full Name" value={profile?.full_name ?? 'Student'} onPress={() => router.push('/personal-info/full-name')} />
             <ProfileRow icon="at-outline" label="Username" value={profile?.username ? `@${profile.username}` : 'Not set yet'} onPress={() => router.push('/personal-info/username')} />
@@ -221,7 +231,7 @@ export function StudentProfileScreen() {
           </View>
         </ScrollView>
 
-        <DiscoverBottomNav activeTab="profile" />
+        <AppBottomNav activeTab="profile" />
         <ReplayTourModal visible={tourModalOpen} onClose={closeTour} />
       </View>
     </SafeAreaView>

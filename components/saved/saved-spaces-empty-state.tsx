@@ -1,15 +1,14 @@
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 export function SavedSpacesEmptyState() {
   const router = useRouter();
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const [floatAnim] = useState(() => new Animated.Value(0));
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -105,8 +104,6 @@ export function SavedSpacesEmptyState() {
           </Pressable>
         </View>
       </ScrollView>
-
-      <DiscoverBottomNav activeTab="saved" />
     </View>
   );
 }

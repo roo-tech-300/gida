@@ -45,7 +45,7 @@ export function VerifyResetCodeScreen() {
                 <AuthIconBadge name="shield-checkmark-outline" />
                 <OtpInput editable={!isSubmitting} length={otpLength} onChange={setCode} value={code} />
                 <View style={styles.resendRow}>
-                    <Text style={styles.resendPrompt}>Didn't get the code?</Text>
+                    <Text style={styles.resendPrompt}>Did not get the code?</Text>
                     {cooldown.isActive ? (
                         <Text style={styles.resendMuted}>Resend in {cooldown.secondsLeft}s</Text>
                     ) : (

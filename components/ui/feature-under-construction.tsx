@@ -1,17 +1,28 @@
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { AppBottomNav, type BottomTab } from '@/components/navigation/app-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
 interface FeatureUnderConstructionProps {
+  icon?: keyof typeof Ionicons.glyphMap;
+  title?: string;
+  subtitle?: string;
+  headerTitle?: string;
   onGoBack?: () => void;
-  activeTab?: 'discover' | 'messages' | 'saved' | 'profile';
+  activeTab?: BottomTab;
 }
 
-export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+export function FeatureUnderConstruction({
+  icon = 'construct-outline',
+  title = 'Feature Under Construction',
+  subtitle,
+  headerTitle,
+  onGoBack,
+  activeTab = 'home',
+}: FeatureUnderConstructionProps) {
+  const [floatAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const loop = Animated.loop(
@@ -55,7 +66,7 @@ export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: F
           <Pressable onPress={handleBack} style={styles.backButton}>
             <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />
           </Pressable>
-          <Text style={styles.topBarTitle}>MessHoages</Text>
+          {headerTitle ? <Text style={styles.topBarTitle}>{headerTitle}</Text> : null}
         </View>
       )}
 
@@ -67,7 +78,7 @@ export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: F
               { transform: [{ translateY: mainTranslateY }, { rotate: mainRotate }] },
             ]}
           >
-            <Ionicons name="chatbubble-ellipses-outline" size={52} color={DesignColors.primary} />
+            <Ionicons name={icon} size={52} color={DesignColors.primary} />
 
             <FloatingBadge
               icon="construct-outline"
@@ -92,7 +103,8 @@ export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: F
           </Animated.View>
         </View>
 
-        <Text style={styles.title}>Feature Under Construction</Text>
+        <Text style={styles.title}>{title}</Text>
+        {subtitle ? <Text style={styles.subtitle}>{subtitle}</Text> : null}
 
         {onGoBack && (
           <Pressable onPress={handleBack} style={styles.button}>
@@ -102,7 +114,7 @@ export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: F
         )}
       </View>
 
-      <DiscoverBottomNav activeTab={activeTab} />
+      <AppBottomNav activeTab={activeTab} />
     </View>
   );
 }

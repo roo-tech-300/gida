@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSavedListings, useToggleSave } from '@/hooks/use-saved-listings';
 
@@ -34,24 +34,20 @@ export function SavedPropertiesScreen() {
     [router],
   );
 
-  if (isLoading) {
-    return (
-      <SafeAreaView style={styles.safe}>
+  return (
+    <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
+      <View style={styles.topBar}>
+        <BackButton />
+        <Text style={styles.title}>Saved Properties</Text>
+      </View>
+
+      {isLoading ? (
         <View style={styles.center}>
           <ActivityIndicator size="large" color={DesignColors.primary} />
         </View>
-        <DiscoverBottomNav activeTab="saved" />
-      </SafeAreaView>
-    );
-  }
-
-  if (listings.length === 0) {
-    return <SavedSpacesEmptyState />;
-  }
-
-  return (
-    <SafeAreaView style={styles.safe}>
-      <View style={styles.flex}>
+      ) : listings.length === 0 ? (
+        <SavedSpacesEmptyState />
+      ) : (
         <ScrollView
           bounces={false}
           contentContainerStyle={styles.content}
@@ -60,11 +56,6 @@ export function SavedPropertiesScreen() {
           refreshControl={
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={DesignColors.primary} />
           }>
-          <View style={styles.header}>
-            <Text style={styles.title}>Saved Properties</Text>
-            <Text style={styles.subtitle}>Your collection of residences</Text>
-          </View>
-
           <View style={[styles.list, isWide && styles.listWide]}>
             {listings.map((listing) => (
               <View key={listing.id} style={[styles.cardWrap, isWide && styles.cardWrapWide]}>
@@ -77,8 +68,7 @@ export function SavedPropertiesScreen() {
             ))}
           </View>
         </ScrollView>
-        <DiscoverBottomNav activeTab="saved" />
-      </View>
+      )}
     </SafeAreaView>
   );
 }
@@ -88,8 +78,21 @@ const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: DesignColors.surfaceContainerLowest,
   },
-  flex: {
+  topBar: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.md,
+    paddingHorizontal: DesignSpacing.md,
+    paddingVertical: DesignSpacing.sm,
+    borderBottomWidth: 1,
+    borderBottomColor: DesignColors.cardBorder,
+  },
+  title: {
     flex: 1,
+    ...DesignTypography.headlineMd,
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontWeight: '700',
   },
   center: {
     flex: 1,
@@ -97,24 +100,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   content: {
-    paddingTop: DesignSpacing.xl,
+    paddingTop: DesignSpacing.lg,
     paddingHorizontal: DesignSpacing.marginMobile,
-    paddingBottom: DesignSpacing.xl * 5,
-    gap: DesignSpacing.lg,
-  },
-  header: {
-    gap: 4,
-  },
-  title: {
-    ...DesignTypography.headlineLg,
-    color: DesignColors.primaryBright,
-    fontFamily,
-    fontWeight: '800',
-  },
-  subtitle: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.textPrimary,
-    fontFamily,
+    paddingBottom: DesignSpacing.xl,
   },
   list: {
     gap: DesignSpacing.lg,

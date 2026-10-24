@@ -31,7 +31,7 @@ function useDriftAnimation() {
     );
     animation.start();
     return () => animation.stop();
-  }, []);
+  }, [x, y]);
 
   return { x, y };
 }

@@ -1,5 +1,5 @@
 import { SavedPropertiesScreen } from '@/components/saved/saved-properties-screen';
 
-export default function SavedScreen() {
+export default function SavedRoute() {
   return <SavedPropertiesScreen />;
 }

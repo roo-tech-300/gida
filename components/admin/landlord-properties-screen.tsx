@@ -47,7 +47,7 @@ export function LandlordPropertiesScreen({ landlordId }: { landlordId: string })
     if (combinedLoading) {
       showToast({ message: 'Loading landlord properties...', type: 'info' });
     }
-  }, [combinedLoading]);
+  }, [combinedLoading, showToast]);
 
   const propertyCountLabel = useMemo(() => {
     const count = listingItems.length;

@@ -34,7 +34,7 @@ export function ForgotPasswordScreen() {
                 />
                 <View style={styles.tip}>
                     <Ionicons name="time-outline" size={18} color={DesignColors.primaryBright} />
-                    <Text style={styles.tipText}>The code expires 60 minutes after it's sent.</Text>
+                    <Text style={styles.tipText}>The code expires 60 minutes after it is sent.</Text>
                 </View>
                 <AuthButton isLoading={isSending} label="Send reset code" onPress={handleSendCode} />
             </View>

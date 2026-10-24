@@ -142,6 +142,9 @@ export function getCachedProfile(): AuthProfile | null {
       program_duration: row.program_duration,
       religion: row.religion,
       referral_code: row.referral_code ?? null,
+      payout_bank_name: null,
+      payout_account_number: null,
+      payout_account_name: null,
     };
   } catch (error) {
     console.error('[OfflineProfileStore] Failed to read cached profile:', error);

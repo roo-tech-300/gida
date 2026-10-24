@@ -127,7 +127,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       pendingPropertyPath.current = null;
       router.replace(requestedProperty ? (requestedProperty as never) : '/(tabs)');
     }
-  }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router]);
+  }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router, referralCodeParam, searchParams]);
 
   if (isLoading) return <SplashScreen />;
 

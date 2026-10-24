@@ -6,7 +6,7 @@ import { useRouter, useFocusEffect } from 'expo-router';
 import { DesignColors } from '@/constants/design';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { AppBottomNav } from '@/components/navigation/app-bottom-nav';
 import { DiscoverListingFeed } from '@/components/home/discover-listing-feed';
 import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/feed-mode-selector';
 import { HomeSearchBar } from '@/components/home/home-search-bar';
@@ -22,7 +22,7 @@ import type { FeedListing } from '@/types/feed-listing';
 
 type FeedMode = 'listings' | 'roommates';
 
-export function DiscoverHomeScreen() {
+export function HomeScreen() {
   const router = useRouter();
   const { profile } = useAuth();
   const recommended = useInfiniteRecommendedListings(profile?.id);
@@ -182,7 +182,7 @@ export function DiscoverHomeScreen() {
             />
           )}
 
-          <DiscoverBottomNav />
+          <AppBottomNav activeTab="home" />
         </View>
 
         <FeedModeSelector

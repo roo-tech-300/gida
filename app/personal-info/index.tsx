@@ -7,5 +7,5 @@ import { Redirect } from 'expo-router';
  * own page and is opened directly from the matching Profile row.
  */
 export default function PersonalInfoRoot() {
-  return <Redirect from="/personal-info" to="/personal-info/full-name" />;
+  return <Redirect href="/personal-info/full-name" />;
 }

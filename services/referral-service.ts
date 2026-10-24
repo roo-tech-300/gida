@@ -167,7 +167,7 @@ export async function fetchMyReferrals(
 
     // Group payments by referral — one referral may have multiple payments
     const byReferral = new Map<string, { referral: ReferralRpcRow; statuses: string[] }>();
-    for (const row of (data ?? []) as ReferralPaymentRpcRow[]) {
+    for (const row of (data ?? []) as unknown as ReferralPaymentRpcRow[]) {
       const r = row.referrals;
       if (!r) continue;
       const entry = byReferral.get(r.id) ?? { referral: r, statuses: [] };
@@ -201,7 +201,7 @@ export async function fetchMyReferrals(
 
   if (error) throw error;
 
-  return ((data ?? []) as ReferralListRow[]).map((r) => ({
+  return ((data ?? []) as unknown as ReferralListRow[]).map((r) => ({
     id: r.id,
     referrer_id: r.referrer_id,
     referred_id: r.referred_id,

@@ -1,12 +1,12 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useEffect } from 'react';
 import { Linking, Modal, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useEffect } from 'react';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { SUPPORT_EMAIL, SUPPORT_PHONE, SUPPORT_WHATSAPP_CHANNEL_URL, SUPPORT_WHATSAPP_URL } from '@/constants/support';
 
-type HelpSupportModalProps = {
+type HelpSupportModalProps = {                
   visible: boolean;
   onClose: () => void;
 };

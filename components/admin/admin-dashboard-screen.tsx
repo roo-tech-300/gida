@@ -25,7 +25,7 @@ export function AdminDashboardScreen() {
       setListings(listingsData);
       setLoading(false);
     });
-  }, [profile?.id]);
+  }, [profile?.city, profile?.full_name, profile?.id]);
 
   const initials = useCallback((name: string) => {
     return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);

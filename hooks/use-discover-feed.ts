@@ -1,10 +1,10 @@
-import { useQuery } from '@tanstack/react-query';
-import { useCallback, useState } from 'react';
+import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
+import { useCallback, useMemo, useState } from 'react';
 
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
 import { useSavedPlaces } from '@/hooks/use-saved-places';
-import { fetchPlaces, PLACES_QUERY_KEY, searchPlaces } from '@/services/places-service';
-import type { PlaceCategory } from '@/types/place';
+import { fetchPlaces, PAGE_SIZE, PLACES_QUERY_KEY, searchPlaces } from '@/services/places-service';
+import type { Place, PlaceCategory } from '@/types/place';
 
 export type DiscoverCategoryFilter = PlaceCategory | 'all';
 
@@ -20,24 +20,46 @@ export function useDiscoverFeed() {
 
   const isSearching = debouncedQuery.trim().length > 0;
 
-  // Base list — full fetch when idle, server-side search when typing
   const {
-    data: allPlaces = [],
+    data,
     isLoading,
     isRefetching,
     isError,
     refetch,
-  } = useQuery({
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+  } = useInfiniteQuery<
+    Place[],
+    Error,
+    InfiniteData<Place[], number>,
+    readonly unknown[],
+    number
+  >({
     queryKey: isSearching
       ? [...PLACES_QUERY_KEY, 'search', debouncedQuery]
       : PLACES_QUERY_KEY,
-    queryFn: () =>
-      isSearching ? searchPlaces(debouncedQuery) : fetchPlaces(),
+    queryFn: ({ pageParam = 0 }) => {
+      const from = pageParam * PAGE_SIZE;
+      const to = from + PAGE_SIZE - 1;
+      return isSearching
+        ? searchPlaces(debouncedQuery, { from, to })
+        : fetchPlaces({ from, to });
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < PAGE_SIZE ? undefined : allPages.length,
     staleTime: STALE_TIME_MS,
   });
 
-  // Client-side filters applied on top of the server result
-  const places = (() => {
+  // Flatten pages into a single list
+  const allPlaces = useMemo(
+    () => data?.pages.flatMap((page) => page) ?? [],
+    [data],
+  );
+
+  // Client-side filters on top of the paginated result
+  const places = useMemo(() => {
     let result = allPlaces;
     if (!isSearching && category !== 'all') {
       result = result.filter((p) => p.category === category);
@@ -46,11 +68,15 @@ export function useDiscoverFeed() {
       result = result.filter((p) => savedIds.includes(p.id));
     }
     return result;
-  })();
+  }, [allPlaces, category, isSearching, savedIds, savedOnly]);
 
-  const trending = isSearching || category !== 'all' || savedOnly
-    ? []
-    : allPlaces.filter((p) => p.featured);
+  const trending = useMemo(
+    () =>
+      isSearching || category !== 'all' || savedOnly
+        ? []
+        : allPlaces.filter((p) => p.featured),
+    [allPlaces, category, isSearching, savedOnly],
+  );
 
   const hasActiveFilters = isSearching || category !== 'all' || savedOnly;
 
@@ -86,6 +112,9 @@ export function useDiscoverFeed() {
     hasActiveFilters,
     isSearching,
     isError,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
   };
 }
 

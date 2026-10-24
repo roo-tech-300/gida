@@ -1,5 +1,5 @@
 import { useCallback, useMemo } from 'react';
-import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
 import { DiscoverPlaceCard } from '@/components/discover/discover-place-card';
@@ -72,6 +72,12 @@ export function DiscoverFeedList({
     [onOpenPlace, showToast],
   );
 
+  const handleEndReached = useCallback(() => {
+    if (feed.hasNextPage && !feed.isFetchingNextPage) {
+      void feed.fetchNextPage();
+    }
+  }, [feed]);
+
   return (
     <FlatList
       data={items}
@@ -95,6 +101,8 @@ export function DiscoverFeedList({
         </View>
       )}
       ItemSeparatorComponent={Separator}
+      onEndReached={handleEndReached}
+      onEndReachedThreshold={0.4}
       ListHeaderComponent={
         <View>
           {hasRecommendations ? (
@@ -122,8 +130,8 @@ export function DiscoverFeedList({
                   onToggleSave={onToggleSave}
                 />
               )}
-              <Text style={styles.sectionTitle}>{sectionTitle}</Text>
-              <Text style={styles.sectionCount}>{feed.places.length}</Text>
+              <Text style={styles.sectionTitlePadded}>{sectionTitle}</Text>
+              <Text style={styles.sectionCountPadded}>{feed.places.length}</Text>
             </View>
           )}
         </View>
@@ -140,8 +148,15 @@ export function DiscoverFeedList({
             message={emptyState.message}
             actionLabel={feed.hasActiveFilters ? 'Clear filters' : undefined}
             onAction={feed.hasActiveFilters ? feed.clearFilters : undefined}
-        />
+          />
         )
+      }
+      ListFooterComponent={
+        feed.isFetchingNextPage ? (
+          <View style={styles.loadingMore}>
+            <ActivityIndicator size="small" color={DesignColors.primary} />
+          </View>
+        ) : null
       }
       contentContainerStyle={styles.listContent}
       keyboardDismissMode="on-drag"
@@ -176,14 +191,6 @@ const styles = StyleSheet.create({
     paddingHorizontal: DesignSpacing.marginMobile,
     gap: 12,
   },
-  sectionRow: {
-    flexDirection: 'row',
-    alignItems: 'baseline',
-    justifyContent: 'space-between',
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.lg,
-    paddingBottom: 12,
-  },
   sectionTitle: {
     fontSize: 18,
     lineHeight: 24,
@@ -192,13 +199,33 @@ const styles = StyleSheet.create({
     color: DesignColors.textPrimary,
     fontFamily,
   },
+  sectionTitlePadded: {
+    fontSize: 18,
+    lineHeight: 24,
+    fontWeight: '700',
+    letterSpacing: -0.3,
+    color: DesignColors.textPrimary,
+    fontFamily,
+    paddingHorizontal: DesignSpacing.marginMobile,
+  },
   sectionCount: {
     fontSize: 12,
     lineHeight: 16,
     color: DesignColors.textSecondary,
     fontFamily,
   },
+  sectionCountPadded: {
+    fontSize: 12,
+    lineHeight: 16,
+    color: DesignColors.textSecondary,
+    fontFamily,
+    paddingHorizontal: DesignSpacing.marginMobile,
+  },
   separator: {
     height: 12,
+  },
+  loadingMore: {
+    paddingVertical: 20,
+    alignItems: 'center',
   },
 });

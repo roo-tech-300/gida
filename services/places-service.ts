@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import type { Place } from '@/types/place';
 
 export const PLACES_QUERY_KEY = ['places', 'discover'] as const;
+export const PAGE_SIZE = 20;
 
 /** In-memory store for places created this session before the query cache refreshes. */
 let createdPlaces: Place[] = [];
@@ -57,11 +58,14 @@ function mapRow(row: Record<string, any>): Place {
   };
 }
 
-export async function fetchPlaces(): Promise<Place[]> {
+type PageParams = { from: number; to: number };
+
+export async function fetchPlaces({ from, to }: PageParams): Promise<Place[]> {
   const { data, error } = await supabase
     .from('places')
     .select(PLACES_SELECT)
-    .order('created_at', { ascending: false });
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) {
     console.error('[places-service] fetchPlaces failed:', error.message);
@@ -70,25 +74,28 @@ export async function fetchPlaces(): Promise<Place[]> {
 
   const remote = (data ?? []).map(mapRow);
 
-  // Prepend session-local places not yet returned by the DB
-  const remoteIds = new Set(remote.map((p) => p.id));
-  const newLocals = createdPlaces.filter((p) => !remoteIds.has(p.id));
+  // Prepend session-local places only on the first page
+  if (from === 0) {
+    const remoteIds = new Set(remote.map((p) => p.id));
+    const newLocals = createdPlaces.filter((p) => !remoteIds.has(p.id));
+    return [...newLocals, ...remote];
+  }
 
-  return [...newLocals, ...remote];
+  return remote;
 }
 
 /**
  * Server-side place search across name, area, address, and category.
- *
- * Category matching is synonym-aware: if the user types "restaurant" the query
- * resolves that to the "food" category key via category_synonyms, then includes
- * all food places in the results alongside any name/area/address matches.
+ * Synonym-aware: "restaurant" resolves to the "food" category key.
  */
-export async function searchPlaces(query: string): Promise<Place[]> {
+export async function searchPlaces(
+  query: string,
+  { from, to }: PageParams,
+): Promise<Place[]> {
   const trimmed = query.trim();
-  if (!trimmed) return fetchPlaces();
+  if (!trimmed) return fetchPlaces({ from, to });
 
-  // Step 1: Resolve category keys from synonyms + category label/key itself
+  // Step 1: Resolve category keys from synonyms + label/key
   const [synonymRows, categoryRows] = await Promise.all([
     supabase
       .from('category_synonyms')
@@ -104,31 +111,23 @@ export async function searchPlaces(query: string): Promise<Place[]> {
   synonymRows.data?.forEach((r) => matchedCategoryKeys.add(r.key));
   categoryRows.data?.forEach((r) => matchedCategoryKeys.add(r.key));
 
-  // Step 2: Build the OR filter for places
-  // Always search name, area, address. If the query resolved category keys,
-  // add a category.in(...) arm so e.g. "restaurant" returns all food places.
+  // Step 2: Build OR filter
   const orParts = [
     `name.ilike.%${trimmed}%`,
     `area.ilike.%${trimmed}%`,
     `address.ilike.%${trimmed}%`,
   ];
 
-  let query_ = supabase
-    .from('places')
-    .select(PLACES_SELECT)
-    .order('created_at', { ascending: false });
-
   if (matchedCategoryKeys.size > 0) {
-    // Use .or() for text fields and .in() for category via a combined filter
-    const categoryList = Array.from(matchedCategoryKeys).join(',');
-    query_ = query_.or(
-      [...orParts, `category.in.(${categoryList})`].join(','),
-    );
-  } else {
-    query_ = query_.or(orParts.join(','));
+    orParts.push(`category.in.(${Array.from(matchedCategoryKeys).join(',')})`);
   }
 
-  const { data, error } = await query_;
+  const { data, error } = await supabase
+    .from('places')
+    .select(PLACES_SELECT)
+    .or(orParts.join(','))
+    .order('created_at', { ascending: false })
+    .range(from, to);
 
   if (error) {
     console.error('[places-service] searchPlaces failed:', error.message);
@@ -137,20 +136,23 @@ export async function searchPlaces(query: string): Promise<Place[]> {
 
   const remote = (data ?? []).map(mapRow);
 
-  // Also include session-local places that match (not yet in DB)
-  const remoteIds = new Set(remote.map((p) => p.id));
-  const term = trimmed.toLowerCase();
-  const matchingLocals = createdPlaces.filter((p) => {
-    if (remoteIds.has(p.id)) return false;
-    return (
-      p.name.toLowerCase().includes(term) ||
-      p.area.toLowerCase().includes(term) ||
-      p.address.toLowerCase().includes(term) ||
-      p.category.toLowerCase().includes(term)
-    );
-  });
+  // Include session-local matches on first page only
+  if (from === 0) {
+    const remoteIds = new Set(remote.map((p) => p.id));
+    const term = trimmed.toLowerCase();
+    const matchingLocals = createdPlaces.filter((p) => {
+      if (remoteIds.has(p.id)) return false;
+      return (
+        p.name.toLowerCase().includes(term) ||
+        p.area.toLowerCase().includes(term) ||
+        p.address.toLowerCase().includes(term) ||
+        p.category.toLowerCase().includes(term)
+      );
+    });
+    return [...matchingLocals, ...remote];
+  }
 
-  return [...matchingLocals, ...remote];
+  return remote;
 }
 
 export async function fetchPlaceById(id: string): Promise<Place | null> {

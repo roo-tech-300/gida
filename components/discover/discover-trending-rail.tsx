@@ -1,6 +1,6 @@
-import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
+import { ScrollView, StyleSheet, Text, View } from 'react-native';
 
+import { DiscoverTrendingCard } from '@/components/discover/discover-trending-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { Place } from '@/types/place';
 
@@ -16,34 +16,29 @@ export function DiscoverTrendingRail({ places, isSaved, onPressPlace, onToggleSa
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Hot this week</Text>
-      <ScrollView horizontal contentContainerStyle={styles.row} showsHorizontalScrollIndicator={false}>
-        {places.map((place) => {
-          const saved = isSaved(place.id);
-          return (
-            <Pressable
-              key={place.id}
-              accessibilityRole="button"
-              onPress={() => onPressPlace(place)}
-              style={styles.chip}
-            >
-              <Text numberOfLines={1} style={styles.name}>
-                {place.name}
-              </Text>
-              <Pressable
-                accessibilityRole="button"
-                hitSlop={8}
-                onPress={() => onToggleSave(place)}
-              >
-                <Ionicons
-                  color={saved ? DesignColors.primary : DesignColors.onSurfaceVariant}
-                  name={saved ? 'bookmark' : 'bookmark-outline'}
-                  size={16}
-                />
-              </Pressable>
-            </Pressable>
-          );
-        })}
+      <View style={styles.headerRow}>
+        <View style={styles.titleWrap}>
+          <Text style={styles.title}>Hot this week</Text>
+          <View style={styles.fireBadge}>
+            <Text style={styles.fireBadgeText}>POPULAR</Text>
+          </View>
+        </View>
+        <Text style={styles.sub}>Top picks around campus</Text>
+      </View>
+      <ScrollView
+        horizontal
+        contentContainerStyle={styles.row}
+        showsHorizontalScrollIndicator={false}
+      >
+        {places.map((place) => (
+          <DiscoverTrendingCard
+            key={place.id}
+            place={place}
+            saved={isSaved(place.id)}
+            onPress={() => onPressPlace(place)}
+            onToggleSave={() => onToggleSave(place)}
+          />
+        ))}
       </ScrollView>
     </View>
   );
@@ -51,36 +46,48 @@ export function DiscoverTrendingRail({ places, isSaved, onPressPlace, onToggleSa
 
 const styles = StyleSheet.create({
   container: {
-    paddingBottom: DesignSpacing.sm,
+    paddingBottom: DesignSpacing.md,
   },
-  title: {
-    ...DesignTypography.titleMd,
+  headerRow: {
     paddingHorizontal: DesignSpacing.marginMobile,
-    marginBottom: 10,
-    color: DesignColors.onSurface,
-    fontFamily,
+    marginBottom: 12,
   },
-  row: {
-    paddingHorizontal: DesignSpacing.marginMobile,
-    gap: 8,
-  },
-  chip: {
-    maxWidth: 220,
+  titleWrap: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 8,
-    paddingHorizontal: 12,
-    paddingVertical: 10,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerLow,
   },
-  name: {
-    flexShrink: 1,
-    fontSize: 13,
-    fontWeight: '600',
-    color: DesignColors.textPrimary,
+  title: {
+    ...DesignTypography.titleMd,
+    fontSize: 20,
+    fontWeight: '800',
+    color: DesignColors.onSurface,
     fontFamily,
+    letterSpacing: -0.3,
+  },
+  fireBadge: {
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: 6,
+    backgroundColor: 'rgba(124, 58, 237, 0.2)',
+    borderWidth: 1,
+    borderColor: 'rgba(124, 58, 237, 0.4)',
+  },
+  fireBadgeText: {
+    fontSize: 9,
+    fontWeight: '800',
+    color: DesignColors.primaryFixed,
+    letterSpacing: 0.8,
+    fontFamily,
+  },
+  sub: {
+    fontSize: 12,
+    color: DesignColors.textSecondary,
+    fontFamily,
+    marginTop: 2,
+  },
+  row: {
+    paddingHorizontal: DesignSpacing.marginMobile,
+    gap: 12,
   },
 });

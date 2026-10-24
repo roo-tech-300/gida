@@ -1,4 +1,4 @@
-export type PlaceCategory =
+﻿export type PlaceCategory =
   | 'food'
   | 'cafe'
   | 'nightlife'
@@ -36,7 +36,7 @@ export type Place = {
   phone?: string;
   /** Local asset from /dummy/images/places. Falls back to a designed placeholder when absent. */
   image?: number;
-  /** Comma‑separated URIs of images selected for this place (client‑side only for now). */
+  /** Comma-separated URIs of images selected for this place (client-side only for now). */
   images?: string;
 };
 
@@ -55,13 +55,12 @@ export type NewPlaceReview = {
   text: string;
 };
 
-/** Editable fields used by the "Add a place" form. */
+/** Editable fields used by the Add a place form. */
 export type PlaceDraft = {
   name: string;
   category: PlaceCategory;
   area: string;
   address: string;
-  priceRange: PriceRange;
   description: string;
   latitude?: number;
   longitude?: number;

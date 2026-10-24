@@ -1,7 +1,12 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
-import { PRICE_RANGE_OPTIONS } from '@/constants/place-form';
 import { DesignColors, fontFamily } from '@/constants/design';
 import type { PriceRange } from '@/types/place';
+
+const PRICE_RANGE_OPTIONS: { value: PriceRange; label: string; hint: string }[] = [
+  { value: 1, label: '₦', hint: 'Budget' },
+  { value: 2, label: '₦₦', hint: 'Mid-range' },
+  { value: 3, label: '₦₦₦', hint: 'Premium' },
+];
 
 type Props = {
   value: PriceRange;
@@ -31,43 +36,15 @@ export function AddPlacePricePicker({ value, onChange }: Props) {
 }
 
 const styles = StyleSheet.create({
-  row: {
-    flexDirection: 'row',
-    gap: 8,
-  },
+  row: { flexDirection: 'row', gap: 8 },
   option: {
-    flex: 1,
-    minHeight: 60,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 2,
-    borderRadius: 14,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
+    flex: 1, minHeight: 60, alignItems: 'center', justifyContent: 'center', gap: 2,
+    borderRadius: 14, borderWidth: 1, borderColor: DesignColors.cardBorder,
     backgroundColor: DesignColors.glassSoft,
   },
-  optionActive: {
-    backgroundColor: DesignColors.primary,
-    borderColor: DesignColors.primary,
-  },
-  label: {
-    fontSize: 16,
-    lineHeight: 20,
-    fontWeight: '800',
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  labelActive: {
-    color: DesignColors.onPrimary,
-  },
-  hint: {
-    fontSize: 10,
-    lineHeight: 13,
-    color: DesignColors.textSecondary,
-    fontFamily,
-  },
-  hintActive: {
-    color: DesignColors.onPrimary,
-    opacity: 0.75,
-  },
+  optionActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },
+  label: { fontSize: 16, lineHeight: 20, fontWeight: '800', color: DesignColors.onSurfaceVariant, fontFamily },
+  labelActive: { color: DesignColors.onPrimary },
+  hint: { fontSize: 10, lineHeight: 13, color: DesignColors.textSecondary, fontFamily },
+  hintActive: { color: DesignColors.onPrimary, opacity: 0.75 },
 });

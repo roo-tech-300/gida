@@ -25,6 +25,7 @@ export const PLACES: Place[] = [
     openStatus: 'open',
     verified: true,
     featured: true,
+    image: require('@/dummy/images/places/restaurant.png'),
     phone: '+234 803 000 0001',
   },
   {
@@ -66,6 +67,7 @@ export const PLACES: Place[] = [
     openStatus: 'open',
     verified: true,
     featured: true,
+    image: require('@/dummy/images/places/cafe.png'),
   },
   {
     id: 'jollof-republic',
@@ -86,6 +88,7 @@ export const PLACES: Place[] = [
     openStatus: 'open',
     verified: true,
     featured: true,
+    image: require('@/dummy/images/places/restaurant.png'),
   },
   {
     id: 'hilltop-grill',

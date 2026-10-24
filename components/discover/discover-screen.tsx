@@ -1,7 +1,7 @@
+import { useRouter, type Href } from 'expo-router';
 import { useCallback } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter, type Href } from 'expo-router';
 
 import { AuthBackgroundBubbles } from '@/components/auth/auth-background-bubbles';
 import { DiscoverCategoryChips } from '@/components/discover/discover-category-chips';
@@ -17,7 +17,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing } from '@/constants/design';
 import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
 import { useDiscoverFeed } from '@/hooks/use-discover-feed';
-import type { Place } from '@/types/place';
+import type { Place, PlaceCategory } from '@/types/place';
 import { openPlaceInMaps } from '@/utils/place-maps';
 
 export function DiscoverScreen() {
@@ -67,7 +67,7 @@ export function DiscoverScreen() {
       ? 'Search results'
       : feed.category === 'all'
         ? 'All places'
-        : `${PLACE_CATEGORY_MAP[feed.category].label} in Minna`;
+        : `${PLACE_CATEGORY_MAP[feed.category as PlaceCategory].label} in Minna`;
 
   const emptyState = feed.savedOnly
     ? { title: 'Nothing saved yet', message: 'Tap the bookmark on a place to keep it here.' }

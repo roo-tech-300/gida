@@ -1,7 +1,7 @@
+import { useQueryClient } from '@tanstack/react-query';
+import { useRouter } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
-import { useRouter } from 'expo-router';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { useAppToast } from '@/components/ui/toast-card';
 import { EMPTY_PLACE_DRAFT } from '@/constants/place-form';
@@ -121,7 +121,7 @@ export function useAddPlaceForm(userId: string | undefined) {
       const createdId = await createPlace({ draft, photos: allPhotos, userId });
       await queryClient.invalidateQueries({ queryKey: PLACES_QUERY_KEY });
       showToast({ type: 'success', message: `${draft.name} added to Discover!` });
-      router.replace(`/place/${createdId}` as never);
+      router.replace(`/place/${createdId}` as Href);
     } catch (err) {
       console.error('[AddPlace] Submit failed:', err);
       showToast({ type: 'error', message: 'Failed to create place. Please try again.' });

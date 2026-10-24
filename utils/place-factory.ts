@@ -21,7 +21,7 @@ export function buildPlaceFromDraft(draft: PlaceDraft): Place {
     description: draft.description.trim(),
     latitude: draft.latitude,
     longitude: draft.longitude,
-    priceRange: draft.priceRange,
+    priceRange: 2,
     rating: 0,
     ratingCount: 0,
     tags: [],
@@ -29,6 +29,6 @@ export function buildPlaceFromDraft(draft: PlaceDraft): Place {
     openStatus: 'unknown',
     verified: false,
     featured: false,
-    images: '', // will be overwritten by the caller if images are selected
+    images: undefined,
   };
 }

@@ -9,7 +9,6 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import { SPONSORED_PLACEMENTS } from '@/dummy/sponsored-mock';
 import type { DiscoverFeed } from '@/hooks/use-discover-feed';
-import { findPlace } from '@/services/places-service';
 import type { Place } from '@/types/place';
 import type { SponsoredPlacement } from '@/types/sponsored';
 
@@ -40,6 +39,7 @@ export function DiscoverFeedList({
   onToggleSave,
   onDirections,
 }: Props) {
+  const router = useRouter();
   const { showToast } = useAppToast();
   const sponsor = SPONSORED_PLACEMENTS[0] ?? null;
   const hasRecommendations = feed.isSearching && SPONSORED_PLACEMENTS.length > 0;
@@ -62,14 +62,9 @@ export function DiscoverFeedList({
 
   const openSponsored = useCallback(
     (placement: SponsoredPlacement) => {
-      const place = findPlace(placement.placeId);
-      if (!place) {
-        showToast({ type: 'error', message: 'This sponsored place is unavailable.' });
-        return;
-      }
-      onOpenPlace(place);
+      router.push(`/place/${placement.placeId}` as never);
     },
-    [onOpenPlace, showToast],
+    [router],
   );
 
   const handleEndReached = useCallback(() => {

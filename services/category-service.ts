@@ -17,7 +17,7 @@ export async function fetchCategories({
   const { data, error } = await supabase
     .from('place_categories')
     .select('key, label, icon_key, accent_color')
-    .order('"order"', { ascending: true })
+    .order('order', { ascending: true })
     .range(from, to);
 
   if (error) {
@@ -68,7 +68,7 @@ export async function searchCategories(query: string): Promise<DbPlaceCategory[]
     .from('place_categories')
     .select('key, label, icon_key, accent_color')
     .in('key', Array.from(matchedKeys))
-    .order('"order"', { ascending: true });
+    .order('order', { ascending: true });
 
   if (error) {
     console.error('[category-service] Failed to search categories:', error.message);

@@ -34,9 +34,17 @@ export function PlaceDetailScreen() {
   });
 
   const [reviews, setReviews] = useState<PlaceReview[]>([]);
-  const [rating, setRating] = useState(place?.rating ?? 0);
-  const [ratingCount, setRatingCount] = useState(place?.ratingCount ?? 0);
+  const [rating, setRating] = useState(0);
+  const [ratingCount, setRatingCount] = useState(0);
   const [sheetVisible, setSheetVisible] = useState(false);
+
+  // Sync rating/ratingCount from DB once place loads
+  useEffect(() => {
+    if (place) {
+      setRating(place.rating);
+      setRatingCount(place.ratingCount);
+    }
+  }, [place]);
 
   // Loading state
   if (isLoading) {

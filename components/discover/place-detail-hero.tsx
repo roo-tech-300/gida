@@ -1,5 +1,5 @@
-import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
@@ -13,10 +13,12 @@ type Props = {
 };
 
 export function PlaceDetailHero({ place, saved, onToggleSave, onShare }: Props) {
+  const firstImage = place.images?.split(',').find((u) => u.length > 0);
+
   return (
     <View style={styles.container}>
-      {place.image ? (
-        <Image contentFit="cover" source={place.image} style={styles.heroImage} />
+      {firstImage ? (
+        <Image contentFit="cover" source={{ uri: firstImage }} style={styles.heroImage} />
       ) : (
         <View style={[styles.heroImage, styles.placeholder]} />
       )}

@@ -25,7 +25,7 @@ function getFallbackIcon(iconKey: string): keyof typeof Ionicons.glyphMap {
 
 export function DiscoverCategoryChips({ active, savedOnly, onChange, onToggleSaved }: Props) {
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status } =
-    useInfiniteCategories(20);
+    useInfiniteCategories(12);
 
   // Flatten remote pages; fall back to local constants until the first fetch lands
   const remoteCategories =

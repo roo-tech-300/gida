@@ -6,7 +6,7 @@ import { fetchCategories, searchCategories, type DbPlaceCategory } from '@/servi
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_CHARS = 2;
 
-export function useInfiniteCategories(limit = 20) {
+export function useInfiniteCategories(limit = 12) {
   return useInfiniteQuery<
     DbPlaceCategory[],
     Error,

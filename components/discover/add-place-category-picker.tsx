@@ -23,7 +23,7 @@ export function AddPlaceCategoryPicker({ value, onChange }: Props) {
 
   // Infinite list for the default (non-search) state
   const { data, fetchNextPage, hasNextPage, isFetchingNextPage, status: infiniteStatus } =
-    useInfiniteCategories(20);
+    useInfiniteCategories(12);
 
   // Smart search — hits both place_categories and category_synonyms
   const {

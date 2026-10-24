@@ -54,6 +54,8 @@ CREATE TABLE IF NOT EXISTS public.places (
   longitude    numeric,                    -- nullable; populated via GPS lock or manual entry
   rating       numeric(3,2) NOT NULL DEFAULT 0.00,   -- denormalized average (0–5)
   rating_count integer      NOT NULL DEFAULT 0,      -- number of ratings received
+  verified     boolean      NOT NULL DEFAULT false,  -- admin-verified place
+  featured     boolean      NOT NULL DEFAULT false,  -- promoted in trending rail
   created_at   timestamptz  NOT NULL DEFAULT now(),
   updated_at   timestamptz  NOT NULL DEFAULT now()
 );

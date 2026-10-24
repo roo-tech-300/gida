@@ -1,39 +1,55 @@
-import { useCallback, useSyncExternalStore } from 'react';
+import { useAuth } from '@/context/auth-context';
+import { getPlaceSavedIds, savePlace, unsavePlace } from '@/services/saved-listing-service';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
-/**
- * In-memory saved-places store. Shared across the Discover feed and the place
- * detail screen so a bookmark stays in sync while we are on dummy data.
- */
-let savedIds: string[] = [];
-const listeners = new Set<() => void>();
-
-function subscribe(listener: () => void): () => void {
-  listeners.add(listener);
-  return () => {
-    listeners.delete(listener);
-  };
-}
-
-function getSnapshot(): string[] {
-  return savedIds;
-}
-
-function update(next: string[]): void {
-  savedIds = next;
-  listeners.forEach((listener) => listener());
-}
+const SAVED_PLACE_IDS_KEY = (userId: string) => ['saved-place-ids', userId] as const;
 
 export function useSavedPlaces() {
-  const ids = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
+  const { profile } = useAuth();
+  const userId = profile?.id;
+  const queryClient = useQueryClient();
 
-  const isSaved = useCallback((id: string) => ids.includes(id), [ids]);
+  const { data: ids = [] } = useQuery({
+    queryKey: SAVED_PLACE_IDS_KEY(userId ?? ''),
+    queryFn: () => getPlaceSavedIds(userId!),
+    enabled: !!userId,
+    staleTime: 5 * 60_000,
+  });
 
-  const toggle = useCallback(
-    (id: string) => {
-      update(ids.includes(id) ? ids.filter((savedId) => savedId !== id) : [...ids, id]);
+  const { mutate: toggle } = useMutation({
+    mutationFn: async (placeId: string) => {
+      if (!userId) throw new Error('Not authenticated');
+      if (ids.includes(placeId)) {
+        await unsavePlace(userId, placeId);
+      } else {
+        await savePlace(userId, placeId);
+      }
     },
-    [ids],
-  );
+    onMutate: async (placeId) => {
+      // Optimistic update — flip the id immediately
+      await queryClient.cancelQueries({ queryKey: SAVED_PLACE_IDS_KEY(userId ?? '') });
+      const previous = queryClient.getQueryData<string[]>(SAVED_PLACE_IDS_KEY(userId ?? ''));
+      queryClient.setQueryData<string[]>(SAVED_PLACE_IDS_KEY(userId ?? ''), (old = []) =>
+        old.includes(placeId) ? old.filter((id) => id !== placeId) : [...old, placeId],
+      );
+      return { previous };
+    },
+    onError: (_err, _placeId, context) => {
+      // Roll back on failure
+      if (context?.previous !== undefined) {
+        queryClient.setQueryData(SAVED_PLACE_IDS_KEY(userId ?? ''), context.previous);
+      }
+    },
+    onSettled: () => {
+      queryClient.invalidateQueries({ queryKey: SAVED_PLACE_IDS_KEY(userId ?? '') });
+      queryClient.invalidateQueries({ queryKey: ['saved-items', userId] });
+    },
+  });
 
-  return { ids, count: ids.length, isSaved, toggle };
+  return {
+    ids,
+    count: ids.length,
+    isSaved: (id: string) => ids.includes(id),
+    toggle,
+  };
 }

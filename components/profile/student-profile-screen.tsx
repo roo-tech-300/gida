@@ -156,9 +156,9 @@ export function StudentProfileScreen() {
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Saved</Text>
             <ProfileRow
-              icon="heart-outline"
-              label="Saved Properties"
-              value="Your shortlist"
+              icon="bookmark-outline"
+              label="Saved"
+              value="Properties & places"
               onPress={() => router.push('/saved')}
             />
           </View>

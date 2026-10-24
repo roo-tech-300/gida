@@ -94,8 +94,7 @@ export function SavedSpacesEmptyState() {
 
           <Text style={styles.title}>Your Shortlist is Empty</Text>
           <Text style={styles.subtitle}>
-            Tap the heart icon on any lodge to save your top choices here for
-            quick comparison.
+            Bookmark any lodge or place and it will appear here for quick access.
           </Text>
 
           <Pressable onPress={() => router.replace('/(tabs)')} style={styles.button}>

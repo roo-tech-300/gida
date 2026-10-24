@@ -1,13 +1,12 @@
-import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
-import { useQuery } from '@tanstack/react-query';
 import { useDebouncedValue } from '@/hooks/use-debounced-value';
+import { useInfiniteQuery, useQuery, type InfiniteData } from '@tanstack/react-query';
 
 import { fetchCategories, searchCategories, type DbPlaceCategory } from '@/services/category-service';
 
 const SEARCH_DEBOUNCE_MS = 300;
 const SEARCH_MIN_CHARS = 2;
 
-export function useInfiniteCategories(limit = 10) {
+export function useInfiniteCategories(limit = 20) {
   return useInfiniteQuery<
     DbPlaceCategory[],
     Error,

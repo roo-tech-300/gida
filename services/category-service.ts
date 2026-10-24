@@ -4,6 +4,7 @@ export type DbPlaceCategory = {
   key: string;
   label: string;
   icon_key: string;
+  accent_color: string;
 };
 
 export async function fetchCategories({
@@ -15,7 +16,7 @@ export async function fetchCategories({
 }): Promise<DbPlaceCategory[]> {
   const { data, error } = await supabase
     .from('place_categories')
-    .select('key, label, icon_key')
+    .select('key, label, icon_key, accent_color')
     .order('"order"', { ascending: true })
     .range(from, to);
 
@@ -28,6 +29,7 @@ export async function fetchCategories({
     key: row.key,
     label: row.label,
     icon_key: row.icon_key,
+    accent_color: row.accent_color,
   }));
 }
 
@@ -64,7 +66,7 @@ export async function searchCategories(query: string): Promise<DbPlaceCategory[]
   // Step 3: Fetch full category rows for resolved keys
   const { data, error } = await supabase
     .from('place_categories')
-    .select('key, label, icon_key')
+    .select('key, label, icon_key, accent_color')
     .in('key', Array.from(matchedKeys))
     .order('"order"', { ascending: true });
 
@@ -77,6 +79,7 @@ export async function searchCategories(query: string): Promise<DbPlaceCategory[]
     key: row.key,
     label: row.label,
     icon_key: row.icon_key,
+    accent_color: row.accent_color,
   }));
 }
 

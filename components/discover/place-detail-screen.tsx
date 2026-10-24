@@ -1,19 +1,20 @@
 import { Ionicons } from '@expo/vector-icons';
+import { useQuery } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
-import { useMemo, useState } from 'react';
-import { Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
 import { PlaceDetailContent } from '@/components/discover/place-detail-content';
 import { PlaceDetailHero } from '@/components/discover/place-detail-hero';
 import { PlaceDetailReviews } from '@/components/discover/place-detail-reviews';
 import { PlaceRatingSheet } from '@/components/discover/place-rating-sheet';
-import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
 import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
-import { PLACES, PLACE_REVIEWS } from '@/dummy/places-mock';
 import { useSavedPlaces } from '@/hooks/use-saved-places';
+import { fetchPlaceById } from '@/services/places-service';
 import type { PlaceReview } from '@/types/place';
 import { buildPlaceMapsUrl, openPlaceInMaps } from '@/utils/place-maps';
 
@@ -25,15 +26,34 @@ export function PlaceDetailScreen() {
   const { showToast } = useAppToast();
   const { isSaved, toggle } = useSavedPlaces();
 
-  const place = useMemo(() => PLACES.find((candidate) => candidate.id === id), [id]);
-  const [reviews, setReviews] = useState<PlaceReview[]>(() =>
-    PLACE_REVIEWS.filter((review) => review.placeId === id),
-  );
+  const { data: place, isLoading, isError } = useQuery({
+    queryKey: ['place', id],
+    queryFn: () => fetchPlaceById(id),
+    enabled: id.length > 0,
+    staleTime: 2 * 60 * 1000,
+  });
+
+  const [reviews, setReviews] = useState<PlaceReview[]>([]);
   const [rating, setRating] = useState(place?.rating ?? 0);
   const [ratingCount, setRatingCount] = useState(place?.ratingCount ?? 0);
   const [sheetVisible, setSheetVisible] = useState(false);
 
-  if (!place) {
+  // Loading state
+  if (isLoading) {
+    return (
+      <SafeAreaView style={styles.loadingWrap}>
+        <View style={styles.notFoundHeader}>
+          <BackButton />
+        </View>
+        <View style={styles.loadingCenter}>
+          <ActivityIndicator size="large" color={DesignColors.primary} />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
+  // Error / not found
+  if (isError || !place) {
     return (
       <SafeAreaView style={styles.notFound}>
         <View style={styles.notFoundHeader}>
@@ -179,6 +199,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
+    gap: 8,
     borderRadius: 999,
     backgroundColor: DesignColors.primary,
   },
@@ -191,6 +212,15 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     color: DesignColors.onPrimary,
     fontFamily,
+  },
+  loadingWrap: {
+    flex: 1,
+    backgroundColor: DesignColors.surfaceContainerLowest,
+  },
+  loadingCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   notFound: {
     flex: 1,

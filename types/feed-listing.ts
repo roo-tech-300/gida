@@ -5,6 +5,7 @@ export type FeedListing = {
   title: string;
   location: string;
   price: string;
+  slashedPrice?: string;
   beds: string;
   baths: string;
   size: string;
@@ -32,6 +33,7 @@ export type DbListing = {
   title: string;
   description: string | null;
   price_amount: number;
+  slashed_price?: number | null;
   location_landmark: string;
   city: string;
   category: string;
@@ -91,11 +93,19 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
 
   const allAmenities = [...(item.custom_features || []), ...booleanAmenities];
 
+  // Show the slashed price (the crossed-out market price) only when it is
+  // higher than what the customer actually pays.
+  let slashedPriceDisplay = '';
+  if (item.slashed_price !== undefined && item.slashed_price !== null && item.slashed_price > (item.price_amount || 0)) {
+    slashedPriceDisplay = `₦${item.slashed_price.toLocaleString('en-US')}/year`;
+  }
+
   return {
     id: item.id,
     title: item.title,
     location: loc,
     price: `₦${(item.price_amount || 0).toLocaleString('en-US')}/year`,
+    slashedPrice: slashedPriceDisplay,
     beds: item.number_of_bedrooms > 0 ? `${item.number_of_bedrooms} Beds` : '',
     baths: item.number_of_bathrooms > 0 ? `${item.number_of_bathrooms} Baths` : '',
     size: item.size_sqft ? `${item.size_sqft.toLocaleString('en-US')} sqft` : '',
@@ -135,6 +145,10 @@ export function dbToListingForm(item: DbListing) {
   const layoutType = item.layout_type as 'self_contain' | 'single_room' | 'flat';
   const priceDigits = String(Math.round(item.price_amount));
   const sizeDigits = item.size_sqft ? String(item.size_sqft) : '';
+  const slashedPriceDigits =
+    item.slashed_price !== undefined && item.slashed_price !== null
+      ? String(Math.round(item.slashed_price))
+      : '';
 
   return {
     step1: {
@@ -143,6 +157,7 @@ export function dbToListingForm(item: DbListing) {
       landlordId: item.landlord_id,
       layoutType,
       price: priceDigits ? Number(priceDigits).toLocaleString('en-US') : '',
+      slashedPrice: slashedPriceDigits ? Number(slashedPriceDigits).toLocaleString('en-US') : '',
       term: item.lease_term as 'per_semester' | 'per_annum',
       units: item.units_available,
       bedrooms: item.number_of_bedrooms,

@@ -5,6 +5,15 @@ export type UpdateCheckResult = 'updated' | 'current' | 'unavailable';
 
 const UPDATE_LOG_TAG = '[AppUpdates]';
 
+type ManifestWithExtra = {
+  extra?: { expoClient?: { updates?: { url?: string } } };
+};
+
+function getUpdateUrl(): string {
+  const manifest = Updates.manifest as ManifestWithExtra | undefined;
+  return manifest?.extra?.expoClient?.updates?.url ?? 'unknown';
+}
+
 function formatError(error: unknown): string {
   return error instanceof Error ? error.stack ?? error.message : String(error);
 }
@@ -22,7 +31,7 @@ export async function checkForAppUpdate(): Promise<UpdateCheckResult> {
 
   if (!Updates.isEnabled) {
     console.warn(`${UPDATE_LOG_TAG} Updates are disabled in this build.`, {
-      updateUrl: Updates.manifest?.extra?.expoClient?.updates?.url ?? 'unknown',
+      updateUrl: getUpdateUrl(),
       channel: Updates.channel,
       runtimeVersion: Updates.runtimeVersion,
       updateId: Updates.updateId,
@@ -35,7 +44,7 @@ export async function checkForAppUpdate(): Promise<UpdateCheckResult> {
 
   try {
     console.info(`${UPDATE_LOG_TAG} Checking for updates...`, {
-      updateUrl: Updates.manifest?.extra?.expoClient?.updates?.url ?? 'unknown',
+      updateUrl: getUpdateUrl(),
       channel: Updates.channel,
       runtimeVersion: Updates.runtimeVersion,
       updateId: Updates.updateId,

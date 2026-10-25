@@ -10,6 +10,7 @@ export type ListingSearchResult = {
   city: string;
   campus: string | null;
   price_amount: number;
+  slashed_price?: number | null;
   number_of_bedrooms: number;
   number_of_bathrooms: number;
   primary_image: string | null;
@@ -69,7 +70,7 @@ export async function searchListings(query: string): Promise<ListingSearchResult
 
   const { data, error } = await supabase
     .from('listings')
-    .select('id, title, layout_type, location_landmark, city, campus, price_amount, number_of_bedrooms, number_of_bathrooms, primary_image, category')
+    .select('id, title, layout_type, location_landmark, city, campus, price_amount, slashed_price, number_of_bedrooms, number_of_bathrooms, primary_image, category')
     .or(filters.join(','))
     .limit(SEARCH_LIMIT);
 

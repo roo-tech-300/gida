@@ -113,17 +113,18 @@ export const notificationReceivedListener = (
   if (!messaging) return NOOP_UNSUBSCRIBE;
 
   try {
-    const messageListener = onMessage(messaging, (remoteMessage: ForegroundRemoteMessage) => {
-      console.log('[Notifications] Foreground message received:', remoteMessage);
+    const messageListener = onMessage(messaging, (remoteMessage) => {
+      const foregroundMessage = remoteMessage as unknown as ForegroundRemoteMessage;
+      console.log('[Notifications] Foreground message received:', foregroundMessage);
 
       try {
-        remoteMessage.finishNotification?.();
+        foregroundMessage.finishNotification?.();
       } catch (error) {
         console.error('[Notifications] Failed to handle foreground message:', error);
       }
 
       try {
-        onForeground?.(remoteMessage);
+        onForeground?.(foregroundMessage);
       } catch (error) {
         console.error('[Notifications] Foreground message callback threw:', error);
       }

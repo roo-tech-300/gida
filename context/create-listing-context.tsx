@@ -7,6 +7,7 @@ type CreateListingData = {
     landlordId: string | null;
     layoutType: 'self_contain' | 'single_room' | 'flat' | null;
     price: string;
+    slashedPrice?: string | null;
     term: 'per_semester' | 'per_annum';
     units: number;
     bedrooms: number;
@@ -53,7 +54,7 @@ type CreateListingContextType = {
 };
 
 const defaultValue: CreateListingData = {
-  step1: { title: '', description: '', landlordId: null, layoutType: null, price: '', term: 'per_annum', units: 1, bedrooms: 2, bathrooms: 1, isStoreyBuilding: false, totalFloors: 2, sizeValue: '', sizeUnit: 'sqft' },
+  step1: { title: '', description: '', landlordId: null, layoutType: null, price: '', slashedPrice: '', term: 'per_annum', units: 1, bedrooms: 2, bathrooms: 1, isStoreyBuilding: false, totalFloors: 2, sizeValue: '', sizeUnit: 'sqft' },
   step2: { selectedSchool: null, selectedCampus: null, landmark: '', coords: null, regionPath: [], transferAdminId: null, enableSelfGuidedTour: true, enableGuidedTour: true },
   step3: { selectedAmenities: [], featuresList: [] },
   step4: { rulesList: [], maxRoommates: 1 },

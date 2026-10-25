@@ -6,6 +6,7 @@ export type AdminListing = {
   id: string;
   title: string;
   price_amount: number;
+  slashed_price?: number | null;
   location_landmark: string;
   city: string;
   primary_image: string | null;
@@ -28,7 +29,7 @@ export async function fetchAdminListings(adminId: string): Promise<AdminListing[
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, location_landmark, city, primary_image, featured, status, created_at')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at')
     .order('created_at', { ascending: false });
 
   if (adminRow.role === 'super_admin') {
@@ -137,7 +138,7 @@ export async function fetchAdminListingsPaginated(page = 1, limit = 50): Promise
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, location_landmark, city, primary_image, featured, status, created_at')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at')
     .order('created_at', { ascending: false })
     .range(from, to);
 

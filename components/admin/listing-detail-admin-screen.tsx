@@ -71,6 +71,9 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
 
         <View style={styles.priceSection}>
           <Text style={styles.price}>{property.price}</Text>
+          {property.slashedPrice ? (
+            <Text style={styles.slashedPrice}>{property.slashedPrice}</Text>
+          ) : null}
         </View>
 
         <View style={styles.statsRow}>
@@ -231,6 +234,15 @@ const styles = StyleSheet.create({
     color: DesignColors.primaryBright,
     fontFamily,
     letterSpacing: -0.5,
+  },
+  slashedPrice: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: DesignColors.outlineVariant,
+    fontFamily,
+    textDecorationLine: 'line-through',
+    textDecorationColor: DesignColors.outlineVariant,
+    marginTop: 2,
   },
   statsRow: {
     flexDirection: 'row',

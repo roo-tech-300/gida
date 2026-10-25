@@ -69,6 +69,12 @@ export function CreateListingMediaScreen() {
     const isFlat = step1.layoutType === 'flat';
     const bedroomCount = isFlat ? step1.bedrooms : 0;
     const bathroomCount = isFlat ? step1.bathrooms : step1.layoutType === 'self_contain' ? 1 : 0;
+    const parsedSlashedPrice = step1.slashedPrice
+      ? parseFloat(step1.slashedPrice.replace(/,/g, ''))
+      : null;
+    const slashedPrice = parsedSlashedPrice !== null && Number.isFinite(parsedSlashedPrice)
+      ? parsedSlashedPrice
+      : null;
     return {
       admin_id: step2.transferAdminId ?? profile?.id ?? '',
       title: step1.title.trim(),
@@ -77,6 +83,7 @@ export function CreateListingMediaScreen() {
       category: 'student_housing',
       layout_type: step1.layoutType!,
       price_amount: parseFloat(step1.price.replace(/,/g, '')),
+      slashed_price: slashedPrice,
       lease_term: 'per_annum',
       units_available: step1.units,
       number_of_bedrooms: bedroomCount,
@@ -239,6 +246,18 @@ export function CreateListingMediaScreen() {
     if (!step1.price) {
       showToast({ message: 'Please enter a price in step 1.', type: 'error' });
       return;
+    }
+    if (step1.slashedPrice) {
+      const regularAmount = parseFloat(step1.price.replace(/,/g, ''));
+      const slashedAmount = parseFloat(step1.slashedPrice.replace(/,/g, ''));
+      if (!Number.isFinite(slashedAmount)) {
+        showToast({ message: 'Please enter a valid slashed price in step 1.', type: 'error' });
+        return;
+      }
+      if (Number.isFinite(regularAmount) && slashedAmount <= regularAmount) {
+        showToast({ message: 'Slashed price must be higher than the regular price in step 1.', type: 'error' });
+        return;
+      }
     }
     if (step4.maxRoommates < 1 || step4.maxRoommates > 4) {
       showToast({ message: 'Max roommates must be between 1 and 4 in step 4.', type: 'error' });

@@ -24,6 +24,13 @@ function formatPrice(raw: string) {
   return Number(digits).toLocaleString('en-US');
 }
 
+function parseAmount(value: string): number | null {
+  const digits = value.replace(/,/g, '');
+  if (!digits) return null;
+  const amount = parseFloat(digits);
+  return Number.isFinite(amount) ? amount : null;
+}
+
 export function CreateListingCoreSpecsScreen() {
   const { data, setStep1 } = useCreateListingForm();
   const { step1 } = data;
@@ -35,6 +42,24 @@ export function CreateListingCoreSpecsScreen() {
     if (!step1.title.trim()) { showToast({ message: 'Listing title is required.', type: 'error' }); return; }
     if (!step1.layoutType) { showToast({ message: 'Please select a layout type.', type: 'error' }); return; }
     if (!step1.price) { showToast({ message: 'Please set a price.', type: 'error' }); return; }
+
+    const priceAmount = parseAmount(step1.price);
+    const slashedAmount = step1.slashedPrice ? parseAmount(step1.slashedPrice) : null;
+    if (step1.slashedPrice && slashedAmount === null) {
+      showToast({ message: 'Please enter a valid slashed price.', type: 'error' });
+      return;
+    }
+    if (slashedAmount !== null) {
+      if (priceAmount === null) {
+        showToast({ message: 'Please set a valid price.', type: 'error' });
+        return;
+      }
+      if (slashedAmount <= priceAmount) {
+        showToast({ message: 'Slashed price must be higher than the regular price.', type: 'error' });
+        return;
+      }
+    }
+
     router.push('/admin/create-listing-location');
   };
 
@@ -180,6 +205,21 @@ export function CreateListingCoreSpecsScreen() {
             <View style={styles.termBadge}>
               <Text style={styles.termBadgeText}>Per Annum</Text>
             </View>
+          </View>
+        </View>
+        <View style={styles.fieldGroup}>
+          <Text style={styles.label}>Slashed Price <Text style={styles.optional}>(optional)</Text></Text>
+          <View style={[styles.glassInput, { flexDirection: 'row', alignItems: 'center' }]}>
+            <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
+            <Text style={styles.currencySign}>₦</Text>
+            <TextInput
+              style={styles.textInput}
+              placeholder="200,000"
+              placeholderTextColor={DesignColors.divider}
+              value={step1.slashedPrice ?? ''}
+              onChangeText={(text) => setStep1({ slashedPrice: formatPrice(text) || undefined })}
+              keyboardType="numeric"
+            />
           </View>
         </View>
 

@@ -25,9 +25,12 @@ function MetaItem({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label
   );
 }
 
+// FeedListing prices carry a "/year" suffix; the card shows the term separately,
+// so strip it to avoid rendering the term twice.
+const withoutTerm = (value?: string) => value?.replace('/year', '') ?? '';
+
 export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height }: Props) {
   const [imageLoaded, setImageLoaded] = useState(false);
-  const [priceAmount] = listing.price.split('/');
 
   return (
     <View style={[styles.card, { height }]}>
@@ -75,7 +78,10 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
             </View>
           </View>
           <View style={styles.priceBlock}>
-            <Text style={styles.price}>{priceAmount}</Text>
+            <Text style={styles.price}>{withoutTerm(listing.price)}</Text>
+            {listing.slashedPrice ? (
+              <Text style={styles.slashedPrice}>{withoutTerm(listing.slashedPrice)}</Text>
+            ) : null}
             <Text style={styles.priceLabel}>per year</Text>
           </View>
         </View>
@@ -191,6 +197,15 @@ const styles = StyleSheet.create({
     fontFamily,
     lineHeight: 38,
     letterSpacing: -0.02,
+  },
+  slashedPrice: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: DesignColors.outlineVariant,
+    fontFamily,
+    textDecorationLine: 'line-through',
+    textDecorationColor: DesignColors.outlineVariant,
+    marginTop: 2,
   },
   priceLabel: {
     ...DesignTypography.labelSm,

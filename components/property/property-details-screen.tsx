@@ -166,7 +166,16 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
           <Text style={styles.location}>{property.location}</Text>
         </View>
 
-        <View style={styles.priceSection}><Text style={styles.price}>{property.price}</Text></View>
+        <View style={styles.priceSection}>
+          {property.slashedPrice ? (
+            <>
+              <Text style={styles.price}>{property.price}</Text>
+              <Text style={styles.slashedPriceText}>{property.slashedPrice}</Text>
+            </>
+          ) : (
+            <Text style={styles.price}>{property.price}</Text>
+          )}
+        </View>
         <View style={styles.statsRow}>
           {property.beds ? <StatItem label="BEDROOMS" value={property.beds} /> : null}
           {property.baths ? <StatItem label="BATHROOMS" value={property.baths} /> : null}
@@ -330,6 +339,7 @@ const styles = StyleSheet.create({
   location: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
   priceSection: { marginBottom: DesignSpacing.lg },
   price: { fontSize: 32, fontWeight: '800', color: DesignColors.primaryBright, fontFamily, letterSpacing: -0.5 },
+  slashedPriceText: { fontSize: 18, fontWeight: '600', color: DesignColors.outlineVariant, fontFamily, textDecorationLine: 'line-through', textDecorationColor: DesignColors.outlineVariant, marginLeft: 8 },
   statsRow: {
     flexDirection: 'row',
     borderTopWidth: 1,

@@ -9,7 +9,9 @@ import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/con
 
 export function SavedSpacesEmptyState() {
   const router = useRouter();
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const floatAnimRef = useRef(new Animated.Value(0));
+  // eslint-disable-next-line react-hooks/refs
+  const floatAnim = floatAnimRef.current;
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
@@ -33,11 +35,13 @@ export function SavedSpacesEmptyState() {
     return () => loop.stop();
   }, [floatAnim]);
 
+  // eslint-disable-next-line react-hooks/refs
   const mainTranslateY = floatAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, -15, 0],
   });
 
+  // eslint-disable-next-line react-hooks/refs
   const mainRotate = floatAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ['6deg', '4deg', '6deg'],

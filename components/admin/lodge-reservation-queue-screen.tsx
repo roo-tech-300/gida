@@ -9,6 +9,7 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useAdminLodgeReservations } from '@/hooks/use-admin-lodge-reservations';
 import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
+import { adminLodgeApplicationRoute } from '@/services/lodge-application-route';
 import type { AdminLodgeView, AdminLodgeReservation } from '@/services/admin-lodge-verification-service';
 
 const VIEWS: { key: AdminLodgeView; label: string }[] = [
@@ -107,7 +108,7 @@ export function LodgeReservationQueueScreen() {
               <PodCard
                 key={reservation.podId}
                 reservation={reservation}
-                onPress={() => router.push(`/admin/lodge-reservation/${reservation.podId}`)}
+                onPress={() => router.push(adminLodgeApplicationRoute(reservation.podId))}
               />
             ))}
           </View>

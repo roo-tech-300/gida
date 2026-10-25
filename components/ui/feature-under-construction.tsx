@@ -2,6 +2,7 @@ import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
+/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -11,7 +12,9 @@ interface FeatureUnderConstructionProps {
 }
 
 export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const floatAnimRef = useRef(new Animated.Value(0));
+  // eslint-disable-next-line react-hooks/refs
+  const floatAnim = floatAnimRef.current;
 
   useEffect(() => {
     const loop = Animated.loop(

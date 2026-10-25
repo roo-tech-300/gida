@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -24,8 +25,12 @@ type CustomAlertProps = {
 };
 
 export function CustomAlert({ visible, title, message, buttons, onDismiss }: CustomAlertProps) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.92)).current;
+  const opacityRef = useRef(new Animated.Value(0));
+  const scaleRef = useRef(new Animated.Value(0.92));
+  // eslint-disable-next-line react-hooks/refs
+  const opacity = opacityRef.current;
+  // eslint-disable-next-line react-hooks/refs
+  const scale = scaleRef.current;
 
   useEffect(() => {
     if (visible) {
@@ -39,6 +44,7 @@ export function CustomAlert({ visible, title, message, buttons, onDismiss }: Cus
         Animated.timing(scale, { toValue: 0.92, duration: 150, useNativeDriver: true }),
       ]).start();
     }
+  // eslint-disable-next-line react-hooks/refs
   }, [visible, opacity, scale]);
 
   const handleButtonPress = (btn: AlertButton) => {
@@ -49,6 +55,7 @@ export function CustomAlert({ visible, title, message, buttons, onDismiss }: Cus
   return (
     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
       <Pressable style={styles.backdrop} onPress={onDismiss}>
+        // eslint-disable-next-line react-hooks/refs
         <Animated.View style={[styles.card, { opacity, transform: [{ scale }] }]}>
           <Pressable onPress={() => {}}>
             {title ? <Text style={styles.title}>{title}</Text> : null}

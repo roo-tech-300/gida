@@ -34,6 +34,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
           userId: member.userId,
           listingId: detail.listing.id,
           podId: detail.pod.id,
+          creditId: member.slotCreditId,
           decision,
           reason,
         });
@@ -70,6 +71,9 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
   }, [detail, rejectReason, rejectMutation, showToast, notifyAllMembers]);
 
   const isPending = detail?.pod.verificationStatus === 'pending_verification';
+  const isApproved = detail?.pod.verificationStatus === 'approved';
+  const isRejected = detail?.pod.verificationStatus === 'rejected';
+  const isExpired = Boolean(detail?.expired);
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
@@ -130,12 +134,40 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
             </View>
           )}
 
-          {detail.pod.verificationStatus === 'rejected' && detail.pod.rejectionReason && (
-            <View style={styles.rejectionCard}>
-              <Ionicons name="close-circle-outline" size={18} color={DesignColors.error} />
-              <View style={styles.rejectionBody}>
-                <Text style={styles.rejectionLabel}>Rejection reason</Text>
-                <Text style={styles.rejectionReason}>{detail.pod.rejectionReason}</Text>
+          {isApproved && (
+            <View style={[styles.statusCard, styles.statusAccepted]}>
+              <Ionicons name="checkmark-circle-outline" size={20} color={DesignColors.onPrimary} />
+              <View style={styles.statusBody}>
+                <Text style={styles.statusTitle}>Application accepted</Text>
+                <Text style={styles.statusMessage}>
+                  This application has been accepted. Members can now proceed to payment.
+                </Text>
+              </View>
+            </View>
+          )}
+
+          {isRejected && (
+            <View style={[styles.statusCard, styles.statusRejected]}>
+              <Ionicons name="close-circle-outline" size={20} color={DesignColors.onError} />
+              <View style={styles.statusBody}>
+                <Text style={styles.statusTitle}>Application rejected</Text>
+                {detail.pod.rejectionReason ? (
+                  <Text style={styles.statusMessage}>
+                    This application has been rejected: {detail.pod.rejectionReason}
+                  </Text>
+                ) : (
+                  <Text style={styles.statusMessage}>This application has been rejected.</Text>
+                )}
+              </View>
+            </View>
+          )}
+
+          {isExpired && (
+            <View style={[styles.statusCard, styles.statusExpired]}>
+              <Ionicons name="time-outline" size={20} color={DesignColors.onSurfaceVariant} />
+              <View style={styles.statusBody}>
+                <Text style={styles.statusTitle}>Application expired</Text>
+                <Text style={styles.statusMessage}>This application has expired. The payment deadline passed before a decision was made.</Text>
               </View>
             </View>
           )}
@@ -400,6 +432,29 @@ const styles = StyleSheet.create({
   rejectionBody: { flex: 1, gap: 4 },
   rejectionLabel: { ...DesignTypography.labelSm, color: DesignColors.error, fontFamily, fontWeight: '700' },
   rejectionReason: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, lineHeight: 22 },
+  statusCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    padding: DesignSpacing.md,
+    borderRadius: DesignRadius.lg,
+    borderWidth: 1,
+  },
+  statusAccepted: {
+    backgroundColor: DesignColors.successContainer,
+    borderColor: DesignColors.success,
+  },
+  statusRejected: {
+    backgroundColor: DesignColors.errorContainer,
+    borderColor: DesignColors.error,
+  },
+  statusExpired: {
+    backgroundColor: DesignColors.surfaceContainerHigh,
+    borderColor: DesignColors.cardBorder,
+  },
+  statusBody: { flex: 1, gap: 2 },
+  statusTitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
+  statusMessage: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
   modalOverlay: {
     ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.5)',

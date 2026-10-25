@@ -14,6 +14,7 @@ import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const router = useRouter();
@@ -48,11 +49,26 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
     if (!dbListing) return;
     const joinCode = matchingMode === 'friends' ? friendCode.trim() : '';
     try {
-      const { credit, synced } = await purchaseSlot({
+      const { credit, podId, synced, created } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: selectedTargetOccupancy,
         joinCode: joinCode || undefined,
       });
+
+      // Only a brand-new pod needs admin review. Joining an existing pod must
+      // not DM the admin again — they review the pod once.
+      if (created) {
+        try {
+          await notifyAdminOfReservation({
+            podId,
+            listingId: dbListing.id,
+            creditId: credit.id,
+            userName: 'A resident',
+          });
+        } catch (notifyErr) {
+          console.error('[ClaimRoom] Failed to notify admin of new pod:', notifyErr);
+        }
+      }
 
       if (matchingMode === 'friends') {
         if (joinCode) {

@@ -1,0 +1,119 @@
+env: load .env
+env: export EXPO_NO_DEPENDENCY_VALIDATION EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_WORKER_URL
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\app\_layout.tsx
+  130:6  warning  React Hook useEffect has missing dependencies: 'referralCodeParam' and 'searchParams'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  131:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/exhaustive-deps')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\app\property\tour-history.tsx
+  1:42  warning  'useState' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\admin-dashboard-screen.tsx
+  30:6  warning  React Hook useEffect has missing dependencies: 'profile.city' and 'profile.full_name'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\landlord-properties-screen.tsx
+  50:6  warning  React Hook useEffect has a missing dependency: 'showToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\referral-payouts-screen.tsx
+  212:9  warning  The 'allRequests' logical expression could make the dependencies of useCallback Hook (at line 250) change on every render. To fix this, wrap the initialization of 'allRequests' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\claim-room-modal.tsx
+  164:6  warning  React Hook useCallback has a missing dependency: 'profile?.full_name'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx
+  16:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  18:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts
+  15:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx
+  89:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  92:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\home-search-bar.tsx
+  41:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\landing\coming-soon-screen.tsx
+  12:8   warning  'C:\Users\eluzi\Documents\Zidexi\Gida\Gida\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+  21:10  warning  'WAITLIST_WHATSAPP_CHANNEL_URL' is defined but never used                                               @typescript-eslint/no-unused-vars
+  22:10  warning  'useWindowDimensions' is already defined                                                                @typescript-eslint/no-redeclare
+  22:37  warning  'C:\Users\eluzi\Documents\Zidexi\Gida\Gida\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx
+  17:3   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  34:11  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  38:15  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  45:15  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\share-listing-modal.tsx
+   1:10  warning  'useMemo' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            @typescript-eslint/no-unused-vars
+  50:28  error    Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\share-listing-modal.tsx:50:28
+  48 |     setSharingId(conversation.id);
+  49 |     try {
+> 50 |       const clientSentAt = Date.now();
+     |                            ^^^^^^^^^^ Cannot call impure function
+  51 |       if (isConnected === false) {
+  52 |         createOutboxMessage({
+  53 |           conversationId: conversation.id,  react-hooks/purity
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx
+   2:90  warning  'Image' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      @typescript-eslint/no-unused-vars
+  29:5   error    Error: Cannot access variable before it is declared
+
+`setShowRefreshNudge` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:29:5
+  27 |   const { mutateAsync: expireCredit } = useExpireSlotCredit();
+  28 |   useFocusEffect(useCallback(() => {
+> 29 |     setShowRefreshNudge(false);
+     |     ^^^^^^^^^^^^^^^^^^^ `setShowRefreshNudge` accessed before it is declared
+  30 |     refetch();
+  31 |   }, [refetch]));
+  32 |   const [isProcessing, setIsProcessing] = useState(false);
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:35:28
+  33 |   const [locallyPaid, setLocallyPaid] = useState(false);
+  34 |   const [locallyExpired, setLocallyExpired] = useState(false);
+> 35 |   const [showRefreshNudge, setShowRefreshNudge] = useState(false);
+     |                            ^^^^^^^^^^^^^^^^^^^ `setShowRefreshNudge` is declared here
+  36 |   const countdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  37 |   const credit = credits?.find((c) => c.id === creditId);
+  38 |   const isPaid = (credit ? PAID_CREDIT_STATUSES.has(credit.status) : false) || locallyPaid;  react-hooks/immutability
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\profile\student-profile-screen.tsx
+  57:9  warning  'referral' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx
+  18:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\splash\splash-screen.tsx
+  11:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  13:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  39:6  warning  React Hook useEffect has missing dependencies: 'x' and 'y'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+  41:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx
+  30:3   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  32:3   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  47:3   warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  57:62  error    Comments inside children section of tag should be placed inside braces               react/jsx-no-comment-textnodes
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx
+  16:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx
+  31:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx
+  30:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  54:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+  60:3  warning  Unused eslint-disable directive (no problems were reported from 'react-hooks/refs')
+
+Ô£û 40 problems (3 errors, 37 warnings)
+  0 errors and 24 warnings potentially fixable with the `--fix` option.
+

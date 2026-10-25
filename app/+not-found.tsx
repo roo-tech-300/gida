@@ -13,7 +13,7 @@ export default function NotFound() {
         </View>
         <Text style={styles.title}>Page not found</Text>
         <Text style={styles.subtitle}>
-          This link doesn't exist or may have expired.
+          This link doesn&apos;t exist or may have expired.
         </Text>
         <Pressable style={styles.btn} onPress={() => router.replace('/(tabs)')}>
           <Text style={styles.btnText}>Go to Home</Text>

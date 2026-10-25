@@ -10,6 +10,7 @@ import { MessageTourCard } from '@/components/messages/message-tour-card';
 import { MessageRoommateInviteCard } from '@/components/messages/message-roommate-invite-card';
 import { MessagePodJoinCard } from '@/components/messages/message-pod-join-card';
 import { MessageLodgeReservationCard } from '@/components/messages/message-lodge-reservation-card';
+import { MessageLodgeDecisionCard } from '@/components/messages/message-lodge-decision-card';
 import { MessageTruncatedText } from '@/components/messages/message-truncated-text';
 
 const BODY_COLLAPSED_LINES = 15;
@@ -86,6 +87,8 @@ export function MessageBubble({
           <MessagePodJoinCard attachment={message.attachment} isMe={isMe} />
         ) : message.attachment?.type === 'lodge_reservation' ? (
           <MessageLodgeReservationCard attachment={message.attachment} isMe={isMe} />
+        ) : message.attachment?.type === 'lodge_decision' ? (
+          <MessageLodgeDecisionCard attachment={message.attachment} isMe={isMe} />
         ) : null}
         {message.body && !isRoommateInvite && !isPodJoin ? (
           <View style={[styles.bubble, isMe ? styles.bubbleMe : styles.bubbleThem]}>

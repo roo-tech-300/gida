@@ -75,8 +75,11 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   }, [wantsRoommates, openPodsLoading, openPods, compatibleOpenPods]);
 
   useEffect(() => {
-    if (!listingLoading && propertyTier <= 1 && wantsRoommates === null) {
+    const resetToIdle = () => {
       setWantsRoommates(false);
+    };
+    if (!listingLoading && propertyTier <= 1 && wantsRoommates === null) {
+      resetToIdle();
     }
   }, [listingLoading, propertyTier, wantsRoommates]);
 
@@ -89,7 +92,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const codeSeats = isBuyout ? 0 : Math.max(0, haveCount - friends.length);
 
   useEffect(() => {
-    if (!visible) {
+    const resetModal = () => {
       setStep(1);
       setWantsRoommates(null);
       setRoommateCount(1);
@@ -99,6 +102,9 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       setJoinMode(false);
       setShowOpenPods(false);
       setShowOnboarding(false);
+    };
+    if (!visible) {
+      resetModal();
     }
   }, [visible]);
 
@@ -126,26 +132,28 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
     try {
       console.log('[ClaimModal] 2. Calling purchaseSlot...');
-      const { credit, podId } = await purchaseSlot({
+      const { credit, podId, created } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: peopleTotal,
         createCode: inviteCode,
         invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
         creatorGender: profile?.gender,
       });
-      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'status:', credit.status);
+      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'created:', created, 'status:', credit.status);
       const message = isBuyout
         ? 'Spot reserved! You\'re all set for solo living.'
         : matchedCount > 0
           ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
           : 'Spot secured! Invite your friends to keep the group together.';
       showToast({ message, type: 'success' });
-      console.log('[ClaimModal] 4. Notifying admin...');
-      try {
-        await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: profile?.full_name ?? 'A resident' });
-        console.log('[ClaimModal] 5. Admin notified successfully');
-      } catch (notifyErr) {
-        console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
+      if (created) {
+        console.log('[ClaimModal] 4. Notifying admin of the new pod...');
+        try {
+          await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: profile?.full_name ?? 'A resident' });
+          console.log('[ClaimModal] 5. Admin notified successfully');
+        } catch (notifyErr) {
+          console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
+        }
       }
       onClose();
       router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });

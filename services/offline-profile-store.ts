@@ -130,7 +130,9 @@ export function getCachedProfile(): AuthProfile | null {
       bio: row.bio,
       gender: row.gender as AuthProfile['gender'],
       is_student: row.is_student === 1,
-      is_admin: row.is_admin === 1,
+      // Older caches only stored the (unreliable) profiles.is_admin flag. An
+      // admin_role can only come from admin_profiles, so it is authoritative.
+      is_admin: row.is_admin === 1 || Boolean(row.admin_role),
       admin_role: row.admin_role as AuthProfile['admin_role'],
       assigned_region_id: row.assigned_region_id,
       city: row.city,

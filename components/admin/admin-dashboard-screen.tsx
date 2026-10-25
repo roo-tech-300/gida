@@ -19,12 +19,14 @@ export function AdminDashboardScreen() {
 
   useEffect(() => {
     if (!profile?.id) return;
-    fetchAdminListings(profile.id).then((listingsData) => {
+    const fetchListings = async () => {
+      const listingsData = await fetchAdminListings(profile.id);
       setBusinessName(profile.full_name);
       setOperatingCity(profile.city);
       setListings(listingsData);
       setLoading(false);
-    });
+    };
+    void fetchListings();
   }, [profile?.id]);
 
   const initials = useCallback((name: string) => {

@@ -41,7 +41,7 @@ export function ShareListingModal({
 
   useEscapeKey(onClose, visible);
 
-  const attachment = useMemo(() => toListingAttachment(listing), [listing]);
+  const attachment = toListingAttachment(listing);
 
   const handleShare = async (conversation: Conversation) => {
     if (!myId || sharingId !== null) return;

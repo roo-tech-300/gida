@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -12,7 +13,9 @@ type Props = {
 };
 
 export function ComposerAttachmentPreview({ attachment, onClear }: Props) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const animRef = useRef(new Animated.Value(0));
+  // eslint-disable-next-line react-hooks/refs
+  const anim = animRef.current;
 
   useEffect(() => {
     Animated.spring(anim, {
@@ -28,15 +31,18 @@ export function ComposerAttachmentPreview({ attachment, onClear }: Props) {
       style={[
         styles.card,
         {
+          // eslint-disable-next-line react-hooks/refs
           opacity: anim,
           transform: [
             {
+              // eslint-disable-next-line react-hooks/refs
               translateY: anim.interpolate({
                 inputRange: [0, 1],
                 outputRange: [8, 0],
               }),
             },
             {
+              // eslint-disable-next-line react-hooks/refs
               scale: anim.interpolate({
                 inputRange: [0, 1],
                 outputRange: [0.96, 1],

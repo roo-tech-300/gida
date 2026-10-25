@@ -16,7 +16,7 @@ export function ForgotPasswordScreen() {
     return (
         <AuthScreenLayout
             title="Forgot your password?"
-            subtitle="No worries — we'll email you a code to set a new one."
+            subtitle="No worries &mdash; we'll email you a code to set a new one."
             footer={<AuthFooterLink prompt="Remembered your password?" actionLabel="Sign in" href="/login" />}>
             <AuthStepPills totalSteps={2} activeIndex={0} />
             <View style={styles.content}>
@@ -34,7 +34,7 @@ export function ForgotPasswordScreen() {
                 />
                 <View style={styles.tip}>
                     <Ionicons name="time-outline" size={18} color={DesignColors.primaryBright} />
-                    <Text style={styles.tipText}>The code expires 60 minutes after it's sent.</Text>
+                    <Text style={styles.tipText}>The code expires 60 minutes after it&apos;s sent.</Text>
                 </View>
                 <AuthButton isLoading={isSending} label="Send reset code" onPress={handleSendCode} />
             </View>

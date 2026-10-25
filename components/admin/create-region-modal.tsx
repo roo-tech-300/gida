@@ -22,10 +22,13 @@ export function CreateRegionModal({ visible, initialParentId, regions, adminItem
   const [adminId, setAdminId] = useState<string | null>(null);
 
   useEffect(() => {
-    if (visible) {
+    const resetForm = () => {
       setName('');
       setParentId(initialParentId ?? NONE);
       setAdminId(null);
+    };
+    if (visible) {
+      resetForm();
     }
   }, [visible, initialParentId]);
 

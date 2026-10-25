@@ -128,6 +128,7 @@ function AuthGate({ children }: { children: React.ReactNode }) {
       router.replace(requestedProperty ? (requestedProperty as never) : '/(tabs)');
     }
   }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
 
   if (isLoading) return <SplashScreen />;
 

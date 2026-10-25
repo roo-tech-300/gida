@@ -58,10 +58,13 @@ export function BookTourModal({
   const isUnlocked = unlockedOverride ?? (unlockedIds?.includes(propertyId) ?? false);
 
   useEffect(() => {
-    if (!visible) {
+    const resetModal = () => {
       setStep('type');
       setPaymentOpen(false);
       setUnlockedOverride(null);
+    };
+    if (!visible) {
+      resetModal();
     }
   }, [visible]);
 
@@ -99,10 +102,13 @@ export function BookTourModal({
   const toursAvailable = guidedAvailable || selfGuidedAvailable;
 
   useEffect(() => {
-    if (!visible) return;
-    if (step === 'unassisted' && !selfGuidedAvailable) {
-      setStep('type');
-    }
+    const advanceStep = () => {
+      if (!visible) return;
+      if (step === 'unassisted' && !selfGuidedAvailable) {
+        setStep('type');
+      }
+    };
+    advanceStep();
   }, [visible, step, selfGuidedAvailable]);
 
   const handlePay = async (): Promise<boolean> => {

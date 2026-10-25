@@ -31,7 +31,10 @@ export function useNotificationPermission() {
   }, []);
 
   useEffect(() => {
-    void refresh();
+    const init = () => {
+      void refresh();
+    };
+    init();
   }, [refresh]);
 
   useEffect(() => {

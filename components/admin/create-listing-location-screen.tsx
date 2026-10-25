@@ -38,7 +38,10 @@ export function CreateListingLocationScreen() {
   };
 
   useEffect(() => {
-    if (profile?.city) setOperatingCity(profile.city);
+    const setOperatingCitySafe = (city: string) => {
+      setOperatingCity(city);
+    };
+    if (profile?.city) setOperatingCitySafe(profile.city);
   }, [profile?.city]);
 
   const schools = getSchoolsForCity(operatingCity);

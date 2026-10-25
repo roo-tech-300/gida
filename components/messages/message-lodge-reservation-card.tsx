@@ -1,17 +1,35 @@
+import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { useCallback, useEffect, useState } from 'react';
+import { supabase } from '@/lib/supabase';
 
+import { AnimatedErrorModal } from '@/components/ui/animated-error-modal';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
+import {
+  adminLodgeApplicationRoute,
+  applicantLodgeApplicationRoute,
+  resolveLodgeApplicationPodId,
+} from '@/services/lodge-application-route';
 import type { LodgeReservationAttachment } from '@/types/messages';
+
+type CardError = { title: string; message: string };
 
 /**
  * Renders a lodge reservation (application) message. The same message lives in the
  * applicant <-> admin conversation, so the tap target is role-aware:
  *   - the admin is taken to the review screen to accept/reject the pod,
  *   - the applicant is taken to the "pending review" (not yet accepted) screen.
+ *
+ * Route ownership is centralized in @/services/lodge-application-route so the DM
+ * lands on exactly the same `/admin/lodge-reservation/:podId` route used from the
+ * Applications queue. Legacy DMs that only stored a `creditId` (or a stale local
+ * `podId`) are resolved against `pod_members` before navigating.
+ *
+ * Admin identity is checked against `admin_profiles` directly (with a fallback
+ * to `profiles.is_admin`) so a cached/stale profile cannot route an admin to the
+ * applicant pay-slot screen.
  */
 export function MessageLodgeReservationCard({
   attachment,
@@ -22,56 +40,133 @@ export function MessageLodgeReservationCard({
 }) {
   const router = useRouter();
   const { profile } = useAuth();
-  const isAdmin = Boolean(profile?.is_admin);
+  const [error, setError] = useState<CardError | null>(null);
+  const [isResolving, setIsResolving] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
 
-  const handlePress = () => {
-    if (isAdmin) {
-      router.push(`/admin/lodge-reservation/${attachment.podId}`);
-      return;
+  const checkIsAdmin = useCallback(async (): Promise<boolean> => {
+    if (profile?.is_admin) return true;
+    if (!profile?.id) return false;
+    try {
+      const { data: adminRow } = await supabase
+        .from('admin_profiles')
+        .select('id')
+        .eq('id', profile.id)
+        .maybeSingle();
+      return Boolean(adminRow);
+    } catch (err) {
+      console.error('[LodgeReservationCard] Admin check failed:', err);
+      return false;
     }
-    // Legacy messages predating creditId cannot resolve a destination; no-op safely.
-    if (!attachment.creditId) return;
-    router.push({ pathname: '/property/pay-slot', params: { id: attachment.creditId } });
+  }, [profile]);
+
+  useEffect(() => {
+    let mounted = true;
+    checkIsAdmin().then((admin) => {
+      if (mounted) setIsAdmin(admin);
+    });
+    return () => {
+      mounted = false;
+    };
+  }, [checkIsAdmin]);
+
+  const handlePress = async () => {
+    if (isResolving) return;
+    setIsResolving(true);
+    setError(null);
+    try {
+      const isAdmin = await checkIsAdmin();
+      if (isAdmin) {
+        const podId = await resolveLodgeApplicationPodId({
+          podId: attachment.podId || undefined,
+          creditId: attachment.creditId || undefined,
+        });
+        if (!podId) {
+          setError({
+            title: 'Application not found',
+            message: "We couldn't match this message to an application. Open the Applications queue to find it.",
+          });
+          return;
+        }
+        router.push(adminLodgeApplicationRoute(podId));
+        return;
+      }
+      if (!attachment.creditId) {
+        setError({
+          title: 'Payment link unavailable',
+          message: "We couldn't find the payment details for this application. Open your reservations from the property page to continue.",
+        });
+        return;
+      }
+      router.push(applicantLodgeApplicationRoute(attachment.creditId));
+    } catch (err) {
+      console.error('[LodgeReservationCard] Failed to open application:', err);
+      setError({
+        title: 'Could not open application',
+        message: 'Please try again, or open the Applications queue to find this application.',
+      });
+    } finally {
+      setIsResolving(false);
+    }
   };
 
   return (
-    <Pressable
-      testID="lodge-reservation-card"
-      style={({ pressed }) => [styles.card, isMe && styles.cardMe, pressed && styles.cardPressed]}
-      onPress={handlePress}
-    >
-      {attachment.image ? (
-        <Image source={{ uri: attachment.image }} style={styles.image} contentFit="cover" transition={150} />
-      ) : (
-        <View style={[styles.image, styles.imageFallback]}>
-          <Ionicons name="business-outline" size={24} color={DesignColors.onSurfaceVariant} />
+    <>
+      <Pressable
+        testID="lodge-reservation-card"
+        style={({ pressed }) => [styles.card, isMe && styles.cardMe, pressed && styles.cardPressed]}
+        onPress={handlePress}
+        disabled={isResolving}
+      >
+        {attachment.image ? (
+          <Image source={{ uri: attachment.image }} style={styles.image} contentFit="cover" transition={150} />
+        ) : (
+          <View style={[styles.image, styles.imageFallback]}>
+            <Ionicons name="business-outline" size={24} color={DesignColors.onSurfaceVariant} />
+          </View>
+        )}
+
+        <View style={styles.body}>
+          <View style={styles.badge}>
+            <Ionicons
+              name={isAdmin === true ? 'clipboard-outline' : 'hourglass-outline'}
+              size={11}
+              color={DesignColors.secondary}
+            />
+            <Text style={styles.badgeText}>{isAdmin === true ? 'New application' : 'Awaiting review'}</Text>
+          </View>
+
+          <Text style={styles.title} numberOfLines={2}>{attachment.title}</Text>
+
+          <View style={styles.locationRow}>
+            <Ionicons name="location-outline" size={13} color={DesignColors.onSurfaceVariant} />
+            <Text style={styles.location} numberOfLines={1}>{attachment.location || 'Gida property'}</Text>
+          </View>
+
+          <Text style={styles.caption} numberOfLines={2}>
+            {isAdmin === true
+              ? `${attachment.userName || 'A resident'} applied for this lodge — tap to review.`
+              : 'Your application is pending admin review — tap to view.'}
+          </Text>
         </View>
-      )}
+      </Pressable>
 
-      <View style={styles.body}>
-        <View style={styles.badge}>
-          <Ionicons
-            name={isAdmin ? 'clipboard-outline' : 'hourglass-outline'}
-            size={11}
-            color={DesignColors.secondary}
-          />
-          <Text style={styles.badgeText}>{isAdmin ? 'New application' : 'Awaiting review'}</Text>
+      {isResolving ? (
+        <View style={styles.resolvingOverlay}>
+          <ActivityIndicator size="small" color={DesignColors.primary} />
         </View>
+      ) : null}
 
-        <Text style={styles.title} numberOfLines={2}>{attachment.title}</Text>
-
-        <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={13} color={DesignColors.onSurfaceVariant} />
-          <Text style={styles.location} numberOfLines={1}>{attachment.location || 'Gida property'}</Text>
-        </View>
-
-        <Text style={styles.caption} numberOfLines={2}>
-          {isAdmin
-            ? `${attachment.userName || 'A resident'} applied for this lodge — tap to review.`
-            : 'Your application is pending admin review — tap to view.'}
-        </Text>
-      </View>
-    </Pressable>
+      {error ? (
+        <AnimatedErrorModal
+          visible
+          onClose={() => setError(null)}
+          title={error.title}
+          message={error.message}
+          testID="lodge-reservation-error"
+        />
+      ) : null}
+    </>
   );
 }
 
@@ -150,5 +245,13 @@ const styles = StyleSheet.create({
     fontFamily,
     lineHeight: 20,
     marginTop: 2,
+  },
+  resolvingOverlay: {
+    position: 'absolute',
+    inset: 0,
+    backgroundColor: 'rgba(0,0,0,0.35)',
+    alignItems: 'center',
+    justifyContent: 'center',
+    zIndex: 5,
   },
 });

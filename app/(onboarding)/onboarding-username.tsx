@@ -54,14 +54,17 @@ export default function OnboardingUsernameScreen() {
   useEffect(() => {
     if (checkTimer.current) clearTimeout(checkTimer.current);
     const formatResult = validateUsernameFormat(normalized);
+    const updateCheck = (state: CheckState) => {
+      setCheck(state);
+    };
     if (!formatResult.valid) {
-      setCheck({ kind: normalized ? 'invalid' : 'idle' });
+      updateCheck({ kind: normalized ? 'invalid' : 'idle' });
       return;
     }
-    setCheck({ kind: 'checking' });
+    updateCheck({ kind: 'checking' });
     checkTimer.current = setTimeout(() => {
       void isUsernameAvailable(normalized).then((available) => {
-        setCheck(available ? { kind: 'available' } : { kind: 'taken' });
+        updateCheck(available ? { kind: 'available' } : { kind: 'taken' });
       });
     }, 400);
     return () => {

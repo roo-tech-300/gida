@@ -1,0 +1,1426 @@
+env: load .env
+env: export EXPO_NO_DEPENDENCY_VALIDATION EXPO_PUBLIC_SUPABASE_ANON_KEY EXPO_PUBLIC_SUPABASE_URL EXPO_PUBLIC_WORKER_URL
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\app\_layout.tsx
+  130:6  warning  React Hook useEffect has missing dependencies: 'referralCodeParam' and 'searchParams'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\app\index.web.tsx
+  3:10  warning  'Platform' is defined but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\app\property\tour-history.tsx
+  15:25  warning  'setSimRefreshing' is assigned a value but never used  @typescript-eslint/no-unused-vars
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\admin-dashboard-screen.tsx
+  28:6  warning  React Hook useEffect has missing dependencies: 'profile.city' and 'profile.full_name'. Either include them or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx
+  13:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:13:21
+  11 | export function CreateListingEntryScreen() {
+  12 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 13 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  14 |
+  15 |   useEffect(() => {
+  16 |     const loop = Animated.loop(  react-hooks/refs
+  13:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:13:21
+  11 | export function CreateListingEntryScreen() {
+  12 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 13 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  14 |
+  15 |   useEffect(() => {
+  16 |     const loop = Animated.loop(  react-hooks/refs
+  30:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:30:26
+  28 |   }, [floatAnim]);
+  29 |
+> 30 |   const floatTranslate = floatAnim.interpolate({
+     |                          ^^^^^^^^^ Passing a ref to a function may read its value during render
+  31 |     inputRange: [0, 1],
+  32 |     outputRange: [0, -20],
+  33 |   });                                                     react-hooks/refs
+  30:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:30:26
+  28 |   }, [floatAnim]);
+  29 |
+> 30 |   const floatTranslate = floatAnim.interpolate({
+     |                          ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  31 |     inputRange: [0, 1],
+  32 |     outputRange: [0, -20],
+  33 |   });                                         react-hooks/refs
+  35:23  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:35:23
+  33 |   });
+  34 |
+> 35 |   const floatRotate = floatAnim.interpolate({
+     |                       ^^^^^^^^^ Passing a ref to a function may read its value during render
+  36 |     inputRange: [0, 1],
+  37 |     outputRange: ['6deg', '4deg'],
+  38 |   });                                                                react-hooks/refs
+  35:23  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\create-listing-entry-screen.tsx:35:23
+  33 |   });
+  34 |
+> 35 |   const floatRotate = floatAnim.interpolate({
+     |                       ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  36 |     inputRange: [0, 1],
+  37 |     outputRange: ['6deg', '4deg'],
+  38 |   });                                                    react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\landlord-properties-screen.tsx
+  50:6  warning  React Hook useEffect has a missing dependency: 'showToast'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\property-contracts-screen.tsx
+  18:20  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. This value was memoized in source but not in compilation output.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\property-contracts-screen.tsx:18:20
+  16 |
+  17 | export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
+> 18 |   const property = useMemo(() => {
+     |                    ^^^^^^^^^^^^^^^
+> 19 |     for (const l of LANDLORDS) {
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 20 |       const p = l.properties.find((pr) => pr.id === propertyId);
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 21 |       if (p) return { ...p, landlord: l.full_name };
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 22 |     }
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 23 |     return null;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 24 |   }, [propertyId]);
+     | ^^^^^^^^^^^^^^^^^^^ Could not preserve existing memoization
+  25 |
+  26 |   const contracts = useMemo(
+  27 |     () => CONTRACTS.filter((c) => c.property_id === propertyId),  react-hooks/preserve-manual-memoization
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\admin\referral-payouts-screen.tsx
+  212:9  warning  The 'allRequests' logical expression could make the dependencies of useCallback Hook (at line 250) change on every render. To fix this, wrap the initialization of 'allRequests' in its own useMemo() Hook  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\auth\forgot-password-screen.tsx
+  37:86  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\auth\verify-reset-code-screen.tsx
+  48:59  error  `'` can be escaped with `&apos;`, `&lsquo;`, `&#39;`, `&rsquo;`  react/no-unescaped-entities
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\claim-room-modal.tsx
+  164:6  warning  React Hook useCallback has a missing dependency: 'profile?.full_name'. Either include it or remove the dependency array  react-hooks/exhaustive-deps
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx
+  15:16  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:15:16
+  13 |   const fadeRef = useRef(new Animated.Value(0));
+  14 |   const slideRef = useRef(new Animated.Value(0));
+> 15 |   const fade = fadeRef.current;
+     |                ^^^^^^^^^^^^^^^ Cannot access ref value during render
+  16 |   const slide = slideRef.current;
+  17 |   const previousStep = useRef(stepKey);
+  18 |                                                                                  react-hooks/refs
+  15:16  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:15:16
+  13 |   const fadeRef = useRef(new Animated.Value(0));
+  14 |   const slideRef = useRef(new Animated.Value(0));
+> 15 |   const fade = fadeRef.current;
+     |                ^^^^^^^^^^^^^^^ Cannot access ref value during render
+  16 |   const slide = slideRef.current;
+  17 |   const previousStep = useRef(stepKey);
+  18 |                                                                                  react-hooks/refs
+  16:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:16:17
+  14 |   const slideRef = useRef(new Animated.Value(0));
+  15 |   const fade = fadeRef.current;
+> 16 |   const slide = slideRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |   const previousStep = useRef(stepKey);
+  18 |
+  19 |   useEffect(() => {                                                                                                             react-hooks/refs
+  16:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:16:17
+  14 |   const slideRef = useRef(new Animated.Value(0));
+  15 |   const fade = fadeRef.current;
+> 16 |   const slide = slideRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |   const previousStep = useRef(stepKey);
+  18 |
+  19 |   useEffect(() => {                                                                                                             react-hooks/refs
+  16:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:16:17
+  14 |   const slideRef = useRef(new Animated.Value(0));
+  15 |   const fade = fadeRef.current;
+> 16 |   const slide = slideRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |   const previousStep = useRef(stepKey);
+  18 |
+  19 |   useEffect(() => {                                                                                                             react-hooks/refs
+  16:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:16:17
+  14 |   const slideRef = useRef(new Animated.Value(0));
+  15 |   const fade = fadeRef.current;
+> 16 |   const slide = slideRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |   const previousStep = useRef(stepKey);
+  18 |
+  19 |   useEffect(() => {                                                                                                             react-hooks/refs
+  30:6   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:30:6
+  28 |       Animated.timing(slide, { toValue: 0, duration: DURATION, easing: Easing.out(Easing.cubic), useNativeDriver: true }),
+  29 |     ]).start();
+> 30 |   }, [stepKey, fade, slide]);
+     |      ^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   return (
+  33 |     <Animated.View style={[styles.container, style, { opacity: fade, transform: [{ translateX: slide }] }]}>  react-hooks/refs
+  33:27  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:33:27
+  31 |
+  32 |   return (
+> 33 |     <Animated.View style={[styles.container, style, { opacity: fade, transform: [{ translateX: slide }] }]}>
+     |                           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  34 |       {children}
+  35 |     </Animated.View>
+  36 |   );                                                react-hooks/refs
+  33:53  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\step-transition.tsx:33:53
+  31 |
+  32 |   return (
+> 33 |     <Animated.View style={[styles.container, style, { opacity: fade, transform: [{ translateX: slide }] }]}>
+     |                                                     ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  34 |       {children}
+  35 |     </Animated.View>
+  36 |   );                                                 react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts
+  14:18  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts:14:18
+  12 |
+  13 |   const heightRef = useRef(new Animated.Value(expanded));
+> 14 |   const height = heightRef.current;
+     |                  ^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  15 |   const startY = useRef(0);
+  16 |
+  17 |   const panResponder = useRef(                                                                                                                                                                                                                                                                                                                                                react-hooks/refs
+  18:25  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts:18:25
+  16 |
+  17 |   const panResponder = useRef(
+> 18 |     PanResponder.create({
+     |                         ^
+> 19 |       onStartShouldSetPanResponder: () => true,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 20 |       onMoveShouldSetPanResponder: (_, gesture) =>
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 34 |       },
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 35 |     }),
+     | ^^^^^^ Passing a ref to a function may read its value during render
+  36 |   ).current;
+  37 |
+  38 |   return { panHandlers: panResponder.panHandlers, sheetHeight: height };  react-hooks/refs
+  38:10  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts:38:10
+  36 |   ).current;
+  37 |
+> 38 |   return { panHandlers: panResponder.panHandlers, sheetHeight: height };
+     |          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  39 | }
+  40 |                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/refs
+  38:25  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\claim\use-draggable-sheet.ts:38:25
+  36 |   ).current;
+  37 |
+> 38 |   return { panHandlers: panResponder.panHandlers, sheetHeight: height };
+     |                         ^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  39 | }
+  40 |                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx
+   73:25  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx:73:25
+  71 |
+  72 |   const overlayPan = useRef(
+> 73 |     PanResponder.create({
+     |                         ^
+> 74 |       onStartShouldSetPanResponderCapture: () => false,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 75 |       onMoveShouldSetPanResponderCapture: (_, g) => isOpenRef.current && Math.abs(g.dy) > 5,
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 85 |       },
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 86 |     }),
+     | ^^^^^^ Passing a ref to a function may read its value during render
+  87 |   ).current;
+  88 |
+  89 |   const slideY = anim.interpolate({  react-hooks/refs
+   89:18  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx:89:18
+  87 |   ).current;
+  88 |
+> 89 |   const slideY = anim.interpolate({
+     |                  ^^^^ Passing a ref to a function may read its value during render
+  90 |     inputRange: [0, 1],
+  91 |     outputRange: [overlayHeight > 0 ? -overlayHeight : -10000, 0],
+  92 |   });                                                                                                                                                                                                                                                                                                                                                                                react-hooks/refs
+   89:18  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx:89:18
+  87 |   ).current;
+  88 |
+> 89 |   const slideY = anim.interpolate({
+     |                  ^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  90 |     inputRange: [0, 1],
+  91 |     outputRange: [overlayHeight > 0 ? -overlayHeight : -10000, 0],
+  92 |   });                                                                                                                                                                                                                                                                                                                                                                    react-hooks/refs
+  108:13  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\feed-mode-selector.tsx:108:13
+  106 |         style={[styles.overlay, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
+  107 |         pointerEvents={isOpen ? 'auto' : 'none'}
+> 108 |         {...overlayPan.panHandlers}
+      |             ^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  109 |       >
+  110 |         <View style={styles.overlayContent}>
+  111 |           <View style={styles.headerSection}>                                                                                                                                                                                                                                          react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\home-search-bar.tsx
+  43:36  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\home-search-bar.tsx:43:36
+  41 |   return (
+  42 |     <View style={styles.wrap}>
+> 43 |       <View style={styles.row} {...pan.panHandlers}>
+     |                                    ^^^^^^^^^^^^^^^ Cannot access ref value during render
+  44 |         <Pressable
+  45 |           style={({ pressed }) => [styles.field, pressed && styles.fieldPressed]}
+  46 |           onPress={onOpenSearch}  react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\roommate-deck.tsx
+  28:28  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `profile`, but the source dependencies were [query, allRoommates, profile?.id]. Inferred less specific property than source.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\roommate-deck.tsx:28:28
+  26 |   const { data: allRoommates = [], isLoading, isRefetching, refetch } = useRoommates();
+  27 |
+> 28 |   const filtered = useMemo(() => {
+     |                            ^^^^^^^
+> 29 |     const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 30 |     const q = query.trim().toLowerCase();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |     if (!q) return others;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 32 |     return others.filter(
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |       (p) =>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 34 |         p.name.toLowerCase().includes(q) ||
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 35 |         p.bio.toLowerCase().includes(q),
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 36 |     );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 37 |   }, [query, allRoommates, profile?.id]);
+     | ^^^^ Could not preserve existing manual memoization
+  38 |
+  39 |   const onViewProfile = useCallback(
+  40 |     (id: string) => {  react-hooks/preserve-manual-memoization
+  28:28  error  Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `profile`, but the source dependencies were [query, allRoommates, profile?.id]. Inferred less specific property than source.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\home\roommate-deck.tsx:28:28
+  26 |   const { data: allRoommates = [], isLoading, isRefetching, refetch } = useRoommates();
+  27 |
+> 28 |   const filtered = useMemo(() => {
+     |                            ^^^^^^^
+> 29 |     const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 30 |     const q = query.trim().toLowerCase();
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 31 |     if (!q) return others;
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 32 |     return others.filter(
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |       (p) =>
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 34 |         p.name.toLowerCase().includes(q) ||
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 35 |         p.bio.toLowerCase().includes(q),
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 36 |     );
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 37 |   }, [query, allRoommates, profile?.id]);
+     | ^^^^ Could not preserve existing manual memoization
+  38 |
+  39 |   const onViewProfile = useCallback(
+  40 |     (id: string) => {  react-hooks/preserve-manual-memoization
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\landing\coming-soon-screen.tsx
+   3:93  warning  'C:\Users\eluzi\Documents\Zidexi\Gida\Gida\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+   5:32  warning  'FadeInUp' is defined but never used                                                                    @typescript-eslint/no-unused-vars
+  12:37  warning  'C:\Users\eluzi\Documents\Zidexi\Gida\Gida\node_modules\react-native\index.js' imported multiple times  import/no-duplicates
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx
+  16:16  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:16:16
+  14 | export function ComposerAttachmentPreview({ attachment, onClear }: Props) {
+  15 |   const animRef = useRef(new Animated.Value(0));
+> 16 |   const anim = animRef.current;
+     |                ^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |
+  18 |   useEffect(() => {
+  19 |     Animated.spring(anim, {                                                                                                                                                                react-hooks/refs
+  16:16  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:16:16
+  14 | export function ComposerAttachmentPreview({ attachment, onClear }: Props) {
+  15 |   const animRef = useRef(new Animated.Value(0));
+> 16 |   const anim = animRef.current;
+     |                ^^^^^^^^^^^^^^^ Cannot access ref value during render
+  17 |
+  18 |   useEffect(() => {
+  19 |     Animated.spring(anim, {                                                                                                                                                                react-hooks/refs
+  29:14  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:29:14
+  27 |   return (
+  28 |     <Animated.View
+> 29 |       style={[
+     |              ^
+> 30 |         styles.card,
+     | ^^^^^^^^^^^^^^^^^^^^
+> 31 |         {
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^
+> 47 |         },
+     | ^^^^^^^^^^^^^^^^^^^^
+> 48 |       ]}
+     | ^^^^^^^^ Cannot access ref value during render
+  49 |     >
+  50 |       {attachment.image ? (
+  51 |         <Image source={{ uri: attachment.image }} style={styles.thumbnail} contentFit="cover" transition={150} />  react-hooks/refs
+  31:9   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:31:9
+  29 |       style={[
+  30 |         styles.card,
+> 31 |         {
+     |         ^
+> 32 |           opacity: anim,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^
+> 33 |           transform: [
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^
+> 46 |           ],
+     | ^^^^^^^^^^^^^^^^^^^^^^^^
+> 47 |         },
+     | ^^^^^^^^^^ Cannot access ref value during render
+  48 |       ]}
+  49 |     >
+  50 |       {attachment.image ? (                                                                             react-hooks/refs
+  32:20  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:32:20
+  30 |         styles.card,
+  31 |         {
+> 32 |           opacity: anim,
+     |                    ^^^^ Cannot access ref value during render
+  33 |           transform: [
+  34 |             {
+  35 |               translateY: anim.interpolate({                                                                                                                                                                                                                                          react-hooks/refs
+  35:27  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:35:27
+  33 |           transform: [
+  34 |             {
+> 35 |               translateY: anim.interpolate({
+     |                           ^^^^ Passing a ref to a function may read its value during render
+  36 |                 inputRange: [0, 1],
+  37 |                 outputRange: [8, 0],
+  38 |               }),                                                                                                                                                                         react-hooks/refs
+  35:27  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:35:27
+  33 |           transform: [
+  34 |             {
+> 35 |               translateY: anim.interpolate({
+     |                           ^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  36 |                 inputRange: [0, 1],
+  37 |                 outputRange: [8, 0],
+  38 |               }),                                                                                                                                                             react-hooks/refs
+  41:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:41:22
+  39 |             },
+  40 |             {
+> 41 |               scale: anim.interpolate({
+     |                      ^^^^ Passing a ref to a function may read its value during render
+  42 |                 inputRange: [0, 1],
+  43 |                 outputRange: [0.96, 1],
+  44 |               }),                                                                                                                                                                                        react-hooks/refs
+  41:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\composer-attachment-preview.tsx:41:22
+  39 |             },
+  40 |             {
+> 41 |               scale: anim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  42 |                 inputRange: [0, 1],
+  43 |                 outputRange: [0.96, 1],
+  44 |               }),                                                                                                                                                                            react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\share-listing-modal.tsx
+  50:28  error  Error: Cannot call impure function during render
+
+`Date.now` is an impure function. Calling an impure function can produce unstable results that update unpredictably when the component happens to re-render. (https://react.dev/reference/rules/components-and-hooks-must-be-pure#components-and-hooks-must-be-idempotent).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\messages\share-listing-modal.tsx:50:28
+  48 |     setSharingId(conversation.id);
+  49 |     try {
+> 50 |       const clientSentAt = Date.now();
+     |                            ^^^^^^^^^^ Cannot call impure function
+  51 |       if (isConnected === false) {
+  52 |         createOutboxMessage({
+  53 |           conversationId: conversation.id,  react-hooks/purity
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx
+    2:90  warning  'Image' is defined but never used                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          @typescript-eslint/no-unused-vars
+   29:5   error    Error: Cannot access variable before it is declared
+
+`setShowRefreshNudge` is accessed before it is declared, which prevents the earlier access from updating when this value changes over time.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:29:5
+  27 |   const { mutateAsync: expireCredit } = useExpireSlotCredit();
+  28 |   useFocusEffect(useCallback(() => {
+> 29 |     setShowRefreshNudge(false);
+     |     ^^^^^^^^^^^^^^^^^^^ `setShowRefreshNudge` accessed before it is declared
+  30 |     refetch();
+  31 |   }, [refetch]));
+  32 |   const [isProcessing, setIsProcessing] = useState(false);
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:35:28
+  33 |   const [locallyPaid, setLocallyPaid] = useState(false);
+  34 |   const [locallyExpired, setLocallyExpired] = useState(false);
+> 35 |   const [showRefreshNudge, setShowRefreshNudge] = useState(false);
+     |                            ^^^^^^^^^^^^^^^^^^^ `setShowRefreshNudge` is declared here
+  36 |   const countdownTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  37 |   const credit = credits?.find((c) => c.id === creditId);
+  38 |   const isPaid = (credit ? PAID_CREDIT_STATUSES.has(credit.status) : false) || locallyPaid;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/immutability
+  121:50  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setShowRefreshNudge`, but the source dependencies were []. Inferred dependency not present in source.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:121:50
+  119 |     }
+  120 |   };
+> 121 |   const startRefreshNudgeCountdown = useCallback(() => {
+      |                                                  ^^^^^^^
+> 122 |     if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 123 |     countdownTimerRef.current = setTimeout(() => setShowRefreshNudge(true), 5000);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 124 |   }, []);
+      | ^^^^ Could not preserve existing manual memoization
+  125 |   const handleRefresh = useCallback(async () => {
+  126 |     setShowRefreshNudge(false);
+  127 |     try {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/preserve-manual-memoization
+  125:37  error    Compilation Skipped: Existing memoization could not be preserved
+
+React Compiler has skipped optimizing this component because the existing manual memoization could not be preserved. The inferred dependencies did not match the manually specified dependencies, which could cause the value to change more or less frequently than expected. The inferred dependency was `setShowRefreshNudge`, but the source dependencies were [refetch, showToast]. Inferred different dependency than source.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\payment\payment-checkout-screen.tsx:125:37
+  123 |     countdownTimerRef.current = setTimeout(() => setShowRefreshNudge(true), 5000);
+  124 |   }, []);
+> 125 |   const handleRefresh = useCallback(async () => {
+      |                                     ^^^^^^^^^^^^^
+> 126 |     setShowRefreshNudge(false);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 127 |     try {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 128 |       await refetch();
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 129 |     } catch (error) {
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 130 |       console.error('[PaymentCheckout] Pull-to-refresh failed:', error);
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 131 |       showToast({ message: 'Failed to refresh payment status. Please try again.', type: 'error' });
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 132 |     }
+      | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 133 |   }, [refetch, showToast]);
+      | ^^^^ Could not preserve existing manual memoization
+  134 |   useEffect(() => () => { if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current); }, []);
+  135 |   const waitingOnFetch = isLoading || status === 'pending' || (!credit && isFetching);
+  136 |   if (waitingOnFetch) return (  react-hooks/preserve-manual-memoization
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\book-tour-modal.tsx
+   62:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\book-tour-modal.tsx:62:7
+  60 |   useEffect(() => {
+  61 |     if (!visible) {
+> 62 |       setStep('type');
+     |       ^^^^^^^ Avoid calling setState() directly within an effect
+  63 |       setPaymentOpen(false);
+  64 |       setUnlockedOverride(null);
+  65 |     }                                   react-hooks/set-state-in-effect
+  104:7  error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\book-tour-modal.tsx:104:7
+  102 |     if (!visible) return;
+  103 |     if (step === 'unassisted' && !selfGuidedAvailable) {
+> 104 |       setStep('type');
+      |       ^^^^^^^ Avoid calling setState() directly within an effect
+  105 |     }
+  106 |   }, [visible, step, selfGuidedAvailable]);
+  107 |  react-hooks/set-state-in-effect
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx
+   49:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:49:11
+  47 |       Gesture.Pinch()
+  48 |         .onBegin(() => {
+> 49 |           startScale.value = scale.value;
+     |           ^^^^^^^^^^ `startScale` cannot be modified
+  50 |         })
+  51 |         .onUpdate((event) => {
+  52 |           scale.value = Math.min(Math.max(startScale.value * event.scale, 1), 3);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/immutability
+   52:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:52:11
+  50 |         })
+  51 |         .onUpdate((event) => {
+> 52 |           scale.value = Math.min(Math.max(startScale.value * event.scale, 1), 3);
+     |           ^^^^^ `scale` cannot be modified
+  53 |           if (scale.value > 1.03) runOnJS(onZoomChange)(true);
+  54 |         })
+  55 |         .onEnd(() => {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     react-hooks/immutability
+   57:13  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:57:13
+  55 |         .onEnd(() => {
+  56 |           if (scale.value < 1.03) {
+> 57 |             scale.value = withSpring(1);
+     |             ^^^^^ `scale` cannot be modified
+  58 |             translateX.value = withSpring(0);
+  59 |             translateY.value = withSpring(0);
+  60 |             runOnJS(onZoomChange)(false);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                      react-hooks/immutability
+   58:13  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:58:13
+  56 |           if (scale.value < 1.03) {
+  57 |             scale.value = withSpring(1);
+> 58 |             translateX.value = withSpring(0);
+     |             ^^^^^^^^^^ `translateX` cannot be modified
+  59 |             translateY.value = withSpring(0);
+  60 |             runOnJS(onZoomChange)(false);
+  61 |           }                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       react-hooks/immutability
+   59:13  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:59:13
+  57 |             scale.value = withSpring(1);
+  58 |             translateX.value = withSpring(0);
+> 59 |             translateY.value = withSpring(0);
+     |             ^^^^^^^^^^ `translateY` cannot be modified
+  60 |             runOnJS(onZoomChange)(false);
+  61 |           }
+  62 |         }),                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                               react-hooks/immutability
+   73:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:73:11
+  71 |         .activeOffsetY([-12, 12])
+  72 |         .onBegin(() => {
+> 73 |           startTranslateX.value = translateX.value;
+     |           ^^^^^^^^^^^^^^^ `startTranslateX` cannot be modified
+  74 |           startTranslateY.value = translateY.value;
+  75 |         })
+  76 |         .onUpdate((event) => {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/immutability
+   74:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:74:11
+  72 |         .onBegin(() => {
+  73 |           startTranslateX.value = translateX.value;
+> 74 |           startTranslateY.value = translateY.value;
+     |           ^^^^^^^^^^^^^^^ `startTranslateY` cannot be modified
+  75 |         })
+  76 |         .onUpdate((event) => {
+  77 |           if (scale.value <= 1.03) return;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        react-hooks/immutability
+   78:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:78:11
+  76 |         .onUpdate((event) => {
+  77 |           if (scale.value <= 1.03) return;
+> 78 |           translateX.value = startTranslateX.value + event.translationX;
+     |           ^^^^^^^^^^ `translateX` cannot be modified
+  79 |           translateY.value = startTranslateY.value + event.translationY;
+  80 |         })
+  81 |         .onEnd(() => {                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          react-hooks/immutability
+   79:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:79:11
+  77 |           if (scale.value <= 1.03) return;
+  78 |           translateX.value = startTranslateX.value + event.translationX;
+> 79 |           translateY.value = startTranslateY.value + event.translationY;
+     |           ^^^^^^^^^^ `translateY` cannot be modified
+  80 |         })
+  81 |         .onEnd(() => {
+  82 |           if (scale.value <= 1.03) return;                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              react-hooks/immutability
+   83:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:83:11
+  81 |         .onEnd(() => {
+  82 |           if (scale.value <= 1.03) return;
+> 83 |           translateX.value = withSpring(0);
+     |           ^^^^^^^^^^ `translateX` cannot be modified
+  84 |           translateY.value = withSpring(0);
+  85 |         }),
+  86 |     [isZoomed, scale, startTranslateX, startTranslateY, translateX, translateY],                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 react-hooks/immutability
+   84:11  error  Error: This value cannot be modified
+
+Modifying a value previously passed as an argument to a hook is not allowed. Consider moving the modification before calling the hook.
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:84:11
+  82 |           if (scale.value <= 1.03) return;
+  83 |           translateX.value = withSpring(0);
+> 84 |           translateY.value = withSpring(0);
+     |           ^^^^^^^^^^ `translateY` cannot be modified
+  85 |         }),
+  86 |     [isZoomed, scale, startTranslateX, startTranslateY, translateX, translateY],
+  87 |   );                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   react-hooks/immutability
+  125:5   error  Error: Calling setState synchronously within an effect can trigger cascading renders
+
+Effects are intended to synchronize state between React and external systems such as manually updating the DOM, state management libraries, or other platform APIs. In general, the body of an effect should do one or both of the following:
+* Update external systems with the latest state from React.
+* Subscribe for updates from some external system, calling setState in a callback function when external state changes.
+
+Calling setState synchronously within an effect body causes cascading renders that can hurt performance, and is not recommended. (https://react.dev/learn/you-might-not-need-an-effect).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\image-gallery-modal.tsx:125:5
+  123 |     if (!visible || photos.length === 0) return;
+  124 |
+> 125 |     setCurrentIndex(validInitialIndex);
+      |     ^^^^^^^^^^^^^^^ Avoid calling setState() directly within an effect
+  126 |     requestAnimationFrame(() => {
+  127 |       listRef.current?.scrollToIndex({ index: validInitialIndex, animated: false });
+  128 |     });  react-hooks/set-state-in-effect
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx
+  17:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:17:22
+  15 |   const headroom = insets.top + 64;
+  16 |   const translateYRef = useRef(new Animated.Value(heroHeight));
+> 17 |   const translateY = translateYRef.current;
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  18 |   const isExpanded = useRef(false);
+  19 |   const startY = useRef(0);
+  20 |                                                                                                                                                                                                                                                                react-hooks/refs
+  17:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:17:22
+  15 |   const headroom = insets.top + 64;
+  16 |   const translateYRef = useRef(new Animated.Value(heroHeight));
+> 17 |   const translateY = translateYRef.current;
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  18 |   const isExpanded = useRef(false);
+  19 |   const startY = useRef(0);
+  20 |                                                                                                                                                                                                                                                                react-hooks/refs
+  17:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:17:22
+  15 |   const headroom = insets.top + 64;
+  16 |   const translateYRef = useRef(new Animated.Value(heroHeight));
+> 17 |   const translateY = translateYRef.current;
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  18 |   const isExpanded = useRef(false);
+  19 |   const startY = useRef(0);
+  20 |                                                                                                                                                                                                                                                                react-hooks/refs
+  17:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:17:22
+  15 |   const headroom = insets.top + 64;
+  16 |   const translateYRef = useRef(new Animated.Value(heroHeight));
+> 17 |   const translateY = translateYRef.current;
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  18 |   const isExpanded = useRef(false);
+  19 |   const startY = useRef(0);
+  20 |                                                                                                                                                                                                                                                                react-hooks/refs
+  17:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:17:22
+  15 |   const headroom = insets.top + 64;
+  16 |   const translateYRef = useRef(new Animated.Value(heroHeight));
+> 17 |   const translateY = translateYRef.current;
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  18 |   const isExpanded = useRef(false);
+  19 |   const startY = useRef(0);
+  20 |                                                                                                                                                                                                                                                                react-hooks/refs
+  22:25  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:22:25
+  20 |
+  21 |   const panResponder = useRef(
+> 22 |     PanResponder.create({
+     |                         ^
+> 23 |       onStartShouldSetPanResponder: () => true,
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 24 |       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) < Math.abs(gesture.dy),
+     ÔÇª
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 51 |       },
+     | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+> 52 |     }),
+     | ^^^^^^ Passing a ref to a function may read its value during render
+  53 |   ).current;
+  54 |
+  55 |   return (  react-hooks/refs
+  62:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\property\property-bottom-sheet.tsx:62:17
+  60 |       ]}
+  61 |     >
+> 62 |       <View {...panResponder.panHandlers} style={styles.handleArea}>
+     |                 ^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  63 |         <View style={styles.handle} />
+  64 |       </View>
+  65 |       <ScrollView                                                                                                                                                                                                                                                                                                                       react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx
+  13:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:13:21
+  11 |   const router = useRouter();
+  12 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 13 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   const [refreshing, setRefreshing] = useState(false);
+  15 |
+  16 |   useEffect(() => {  react-hooks/refs
+  13:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:13:21
+  11 |   const router = useRouter();
+  12 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 13 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  14 |   const [refreshing, setRefreshing] = useState(false);
+  15 |
+  16 |   useEffect(() => {  react-hooks/refs
+  37:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:37:26
+  35 |   }, [floatAnim]);
+  36 |
+> 37 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^ Passing a ref to a function may read its value during render
+  38 |     inputRange: [0, 0.5, 1],
+  39 |     outputRange: [0, -15, 0],
+  40 |   });                                                     react-hooks/refs
+  37:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:37:26
+  35 |   }, [floatAnim]);
+  36 |
+> 37 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  38 |     inputRange: [0, 0.5, 1],
+  39 |     outputRange: [0, -15, 0],
+  40 |   });                                         react-hooks/refs
+  42:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:42:22
+  40 |   });
+  41 |
+> 42 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^ Passing a ref to a function may read its value during render
+  43 |     inputRange: [0, 0.5, 1],
+  44 |     outputRange: ['6deg', '4deg', '6deg'],
+  45 |   });                                                             react-hooks/refs
+  42:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\saved\saved-spaces-empty-state.tsx:42:22
+  40 |   });
+  41 |
+> 42 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  43 |     inputRange: [0, 0.5, 1],
+  44 |     outputRange: ['6deg', '4deg', '6deg'],
+  45 |   });                                                 react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\splash\splash-screen.tsx
+  10:13  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\splash\splash-screen.tsx:10:13
+   8 |   const xRef = useRef(new Animated.Value(0));
+   9 |   const yRef = useRef(new Animated.Value(0));
+> 10 |   const x = xRef.current;
+     |             ^^^^^^^^^^^^ Cannot access ref value during render
+  11 |   const y = yRef.current;
+  12 |
+  13 |   useEffect(() => {  react-hooks/refs
+  11:13  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\splash\splash-screen.tsx:11:13
+   9 |   const yRef = useRef(new Animated.Value(0));
+  10 |   const x = xRef.current;
+> 11 |   const y = yRef.current;
+     |             ^^^^^^^^^^^^ Cannot access ref value during render
+  12 |
+  13 |   useEffect(() => {
+  14 |     const animation = Animated.loop(           react-hooks/refs
+  36:6   warning  React Hook useEffect has missing dependencies: 'x' and 'y'. Either include them or remove the dependency array                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                react-hooks/exhaustive-deps
+  38:10  error    Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\splash\splash-screen.tsx:38:10
+  36 |   }, []);
+  37 |
+> 38 |   return { x, y };
+     |          ^^^^^^^^ Cannot access ref value during render
+  39 | }
+  40 |
+  41 | export function SplashScreen() {                                                                                                             react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx
+  29:19  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:29:19
+  27 |   const opacityRef = useRef(new Animated.Value(0));
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+> 29 |   const opacity = opacityRef.current;
+     |                   ^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  30 |   const scale = scaleRef.current;
+  31 |
+  32 |   useEffect(() => {                                                                                                                                                                                                                                                              react-hooks/refs
+  29:19  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:29:19
+  27 |   const opacityRef = useRef(new Animated.Value(0));
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+> 29 |   const opacity = opacityRef.current;
+     |                   ^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  30 |   const scale = scaleRef.current;
+  31 |
+  32 |   useEffect(() => {                                                                                                                                                                                                                                                              react-hooks/refs
+  30:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:30:17
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+  29 |   const opacity = opacityRef.current;
+> 30 |   const scale = scaleRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     if (visible) {                                                                                                                                                                                                                                                                                                   react-hooks/refs
+  30:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:30:17
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+  29 |   const opacity = opacityRef.current;
+> 30 |   const scale = scaleRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     if (visible) {                                                                                                                                                                                                                                                                                                   react-hooks/refs
+  30:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:30:17
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+  29 |   const opacity = opacityRef.current;
+> 30 |   const scale = scaleRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     if (visible) {                                                                                                                                                                                                                                                                                                   react-hooks/refs
+  30:17  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:30:17
+  28 |   const scaleRef = useRef(new Animated.Value(0.92));
+  29 |   const opacity = opacityRef.current;
+> 30 |   const scale = scaleRef.current;
+     |                 ^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     if (visible) {                                                                                                                                                                                                                                                                                                   react-hooks/refs
+  44:6   error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:44:6
+  42 |       ]).start();
+  43 |     }
+> 44 |   }, [visible, opacity, scale]);
+     |      ^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  45 |
+  46 |   const handleButtonPress = (btn: AlertButton) => {
+  47 |     btn.onPress?.();                                                                                                                                                                                                                                                                                                                                        react-hooks/refs
+  54:31  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:54:31
+  52 |     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
+  53 |       <Pressable style={styles.backdrop} onPress={onDismiss}>
+> 54 |         <Animated.View style={[styles.card, { opacity, transform: [{ scale }] }]}>
+     |                               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  55 |           <Pressable onPress={() => {}}>
+  56 |             {title ? <Text style={styles.title}>{title}</Text> : null}
+  57 |             <Text style={styles.message}>{message}</Text>  react-hooks/refs
+  54:45  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\custom-alert.tsx:54:45
+  52 |     <Modal visible={visible} transparent animationType="none" onRequestClose={onDismiss}>
+  53 |       <Pressable style={styles.backdrop} onPress={onDismiss}>
+> 54 |         <Animated.View style={[styles.card, { opacity, transform: [{ scale }] }]}>
+     |                                             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  55 |           <Pressable onPress={() => {}}>
+  56 |             {title ? <Text style={styles.title}>{title}</Text> : null}
+  57 |             <Text style={styles.message}>{message}</Text>   react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx
+  15:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:15:21
+  13 | export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
+  14 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 15 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  16 |
+  17 |   useEffect(() => {
+  18 |     const loop = Animated.loop(  react-hooks/refs
+  15:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:15:21
+  13 | export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
+  14 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 15 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  16 |
+  17 |   useEffect(() => {
+  18 |     const loop = Animated.loop(  react-hooks/refs
+  38:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:38:26
+  36 |   }, [floatAnim]);
+  37 |
+> 38 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^ Passing a ref to a function may read its value during render
+  39 |     inputRange: [0, 0.5, 1],
+  40 |     outputRange: [0, -15, 0],
+  41 |   });                                                                                                                react-hooks/refs
+  38:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:38:26
+  36 |   }, [floatAnim]);
+  37 |
+> 38 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  39 |     inputRange: [0, 0.5, 1],
+  40 |     outputRange: [0, -15, 0],
+  41 |   });                                                                                                    react-hooks/refs
+  43:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:43:22
+  41 |   });
+  42 |
+> 43 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^ Passing a ref to a function may read its value during render
+  44 |     inputRange: [0, 0.5, 1],
+  45 |     outputRange: ['6deg', '4deg', '6deg'],
+  46 |   });                                                                                                                        react-hooks/refs
+  43:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\feature-under-construction.tsx:43:22
+  41 |   });
+  42 |
+> 43 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  44 |     inputRange: [0, 0.5, 1],
+  45 |     outputRange: ['6deg', '4deg', '6deg'],
+  46 |   });                                                                                                            react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx
+  30:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx:30:21
+  28 | }) {
+  29 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 30 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     const loop = Animated.loop(         react-hooks/refs
+  30:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx:30:21
+  28 | }) {
+  29 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 30 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  31 |
+  32 |   useEffect(() => {
+  33 |     const loop = Animated.loop(         react-hooks/refs
+  54:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx:54:22
+  52 |   }, [floatAnim, delay]);
+  53 |
+> 54 |   const translateY = floatAnim.interpolate({
+     |                      ^^^^^^^^^ Passing a ref to a function may read its value during render
+  55 |     inputRange: [0, 0.5, 1],
+  56 |     outputRange: [0, -8, 0],
+  57 |   });              react-hooks/refs
+  54:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\floating-badge.tsx:54:22
+  52 |   }, [floatAnim, delay]);
+  53 |
+> 54 |   const translateY = floatAnim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  55 |     inputRange: [0, 0.5, 1],
+  56 |     outputRange: [0, -8, 0],
+  57 |   });  react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx
+  19:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:19:21
+  17 | }: NetworkErrorScreenProps) {
+  18 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 19 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  20 |   const [refreshing, setRefreshing] = useState(false);
+  21 |
+  22 |   useEffect(() => {  react-hooks/refs
+  19:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:19:21
+  17 | }: NetworkErrorScreenProps) {
+  18 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 19 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  20 |   const [refreshing, setRefreshing] = useState(false);
+  21 |
+  22 |   useEffect(() => {  react-hooks/refs
+  43:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:43:26
+  41 |   }, [floatAnim]);
+  42 |
+> 43 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^ Passing a ref to a function may read its value during render
+  44 |     inputRange: [0, 0.5, 1],
+  45 |     outputRange: [0, -15, 0],
+  46 |   });                                                     react-hooks/refs
+  43:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:43:26
+  41 |   }, [floatAnim]);
+  42 |
+> 43 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  44 |     inputRange: [0, 0.5, 1],
+  45 |     outputRange: [0, -15, 0],
+  46 |   });                                         react-hooks/refs
+  48:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:48:22
+  46 |   });
+  47 |
+> 48 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^ Passing a ref to a function may read its value during render
+  49 |     inputRange: [0, 0.5, 1],
+  50 |     outputRange: ['6deg', '4deg', '6deg'],
+  51 |   });                                                             react-hooks/refs
+  48:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\network-error-screen.tsx:48:22
+  46 |   });
+  47 |
+> 48 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  49 |     inputRange: [0, 0.5, 1],
+  50 |     outputRange: ['6deg', '4deg', '6deg'],
+  51 |   });                                                 react-hooks/refs
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx
+  29:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:29:21
+  27 | }: NoResultsFoundScreenProps) {
+  28 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 29 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  30 |
+  31 |   useEffect(() => {
+  32 |     const loop = Animated.loop(  react-hooks/refs
+  29:21  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:29:21
+  27 | }: NoResultsFoundScreenProps) {
+  28 |   const floatAnimRef = useRef(new Animated.Value(0));
+> 29 |   const floatAnim = floatAnimRef.current;
+     |                     ^^^^^^^^^^^^^^^^^^^^ Cannot access ref value during render
+  30 |
+  31 |   useEffect(() => {
+  32 |     const loop = Animated.loop(  react-hooks/refs
+  52:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:52:26
+  50 |   }, [floatAnim]);
+  51 |
+> 52 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^ Passing a ref to a function may read its value during render
+  53 |     inputRange: [0, 0.5, 1],
+  54 |     outputRange: [0, -15, 0],
+  55 |   });                                react-hooks/refs
+  52:26  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:52:26
+  50 |   }, [floatAnim]);
+  51 |
+> 52 |   const mainTranslateY = floatAnim.interpolate({
+     |                          ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  53 |     inputRange: [0, 0.5, 1],
+  54 |     outputRange: [0, -15, 0],
+  55 |   });                    react-hooks/refs
+  57:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:57:22
+  55 |   });
+  56 |
+> 57 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^ Passing a ref to a function may read its value during render
+  58 |     inputRange: [0, 0.5, 1],
+  59 |     outputRange: ['6deg', '4deg', '6deg'],
+  60 |   });                                        react-hooks/refs
+  57:22  error  Error: Cannot access refs during render
+
+React refs are values that are not needed for rendering. Refs should only be accessed outside of render, such as in event handlers or effects. Accessing a ref value (the `current` property) during render can cause your component not to update as expected (https://react.dev/reference/react/useRef).
+
+C:\Users\eluzi\Documents\Zidexi\Gida\Gida\components\ui\no-results-found-screen.tsx:57:22
+  55 |   });
+  56 |
+> 57 |   const mainRotate = floatAnim.interpolate({
+     |                      ^^^^^^^^^^^^^^^^^^^^^ Passing a ref to a function may read its value during render
+  58 |     inputRange: [0, 0.5, 1],
+  59 |     outputRange: ['6deg', '4deg', '6deg'],
+  60 |   });                            react-hooks/refs
+
+Ô£û 115 problems (103 errors, 12 warnings)
+  0 errors and 1 warning potentially fixable with the `--fix` option.
+

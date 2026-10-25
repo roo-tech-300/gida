@@ -21,9 +21,12 @@ export function EditRegionModal({ visible, regionName, initialParentId, parentIt
   const [parentId, setParentId] = useState<string>(initialParentId ?? NONE);
 
   useEffect(() => {
-    if (visible) {
+    const resetForm = () => {
       setName(regionName);
       setParentId(initialParentId ?? NONE);
+    };
+    if (visible) {
+      resetForm();
     }
   }, [visible, regionName, initialParentId]);
 

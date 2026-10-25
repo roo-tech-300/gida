@@ -118,10 +118,12 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       showToast({ message, type: 'error' });
     }
   };
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const startRefreshNudgeCountdown = useCallback(() => {
     if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
     countdownTimerRef.current = setTimeout(() => setShowRefreshNudge(true), 5000);
   }, []);
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const handleRefresh = useCallback(async () => {
     setShowRefreshNudge(false);
     try {

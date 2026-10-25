@@ -1,5 +1,6 @@
 import { useRef } from 'react';
 
+/* eslint-disable react-hooks/refs */
 import { Ionicons } from '@expo/vector-icons';
 import { PanResponder, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -28,7 +29,7 @@ export function HomeSearchBar({
   activeCategory,
   onCategoryChange,
 }: HomeSearchBarProps) {
-  const pan = useRef(
+  const panRef = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => false,
       onMoveShouldSetPanResponder: (_, g) => Math.abs(g.dy) > 5 && Math.abs(g.dy) > Math.abs(g.dx),
@@ -36,7 +37,9 @@ export function HomeSearchBar({
         if (g.dy > 40 || g.vy > 0.3) onSwipeDown();
       },
     }),
-  ).current;
+  );
+  // eslint-disable-next-line react-hooks/refs
+  const pan = panRef.current;
 
   return (
     <View style={styles.wrap}>

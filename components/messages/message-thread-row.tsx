@@ -1,7 +1,8 @@
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { type Conversation } from '@/types/messages';
 import { formatRelativeTime } from '@/utils/format-relative-time';
@@ -45,6 +46,12 @@ export function MessageThreadRow({
           >
             {thread.participant.name}
           </Text>
+          {thread.participant.isAdmin && (
+            <View style={styles.adminPill}>
+              <Ionicons name="shield-checkmark" size={9} color={DesignColors.primary} />
+              <Text style={styles.adminPillText}>Gida Admin</Text>
+            </View>
+          )}
           <Text style={[styles.time, isUnread && styles.timeUnread]}>
             {formatRelativeTime(thread.lastMessageAt)}
           </Text>
@@ -112,9 +119,28 @@ const styles = StyleSheet.create({
   },
   topLine: {
     flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'baseline',
-    gap: DesignSpacing.sm,
+    alignItems: 'center',
+    gap: DesignSpacing.xs,
+    flex: 1,
+  },
+  adminPill: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 3,
+    paddingHorizontal: 6,
+    paddingVertical: 2,
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.primaryTint,
+    borderWidth: 1,
+    borderColor: DesignColors.primaryTintBorder,
+    flexShrink: 0,
+  },
+  adminPillText: {
+    fontSize: 9,
+    fontWeight: '700' as const,
+    color: DesignColors.primaryBright,
+    fontFamily,
+    letterSpacing: 0.3,
   },
   name: {
     fontSize: 17,
@@ -122,7 +148,7 @@ const styles = StyleSheet.create({
     fontWeight: '600',
     color: DesignColors.onSurface,
     fontFamily,
-    flex: 1,
+    flexShrink: 1,
   },
   nameUnread: {
     fontWeight: '700',
@@ -131,6 +157,7 @@ const styles = StyleSheet.create({
     ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+    marginLeft: 'auto',
   },
   timeUnread: {
     color: DesignColors.primary,

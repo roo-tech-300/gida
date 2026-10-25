@@ -129,6 +129,7 @@ export function MessageChatScreen() {
         <MessageChatHeader
           name={participant?.name}
           avatarUrl={participant?.avatarUrl}
+          isAdmin={participant?.isAdmin}
           onBack={handleBack}
         />
 

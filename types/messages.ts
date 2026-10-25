@@ -114,6 +114,7 @@ export type MessageParticipant = {
   id: string;
   name: string;
   avatarUrl: string | null;
+  isAdmin?: boolean;
 };
 
 export type Conversation = {

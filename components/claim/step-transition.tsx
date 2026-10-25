@@ -13,9 +13,7 @@ const DURATION = 220;
 export function StepTransition({ stepKey, children, style }: Props) {
   const fadeRef = useRef(new Animated.Value(0));
   const slideRef = useRef(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/refs
   const fade = fadeRef.current;
-  // eslint-disable-next-line react-hooks/refs
   const slide = slideRef.current;
   const previousStep = useRef(stepKey);
 

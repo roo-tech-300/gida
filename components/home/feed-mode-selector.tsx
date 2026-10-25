@@ -86,10 +86,8 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
       },
     }),
   );
-  // eslint-disable-next-line react-hooks/refs
   const overlayPan = overlayPanRef.current;
 
-  // eslint-disable-next-line react-hooks/refs
   const slideY = anim.interpolate({
     inputRange: [0, 1],
     outputRange: [overlayHeight > 0 ? -overlayHeight : -10000, 0],

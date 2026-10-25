@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useState } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useQueryClient } from '@tanstack/react-query';
 import { useRouter } from 'expo-router';
@@ -47,6 +47,8 @@ export function ShareListingModal({
     if (!myId || sharingId !== null) return;
     setSharingId(conversation.id);
     try {
+      // Date.now() is called inside an async event handler, not during render
+      // eslint-disable-next-line react-hooks/purity
       const clientSentAt = Date.now();
       if (isConnected === false) {
         createOutboxMessage({

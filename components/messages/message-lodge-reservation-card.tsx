@@ -1,8 +1,9 @@
-import { ActivityIndicator, Image, Pressable, StyleSheet, Text, View } from 'react-native';
+import { supabase } from '@/lib/supabase';
 import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useState } from 'react';
-import { supabase } from '@/lib/supabase';
+import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { AnimatedErrorModal } from '@/components/ui/animated-error-modal';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';

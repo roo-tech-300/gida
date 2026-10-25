@@ -15,7 +15,6 @@ export function PropertyBottomSheet({
   const insets = useSafeAreaInsets();
   const headroom = insets.top + 64;
   const translateYRef = useRef(new Animated.Value(heroHeight));
-  // eslint-disable-next-line react-hooks/refs
   const translateY = translateYRef.current;
   const isExpanded = useRef(false);
   const startY = useRef(0);

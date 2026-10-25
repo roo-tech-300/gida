@@ -161,7 +161,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.gender]);
+  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile]);
 
   const handleJoinOpenPod = useCallback(
     async (pod: Pod) => {

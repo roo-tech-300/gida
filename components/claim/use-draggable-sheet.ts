@@ -12,7 +12,6 @@ export function useDraggableSheet() {
   const expanded = Math.round(screenHeight * EXPANDED_RATIO);
 
   const heightRef = useRef(new Animated.Value(expanded));
-  // eslint-disable-next-line react-hooks/refs
   const height = heightRef.current;
   const startY = useRef(0);
 

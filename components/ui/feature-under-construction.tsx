@@ -13,7 +13,6 @@ interface FeatureUnderConstructionProps {
 
 export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
   const floatAnimRef = useRef(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/refs
   const floatAnim = floatAnimRef.current;
 
   useEffect(() => {

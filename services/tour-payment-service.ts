@@ -1,5 +1,3 @@
-import { Platform } from 'react-native';
-
 import { buildCallbackUrl, type InitializeLocationPaymentResult } from '@/services/location-access-service';
 import { currentUserId } from '@/services/liquidity-pod-service';
 import { getPaymentAuthorizationHeader } from '@/services/payment-api';

@@ -38,7 +38,6 @@ export function HomeSearchBar({
       },
     }),
   );
-  // eslint-disable-next-line react-hooks/refs
   const pan = panRef.current;
 
   return (

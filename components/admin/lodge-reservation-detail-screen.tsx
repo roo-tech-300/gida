@@ -136,7 +136,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
 
           {isApproved && (
             <View style={[styles.statusCard, styles.statusAccepted]}>
-              <Ionicons name="checkmark-circle-outline" size={20} color={DesignColors.onPrimary} />
+              <Ionicons name="checkmark-circle-outline" size={20} color="#ffffff" />
               <View style={styles.statusBody}>
                 <Text style={styles.statusTitle}>Application accepted</Text>
                 <Text style={styles.statusMessage}>
@@ -162,7 +162,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
             </View>
           )}
 
-          {isExpired && (
+          {isExpired && !isApproved && !isRejected && (
             <View style={[styles.statusCard, styles.statusExpired]}>
               <Ionicons name="time-outline" size={20} color={DesignColors.onSurfaceVariant} />
               <View style={styles.statusBody}>

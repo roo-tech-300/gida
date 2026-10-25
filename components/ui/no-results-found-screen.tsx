@@ -27,7 +27,6 @@ export function NoResultsFoundScreen({
   subtitle = "We couldn't find any available apartments or active roommate requests matching your current filters around campus.",
 }: NoResultsFoundScreenProps) {
   const floatAnimRef = useRef(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/refs
   const floatAnim = floatAnimRef.current;
 
   useEffect(() => {
@@ -51,13 +50,11 @@ export function NoResultsFoundScreen({
     return () => loop.stop();
   }, [floatAnim]);
 
-  // eslint-disable-next-line react-hooks/refs
   const mainTranslateY = floatAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: [0, -15, 0],
   });
 
-  // eslint-disable-next-line react-hooks/refs
   const mainRotate = floatAnim.interpolate({
     inputRange: [0, 0.5, 1],
     outputRange: ['6deg', '4deg', '6deg'],

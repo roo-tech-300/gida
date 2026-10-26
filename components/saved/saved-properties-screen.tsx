@@ -2,13 +2,13 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback } from 'react';
 import {
-    ActivityIndicator,
-    FlatList,
-    Pressable,
-    RefreshControl,
-    StyleSheet,
-    Text,
-    View,
+  ActivityIndicator,
+  FlatList,
+  Pressable,
+  RefreshControl,
+  StyleSheet,
+  Text,
+  View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
@@ -16,6 +16,8 @@ import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { type SavedFilter, useSavedFeed } from '@/hooks/use-saved-feed';
 
+import { useToggleSave } from '@/hooks/use-saved-listings';
+import { useSavedPlaces } from '@/hooks/use-saved-places';
 import { SavedPlaceCard } from './saved-place-card';
 import { SavedPropertyCard } from './saved-property-card';
 import { SavedSpacesEmptyState } from './saved-spaces-empty-state';
@@ -154,8 +156,7 @@ export function SavedPropertiesScreen() {
 
 // ---- Proper remove handlers wired via hooks --------------------------------
 // We use a wrapper component so we can call hooks at the top level
-import { useToggleSave } from '@/hooks/use-saved-listings';
-import { useSavedPlaces } from '@/hooks/use-saved-places';
+
 
 export function SavedScreenWithRemove() {
   const router = useRouter();

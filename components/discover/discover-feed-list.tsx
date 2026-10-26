@@ -5,7 +5,6 @@ import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
 import { DiscoverPlaceCard } from '@/components/discover/discover-place-card';
 import { DiscoverTrendingRail } from '@/components/discover/discover-trending-rail';
 import { SponsoredCard } from '@/components/discover/sponsored-card';
-import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import { SPONSORED_PLACEMENTS } from '@/dummy/sponsored-mock';
 import type { DiscoverFeed } from '@/hooks/use-discover-feed';
@@ -41,7 +40,6 @@ export function DiscoverFeedList({
   onDirections,
 }: Props) {
   const router = useRouter();
-  const { showToast } = useAppToast();
   const sponsor = SPONSORED_PLACEMENTS[0] ?? null;
   const hasRecommendations = feed.isSearching && SPONSORED_PLACEMENTS.length > 0;
 

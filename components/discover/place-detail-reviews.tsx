@@ -8,38 +8,56 @@ type Props = {
   reviews: PlaceReview[];
   rating: number;
   ratingCount: number;
-  onRate: () => void;
+  hasMoreReviews: boolean;
+  onLoadMoreReviews: () => void;
+  isLoadingMoreReviews: boolean;
 };
 
-export function PlaceDetailReviews({ reviews, rating, ratingCount, onRate }: Props) {
+export function PlaceDetailReviews({
+  reviews,
+  rating,
+  ratingCount,
+  hasMoreReviews,
+  onLoadMoreReviews,
+  isLoadingMoreReviews,
+}: Props) {
   return (
     <View style={styles.container}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Reviews</Text>
-        <Pressable accessibilityRole="button" onPress={onRate} style={styles.rateButton}>
-          <Text style={styles.rateLabel}>Rate this place</Text>
-        </Pressable>
-      </View>
+      <Text style={styles.title}>Reviews</Text>
       <StarRating count={ratingCount} rating={rating} showValue />
 
       {reviews.length === 0 ? (
         <Text style={styles.empty}>No reviews yet. Be the first to rate this place.</Text>
       ) : (
-        reviews.map((review) => (
-          <View key={review.id} style={styles.review}>
-            <View style={styles.avatar}>
-              <Text style={styles.initials}>{review.initials}</Text>
-            </View>
-            <View style={styles.reviewBody}>
-              <View style={styles.reviewTop}>
-                <Text style={styles.author}>{review.author}</Text>
-                <Text style={styles.when}>{review.createdAt}</Text>
+        <>
+          {reviews.map((review) => (
+            <View key={review.id} style={styles.review}>
+              <View style={styles.avatar}>
+                <Text style={styles.initials}>{review.initials}</Text>
               </View>
-              <StarRating rating={review.rating} size={12} />
-              <Text style={styles.text}>{review.text}</Text>
+              <View style={styles.reviewBody}>
+                <View style={styles.reviewTop}>
+                  <Text style={styles.author}>{review.author}</Text>
+                  <Text style={styles.when}>{review.createdAt}</Text>
+                </View>
+                <StarRating rating={review.rating} size={12} />
+                <Text style={styles.text}>{review.text}</Text>
+              </View>
             </View>
-          </View>
-        ))
+          ))}
+          {hasMoreReviews && (
+            <Pressable
+              accessibilityRole="button"
+              onPress={onLoadMoreReviews}
+              disabled={isLoadingMoreReviews}
+              style={styles.loadMore}
+            >
+              <Text style={styles.loadMoreLabel}>
+                {isLoadingMoreReviews ? 'Loading…' : 'Load more reviews'}
+              </Text>
+            </Pressable>
+          )}
+        </>
       )}
     </View>
   );
@@ -50,27 +68,10 @@ const styles = StyleSheet.create({
     marginTop: 18,
     gap: 12,
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   title: {
     fontSize: 16,
     fontWeight: '700',
     color: DesignColors.textPrimary,
-    fontFamily,
-  },
-  rateButton: {
-    paddingHorizontal: 12,
-    paddingVertical: 6,
-    borderRadius: 999,
-    backgroundColor: DesignColors.primaryTint,
-  },
-  rateLabel: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: DesignColors.primaryFixed,
     fontFamily,
   },
   empty: {
@@ -121,6 +122,23 @@ const styles = StyleSheet.create({
     fontSize: 13,
     lineHeight: 20,
     color: DesignColors.onSurfaceVariant,
+    fontFamily,
+  },
+  loadMore: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    paddingVertical: 12,
+    borderRadius: 12,
+    backgroundColor: DesignColors.surfaceContainerLowest,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+  },
+  loadMoreLabel: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: DesignColors.primaryFixed,
     fontFamily,
   },
 });

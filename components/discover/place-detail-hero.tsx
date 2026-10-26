@@ -43,15 +43,11 @@ export function PlaceDetailHero({ place, saved, onToggleSave, onShare, onPressIm
           />
         </View>
         <View style={styles.heroActions}>
-          <Pressable accessibilityRole="button" hitSlop={8} onPress={onToggleSave}>
-            <Ionicons
-              color={saved ? DesignColors.primary : DesignColors.onPrimary}
-              name={saved ? 'bookmark' : 'bookmark-outline'}
-              size={20}
-            />
+          <Pressable accessibilityRole="button" hitSlop={12} onPress={onToggleSave} style={styles.actionButton}>
+            <Ionicons color="#FFFFFF" name={saved ? 'bookmark' : 'bookmark-outline'} size={24} />
           </Pressable>
-          <Pressable accessibilityRole="button" hitSlop={8} onPress={onShare}>
-            <Ionicons color={DesignColors.onPrimary} name="share-outline" size={20} />
+          <Pressable accessibilityRole="button" hitSlop={12} onPress={onShare} style={styles.actionButton}>
+            <Ionicons color="#FFFFFF" name="share-outline" size={24} />
           </Pressable>
         </View>
       </View>
@@ -62,7 +58,7 @@ export function PlaceDetailHero({ place, saved, onToggleSave, onShare, onPressIm
 const styles = StyleSheet.create({
   container: {
     width: '100%',
-    height: 200,
+    height: 320,
     overflow: 'hidden',
   },
   heroImage: {
@@ -89,19 +85,22 @@ const styles = StyleSheet.create({
     bottom: 0,
     left: 0,
     right: 0,
-    padding: DesignSpacing.md,
+    padding: DesignSpacing.lg,
+    paddingBottom: DesignSpacing.xl,
+    gap: DesignSpacing.xs,
   },
   heroTitle: {
-    fontSize: 24,
+    fontSize: 26,
+    lineHeight: 32,
     fontWeight: '800',
     color: DesignColors.onSurface,
     fontFamily,
   },
   heroSubtitle: {
     fontSize: 14,
+    lineHeight: 20,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
-    marginTop: DesignSpacing.xs,
   },
   heroActions: {
     position: 'absolute',
@@ -109,5 +108,15 @@ const styles = StyleSheet.create({
     right: DesignSpacing.md,
     flexDirection: 'row',
     gap: DesignSpacing.sm,
+  },
+  actionButton: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(255,255,255,0.18)',
+    borderWidth: 1,
+    borderColor: 'rgba(255,255,255,0.3)',
   },
 });

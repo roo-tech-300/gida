@@ -19,7 +19,6 @@ import { DesignColors, DesignSpacing } from '@/constants/design';
 import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import { useDiscoverFeed } from '@/hooks/use-discover-feed';
 import type { Place } from '@/types/place';
-import { openPlaceInMaps } from '@/utils/place-maps';
 
 export function DiscoverScreen() {
   const router = useRouter();
@@ -34,16 +33,6 @@ export function DiscoverScreen() {
       router.push(`/place/${place.id}` as Href);
     },
     [router],
-  );
-
-  const getDirections = useCallback(
-    async (place: Place) => {
-      const opened = await openPlaceInMaps(place);
-      if (!opened) {
-        showToast({ type: 'error', message: 'Could not open Google Maps. Please try again.' });
-      }
-    },
-    [showToast],
   );
 
   const toggleSave = useCallback(
@@ -114,7 +103,6 @@ export function DiscoverScreen() {
                   feed={feed}
                   isSaved={isSaved}
                   sectionTitle={sectionTitle}
-                  onDirections={(place) => void getDirections(place)}
                   onOpenPlace={openPlace}
                   onToggleSave={toggleSave}
                 />

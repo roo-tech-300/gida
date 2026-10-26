@@ -1,8 +1,8 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import { useQuery, useInfiniteQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
 import { useEffect, useState } from 'react';
-import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
+import { ActivityIndicator, Pressable, ScrollView, Share, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
@@ -10,16 +10,18 @@ import { PlaceDetailContent } from '@/components/discover/place-detail-content';
 import { PlaceDetailHero } from '@/components/discover/place-detail-hero';
 import { PlaceDetailReviews } from '@/components/discover/place-detail-reviews';
 import { PlacePhotoGallery } from '@/components/discover/place-photo-gallery';
-import { PlaceRatingSheet } from '@/components/discover/place-rating-sheet';
+import { PlaceReviewForm } from '@/components/discover/place-review-form';
 import { BackButton } from '@/components/ui/back-button';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { useAppToast } from '@/components/ui/toast-card';
-import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing } from '@/constants/design';
+import { styles } from '@/components/discover/place-detail-screen.styles';
 import { useSavedPlaces } from '@/hooks/use-saved-places';
-import { fetchPlaceById, fetchPlaceRatings, upsertPlaceRating } from '@/services/places-service';
+import { fetchPlaceById } from '@/services/places-service';
+import { fetchPlaceRatings, upsertPlaceRating } from '@/services/place-ratings-service';
 import { supabase } from '@/lib/supabase';
-import type { PlaceReview } from '@/types/place';
+import type { NewPlaceReview, Place, PlaceReview } from '@/types/place';
 import { buildPlaceMapsUrl, openPlaceInMaps } from '@/utils/place-maps';
 
 export function PlaceDetailScreen() {
@@ -38,17 +40,31 @@ export function PlaceDetailScreen() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const { data: dbReviews = [] } = useQuery({
+  const REVIEW_PAGE_SIZE = 10;
+
+  const {
+    data: dbReviewPages,
+    fetchNextPage: fetchNextReviews,
+    hasNextPage: hasMoreReviews,
+    isFetching: isFetchingMoreReviews,
+  } = useInfiniteQuery<PlaceReview[], Error>({
     queryKey: ['place-ratings', id],
-    queryFn: () => fetchPlaceRatings(id),
+    initialPageParam: 0,
+    queryFn: ({ pageParam = 0 }) =>
+      fetchPlaceRatings(id, {
+        from: pageParam * REVIEW_PAGE_SIZE,
+        to: (pageParam + 1) * REVIEW_PAGE_SIZE - 1,
+      }),
     enabled: id.length > 0,
     staleTime: 60 * 1000,
+    getNextPageParam: (lastPage, allPages) =>
+      lastPage.length < REVIEW_PAGE_SIZE ? undefined : allPages.length,
   });
 
-  const [localReviews, setLocalReviews] = useState<PlaceReview[]>([]);
+  const dbReviews = (dbReviewPages?.pages.flatMap((page) => page) ?? []) as PlaceReview[];
+
   const [rating, setRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
-  const [sheetVisible, setSheetVisible] = useState(false);
   const [galleryVisible, setGalleryVisible] = useState(false);
   // Sync rating/ratingCount from DB once place loads
   useEffect(() => {
@@ -58,7 +74,7 @@ export function PlaceDetailScreen() {
     }
   }, [place]);
 
-  const reviews = [...localReviews, ...dbReviews];
+  const reviews = dbReviews;
 
   // Loading state
   if (isLoading) {
@@ -128,30 +144,17 @@ export function PlaceDetailScreen() {
     });
   };
 
-  const handleSubmitRating = async (value: number, text: string) => {
+  const handleSubmitRating = async (review: NewPlaceReview): Promise<boolean> => {
     try {
       const { data: sessionData } = await supabase.auth.getSession();
       const userId = sessionData.session?.user?.id;
 
       if (!userId) {
         showToast({ type: 'error', message: 'Please sign in to rate this place.' });
-        return;
+        return false;
       }
 
-      await upsertPlaceRating(place.id, value, userId);
-
-      setLocalReviews((current) => [
-        {
-          id: `local-${Date.now()}`,
-          placeId: place.id,
-          author: 'You',
-          initials: 'YO',
-          rating: value,
-          text: text.length > 0 ? text : 'Rated this place.',
-          createdAt: 'Just now',
-        },
-        ...current,
-      ]);
+      await upsertPlaceRating(place.id, userId, review);
 
       await Promise.all([
         queryClient.invalidateQueries({ queryKey: ['place', id] }),
@@ -159,16 +162,18 @@ export function PlaceDetailScreen() {
         queryClient.invalidateQueries({ queryKey: ['places', 'discover'] }),
       ]);
 
-      const updated = queryClient.getQueryData<any>(['place', id]);
+      const updated = queryClient.getQueryData<Place>(['place', id]);
       if (updated) {
         setRating(updated.rating);
         setRatingCount(updated.ratingCount);
       }
 
       showToast({ type: 'success', message: 'Thanks! Your rating was saved.' });
+      return true;
     } catch (error) {
       console.error('[PlaceDetail] Failed to submit rating:', error);
       showToast({ type: 'error', message: 'Could not save your rating. Please try again.' });
+      return false;
     }
   };
 
@@ -188,11 +193,14 @@ export function PlaceDetailScreen() {
           />
           <View style={styles.sheet}>
             <PlaceDetailContent place={place} rating={rating} ratingCount={ratingCount} />
+            <PlaceReviewForm onSubmit={handleSubmitRating} />
             <PlaceDetailReviews
               reviews={reviews}
               rating={rating}
               ratingCount={ratingCount}
-              onRate={() => setSheetVisible(true)}
+              hasMoreReviews={hasMoreReviews}
+              onLoadMoreReviews={() => void fetchNextReviews()}
+              isLoadingMoreReviews={isFetchingMoreReviews}
             />
           </View>
         </ScrollView>
@@ -214,13 +222,6 @@ export function PlaceDetailScreen() {
           </Pressable>
         </View>
 
-        <PlaceRatingSheet
-          visible={sheetVisible}
-          placeName={place.name}
-          onClose={() => setSheetVisible(false)}
-          onSubmit={handleSubmitRating}
-        />
-
         <PlacePhotoGallery
           photos={place.images?.split(',').filter(Boolean) ?? []}
           visible={galleryVisible}
@@ -230,68 +231,3 @@ export function PlaceDetailScreen() {
     </ErrorBoundary>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  scrollContent: {
-    paddingBottom: 120,
-  },
-  sheet: {
-    marginTop: -28,
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.lg,
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  footer: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    bottom: 0,
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  cta: {
-    minHeight: 56,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 8,
-    borderRadius: 999,
-    backgroundColor: DesignColors.primary,
-  },
-  ctaPressed: {
-    opacity: 0.88,
-  },
-  ctaLabel: {
-    fontSize: 15,
-    lineHeight: 20,
-    fontWeight: '700',
-    color: DesignColors.onPrimary,
-    fontFamily,
-  },
-  loadingWrap: {
-    flex: 1,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  loadingCenter: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  notFound: {
-    flex: 1,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  notFoundHeader: {
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.sm,
-  },
-});

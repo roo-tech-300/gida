@@ -10,6 +10,8 @@ type Props = {
   size?: number;
   showValue?: boolean;
   count?: number;
+  /** Renders one star followed by the numeric rating — for space-tight cards. */
+  compact?: boolean;
 };
 
 function starName(rating: number, slot: number): 'star' | 'star-half' | 'star-outline' {
@@ -18,22 +20,26 @@ function starName(rating: number, slot: number): 'star' | 'star-half' | 'star-ou
   return 'star-outline';
 }
 
-export function StarRating({ rating, size = 14, showValue = false, count }: Props) {
+export function StarRating({ rating, size = 14, showValue = false, count, compact = false }: Props) {
   return (
     <View
       accessibilityLabel={`Rated ${rating.toFixed(1)} out of 5`}
       accessible
       style={styles.row}
     >
-      {STAR_SLOTS.map((slot) => (
-        <Ionicons
-          key={slot}
-          color={DesignColors.rating}
-          name={starName(rating, slot)}
-          size={size}
-        />
-      ))}
-      {showValue && (
+      {compact ? (
+        <Ionicons color={DesignColors.rating} name="star" size={size} />
+      ) : (
+        STAR_SLOTS.map((slot) => (
+          <Ionicons
+            key={slot}
+            color={DesignColors.rating}
+            name={starName(rating, slot)}
+            size={size}
+          />
+        ))
+      )}
+      {(showValue || compact) && (
         <Text style={[styles.value, { fontSize: Math.max(12, size - 1) }]}>{rating.toFixed(1)}</Text>
       )}
       {typeof count === 'number' && (

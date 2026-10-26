@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import type { Place, PlaceReview } from '@/types/place';
+import type { Place } from '@/types/place';
 
 export const PLACES_QUERY_KEY = ['places', 'discover'] as const;
 export const PAGE_SIZE = 20;
@@ -10,7 +10,6 @@ let createdPlaces: Place[] = [];
 export function addPlace(place: Place): void {
   createdPlaces = [place, ...createdPlaces];
 }
-
 export function findPlace(id: string): Place | undefined {
   return createdPlaces.find((p) => p.id === id);
 }
@@ -189,69 +188,4 @@ export async function fetchPlaceById(id: string): Promise<Place | null> {
   }
 
   return mapRow(data);
-}
-
-export async function fetchPlaceRatings(placeId: string): Promise<PlaceReview[]> {
-  const { data, error } = await supabase
-    .from('place_ratings')
-    .select('id, rating, created_at, user_id, profiles(username, full_name, avatar_url)')
-    .eq('place_id', placeId)
-    .order('created_at', { ascending: false });
-
-  if (error) {
-    console.error('[places-service] fetchPlaceRatings failed:', error.message);
-    throw new Error(error.message);
-  }
-
-  return (data ?? []).map((row: any) => {
-    const username = row.profiles?.username || row.profiles?.full_name || 'User';
-    const initials = username
-      .split(/\s+/)
-      .filter(Boolean)
-      .map((part: string) => part[0])
-      .join('')
-      .slice(0, 2)
-      .toUpperCase();
-
-    const createdAt = row.created_at ? new Date(row.created_at) : new Date();
-    const diffMs = Date.now() - createdAt.getTime();
-    const diffMins = Math.floor(diffMs / 60000);
-    const diffHours = Math.floor(diffMins / 60);
-    const diffDays = Math.floor(diffHours / 24);
-
-    let timeLabel = 'Just now';
-    if (diffDays > 0) timeLabel = `${diffDays}d ago`;
-    else if (diffHours > 0) timeLabel = `${diffHours}h ago`;
-    else if (diffMins > 0) timeLabel = `${diffMins}m ago`;
-
-    return {
-      id: row.id as string,
-      placeId,
-      author: username,
-      initials,
-      rating: row.rating as number,
-      text: '',
-      createdAt: timeLabel,
-    };
-  });
-}
-
-export async function upsertPlaceRating(
-  placeId: string,
-  rating: number,
-  userId: string,
-): Promise<void> {
-  const { error: ratingError } = await supabase.from('place_ratings').upsert(
-    {
-      place_id: placeId,
-      user_id: userId,
-      rating,
-    },
-    { onConflict: 'place_id,user_id' },
-  );
-
-  if (ratingError) {
-    console.error('[places-service] upsertPlaceRating failed:', ratingError.message);
-    throw new Error(ratingError.message);
-  }
 }

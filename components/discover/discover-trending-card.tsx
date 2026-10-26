@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
-import { formatOpenStatus, formatPriceRange } from '@/utils/place-format';
+import { formatOpenStatus } from '@/utils/place-format';
 
 type Props = {
   place: Place;
@@ -82,8 +82,6 @@ export function DiscoverTrendingCard({ place, saved, onPress, onToggleSave }: Pr
           <Text numberOfLines={1} style={styles.metaArea}>
             {place.area}
           </Text>
-          <Text style={styles.metaBullet}>•</Text>
-          <Text style={styles.metaPrice}>{formatPriceRange(place.priceRange)}</Text>
         </View>
 
         <View style={styles.ratingRow}>
@@ -198,16 +196,6 @@ const styles = StyleSheet.create({
     color: DesignColors.textSecondary,
     fontFamily,
     maxWidth: 120,
-  },
-  metaBullet: {
-    fontSize: 11,
-    color: DesignColors.outline,
-  },
-  metaPrice: {
-    fontSize: 12,
-    fontWeight: '600',
-    color: DesignColors.primaryFixed,
-    fontFamily,
   },
   ratingRow: {
     flexDirection: 'row',

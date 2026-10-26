@@ -27,7 +27,6 @@ type Props = {
   isSaved: (id: string) => boolean;
   onOpenPlace: (place: Place) => void;
   onToggleSave: (place: Place) => void;
-  onDirections: (place: Place) => void;
 };
 
 export function DiscoverFeedList({
@@ -37,7 +36,6 @@ export function DiscoverFeedList({
   isSaved,
   onOpenPlace,
   onToggleSave,
-  onDirections,
 }: Props) {
   const router = useRouter();
   const sponsor = SPONSORED_PLACEMENTS[0] ?? null;
@@ -84,7 +82,6 @@ export function DiscoverFeedList({
               saved={isSaved(item.place.id)}
               onPress={() => onOpenPlace(item.place)}
               onToggleSave={() => onToggleSave(item.place)}
-              onDirections={() => onDirections(item.place)}
             />
           ) : (
             <SponsoredCard

@@ -16,6 +16,9 @@ type Props = {
 export function PlaceDetailContent({ place, rating, ratingCount }: Props) {
   const category = getPlaceCategoryMeta(place.category);
   const openLabel = formatOpenStatus(place.openStatus);
+  const hasAddress = place.address.trim().length > 0;
+  const hasHours = place.hours.trim().length > 0;
+  const hasOpenStatus = openLabel.length > 0;
 
   return (
     <View style={styles.container}>
@@ -32,8 +35,6 @@ export function PlaceDetailContent({ place, rating, ratingCount }: Props) {
         )}
       </View>
 
-      <Text style={styles.name}>{place.name}</Text>
-
       <View style={styles.ratingRow}>
         <StarRating rating={rating} showValue size={14} />
         <Text style={styles.metaText}>{formatRatingCount(ratingCount)} ratings</Text>
@@ -41,33 +42,37 @@ export function PlaceDetailContent({ place, rating, ratingCount }: Props) {
         <Text style={styles.metaText}>{formatPriceRange(place.priceRange)}</Text>
       </View>
 
-      <View style={styles.infoRow}>
-        <Ionicons color={DesignColors.textSecondary} name="location-outline" size={16} />
-        <Text style={styles.infoText}>{place.address}</Text>
-      </View>
+      {hasAddress && (
+        <View style={styles.infoRow}>
+          <Ionicons color={DesignColors.textSecondary} name="location-outline" size={16} />
+          <Text style={styles.infoText}>{place.address}</Text>
+        </View>
+      )}
 
-      <View style={styles.infoRow}>
-        <Ionicons color={DesignColors.textSecondary} name="time-outline" size={16} />
-        <Text style={styles.infoText}>{place.hours}</Text>
-        {openLabel.length > 0 && (
-          <View style={styles.statusPill}>
-            <View
-              style={[
-                styles.statusDot,
-                place.openStatus === 'open' ? styles.statusOpen : styles.statusClosed,
-              ]}
-            />
-            <Text
-              style={[
-                styles.statusText,
-                place.openStatus === 'open' ? styles.statusTextOpen : styles.statusTextClosed,
-              ]}
-            >
-              {openLabel}
-            </Text>
-          </View>
-        )}
-      </View>
+      {(hasHours || hasOpenStatus) && (
+        <View style={styles.infoRow}>
+          <Ionicons color={DesignColors.textSecondary} name="time-outline" size={16} />
+          {hasHours && <Text style={styles.infoText}>{place.hours}</Text>}
+          {hasOpenStatus && (
+            <View style={[styles.statusPill, hasHours && styles.statusPillRight]}>
+              <View
+                style={[
+                  styles.statusDot,
+                  place.openStatus === 'open' ? styles.statusOpen : styles.statusClosed,
+                ]}
+              />
+              <Text
+                style={[
+                  styles.statusText,
+                  place.openStatus === 'open' ? styles.statusTextOpen : styles.statusTextClosed,
+                ]}
+              >
+                {openLabel}
+              </Text>
+            </View>
+          )}
+        </View>
+      )}
 
       <View style={styles.section}>
         <Text style={styles.sectionTitle}>About</Text>
@@ -177,6 +182,8 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 5,
+  },
+  statusPillRight: {
     marginLeft: 'auto',
   },
   statusDot: {

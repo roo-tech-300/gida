@@ -7,17 +7,16 @@ import { PlaceCreator } from '@/components/discover/place-creator';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
-import { formatOpenStatus, formatPriceRange } from '@/utils/place-format';
+import { formatOpenStatus } from '@/utils/place-format';
 
 type Props = {
   place: Place;
   saved: boolean;
   onPress: () => void;
   onToggleSave: () => void;
-  onDirections: () => void;
 };
 
-export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave, onDirections }: Props) {
+export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave }: Props) {
   const category = getPlaceCategoryMeta(place.category);
   const openLabel = formatOpenStatus(place.openStatus);
   const firstImage = place.images?.split(',').find((u) => u.length > 0);
@@ -50,29 +49,15 @@ export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave, onDirec
       </View>
 
       <View style={styles.body}>
-        <View style={styles.topRow}>
-          <Text numberOfLines={1} style={styles.category}>
-            {category.label}
-          </Text>
-          <Pressable
-            accessibilityLabel={saved ? `Unsave ${place.name}` : `Save ${place.name}`}
-            accessibilityRole="button"
-            hitSlop={8}
-            onPress={onToggleSave}
-          >
-            <Ionicons
-              color={saved ? DesignColors.primary : DesignColors.onSurfaceVariant}
-              name={saved ? 'bookmark' : 'bookmark-outline'}
-              size={18}
-            />
-          </Pressable>
-        </View>
+        <Text numberOfLines={1} style={styles.category}>
+          {category.label}
+        </Text>
 
         <Text numberOfLines={1} style={styles.name}>
           {place.name}
         </Text>
         <Text numberOfLines={1} style={styles.meta}>
-          {place.area} • {formatPriceRange(place.priceRange)}
+          {place.area}
         </Text>
 
         <PlaceCreator
@@ -83,17 +68,20 @@ export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave, onDirec
         />
 
         <View style={styles.footerRow}>
-          <StarRating count={place.ratingCount} rating={place.rating} showValue />
+          <StarRating compact rating={place.rating} />
 
           <Pressable
-            accessibilityLabel={`Get directions to ${place.name}`}
+            accessibilityLabel={saved ? `Unsave ${place.name}` : `Save ${place.name}`}
             accessibilityRole="button"
-            hitSlop={6}
-            onPress={onDirections}
-            style={styles.directions}
+            hitSlop={8}
+            onPress={onToggleSave}
+            style={({ pressed }) => [styles.saveButton, pressed && styles.saveButtonPressed]}
           >
-            <Ionicons color={DesignColors.primaryFixed} name="navigate-outline" size={13} />
-            <Text style={styles.directionsLabel}>Directions</Text>
+            <Ionicons
+              color={saved ? DesignColors.primary : DesignColors.onSurfaceVariant}
+              name={saved ? 'bookmark' : 'bookmark-outline'}
+              size={22}
+            />
           </Pressable>
         </View>
       </View>
@@ -158,11 +146,6 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     paddingVertical: 2,
   },
-  topRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
   category: {
     fontSize: 10,
     fontWeight: '700',
@@ -189,19 +172,15 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     marginTop: 2,
   },
-  directions: {
-    flexDirection: 'row',
+  saveButton: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
     alignItems: 'center',
-    gap: 3,
+    justifyContent: 'center',
     backgroundColor: 'rgba(124, 58, 237, 0.12)',
-    paddingHorizontal: 8,
-    paddingVertical: 4,
-    borderRadius: 8,
   },
-  directionsLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: DesignColors.primaryFixed,
-    fontFamily,
+  saveButtonPressed: {
+    opacity: 0.7,
   },
 });

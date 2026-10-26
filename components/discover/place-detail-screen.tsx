@@ -1,7 +1,7 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { useLocalSearchParams, useRouter, type Href } from 'expo-router';
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, Share, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -12,10 +12,13 @@ import { PlaceDetailReviews } from '@/components/discover/place-detail-reviews';
 import { PlacePhotoGallery } from '@/components/discover/place-photo-gallery';
 import { PlaceRatingSheet } from '@/components/discover/place-rating-sheet';
 import { BackButton } from '@/components/ui/back-button';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
+import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import { useSavedPlaces } from '@/hooks/use-saved-places';
-import { fetchPlaceById } from '@/services/places-service';
+import { fetchPlaceById, fetchPlaceRatings, upsertPlaceRating } from '@/services/places-service';
+import { supabase } from '@/lib/supabase';
 import type { PlaceReview } from '@/types/place';
 import { buildPlaceMapsUrl, openPlaceInMaps } from '@/utils/place-maps';
 
@@ -26,6 +29,7 @@ export function PlaceDetailScreen() {
   const insets = useSafeAreaInsets();
   const { showToast } = useAppToast();
   const { isSaved, toggle } = useSavedPlaces();
+  const queryClient = useQueryClient();
 
   const { data: place, isLoading, isError } = useQuery({
     queryKey: ['place', id],
@@ -34,7 +38,14 @@ export function PlaceDetailScreen() {
     staleTime: 2 * 60 * 1000,
   });
 
-  const [reviews, setReviews] = useState<PlaceReview[]>([]);
+  const { data: dbReviews = [] } = useQuery({
+    queryKey: ['place-ratings', id],
+    queryFn: () => fetchPlaceRatings(id),
+    enabled: id.length > 0,
+    staleTime: 60 * 1000,
+  });
+
+  const [localReviews, setLocalReviews] = useState<PlaceReview[]>([]);
   const [rating, setRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
   const [sheetVisible, setSheetVisible] = useState(false);
@@ -46,6 +57,8 @@ export function PlaceDetailScreen() {
       setRatingCount(place.ratingCount);
     }
   }, [place]);
+
+  const reviews = [...localReviews, ...dbReviews];
 
   // Loading state
   if (isLoading) {
@@ -62,7 +75,16 @@ export function PlaceDetailScreen() {
   }
 
   // Error / not found
-  if (isError || !place) {
+  if (isError) {
+    return (
+      <NetworkErrorScreen
+        activeTab="discover"
+        onRetry={() => queryClient.invalidateQueries({ queryKey: ['place', id] })}
+      />
+    );
+  }
+
+  if (!place) {
     return (
       <SafeAreaView style={styles.notFound}>
         <View style={styles.notFoundHeader}>
@@ -106,80 +128,106 @@ export function PlaceDetailScreen() {
     });
   };
 
-  const handleSubmitRating = (value: number, text: string) => {
-    const nextCount = ratingCount + 1;
-    const nextRating = (rating * ratingCount + value) / nextCount;
-    setReviews((current) => [
-      {
-        id: `local-${Date.now()}`,
-        placeId: place.id,
-        author: 'You',
-        initials: 'YO',
-        rating: value,
-        text: text.length > 0 ? text : 'Rated this place.',
-        createdAt: 'Just now',
-      },
-      ...current,
-    ]);
-    setRating(nextRating);
-    setRatingCount(nextCount);
-    showToast({ type: 'success', message: 'Thanks! Your rating was added.' });
+  const handleSubmitRating = async (value: number, text: string) => {
+    try {
+      const { data: sessionData } = await supabase.auth.getSession();
+      const userId = sessionData.session?.user?.id;
+
+      if (!userId) {
+        showToast({ type: 'error', message: 'Please sign in to rate this place.' });
+        return;
+      }
+
+      await upsertPlaceRating(place.id, value, userId);
+
+      setLocalReviews((current) => [
+        {
+          id: `local-${Date.now()}`,
+          placeId: place.id,
+          author: 'You',
+          initials: 'YO',
+          rating: value,
+          text: text.length > 0 ? text : 'Rated this place.',
+          createdAt: 'Just now',
+        },
+        ...current,
+      ]);
+
+      await Promise.all([
+        queryClient.invalidateQueries({ queryKey: ['place', id] }),
+        queryClient.invalidateQueries({ queryKey: ['place-ratings', id] }),
+        queryClient.invalidateQueries({ queryKey: ['places', 'discover'] }),
+      ]);
+
+      const updated = queryClient.getQueryData<any>(['place', id]);
+      if (updated) {
+        setRating(updated.rating);
+        setRatingCount(updated.ratingCount);
+      }
+
+      showToast({ type: 'success', message: 'Thanks! Your rating was saved.' });
+    } catch (error) {
+      console.error('[PlaceDetail] Failed to submit rating:', error);
+      showToast({ type: 'error', message: 'Could not save your rating. Please try again.' });
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <ScrollView
-        contentContainerStyle={styles.scrollContent}
-        showsVerticalScrollIndicator={false}
-      >
-        <PlaceDetailHero
-          place={place}
-          saved={saved}
-          onToggleSave={handleToggleSave}
-          onShare={() => void handleShare()}
-          onPressImage={() => setGalleryVisible(true)}
-        />
-        <View style={styles.sheet}>
-          <PlaceDetailContent place={place} rating={rating} ratingCount={ratingCount} />
-          <PlaceDetailReviews
-            reviews={reviews}
-            rating={rating}
-            ratingCount={ratingCount}
-            onRate={() => setSheetVisible(true)}
-          />
-        </View>
-      </ScrollView>
-
-      <View
-        style={[
-          styles.footer,
-          { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) },
-        ]}
-      >
-        <Pressable
-          accessibilityLabel={`Get directions to ${place.name}`}
-          accessibilityRole="button"
-          onPress={() => void handleDirections()}
-          style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+    <ErrorBoundary onReset={() => queryClient.invalidateQueries({ queryKey: ['place', id] })}>
+      <View style={styles.container}>
+        <ScrollView
+          contentContainerStyle={styles.scrollContent}
+          showsVerticalScrollIndicator={false}
         >
-          <Ionicons color={DesignColors.onPrimary} name="navigate" size={18} />
-          <Text style={styles.ctaLabel}>Get Directions</Text>
-        </Pressable>
+          <PlaceDetailHero
+            place={place}
+            saved={saved}
+            onToggleSave={handleToggleSave}
+            onShare={() => void handleShare()}
+            onPressImage={() => setGalleryVisible(true)}
+          />
+          <View style={styles.sheet}>
+            <PlaceDetailContent place={place} rating={rating} ratingCount={ratingCount} />
+            <PlaceDetailReviews
+              reviews={reviews}
+              rating={rating}
+              ratingCount={ratingCount}
+              onRate={() => setSheetVisible(true)}
+            />
+          </View>
+        </ScrollView>
+
+        <View
+          style={[
+            styles.footer,
+            { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) },
+          ]}
+        >
+          <Pressable
+            accessibilityLabel={`Get directions to ${place.name}`}
+            accessibilityRole="button"
+            onPress={() => void handleDirections()}
+            style={({ pressed }) => [styles.cta, pressed && styles.ctaPressed]}
+          >
+            <Ionicons color={DesignColors.onPrimary} name="navigate" size={18} />
+            <Text style={styles.ctaLabel}>Get Directions</Text>
+          </Pressable>
+        </View>
+
+        <PlaceRatingSheet
+          visible={sheetVisible}
+          placeName={place.name}
+          onClose={() => setSheetVisible(false)}
+          onSubmit={handleSubmitRating}
+        />
+
+        <PlacePhotoGallery
+          photos={place.images?.split(',').filter(Boolean) ?? []}
+          visible={galleryVisible}
+          onClose={() => setGalleryVisible(false)}
+        />
       </View>
-
-      <PlaceRatingSheet
-        visible={sheetVisible}
-        placeName={place.name}
-        onClose={() => setSheetVisible(false)}
-        onSubmit={handleSubmitRating}
-      />
-
-      <PlacePhotoGallery
-        photos={place.images?.split(',').filter(Boolean) ?? []}
-        visible={galleryVisible}
-        onClose={() => setGalleryVisible(false)}
-      />
-    </View>
+    </ErrorBoundary>
   );
 }
 

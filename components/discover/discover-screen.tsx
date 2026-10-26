@@ -9,6 +9,7 @@ import { DiscoverFab } from '@/components/discover/discover-fab';
 import { DiscoverFeedList } from '@/components/discover/discover-feed-list';
 import { DiscoverSkeleton } from '@/components/discover/discover-skeleton';
 import { AppBottomNav } from '@/components/navigation/app-bottom-nav';
+import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { ScreenTitle } from '@/components/ui/screen-title';
@@ -79,51 +80,53 @@ export function DiscoverScreen() {
       : { title: 'Nothing here yet', message: 'This category is still being mapped. Try another one.' };
 
   return (
-    <View style={styles.container}>
-      <SafeKeyboardView style={styles.flex}>
-        <SafeAreaView edges={['top']} style={styles.safe}>
-          <AuthBackgroundBubbles />
-          <View style={styles.header}>
-            <ScreenTitle title="Discover Places" />
-            <View style={styles.searchWrap}>
-              <SearchBar
-                placeholder="Search places, areas or vibes..."
-                value={feed.query}
-                onChangeText={feed.setQuery}
-                onClear={() => feed.setQuery('')}
-              />
+    <ErrorBoundary onReset={feed.refresh}>
+      <View style={styles.container}>
+        <SafeKeyboardView style={styles.flex}>
+          <SafeAreaView edges={['top']} style={styles.safe}>
+            <AuthBackgroundBubbles />
+            <View style={styles.header}>
+              <ScreenTitle title="Discover Places" />
+              <View style={styles.searchWrap}>
+                <SearchBar
+                  placeholder="Search places, areas or vibes..."
+                  value={feed.query}
+                  onChangeText={feed.setQuery}
+                  onClear={() => feed.setQuery('')}
+                />
+              </View>
+              <View style={styles.chipsWrap}>
+                <DiscoverCategoryChips
+                  active={feed.category}
+                  savedOnly={feed.savedOnly}
+                  onChange={feed.setCategory}
+                  onToggleSaved={feed.toggleSavedOnly}
+                />
+              </View>
             </View>
-            <View style={styles.chipsWrap}>
-              <DiscoverCategoryChips
-                active={feed.category}
-                savedOnly={feed.savedOnly}
-                onChange={feed.setCategory}
-                onToggleSaved={feed.toggleSavedOnly}
-              />
+
+            <View style={styles.body}>
+              {feed.isLoading ? (
+                <DiscoverSkeleton />
+              ) : (
+                <DiscoverFeedList
+                  emptyState={emptyState}
+                  feed={feed}
+                  isSaved={isSaved}
+                  sectionTitle={sectionTitle}
+                  onDirections={(place) => void getDirections(place)}
+                  onOpenPlace={openPlace}
+                  onToggleSave={toggleSave}
+                />
+              )}
+              <DiscoverFab onPress={() => router.push('/place/new' as Href)} />
             </View>
-          </View>
 
-          <View style={styles.body}>
-            {feed.isLoading ? (
-              <DiscoverSkeleton />
-            ) : (
-              <DiscoverFeedList
-                emptyState={emptyState}
-                feed={feed}
-                isSaved={isSaved}
-                sectionTitle={sectionTitle}
-                onDirections={(place) => void getDirections(place)}
-                onOpenPlace={openPlace}
-                onToggleSave={toggleSave}
-              />
-            )}
-            <DiscoverFab onPress={() => router.push('/place/new' as Href)} />
-          </View>
-
-          <AppBottomNav activeTab="discover" />
-        </SafeAreaView>
-      </SafeKeyboardView>
-    </View>
+            <AppBottomNav activeTab="discover" />
+          </SafeAreaView>
+        </SafeKeyboardView>
+      </View>
+    </ErrorBoundary>
   );
 }
 

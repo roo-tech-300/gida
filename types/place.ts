@@ -1,13 +1,23 @@
-﻿export type PlaceCategory =
+﻿/**
+ * Built-in category keys. The authoritative taxonomy lives in the
+ * `place_categories` table, so runtime values are plain strings — never assume
+ * this union covers every category a place can have.
+ */
+export type PlaceCategory =
   | 'food'
   | 'cafe'
   | 'nightlife'
   | 'chill'
   | 'study'
+  | 'work'
   | 'gym'
   | 'shopping'
   | 'health'
-  | 'services';
+  | 'services'
+  | 'school'
+  | 'recreation'
+  | 'church'
+  | 'mosque';
 
 export type PriceRange = 1 | 2 | 3;
 
@@ -16,7 +26,8 @@ export type PlaceOpenStatus = 'open' | 'closed' | 'unknown';
 export type Place = {
   id: string;
   name: string;
-  category: PlaceCategory;
+  /** DB-driven category key. Resolve display metadata via `getPlaceCategoryMeta`. */
+  category: string;
   area: string;
   city: string;
   address: string;
@@ -63,7 +74,8 @@ export type NewPlaceReview = {
 /** Editable fields used by the Add a place form. */
 export type PlaceDraft = {
   name: string;
-  category: PlaceCategory;
+  /** DB-driven category key selected from the category picker. */
+  category: string;
   area: string;
   address: string;
   description: string;

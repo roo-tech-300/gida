@@ -33,6 +33,16 @@ const PLACES_SELECT = `
   place_photos ( url, sort_order )
 ` as const;
 
+/**
+ * Category keys are owned by the `place_categories` table, so we only guarantee
+ * a non-empty string here. Display metadata is resolved defensively elsewhere.
+ */
+function normalizeCategory(value: unknown): string {
+  if (typeof value !== 'string') return 'uncategorized';
+  const trimmed = value.trim();
+  return trimmed.length > 0 ? trimmed : 'uncategorized';
+}
+
 function mapRow(row: Record<string, any>): Place {
   const sortedPhotos = [...(row.place_photos ?? [])].sort(
     (a: any, b: any) => (a.sort_order ?? 0) - (b.sort_order ?? 0),
@@ -41,7 +51,7 @@ function mapRow(row: Record<string, any>): Place {
   return {
     id: row.id as string,
     name: row.name as string,
-    category: row.category as Place['category'],
+    category: normalizeCategory(row.category),
     area: row.area as string,
     city: 'Minna',
     address: row.address ?? '',

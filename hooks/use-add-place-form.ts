@@ -1,5 +1,5 @@
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
+import { useRouter, type Href } from 'expo-router';
 import { useCallback, useState } from 'react';
 import { Platform } from 'react-native';
 
@@ -7,7 +7,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { EMPTY_PLACE_DRAFT } from '@/constants/place-form';
 import { createPlace } from '@/services/place-creation-service';
 import { PLACES_QUERY_KEY } from '@/services/places-service';
-import type { PlaceCategory, PlaceDraft, PlaceDraftErrors } from '@/types/place';
+import type { PlaceDraft, PlaceDraftErrors } from '@/types/place';
 import { validateBasicStep } from '@/utils/validate-place-draft';
 
 export type AddPlaceStep = 1 | 2 | 3 | 4 | 5;
@@ -29,7 +29,7 @@ export function useAddPlaceForm(userId: string | undefined) {
     setErrors((prev) => ({ ...prev, [key]: undefined }));
   }, []);
 
-  const selectCategory = useCallback((category: PlaceCategory) => {
+  const selectCategory = useCallback((category: string) => {
     updateDraft('category', category);
   }, [updateDraft]);
 

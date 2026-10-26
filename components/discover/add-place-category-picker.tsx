@@ -7,11 +7,10 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { PLACE_CATEGORIES } from '@/constants/place-categories';
 import { useCategorySearch, useInfiniteCategories } from '@/hooks/use-categories';
-import type { PlaceCategory } from '@/types/place';
 
 type Props = {
-  value: PlaceCategory | null;
-  onChange: (category: PlaceCategory) => void;
+  value: string | null;
+  onChange: (category: string) => void;
 };
 
 function toIonIcon(iconKey: string): keyof typeof Ionicons.glyphMap {
@@ -105,7 +104,7 @@ export function AddPlaceCategoryPicker({ value, onChange }: Props) {
               active={value === category.key}
               icon={toIonIcon(category.icon_key)}
               label={category.label}
-              onPress={() => onChange(category.key as PlaceCategory)}
+              onPress={() => onChange(category.key)}
             />
           ))}
 

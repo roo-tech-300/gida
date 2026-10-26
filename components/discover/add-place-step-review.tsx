@@ -2,7 +2,7 @@ import { Image, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
-import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
+import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { PlaceDraft } from '@/types/place';
 
 type Props = {
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function AddPlaceStepReview({ draft, photos }: Props) {
-  const category = PLACE_CATEGORY_MAP[draft.category];
+  const category = getPlaceCategoryMeta(draft.category);
   const hasCoords = draft.latitude != null && draft.longitude != null;
 
   return (

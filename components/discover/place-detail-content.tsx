@@ -3,7 +3,7 @@ import { StarRating } from '@/components/ui/star-rating';
 import { StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, fontFamily } from '@/constants/design';
-import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
+import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
 import { formatOpenStatus, formatPriceRange, formatRatingCount } from '@/utils/place-format';
 
@@ -14,7 +14,7 @@ type Props = {
 };
 
 export function PlaceDetailContent({ place, rating, ratingCount }: Props) {
-  const category = PLACE_CATEGORY_MAP[place.category];
+  const category = getPlaceCategoryMeta(place.category);
   const openLabel = formatOpenStatus(place.openStatus);
 
   return (

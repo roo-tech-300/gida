@@ -2,11 +2,10 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { AddPlaceCategoryPicker } from '@/components/discover/add-place-category-picker';
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
-import type { PlaceCategory } from '@/types/place';
 
 type Props = {
-  selectedCategory: PlaceCategory;
-  onSelectCategory: (category: PlaceCategory) => void;
+  selectedCategory: string;
+  onSelectCategory: (category: string) => void;
 };
 
 export function AddPlaceStepCategory({ selectedCategory, onSelectCategory }: Props) {

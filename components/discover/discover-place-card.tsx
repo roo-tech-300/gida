@@ -5,7 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { StarRating } from '@/components/ui/star-rating';
 import { PlaceCreator } from '@/components/discover/place-creator';
 import { DesignColors, fontFamily } from '@/constants/design';
-import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
+import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
 import { formatOpenStatus, formatPriceRange } from '@/utils/place-format';
 
@@ -18,7 +18,7 @@ type Props = {
 };
 
 export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave, onDirections }: Props) {
-  const category = PLACE_CATEGORY_MAP[place.category];
+  const category = getPlaceCategoryMeta(place.category);
   const openLabel = formatOpenStatus(place.openStatus);
   const firstImage = place.images?.split(',').find((u) => u.length > 0);
 

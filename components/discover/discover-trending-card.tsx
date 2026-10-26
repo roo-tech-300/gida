@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, fontFamily } from '@/constants/design';
-import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
+import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
 import { formatOpenStatus, formatPriceRange } from '@/utils/place-format';
 
@@ -15,7 +15,7 @@ type Props = {
 };
 
 export function DiscoverTrendingCard({ place, saved, onPress, onToggleSave }: Props) {
-  const category = PLACE_CATEGORY_MAP[place.category];
+  const category = getPlaceCategoryMeta(place.category);
   const openLabel = formatOpenStatus(place.openStatus);
   const firstImage = place.images?.split(',').find((u) => u.length > 0);
 

@@ -1,5 +1,5 @@
 import { useAuth } from '@/context/auth-context';
-import { getSavedListings, saveListing, unsaveListing } from '@/services/saved-listing-service';
+import { getLodgeSavedIds, getSavedListings, saveListing, unsaveListing } from '@/services/saved-listing-service';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useSavedIds() {

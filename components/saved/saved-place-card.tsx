@@ -3,7 +3,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
+import { getPlaceCategoryMeta } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
 
 type Props = {
@@ -13,7 +13,7 @@ type Props = {
 };
 
 export function SavedPlaceCard({ place, onRemove, onView }: Props) {
-  const category = PLACE_CATEGORY_MAP[place.category];
+  const category = getPlaceCategoryMeta(place.category);
   const firstImage = place.images?.split(',')[0];
 
   return (
@@ -29,7 +29,7 @@ export function SavedPlaceCard({ place, onRemove, onView }: Props) {
           <Image source={{ uri: firstImage }} style={styles.image} contentFit="cover" />
         ) : (
           <View style={[styles.image, styles.placeholder]}>
-            <Ionicons name={category?.icon ?? 'grid-outline'} size={40} color={DesignColors.primaryFixed} />
+            <Ionicons name={category.icon} size={40} color={DesignColors.primaryFixed} />
           </View>
         )}
         <View style={styles.overlay} />
@@ -46,8 +46,8 @@ export function SavedPlaceCard({ place, onRemove, onView }: Props) {
 
         {/* Category badge */}
         <View style={styles.categoryBadge}>
-          <Ionicons name={category?.icon ?? 'grid-outline'} size={12} color={DesignColors.onPrimary} />
-          <Text style={styles.categoryBadgeText}>{category?.label ?? place.category}</Text>
+          <Ionicons name={category.icon} size={12} color={DesignColors.onPrimary} />
+          <Text style={styles.categoryBadgeText}>{category.label}</Text>
         </View>
       </View>
 

@@ -4,10 +4,10 @@ import { Avatar } from '@/components/ui/avatar';
 import { DesignColors, fontFamily } from '@/constants/design';
 
 type PlaceCreatorProps = {
-  creatorId: string;
-  creatorUsername: string | null;
-  creatorName: string | null;
-  creatorAvatarUrl: string | null;
+  creatorId?: string;
+  creatorUsername?: string | null;
+  creatorName?: string | null;
+  creatorAvatarUrl?: string | null;
 };
 
 export function PlaceCreator({

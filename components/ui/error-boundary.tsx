@@ -91,7 +91,7 @@ const styles = StyleSheet.create({
     lineHeight: 22,
   },
   devError: {
-    ...DesignTypography.bodySm,
+    ...DesignTypography.bodyMd,
     color: DesignColors.error,
     fontFamily,
     textAlign: 'center',

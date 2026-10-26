@@ -87,7 +87,7 @@ export function AddPlaceCategoryPicker({ value, onChange }: Props) {
       ) : isSearchMode && displayCategories.length === 0 ? (
         <View style={styles.centerState}>
           <Ionicons name="search-outline" size={28} color={DesignColors.onSurfaceVariant} />
-          <Text style={styles.emptyText}>No categories matched "{searchQuery}"</Text>
+          <Text style={styles.emptyText}>No categories matched &quot;{searchQuery}&quot;</Text>
         </View>
       ) : (
         <ScrollView

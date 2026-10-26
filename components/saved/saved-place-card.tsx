@@ -2,7 +2,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
 
@@ -106,7 +106,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 999,
-    backgroundColor: DesignColors.tertiaryContainer ?? DesignColors.glassFill,
+    backgroundColor: DesignColors.glassFill,
     borderWidth: 1,
     borderColor: DesignColors.tertiary,
     zIndex: 10,
@@ -125,7 +125,7 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   image: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
   },
   placeholder: {
     alignItems: 'center',
@@ -133,7 +133,7 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.surfaceContainerHigh,
   },
   overlay: {
-    ...StyleSheet.absoluteFillObject,
+    ...StyleSheet.absoluteFill,
     backgroundColor: 'rgba(0,0,0,0.18)',
   },
   saveButton: {
@@ -191,7 +191,7 @@ const styles = StyleSheet.create({
     gap: 4,
   },
   location: {
-    ...DesignTypography.bodySm,
+    ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     flex: 1,
@@ -222,7 +222,7 @@ const styles = StyleSheet.create({
     marginTop: 4,
   },
   areaLabel: {
-    ...DesignTypography.bodySm,
+    ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
   },

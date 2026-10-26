@@ -11,6 +11,7 @@ import { SPONSORED_PLACEMENTS } from '@/dummy/sponsored-mock';
 import type { DiscoverFeed } from '@/hooks/use-discover-feed';
 import type { Place } from '@/types/place';
 import type { SponsoredPlacement } from '@/types/sponsored';
+import { useRouter } from 'expo-router';
 
 type DiscoverFeedItem =
   | { kind: 'place'; place: Place }

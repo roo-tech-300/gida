@@ -38,6 +38,11 @@ export type Place = {
   image?: number;
   /** Comma-separated URIs of images selected for this place (client-side only for now). */
   images?: string;
+  /** Who created this place. */
+  creatorId?: string;
+  creatorUsername?: string | null;
+  creatorName?: string | null;
+  creatorAvatarUrl?: string | null;
 };
 
 export type PlaceReview = {

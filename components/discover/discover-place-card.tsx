@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { StarRating } from '@/components/ui/star-rating';
+import { PlaceCreator } from '@/components/discover/place-creator';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { PLACE_CATEGORY_MAP } from '@/constants/place-categories';
 import type { Place } from '@/types/place';
@@ -73,6 +74,13 @@ export function DiscoverPlaceCard({ place, saved, onPress, onToggleSave, onDirec
         <Text numberOfLines={1} style={styles.meta}>
           {place.area} • {formatPriceRange(place.priceRange)}
         </Text>
+
+        <PlaceCreator
+          creatorId={place.creatorId}
+          creatorUsername={place.creatorUsername}
+          creatorName={place.creatorName}
+          creatorAvatarUrl={place.creatorAvatarUrl}
+        />
 
         <View style={styles.footerRow}>
           <StarRating count={place.ratingCount} rating={place.rating} showValue />

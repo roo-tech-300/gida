@@ -9,6 +9,7 @@ import { DiscoverEmptyState } from '@/components/discover/discover-empty-state';
 import { PlaceDetailContent } from '@/components/discover/place-detail-content';
 import { PlaceDetailHero } from '@/components/discover/place-detail-hero';
 import { PlaceDetailReviews } from '@/components/discover/place-detail-reviews';
+import { PlacePhotoGallery } from '@/components/discover/place-photo-gallery';
 import { PlaceRatingSheet } from '@/components/discover/place-rating-sheet';
 import { BackButton } from '@/components/ui/back-button';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -37,7 +38,7 @@ export function PlaceDetailScreen() {
   const [rating, setRating] = useState(0);
   const [ratingCount, setRatingCount] = useState(0);
   const [sheetVisible, setSheetVisible] = useState(false);
-
+  const [galleryVisible, setGalleryVisible] = useState(false);
   // Sync rating/ratingCount from DB once place loads
   useEffect(() => {
     if (place) {
@@ -136,6 +137,7 @@ export function PlaceDetailScreen() {
           saved={saved}
           onToggleSave={handleToggleSave}
           onShare={() => void handleShare()}
+          onPressImage={() => setGalleryVisible(true)}
         />
         <View style={styles.sheet}>
           <PlaceDetailContent place={place} rating={rating} ratingCount={ratingCount} />
@@ -170,6 +172,12 @@ export function PlaceDetailScreen() {
         placeName={place.name}
         onClose={() => setSheetVisible(false)}
         onSubmit={handleSubmitRating}
+      />
+
+      <PlacePhotoGallery
+        photos={place.images?.split(',').filter(Boolean) ?? []}
+        visible={galleryVisible}
+        onClose={() => setGalleryVisible(false)}
       />
     </View>
   );

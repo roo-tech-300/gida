@@ -4,21 +4,30 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import type { Place } from '@/types/place';
+import { PlaceCreator } from '@/components/discover/place-creator';
 
 type Props = {
   place: Place;
   saved: boolean;
   onToggleSave: () => void;
   onShare: () => void;
+  onPressImage?: () => void;
 };
 
-export function PlaceDetailHero({ place, saved, onToggleSave, onShare }: Props) {
+export function PlaceDetailHero({ place, saved, onToggleSave, onShare, onPressImage }: Props) {
   const firstImage = place.images?.split(',').find((u) => u.length > 0);
 
   return (
     <View style={styles.container}>
       {firstImage ? (
-        <Image contentFit="cover" source={{ uri: firstImage }} style={styles.heroImage} />
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`Open photo gallery for ${place.name}`}
+          onPress={onPressImage}
+          style={styles.heroImage}
+        >
+          <Image contentFit="cover" source={{ uri: firstImage }} style={styles.fill} />
+        </Pressable>
       ) : (
         <View style={[styles.heroImage, styles.placeholder]} />
       )}
@@ -26,6 +35,12 @@ export function PlaceDetailHero({ place, saved, onToggleSave, onShare }: Props) 
         <View style={styles.heroDetails}>
           <Text style={styles.heroTitle}>{place.name}</Text>
           <Text style={styles.heroSubtitle}>{place.area}</Text>
+          <PlaceCreator
+            creatorId={place.creatorId}
+            creatorUsername={place.creatorUsername}
+            creatorName={place.creatorName}
+            creatorAvatarUrl={place.creatorAvatarUrl}
+          />
         </View>
         <View style={styles.heroActions}>
           <Pressable accessibilityRole="button" hitSlop={8} onPress={onToggleSave}>
@@ -51,6 +66,10 @@ const styles = StyleSheet.create({
     overflow: 'hidden',
   },
   heroImage: {
+    width: '100%',
+    height: '100%',
+  },
+  fill: {
     width: '100%',
     height: '100%',
   },

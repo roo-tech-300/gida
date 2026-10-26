@@ -125,7 +125,6 @@ export function DiscoverFeedList({
                 />
               )}
               <Text style={styles.sectionTitlePadded}>{sectionTitle}</Text>
-              <Text style={styles.sectionCountPadded}>{feed.places.length}</Text>
             </View>
           )}
         </View>

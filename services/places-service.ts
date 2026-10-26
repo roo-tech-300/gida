@@ -28,6 +28,8 @@ const PLACES_SELECT = `
   rating_count,
   verified,
   featured,
+  created_by,
+  creator:profiles(username, full_name, avatar_url),
   place_photos ( url, sort_order )
 ` as const;
 
@@ -55,6 +57,10 @@ function mapRow(row: Record<string, any>): Place {
     verified: row.verified ?? false,
     featured: row.featured ?? false,
     images: sortedPhotos.map((p: any) => p.url).join(','),
+    creatorId: row.created_by as string,
+    creatorUsername: row.creator?.username as string | null,
+    creatorName: row.creator?.full_name as string | null,
+    creatorAvatarUrl: row.creator?.avatar_url as string | null,
   };
 }
 

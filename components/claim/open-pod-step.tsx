@@ -1,10 +1,9 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useOpenPodsForListing } from '@/hooks/use-liquidity';
-import { useAppToast } from '@/components/ui/toast-card';
+import { usePodMemberNavigation } from '@/hooks/use-pod-member-navigation';
 import { OpenPodCard } from '@/components/claim/open-pod-card';
 import { OpenPodDetail } from '@/components/claim/open-pod-detail';
 import { WizardHeader } from '@/components/claim/wizard-header';
@@ -22,10 +21,9 @@ type Props = {
 };
 
 export function OpenPodStep({ listing, myGender, joining, onJoin, onDecline, onClose }: Props) {
-  const router = useRouter();
-  const { showToast } = useAppToast();
   const [selected, setSelected] = useState<Pod | null>(null);
   const { data, isLoading } = useOpenPodsForListing(listing.id);
+  const openProfile = usePodMemberNavigation();
 
   const compatible = (data ?? []).filter((pod) => isGenderCompatible(podEffectiveGender(pod), myGender));
 
@@ -34,17 +32,6 @@ export function OpenPodStep({ listing, myGender, joining, onJoin, onDecline, onC
       onDecline();
     }
   }, [isLoading, compatible.length, onDecline]);
-
-  const openProfile = useCallback(
-    (userId: string) => {
-      if (userId.startsWith('inv-')) {
-        showToast({ message: 'They haven\u2019t joined yet \u2014 they\u2019re still deciding.', type: 'info' });
-        return;
-      }
-      router.push(`/roommate/${userId}`);
-    },
-    [router, showToast],
-  );
 
   return (
     <View style={styles.flex}>

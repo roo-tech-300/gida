@@ -1,6 +1,8 @@
 import { Image, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { PodListingSection } from '@/components/pod/pod-listing-section';
+import { getAvatarColor, getInitials } from '@/components/pod/pod-avatar';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { ClaimSplitSummary } from '@/components/claim/claim-split-summary';
 import { WizardFooter } from '@/components/claim/wizard-footer';
@@ -9,29 +11,6 @@ import type { DbListing } from '@/types/feed-listing';
 import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 
 const FALLBACK_PRICE = 1200000;
-
-const AVATAR_COLORS = [
-  DesignColors.primaryContainer,
-  '#E8D5F5',
-  '#D5EEF5',
-  '#F5E6D5',
-  '#D5F5E6',
-  '#F5D5E0',
-];
-
-function getInitials(name: string): string {
-  const parts = (name ?? '').trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return (name ?? '').slice(0, 2).toUpperCase() || '??';
-}
-
-function getAvatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < (name ?? '').length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] ?? AVATAR_COLORS[0];
-}
 
 function MemberRow({ member, onPress }: { member: PodMember; onPress: () => void }) {
   const isPending = member.slot_credit_id === 'invitation';
@@ -85,6 +64,8 @@ export function OpenPodDetail({ pod, listing, onOpenProfile, onJoin, joining }: 
         <Text style={styles.subtitle}>
           {pod.current_total_intent} of {pod.target_occupancy} people are already in. See who&apos;s joining and take the next seat.
         </Text>
+
+        <PodListingSection listing={listing} />
 
         <View style={styles.memberCard}>
           <Text style={styles.sectionLabel}>WHO&apos;S IN</Text>

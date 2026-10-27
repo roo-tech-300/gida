@@ -10,15 +10,18 @@ import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { DiscoverListingFeed } from '@/components/home/discover-listing-feed';
 import { FeedModeSelector, type FeedModeSelectorRef } from '@/components/home/feed-mode-selector';
 import { HomeSearchBar } from '@/components/home/home-search-bar';
+import { PodJoinSheet } from '@/components/pod/pod-join-sheet';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateDeck } from '@/components/home/roommate-deck';
 import { SearchScreen, type SearchScreenRef } from '@/components/search/search-screen';
 import { useInfiniteRecommendedListings } from '@/hooks/useRecommendedListings';
 import { useInfiniteListings } from '@/hooks/use-listings';
+import { usePodJoinFlow } from '@/hooks/use-pod-join-flow';
+import { useRecommendedPods } from '@/hooks/useRecommendedPods';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { useAuth } from '@/context/auth-context';
-import type { FeedListing } from '@/types/feed-listing';
+import { buildFeedItems, type FeedItem } from '@/utils/feed-interleave';
 
 type FeedMode = 'listings' | 'roommates';
 
@@ -27,6 +30,9 @@ export function DiscoverHomeScreen() {
   const { profile } = useAuth();
   const recommended = useInfiniteRecommendedListings(profile?.id);
   const fallback = useInfiniteListings();
+  const recommendedPods = useRecommendedPods();
+  const podJoin = usePodJoinFlow();
+  const refetchPods = recommendedPods.refetch;
 
   const useRecommended = !!(recommended.data && recommended.data.pages[0]?.length > 0);
 
@@ -46,7 +52,7 @@ export function DiscoverHomeScreen() {
   const [feedHeight, setFeedHeight] = useState(0);
   const [mode, setMode] = useState<FeedMode>('listings');
   const [, setCurrentIndex] = useState(0);
-  const listRef = useRef<FlatList<FeedListing>>(null);
+  const listRef = useRef<FlatList<FeedItem>>(null);
   const modeSelectorRef = useRef<FeedModeSelectorRef>(null);
   const searchScreenRef = useRef<SearchScreenRef>(null);
 
@@ -77,7 +83,8 @@ export function DiscoverHomeScreen() {
 
   const onRefresh = useCallback(() => {
     refetch();
-  }, [refetch]);
+    void refetchPods();
+  }, [refetch, refetchPods]);
 
   const onViewListing = useCallback(
     (id: string) => router.push(`/property/${id}`),
@@ -104,6 +111,12 @@ export function DiscoverHomeScreen() {
     return listings.filter((listing) => activeCategory === 'All' || listing.category === activeCategory);
   }, [activeCategory, listings]);
 
+  // Pods are woven into the reel as full-height interstitial shelves.
+  const feedItems = useMemo(
+    () => buildFeedItems(filteredListings, recommendedPods.data ?? []),
+    [filteredListings, recommendedPods.data],
+  );
+
   const likedSet = useMemo(() => new Set(savedIds), [savedIds]);
 
   const onFeedLayout = useCallback((e: LayoutChangeEvent) => {
@@ -111,12 +124,7 @@ export function DiscoverHomeScreen() {
     if (h > 0) setFeedHeight(h);
   }, []);
 
-  const handleSelectMode = useCallback((m: FeedMode) => {
-    setMode(m);
-  }, []);
-
-  if (isError && !isLoading && mode === 'listings') {
-    return <NetworkErrorScreen onRetry={onRefresh} />;
+  if (isError && !isLoading && mode === 'listings') {    return <NetworkErrorScreen onRetry={onRefresh} />;
   }
 
   return (
@@ -125,13 +133,14 @@ export function DiscoverHomeScreen() {
         <AuthBackgroundBubbles />
         <View style={styles.flex}>
           <View style={styles.feedContainer} onLayout={onFeedLayout}>
-            {feedHeight > 0 && mode === 'listings' && filteredListings.length > 0 && (
+            {feedHeight > 0 && mode === 'listings' && feedItems.length > 0 && (
               <DiscoverListingFeed
                 ref={listRef}
-                listings={filteredListings}
+                items={feedItems}
                 likedIds={likedSet}
                 onToggleLike={toggleSave}
                 onViewListing={onViewListing}
+                onOpenPod={podJoin.openPod}
                 itemHeight={feedHeight}
                 refreshing={isRefetching}
                 onRefresh={onRefresh}
@@ -188,8 +197,15 @@ export function DiscoverHomeScreen() {
         <FeedModeSelector
           ref={modeSelectorRef}
           currentMode={mode}
-          onSelectMode={handleSelectMode}
+          onSelectMode={setMode}
           onDismiss={() => {}}
+        />
+
+        <PodJoinSheet
+          pod={podJoin.selectedPod}
+          onClose={podJoin.closePod}
+          onJoin={podJoin.joinSelectedPod}
+          joining={podJoin.isJoining}
         />
 
         <SearchScreen

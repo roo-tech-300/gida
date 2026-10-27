@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { calculateAge, calculateStudentLevel } from '@/utils/academicLevel';
+import { formatCompactAmount } from '@/utils/currency';
 import type { LifestyleChip, RoommateProfile } from '@/types/roommates';
 
 export type DbRoommateRow = {
@@ -35,15 +36,9 @@ export type MyPreferences = {
 
 function formatBudgetRange(min: number | null, max: number | null): string {
   if (!min && !max) return 'Flexible';
-  if (min && max) return `₦${formatCompact(min)} – ₦${formatCompact(max)}/yr`;
-  if (max) return `Up to ₦${formatCompact(max)}/yr`;
-  return `From ₦${formatCompact(min!)}/yr`;
-}
-
-function formatCompact(amount: number): string {
-  if (amount >= 1_000_000) return `${(amount / 1_000_000).toFixed(amount % 1_000_000 === 0 ? 0 : 1)}M`;
-  if (amount >= 1_000) return `${Math.round(amount / 1_000)}k`;
-  return String(amount);
+  if (min && max) return `₦${formatCompactAmount(min)} – ₦${formatCompactAmount(max)}/yr`;
+  if (max) return `Up to ₦${formatCompactAmount(max)}/yr`;
+  return `From ₦${formatCompactAmount(min!)}/yr`;
 }
 
 export function buildChips(prefs: DbRoommateRow['roommate_preferences']): LifestyleChip[] {

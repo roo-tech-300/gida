@@ -1,31 +1,9 @@
 import { Image, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
+import { getAvatarColor, getInitials } from '@/components/pod/pod-avatar';
 import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
 import type { Pod } from '@/types/liquidity';
-
-const AVATAR_COLORS = [
-  DesignColors.primaryContainer,
-  '#E8D5F5',
-  '#D5EEF5',
-  '#F5E6D5',
-  '#D5F5E6',
-  '#F5D5E0',
-];
-
-function getInitials(name: string): string {
-  const parts = (name ?? '').trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return (name ?? '').slice(0, 2).toUpperCase() || '??';
-}
-
-function getAvatarColor(name: string): string {
-  let hash = 0;
-  for (let i = 0; i < (name ?? '').length; i++) {
-    hash = name.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return AVATAR_COLORS[Math.abs(hash) % AVATAR_COLORS.length] ?? AVATAR_COLORS[0];
-}
 
 type Props = {
   pod: Pod;

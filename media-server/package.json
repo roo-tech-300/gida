@@ -1,0 +1,23 @@
+{
+  "name": "gida-media-server",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node src/index.ts",
+    "typecheck": "tsc",
+    "test": "node --test \"src/**/*.test.ts\""
+  },
+  "type": "module",
+  "dependencies": {
+    "@supabase/supabase-js": "^2.118.0",
+    "@tus/file-store": "^2.1.1",
+    "@tus/server": "^2.4.6"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.5",
+    "typescript": "^7.0.2"
+  },
+  "private": true,
+  "engines": {
+    "node": ">=24"
+  }
+}

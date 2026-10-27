@@ -1,0 +1,33 @@
+services:
+  media-server:
+    build: .
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      DATA_DIR: /srv/media
+    volumes:
+      - media:/srv/media
+    # Keep a runaway transcode from starving Caddy and the OS.
+    cpus: ${TRANSCODE_CPUS:-3}
+
+  caddy:
+    image: caddy:2.10-alpine
+    restart: unless-stopped
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      MEDIA_DOMAIN: ${MEDIA_DOMAIN}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - media:/srv/media:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - media-server
+
+volumes:
+  media:
+  caddy_data:
+  caddy_config:

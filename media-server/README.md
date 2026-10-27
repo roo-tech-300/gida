@@ -53,7 +53,8 @@ Don't serve video through Cloudflare's free proxy; its terms restrict that.
 ### Backups
 
 All videos live in the `media` Docker volume. Turn on Contabo snapshots, or sync
-`/var/lib/docker/volumes/media-server_media/_data/public` to object storage.
+`/var/lib/docker/volumes/<folder>_media/_data/public` (`<folder>` is the directory
+holding `docker-compose.yml`; check with `docker volume ls`) to object storage.
 
 ## Development
 

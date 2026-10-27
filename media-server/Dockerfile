@@ -9,6 +9,10 @@ COPY package.json package-lock.json ./
 RUN npm ci --omit=dev
 COPY src ./src
 
+# Docker seeds a new named volume from the image folder it mounts over,
+# owner included, so the node user can write to the media volume.
+RUN mkdir -p /srv/media && chown node:node /srv/media
+
 ENV NODE_ENV=production
 USER node
 EXPOSE 3000

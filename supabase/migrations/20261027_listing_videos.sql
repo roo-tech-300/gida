@@ -102,3 +102,47 @@ CREATE POLICY "Service role full access on listing videos"
   TO service_role
   USING (true)
   WITH CHECK (true);
+
+-- ---------------------------------------------------------------------------
+-- Feed preview: copy the first ready video's preview onto the listing, so the
+-- feed's existing listings query gets it without a query per card.
+-- ---------------------------------------------------------------------------
+
+ALTER TABLE public.listings ADD COLUMN IF NOT EXISTS video_preview_path text;
+
+CREATE OR REPLACE FUNCTION sync_listing_video_preview()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+DECLARE
+  v_listing_id uuid;
+  v_preview text;
+BEGIN
+  IF TG_OP = 'DELETE' THEN
+    v_listing_id := OLD.listing_id;
+  ELSE
+    v_listing_id := NEW.listing_id;
+  END IF;
+
+  SELECT lv.preview_path INTO v_preview
+  FROM public.listing_videos lv
+  WHERE lv.listing_id = v_listing_id AND lv.status = 'ready'
+  ORDER BY lv.display_order, lv.created_at
+  LIMIT 1;
+
+  -- No-op when the listing itself is being deleted (cascade) or nothing changed.
+  UPDATE public.listings
+  SET video_preview_path = v_preview
+  WHERE id = v_listing_id
+    AND video_preview_path IS DISTINCT FROM v_preview;
+
+  RETURN NULL;
+END;
+$$;
+
+DROP TRIGGER IF EXISTS trg_listing_videos_sync_preview ON public.listing_videos;
+CREATE TRIGGER trg_listing_videos_sync_preview
+AFTER INSERT OR DELETE OR UPDATE OF status, preview_path, display_order ON public.listing_videos
+FOR EACH ROW EXECUTE FUNCTION sync_listing_video_preview();

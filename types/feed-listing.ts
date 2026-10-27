@@ -1,4 +1,5 @@
 import { derivePropertyTier } from '@/utils/liquidity-math';
+import { mediaCdnUrl } from '@/utils/media-url';
 
 export type FeedListing = {
   id: string;
@@ -25,6 +26,8 @@ export type FeedListing = {
   estateId?: string;
   propertyTier?: number;
   abstractSlotsAvailable?: number;
+  /** Muted 8s clip for feed cards; set when the listing has a ready walkthrough video. */
+  videoPreviewUrl?: string;
 };
 
 export type DbListing = {
@@ -68,6 +71,7 @@ export type DbListing = {
   region_path?: string[] | null;
   enable_self_guided_tour?: boolean;
   enable_guided_tour?: boolean;
+  video_preview_path?: string | null;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -116,6 +120,7 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     estateId: item.estate_id,
     propertyTier: derivePropertyTier(item.property_tier, item.max_roommates),
     abstractSlotsAvailable: item.abstract_slots_available || ((item.units_available || 1) * derivePropertyTier(item.property_tier, item.max_roommates)),
+    videoPreviewUrl: mediaCdnUrl(item.video_preview_path ?? null) ?? undefined,
   };
 }
 

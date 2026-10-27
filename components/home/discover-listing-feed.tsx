@@ -67,9 +67,11 @@ export const DiscoverListingFeed = forwardRef<FlatList<FeedListing>, Props>(func
       ref={setRef}
       data={listings}
       keyExtractor={(item) => item.id}
-      renderItem={({ item }) => (
+      extraData={currentIndex}
+      renderItem={({ item, index }) => (
         <DiscoverListingCard
           listing={item}
+          isActive={index === currentIndex}
           liked={likedIds.has(item.id)}
           onToggleLike={onToggleLike}
           onViewListing={onViewListing}

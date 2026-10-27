@@ -7,6 +7,8 @@ import Svg, { Defs, LinearGradient, Rect, Stop } from 'react-native-svg';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { type FeedListing } from '@/types/feed-listing';
+import { DiscoverMetaItem } from './discover-meta-item';
+import { FeedVideoBadge, FeedVideoPreview } from './feed-video-preview';
 
 type Props = {
   listing: FeedListing;
@@ -14,18 +16,11 @@ type Props = {
   onToggleLike: (id: string) => void;
   onViewListing: (id: string) => void;
   height: number;
+  /** True for the card currently filling the screen; only it plays a preview. */
+  isActive?: boolean;
 };
 
-function MetaItem({ icon, label }: { icon: keyof typeof Ionicons.glyphMap; label: string }) {
-  return (
-    <View style={styles.metaItem}>
-      <Ionicons name={icon} size={18} color={DesignColors.textPrimary} />
-      <Text style={styles.metaText}>{label}</Text>
-    </View>
-  );
-}
-
-export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height }: Props) {
+export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height, isActive = false }: Props) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [priceAmount] = listing.price.split('/');
 
@@ -44,6 +39,7 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
           <ActivityIndicator size="large" color={DesignColors.primary} />
         </View>
       )}
+      {isActive && listing.videoPreviewUrl ? <FeedVideoPreview uri={listing.videoPreviewUrl} /> : null}
 
       <View style={styles.gradientOverlay}>
         <Svg height="100%" width="100%">
@@ -64,6 +60,7 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
             <WebBlurView intensity={20} tint="dark" style={styles.badgeBlur} />
             <Text style={styles.badgeText}>{listing.status}</Text>
           </View>
+          {listing.videoPreviewUrl ? <FeedVideoBadge /> : null}
         </View>
 
         <View style={styles.topRow}>
@@ -82,9 +79,9 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
 
         <View style={styles.metaDivider}>
           <View style={styles.metaRow}>
-            {listing.beds ? <MetaItem icon="bed-outline" label={listing.beds} /> : null}
-            {listing.baths ? <MetaItem icon="water-outline" label={listing.baths} /> : null}
-            {listing.size ? <MetaItem icon="square-outline" label={listing.size} /> : null}
+            {listing.beds ? <DiscoverMetaItem icon="bed-outline" label={listing.beds} /> : null}
+            {listing.baths ? <DiscoverMetaItem icon="water-outline" label={listing.baths} /> : null}
+            {listing.size ? <DiscoverMetaItem icon="square-outline" label={listing.size} /> : null}
           </View>
         </View>
 
@@ -137,6 +134,7 @@ const styles = StyleSheet.create({
   },
   badgeRow: {
     flexDirection: 'row',
+    gap: DesignSpacing.sm,
   },
   badge: {
     overflow: 'hidden',
@@ -206,16 +204,6 @@ const styles = StyleSheet.create({
   metaRow: {
     flexDirection: 'row',
     gap: DesignSpacing.lg,
-  },
-  metaItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 8,
-  },
-  metaText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.textPrimary,
-    fontFamily,
   },
   actionsRow: {
     flexDirection: 'row',

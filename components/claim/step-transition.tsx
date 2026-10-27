@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 

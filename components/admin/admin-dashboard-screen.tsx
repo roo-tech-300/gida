@@ -25,7 +25,8 @@ export function AdminDashboardScreen() {
       setOperatingCity(profile.city);
       setListings(listingsData);
       setLoading(false);
-    });
+    };
+    void fetchListings();
   }, [profile?.city, profile?.full_name, profile?.id]);
 
   const initials = useCallback((name: string) => {

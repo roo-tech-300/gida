@@ -1,11 +1,10 @@
-/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { Ionicons } from '@expo/vector-icons';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { Ionicons } from '@expo/vector-icons';
 
 interface NoResultsFoundScreenProps {
   query: string;

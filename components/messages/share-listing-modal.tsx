@@ -1,25 +1,25 @@
-import { useState } from 'react';
+import { Ionicons } from '@expo/vector-icons';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useQueryClient } from '@tanstack/react-query';
-import { useRouter } from 'expo-router';
 import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
+import { useRouter } from 'expo-router';
+import { useState } from 'react';
 import { ActivityIndicator, FlatList, Modal, Platform, Pressable, Share, StyleSheet, Text, View } from 'react-native';
 
 import { useEscapeKey } from '@/components/claim/use-escape-key';
-import { useAppToast } from '@/components/ui/toast-card';
 import { styles } from '@/components/messages/share-listing-modal.styles';
+import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useConversations } from '@/hooks/use-conversations';
 import { sendMessage } from '@/services/messageService';
 import { createOutboxMessage } from '@/services/offline-outbox-store';
-import { toListingAttachment } from '@/utils/listing-attachment';
-import { getInitials } from '@/utils/initials';
-import { getPropertyShareMessage, getPropertyShareUrl } from '@/utils/property-share-link';
-import { copyTextToClipboard } from '@/utils/clipboard';
 import type { FeedListing } from '@/types/feed-listing';
 import type { Conversation } from '@/types/messages';
+import { copyTextToClipboard } from '@/utils/clipboard';
+import { getInitials } from '@/utils/initials';
+import { toListingAttachment } from '@/utils/listing-attachment';
+import { getPropertyShareMessage, getPropertyShareUrl } from '@/utils/property-share-link';
 
 export function ShareListingModal({
   visible,
@@ -47,8 +47,7 @@ export function ShareListingModal({
     if (!myId || sharingId !== null) return;
     setSharingId(conversation.id);
     try {
-      // Date.now() is called inside an async event handler, not during render
-      // eslint-disable-next-line react-hooks/purity
+      
       const clientSentAt = Date.now();
       if (isConnected === false) {
         createOutboxMessage({

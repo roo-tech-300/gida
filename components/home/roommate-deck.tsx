@@ -1,15 +1,15 @@
+import { useRouter } from 'expo-router';
 import { useCallback, useMemo, useRef } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
-import { useRouter } from 'expo-router';
 
 import { RoommateDeckCard } from '@/components/home/roommate-deck-card';
-import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
+import { NoResultsFoundScreen } from '@/components/ui/no-results-found-screen';
+import { DesignColors } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { useRoommates } from '@/hooks/useRoommates';
 import type { RoommateProfile } from '@/types/roommates';
-import { DesignColors } from '@/constants/design';
 
 type Props = {
   itemHeight: number;
@@ -25,7 +25,6 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
 
   const { data: allRoommates = [], isLoading, isRefetching, refetch } = useRoommates();
 
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const filtered = useMemo(() => {
     const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
     const q = query.trim().toLowerCase();

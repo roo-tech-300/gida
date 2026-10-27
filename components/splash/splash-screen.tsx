@@ -1,7 +1,6 @@
-/* eslint-disable react-hooks/refs */
+import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
-import { Image } from 'expo-image';
 
 import { DesignColors } from '@/constants/design';
 

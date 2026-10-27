@@ -1,6 +1,5 @@
-/* eslint-disable react-hooks/refs */
-import { useCallback, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
+import { forwardRef, useCallback, useImperativeHandle, useRef, useState } from 'react';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 

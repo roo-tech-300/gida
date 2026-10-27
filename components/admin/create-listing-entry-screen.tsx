@@ -1,8 +1,8 @@
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
+import { useEffect, useRef } from 'react';
+import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
@@ -10,7 +10,7 @@ import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 export function CreateListingEntryScreen() {
   const floatAnimRef = useRef(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/refs
+
   const floatAnim = floatAnimRef.current;
 
   useEffect(() => {
@@ -28,13 +28,12 @@ export function CreateListingEntryScreen() {
     return () => loop.stop();
   }, [floatAnim]);
 
-  // eslint-disable-next-line react-hooks/refs
   const floatTranslate = floatAnim.interpolate({
     inputRange: [0, 1],
     outputRange: [0, -20],
   });
 
-  // eslint-disable-next-line react-hooks/refs
+
   const floatRotate = floatAnim.interpolate({
     inputRange: [0, 1],
     outputRange: ['6deg', '4deg'],

@@ -1,8 +1,7 @@
-/* eslint-disable react-hooks/refs */
+import { Ionicons } from '@expo/vector-icons';
+import { Image } from 'expo-image';
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
-import { Image } from 'expo-image';
-import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { ListingAttachment } from '@/types/messages';

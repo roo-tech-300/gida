@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/immutability */
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';

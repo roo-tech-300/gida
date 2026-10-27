@@ -2,7 +2,6 @@ import { AppBottomNav, type BottomTab } from '@/components/navigation/app-bottom
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
-/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -24,7 +23,6 @@ export function FeatureUnderConstruction({
   activeTab = 'home',
 }: FeatureUnderConstructionProps) {
   const floatAnimRef = useRef(new Animated.Value(0));
-  // eslint-disable-next-line react-hooks/refs
   const floatAnim = floatAnimRef.current;
 
   useEffect(() => {

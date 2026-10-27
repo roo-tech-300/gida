@@ -1,6 +1,6 @@
+import { Ionicons } from '@expo/vector-icons';
 import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
-import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
@@ -15,7 +15,7 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 };
 
 export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
-  // eslint-disable-next-line react-hooks/preserve-manual-memoization
+
   const property = useMemo(() => {
     for (const l of LANDLORDS) {
       const p = l.properties.find((pr) => pr.id === propertyId);

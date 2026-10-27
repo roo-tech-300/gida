@@ -15,7 +15,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { ErrorBoundary } from '@/components/ui/error-boundary';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { useAppToast } from '@/components/ui/toast-card';
-import { DesignColors, DesignSpacing } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import { styles } from '@/components/discover/place-detail-screen.styles';
 import { useSavedPlaces } from '@/hooks/use-saved-places';
 import { fetchPlaceById } from '@/services/places-service';
@@ -50,11 +50,13 @@ export function PlaceDetailScreen() {
   } = useInfiniteQuery<PlaceReview[], Error>({
     queryKey: ['place-ratings', id],
     initialPageParam: 0,
-    queryFn: ({ pageParam = 0 }) =>
-      fetchPlaceRatings(id, {
-        from: pageParam * REVIEW_PAGE_SIZE,
-        to: (pageParam + 1) * REVIEW_PAGE_SIZE - 1,
-      }),
+    queryFn: ({ pageParam }) => {
+      const pageIndex = typeof pageParam === 'number' ? pageParam : 0;
+      return fetchPlaceRatings(id, {
+        from: pageIndex * REVIEW_PAGE_SIZE,
+        to: (pageIndex + 1) * REVIEW_PAGE_SIZE - 1,
+      });
+    },
     enabled: id.length > 0,
     staleTime: 60 * 1000,
     getNextPageParam: (lastPage, allPages) =>
@@ -181,7 +183,7 @@ export function PlaceDetailScreen() {
     <ErrorBoundary onReset={() => queryClient.invalidateQueries({ queryKey: ['place', id] })}>
       <View style={styles.container}>
         <ScrollView
-          contentContainerStyle={styles.scrollContent}
+          contentContainerStyle={{ paddingBottom: 104 + insets.bottom }}
           showsVerticalScrollIndicator={false}
         >
           <PlaceDetailHero
@@ -205,12 +207,7 @@ export function PlaceDetailScreen() {
           </View>
         </ScrollView>
 
-        <View
-          style={[
-            styles.footer,
-            { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) },
-          ]}
-        >
+        <SafeAreaView edges={['bottom']} style={styles.footer}>
           <Pressable
             accessibilityLabel={`Get directions to ${place.name}`}
             accessibilityRole="button"
@@ -220,7 +217,7 @@ export function PlaceDetailScreen() {
             <Ionicons color={DesignColors.onPrimary} name="navigate" size={18} />
             <Text style={styles.ctaLabel}>Get Directions</Text>
           </Pressable>
-        </View>
+        </SafeAreaView>
 
         <PlacePhotoGallery
           photos={place.images?.split(',').filter(Boolean) ?? []}

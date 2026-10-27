@@ -7,9 +7,6 @@ export const styles = StyleSheet.create({
     flex: 1,
     backgroundColor: DesignColors.surfaceContainerLowest,
   },
-  scrollContent: {
-    paddingBottom: 120,
-  },
   sheet: {
     marginTop: -28,
     paddingHorizontal: DesignSpacing.marginMobile,
@@ -25,6 +22,7 @@ export const styles = StyleSheet.create({
     bottom: 0,
     paddingHorizontal: DesignSpacing.marginMobile,
     paddingTop: 12,
+    paddingBottom: DesignSpacing.sm,
     borderTopWidth: 1,
     borderTopColor: DesignColors.cardBorder,
     backgroundColor: DesignColors.surfaceContainerLowest,

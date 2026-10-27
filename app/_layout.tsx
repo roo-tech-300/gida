@@ -12,6 +12,7 @@ import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { queryClient } from '@/lib/query-clients';
 import { checkForAppUpdate } from '@/src/lib/updates/updates';
+import { AppUpdatePrompt } from '@/components/app-update/app-update-prompt';
 import { consumePendingPushNavigation } from '@/src/notifications/pending-navigation';
 import { useNotificationPermissionPlatform } from '@/src/use-notification-permission-platform';
 import { QueryClientProvider } from '@tanstack/react-query';
@@ -150,6 +151,7 @@ export default function RootLayout() {
             <ToastProvider>
               <ForegroundNotificationListener />
               <NotificationNavigationListener />
+              <AppUpdatePrompt />
               <OfflineBanner />
               <MessageSyncProvider>
                 <AuthGate>

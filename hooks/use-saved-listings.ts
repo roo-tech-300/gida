@@ -1,6 +1,6 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '@/context/auth-context';
-import { getSavedIds, getSavedListings, saveListing, unsaveListing } from '@/services/saved-listing-service';
+import { getLodgeSavedIds, getSavedListings, saveListing, unsaveListing } from '@/services/saved-listing-service';
+import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useSavedIds() {
   const { profile } = useAuth();
@@ -8,7 +8,7 @@ export function useSavedIds() {
 
   return useQuery({
     queryKey: ['saved-ids', userId],
-    queryFn: () => getSavedIds(userId!),
+    queryFn: () => getLodgeSavedIds(userId!),
     enabled: !!userId,
   });
 }

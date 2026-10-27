@@ -3,7 +3,6 @@ import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -99,8 +98,7 @@ export function SavedSpacesEmptyState() {
 
           <Text style={styles.title}>Your Shortlist is Empty</Text>
           <Text style={styles.subtitle}>
-            Tap the heart icon on any lodge to save your top choices here for
-            quick comparison.
+            Bookmark any lodge or place and it will appear here for quick access.
           </Text>
 
           <Pressable onPress={() => router.replace('/(tabs)')} style={styles.button}>
@@ -109,8 +107,6 @@ export function SavedSpacesEmptyState() {
           </Pressable>
         </View>
       </ScrollView>
-
-      <DiscoverBottomNav activeTab="saved" />
     </View>
   );
 }

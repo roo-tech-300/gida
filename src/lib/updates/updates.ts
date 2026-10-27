@@ -6,16 +6,22 @@ export type UpdateCheckResult = 'updated' | 'current' | 'unavailable';
 const UPDATE_LOG_TAG = '[AppUpdates]';
 
 type ManifestWithExtra = {
-  extra?: { expoClient?: { updates?: { url?: string } } };
+  extra?: {
+    expoClient?: {
+      updates?: {
+        url?: string;
+      };
+    };
+  };
 };
-
-function getUpdateUrl(): string {
-  const manifest = Updates.manifest as ManifestWithExtra | undefined;
-  return manifest?.extra?.expoClient?.updates?.url ?? 'unknown';
-}
 
 function formatError(error: unknown): string {
   return error instanceof Error ? error.stack ?? error.message : String(error);
+}
+
+function getUpdateUrl(): string {
+  const manifest = Updates.manifest as ManifestWithExtra | null | undefined;
+  return manifest?.extra?.expoClient?.updates?.url ?? 'unknown';
 }
 
 export async function checkForAppUpdate(): Promise<UpdateCheckResult> {

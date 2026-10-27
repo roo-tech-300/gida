@@ -9,9 +9,17 @@ type Props = {
   placeholder?: string;
   hasFilter?: boolean;
   onFilterPress?: () => void;
+  onClear?: () => void;
 };
 
-export function SearchBar({ value, onChangeText, placeholder = 'Search...', hasFilter, onFilterPress }: Props) {
+export function SearchBar({
+  value,
+  onChangeText,
+  placeholder = 'Search...',
+  hasFilter,
+  onFilterPress,
+  onClear,
+}: Props) {
   return (
     <View style={styles.bar}>
       <Ionicons name="search" size={18} color={DesignColors.onSurfaceVariant} />
@@ -23,6 +31,16 @@ export function SearchBar({ value, onChangeText, placeholder = 'Search...', hasF
         value={value}
         onChangeText={onChangeText}
       />
+      {value.length > 0 && onClear && (
+        <Pressable
+          accessibilityLabel="Clear search"
+          accessibilityRole="button"
+          hitSlop={10}
+          onPress={onClear}
+        >
+          <Ionicons name="close-circle" size={18} color={DesignColors.onSurfaceVariant} />
+        </Pressable>
+      )}
       {hasFilter && (
         <Pressable style={styles.filterButton} onPress={onFilterPress}>
           <Ionicons name="options-outline" size={20} color={DesignColors.onSurfaceVariant} />

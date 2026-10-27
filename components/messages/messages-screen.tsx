@@ -7,7 +7,8 @@ import { useRouter } from 'expo-router';
 import { MessageThreadFilters } from '@/components/messages/message-thread-filters';
 import { MessageThreadList } from '@/components/messages/message-thread-list';
 import { NotificationEnableBanner } from '@/components/messages/notification-enable-banner';
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { AppBottomNav } from '@/components/navigation/app-bottom-nav';
+import { ScreenTitle } from '@/components/ui/screen-title';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversations } from '@/hooks/use-conversations';
@@ -41,9 +42,7 @@ export function MessagesScreen() {
 
   return (
     <SafeAreaView style={styles.safe}>
-      <View style={styles.header}>
-        <Text style={styles.title}>Messages</Text>
-      </View>
+      <ScreenTitle title="Messages" />
 
       <View style={styles.filters}>
         <MessageThreadFilters filters={MESSAGE_FILTERS} activeFilter={filter} onFilterChange={(value) => setFilter(value as MessageFilter)} />
@@ -98,7 +97,7 @@ export function MessagesScreen() {
         )}
       </View>
 
-      <DiscoverBottomNav activeTab="messages" />
+      <AppBottomNav activeTab="messages" />
     </SafeAreaView>
   );
 }
@@ -110,18 +109,6 @@ const styles = StyleSheet.create({
   },
   flex: {
     flex: 1,
-  },
-  header: {
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingTop: DesignSpacing.md,
-    paddingBottom: DesignSpacing.md,
-  },
-  title: {
-    fontSize: 30,
-    lineHeight: 36,
-    fontWeight: '800',
-    color: DesignColors.onSurface,
-    fontFamily,
   },
   filters: {
     paddingHorizontal: DesignSpacing.marginMobile,

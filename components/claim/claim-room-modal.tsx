@@ -1,20 +1,22 @@
 import { useCallback, useEffect, useState } from 'react';
-import { Animated, Modal, Pressable, View } from 'react-native';
+import { Animated, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
+import { RoommatePrompt } from '@/components/claim/roommate-prompt';
 import { JoinGroupFlow } from '@/components/claim/join-group-flow';
+import { JoinInviteCard } from '@/components/claim/join-invite-card';
 import { OpenPodStep } from '@/components/claim/open-pod-step';
-import { RoommateChoiceStep } from '@/components/claim/roommate-choice-step';
+import { WizardFooter } from '@/components/claim/wizard-footer';
 import { ClaimWizardBody } from '@/components/claim/claim-wizard-body';
 import type { SelectedFriend } from '@/components/claim/friend-picker';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
+import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
-import { useOpenPodsForListing } from '@/hooks/use-liquidity';
-import { useJoinOpenPod } from '@/hooks/use-join-open-pod';
-import { useReserveClaimSpot } from '@/hooks/use-reserve-claim-spot';
+import { useCreateSlotCredit, useOpenPodsForListing } from '@/hooks/use-liquidity';
 import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
+import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus , derivePropertyTier } from '@/utils/liquidity-math';
 import type { Pod } from '@/types/liquidity';
 
@@ -31,9 +33,10 @@ type Props = {
 
 export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
-  const { joinPod, isJoining } = useJoinOpenPod();
+  const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { profile } = useAuth();
   const { needsOnboarding } = useRoommateVisibility();
+  const { showToast } = useAppToast();
   const { panHandlers, sheetHeight } = useDraggableSheet();
   useEscapeKey(onClose, visible);
 
@@ -72,11 +75,8 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   }, [wantsRoommates, openPodsLoading, openPods, compatibleOpenPods]);
 
   useEffect(() => {
-    const resetToIdle = () => {
-      setWantsRoommates(false);
-    };
     if (!listingLoading && propertyTier <= 1 && wantsRoommates === null) {
-      resetToIdle();
+      setWantsRoommates(false);
     }
   }, [listingLoading, propertyTier, wantsRoommates]);
 
@@ -89,7 +89,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const codeSeats = isBuyout ? 0 : Math.max(0, haveCount - friends.length);
 
   useEffect(() => {
-    const resetModal = () => {
+    if (!visible) {
       setStep(1);
       setWantsRoommates(null);
       setRoommateCount(1);
@@ -99,9 +99,6 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       setJoinMode(false);
       setShowOpenPods(false);
       setShowOnboarding(false);
-    };
-    if (!visible) {
-      resetModal();
     }
   }, [visible]);
 
@@ -124,36 +121,66 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     setFriends((prev) => prev.slice(0, have));
   };
 
-  const { reserve, isReserving } = useReserveClaimSpot({
-    listing: dbListing,
-    isBuyout,
-    matchedCount,
-    peopleTotal,
-    inviteCode,
-    friends,
-    creatorGender: profile?.gender,
-    creatorName: profile?.full_name ?? undefined,
-    onReserved: onClose,
-  });
+  const handleReserve = useCallback(async () => {
+    if (!dbListing) return;
+    console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
+    try {
+      console.log('[ClaimModal] 2. Calling purchaseSlot...');
+      const { credit, podId } = await purchaseSlot({
+        listing: dbListing,
+        targetOccupancy: peopleTotal,
+        createCode: inviteCode,
+        invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
+        creatorGender: profile?.gender,
+      });
+      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'status:', credit.status);
+      const message = isBuyout
+        ? 'Spot reserved! You\'re all set for solo living.'
+        : matchedCount > 0
+          ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
+          : 'Spot secured! Invite your friends to keep the group together.';
+      showToast({ message, type: 'success' });
+      console.log('[ClaimModal] 4. Notifying admin...');
+      try {
+        await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: profile?.full_name ?? 'A resident' });
+        console.log('[ClaimModal] 5. Admin notified successfully');
+      } catch (notifyErr) {
+        console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
+      }
+      onClose();
+      router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
+      showToast({ message, type: 'error' });
+    }
+  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.full_name, profile?.gender]);
 
   const handleJoinOpenPod = useCallback(
     async (pod: Pod) => {
-      if (!dbListing) return;
-
-      const credit = await joinPod({ pod, listing: dbListing });
-      if (!credit) return;
-
-      onClose();
-      router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+      if (!dbListing || !pod.group_code) return;
+      try {
+        const { credit } = await purchaseSlot({
+          listing: dbListing,
+          targetOccupancy: pod.target_occupancy,
+          joinCode: pod.group_code,
+          source: 'recommendation',
+        });
+        showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
+        onClose();
+        router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+      } catch (error) {
+        const message = error instanceof Error ? error.message : 'Failed to join the group.';
+        showToast({ message, type: 'error' });
+      }
     },
-    [dbListing, joinPod, onClose],
+    [dbListing, purchaseSlot, showToast, onClose],
   );
 
   const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;
 
   const handleFooterPress = () => {
     if (isConfirmStep) {
-      void reserve();
+      handleReserve();
       return;
     }
     if (step === 1 && wantsRoommates === true && hasOpenPods) {
@@ -184,7 +211,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
               <OpenPodStep
                 listing={dbListing}
                 myGender={profile?.gender}
-                joining={isReserving || isJoining}
+                joining={isPurchasing}
                 onJoin={handleJoinOpenPod}
                 onDecline={() => {
                   setShowOpenPods(false);
@@ -193,14 +220,30 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 onClose={onClose}
               />
             ) : step === 1 ? (
-              <RoommateChoiceStep
-                value={wantsRoommates}
-                onChange={handleRoommateChoice}
-                onJoinWithCode={() => setJoinMode(true)}
-                onContinue={handleFooterPress}
-                loading={isReserving || openPodsLoading}
-                disabled={!canContinue}
-              />
+              <>
+                <View style={styles.divider} />
+                <ScrollView
+                  style={styles.scroll}
+                  bounces={false}
+                  showsVerticalScrollIndicator={false}
+                  contentContainerStyle={styles.content}
+                  keyboardShouldPersistTaps="handled"
+                  nestedScrollEnabled
+                  removeClippedSubviews={false}
+                >
+                  <Text style={styles.title}>Would you like to have roommates?</Text>
+                  <Text style={styles.subtitle}>You can live alone, with friends, with matched roommates — or a mix.</Text>
+                  <RoommatePrompt value={wantsRoommates} onChange={handleRoommateChoice} />
+                  <JoinInviteCard onPress={() => setJoinMode(true)} />
+                </ScrollView>
+                <WizardFooter
+                  label="Continue"
+                  icon="arrow-forward"
+                  loading={isPurchasing || openPodsLoading}
+                  disabled={!canContinue}
+                  onPress={handleFooterPress}
+                />
+              </>
             ) : (
               <ClaimWizardBody
                 step={step}
@@ -211,7 +254,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 isConfirmStep={isConfirmStep}
                 wantsRoommates={wantsRoommates}
                 openPodsLoading={openPodsLoading}
-                isPurchasing={isReserving}
+                isPurchasing={isPurchasing}
                 propertyTier={propertyTier}
                 priceAmount={priceAmount}
                 listingTitle={listing?.title || 'Gida Property'}

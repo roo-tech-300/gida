@@ -1,5 +1,5 @@
-import { DiscoverHomeScreen } from '@/components/home/discover-home-screen';
+import { HomeScreen } from '@/components/home/home-screen';
 
-export default function HomeScreen() {
-  return <DiscoverHomeScreen />;
+export default function HomeRoute() {
+  return <HomeScreen />;
 }

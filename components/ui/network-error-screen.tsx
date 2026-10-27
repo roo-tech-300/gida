@@ -2,18 +2,20 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { AppBottomNav, type BottomTab } from '@/components/navigation/app-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
 interface NetworkErrorScreenProps {
   onRetry: () => void;
   subtitle?: string;
+  activeTab?: BottomTab;
 }
 
 export function NetworkErrorScreen({
   onRetry,
   subtitle = 'Check your network, or maybe our maintenance team is giving the buildings a fresh coat of digital paint. Let\u2019s try again in a moment.',
+  activeTab = 'home',
 }: NetworkErrorScreenProps) {
   const floatAnimRef = useRef(new Animated.Value(0));
   // eslint-disable-next-line react-hooks/refs
@@ -118,7 +120,7 @@ export function NetworkErrorScreen({
         </View>
       </ScrollView>
 
-      <DiscoverBottomNav activeTab="discover" />
+      <AppBottomNav activeTab={activeTab} />
     </View>
   );
 }

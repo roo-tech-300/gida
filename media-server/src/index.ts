@@ -52,13 +52,25 @@ const server = http.createServer((req, res) => {
   sendError(res, new HttpError(404, 'Not found'));
 });
 
+function listen(): Promise<void> {
+  return new Promise((resolve, reject) => {
+    server.once('error', reject);
+    server.listen(env.port, () => {
+      server.off('error', reject);
+      console.log(`[media-server] listening on :${env.port}`);
+      resolve();
+    });
+  });
+}
+
 async function main(): Promise<void> {
   await storage.ensureDirs();
+  // Claim the port first: if another instance is still running, fail before
+  // recovery touches its in-progress work folder.
+  await listen();
   const deps = { storage, videos, queue, uploads };
   await recoverJobs(deps);
   const janitor = startJanitor(deps);
-
-  server.listen(env.port, () => console.log(`[media-server] listening on :${env.port}`));
 
   const shutdown = () => {
     console.log('[media-server] shutting down');

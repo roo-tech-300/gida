@@ -24,16 +24,18 @@ export function createTranscoder({ storage, videos, maxDurationSeconds }: Transc
     try {
       await videos.update(id, { status: 'processing', error: null });
 
-      const probeJson = await runProcess(
-        'ffprobe',
-        ['-v', 'error', '-print_format', 'json', '-show_streams', '-show_format', input],
-        signal,
-      );
       let probe;
       try {
+        const probeJson = await runProcess(
+          'ffprobe',
+          ['-v', 'error', '-print_format', 'json', '-show_streams', '-show_format', input],
+          signal,
+        );
         probe = parseProbe(probeJson);
       } catch (error) {
-        throw new RejectedVideoError(`This file could not be read as a video (${(error as Error).message}).`);
+        if (signal.aborted) throw error;
+        console.error(`[transcode] ${id} could not be probed:`, error);
+        throw new RejectedVideoError('This file could not be read as a video. Try exporting it again as MP4.');
       }
       if (probe.durationSeconds > maxDurationSeconds + 1) {
         throw new RejectedVideoError(

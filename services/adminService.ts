@@ -132,7 +132,12 @@ export async function fetchRegions(): Promise<AdminRegion[]> {
   return (data ?? []) as AdminRegion[];
 }
 
-export async function fetchAdminListingsPaginated(page = 1, limit = 50): Promise<AdminListing[]> {
+export async function fetchAdminListingsPaginated(
+  page = 1,
+  limit = 50,
+  searchQuery?: string,
+  status?: 'all' | 'available' | 'booked',
+): Promise<AdminListing[]> {
   const from = (page - 1) * limit;
   const to = from + limit - 1;
 
@@ -141,6 +146,15 @@ export async function fetchAdminListingsPaginated(page = 1, limit = 50): Promise
     .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at')
     .order('created_at', { ascending: false })
     .range(from, to);
+
+  if (status && status !== 'all') {
+    query = query.ilike('status', status);
+  }
+
+  if (searchQuery?.trim()) {
+    const q = searchQuery.trim();
+    query = query.or(`title.ilike.%${q}%,location_landmark.ilike.%${q}%`);
+  }
 
   const { data, error } = await query;
 

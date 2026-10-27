@@ -20,6 +20,8 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
+      EXPO_PUBLIC_MEDIA_CDN_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}
+      EXPO_PUBLIC_MEDIA_UPLOAD_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}
 
     steps:
       - name: Checkout
@@ -52,6 +54,8 @@ jobs:
           echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> .env
           echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
           echo "EXPO_PUBLIC_WORKER_URL=${{ secrets.EXPO_PUBLIC_WORKER_URL }}" >> .env
+          echo "EXPO_PUBLIC_MEDIA_CDN_URL=${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}" >> .env
+          echo "EXPO_PUBLIC_MEDIA_UPLOAD_URL=${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}" >> .env
 
       - name: Prebuild Android project
         env:
@@ -127,6 +131,8 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
+          EXPO_PUBLIC_MEDIA_CDN_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}
+          EXPO_PUBLIC_MEDIA_UPLOAD_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}

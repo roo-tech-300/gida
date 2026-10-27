@@ -26,9 +26,32 @@ export async function fetchRecommendedListings(
     throw new Error(error.message);
   }
 
-  return (data ?? []).map((row: RecommendedDbListing) => ({
+  const rows = await withVideoPreviews((data ?? []) as RecommendedDbListing[]);
+  return rows.map((row) => ({
     ...mapDbToFeedListing(row),
     photoCount: row.images?.length ?? 0,
     relevanceScore: row.relevance_score,
   }));
+}
+
+/**
+ * get_recommended_listings predates listings.video_preview_path. Until the
+ * function returns that column, fetch it for the whole page in one query.
+ */
+async function withVideoPreviews(rows: RecommendedDbListing[]): Promise<RecommendedDbListing[]> {
+  if (rows.length === 0 || 'video_preview_path' in rows[0]) return rows;
+
+  const { data, error } = await supabase
+    .from('listings')
+    .select('id, video_preview_path')
+    .in('id', rows.map((row) => row.id))
+    .not('video_preview_path', 'is', null);
+
+  if (error) {
+    console.error('[fetchRecommendedListings] Failed to fetch video previews (feed shows photos only):', error.message);
+    return rows;
+  }
+
+  const previews = new Map((data ?? []).map((row: { id: string; video_preview_path: string | null }) => [row.id, row.video_preview_path]));
+  return rows.map((row) => ({ ...row, video_preview_path: previews.get(row.id) ?? null }));
 }

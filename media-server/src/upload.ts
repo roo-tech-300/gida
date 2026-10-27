@@ -30,7 +30,9 @@ export function createUploadServer({ env, auth, storage, videos, queue }: Upload
       expirationPeriodInMilliseconds: ABANDONED_UPLOAD_MS,
     }),
     maxSize: env.maxUploadBytes,
-    respectForwardedHeaders: true,
+    // `/uploads/<id>`: the client resolves it against its endpoint, so it is
+    // correct behind any proxy or port without trusting forwarded headers.
+    relativeLocation: true,
     allowedOrigins: env.allowedOrigins.length > 0 ? env.allowedOrigins : undefined,
     disableTerminationForFinishedUploads: true,
     namingFunction: () => randomUUID(),

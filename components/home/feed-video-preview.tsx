@@ -41,7 +41,7 @@ export function FeedVideoPreview({ uri }: { uri: string }) {
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">
-      <VideoView player={player} style={StyleSheet.absoluteFill} contentFit="cover" nativeControls={false} />
+      <VideoView player={player} style={styles.video} contentFit="cover" nativeControls={false} />
     </Animated.View>
   );
 }
@@ -56,6 +56,8 @@ export function FeedVideoBadge() {
 }
 
 const styles = StyleSheet.create({
+  // Explicit size: on web a <video> doesn't stretch to fill from offsets alone.
+  video: { ...StyleSheet.absoluteFill, width: '100%', height: '100%' },
   badge: {
     flexDirection: 'row',
     alignItems: 'center',

@@ -26,10 +26,6 @@
 
 	# Uploads, deletes and health checks go to the Node service.
 	handle {
-		reverse_proxy media-server:3000 {
-			# tus relies on these to build the upload URL it hands back.
-			header_up X-Forwarded-Proto {scheme}
-			header_up X-Forwarded-Host {host}
-		}
+		reverse_proxy media-server:3000
 	}
 }

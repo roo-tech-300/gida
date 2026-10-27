@@ -15,6 +15,7 @@ import { PropertyHeroHeader } from '@/components/property/property-hero-header';
 import { PropertyBottomSheet } from '@/components/property/property-bottom-sheet';
 import { PropertyPhotos } from '@/components/property/property-photos';
 import { ListingDeleteModal } from './listing-delete-modal';
+import { ListingVideoManager } from './listing-video-manager';
 
 const HERO_HEIGHT = 340;
 
@@ -98,6 +99,8 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
         </View>
 
         <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
+
+        <ListingVideoManager listingId={property.id} />
 
         <View style={styles.tourStateSection}>
           <Text style={styles.sectionTitle}>Tour Availability</Text>

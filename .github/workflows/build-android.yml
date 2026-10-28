@@ -1,20 +1,40 @@
 name: Build Android APK
 
+# Three kinds of build (see docs/RELEASING.md):
+#   production — push to `builds`: release-signed "Gida", GitHub release build-N,
+#                recorded in app_releases so installed apps are offered it.
+#   preview    — PR into `builds` labelled `preview-build`: release-signed
+#                "Gida Preview" (separate app), GitHub pre-release preview-N,
+#                only offered to Preview installs.
+#   dev        — push to `dev`: debug APK as a workflow artifact (unchanged).
 on:
   push:
     branches:
       - builds
       - dev
+  pull_request:
+    branches:
+      - builds
+    types: [labeled, synchronize, reopened]
 
 concurrency:
-  group: build-android-${{ github.ref }}
+  group: build-android-${{ github.event.pull_request.number || github.ref }}
   cancel-in-progress: true
 
 permissions:
   contents: write
+  pull-requests: write
 
 jobs:
   build-android:
+    # PR builds only when labelled, and never for forks (they'd get signing secrets).
+    # A `labeled` event only counts when the label added is preview-build;
+    # pushes to an already-labelled PR rebuild it.
+    if: >-
+      github.event_name == 'push' ||
+      (github.event.pull_request.head.repo.full_name == github.repository &&
+       contains(github.event.pull_request.labels.*.name, 'preview-build') &&
+       (github.event.action != 'labeled' || github.event.label.name == 'preview-build'))
     runs-on: ubuntu-latest
     env:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
@@ -41,13 +61,51 @@ jobs:
           EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
         run: test -n "$EXPO_PROJECT_ID" || { echo "Set the EXPO_PROJECT_ID repository variable before building OTA-enabled APKs."; exit 1; }
 
-      - name: Set update channel
+      - name: Resolve build settings
+        env:
+          PR_NUMBER: ${{ github.event.pull_request.number }}
         run: |
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            echo "EXPO_UPDATES_CHANNEL=tester" >> "$GITHUB_ENV"
-          else
-            echo "EXPO_UPDATES_CHANNEL=production" >> "$GITHUB_ENV"
-          fi
+          set -euo pipefail
+          # Later steps (prebuild, gradle) read these: the app config uses
+          # APP_VARIANT, EXPO_UPDATES_CHANNEL and BUILD_NUMBER (versionCode).
+          {
+            echo "BUILD_NUMBER=${{ github.run_number }}"
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              echo "BUILD_KIND=preview"
+              echo "APP_VARIANT=preview"
+              echo "EXPO_UPDATES_CHANNEL=preview"
+              echo "RELEASE_TRACK=preview"
+              echo "RELEASE_TAG=preview-${{ github.run_number }}"
+              echo "RELEASE_NAME=Gida Preview #${{ github.run_number }} (PR #${PR_NUMBER})"
+              echo "APK_NAME=GidaPreview.apk"
+              echo "APK_DIR=android/app/build/outputs/apk/release"
+              echo "GRADLE_TASK=assembleRelease"
+            elif [ "${{ github.ref_name }}" = "dev" ]; then
+              echo "BUILD_KIND=dev"
+              echo "EXPO_UPDATES_CHANNEL=tester"
+              echo "APK_NAME=Gida.apk"
+              echo "APK_DIR=android/app/build/outputs/apk/debug"
+              echo "GRADLE_TASK=assembleDebug"
+            else
+              echo "BUILD_KIND=production"
+              echo "APP_VARIANT=production"
+              echo "EXPO_UPDATES_CHANNEL=production"
+              echo "RELEASE_TRACK=production"
+              echo "RELEASE_TAG=build-${{ github.run_number }}"
+              echo "RELEASE_NAME=Android build #${{ github.run_number }}"
+              echo "APK_NAME=Gida.apk"
+              echo "APK_DIR=android/app/build/outputs/apk/release"
+              echo "GRADLE_TASK=assembleRelease"
+            fi
+          } >> "$GITHUB_ENV"
+
+      - name: Check native changes against app version
+        if: env.BUILD_KIND != 'dev'
+        env:
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+        # Must run before prebuild: the generated android/ folder changes the fingerprint.
+        run: node scripts/release/release-registry.mjs check
 
       - name: Create .env file
         run: |
@@ -69,8 +127,8 @@ jobs:
           java-version: 17
           cache: gradle
 
-      - name: Configure production signing
-        if: github.ref_name == 'builds'
+      - name: Configure release signing
+        if: env.BUILD_KIND != 'dev'
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
@@ -138,27 +196,23 @@ jobs:
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
           GRADLE_OPTS: "-Dorg.gradle.jvmargs='-Xmx4096m -XX:MaxMetaspaceSize=1024m -XX:+UseParallelGC' -Dorg.gradle.caching=true -Dorg.gradle.parallel=true"
         run: |
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            echo "Building development APK for dev branch"
-            ./gradlew assembleDebug --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
-          else
-            echo "Building production APK for builds branch"
-            ./gradlew assembleRelease --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
-          fi
+          echo "Building $BUILD_KIND APK ($GRADLE_TASK, versionCode $BUILD_NUMBER)"
+          ./gradlew "$GRADLE_TASK" --no-daemon --stacktrace -PreactNativeArchitectures=arm64-v8a,x86_64
 
       - name: Rename APK
         run: |
-          if [ "${{ github.ref_name }}" = "dev" ]; then
-            mv android/app/build/outputs/apk/debug/app-debug.apk android/app/build/outputs/apk/debug/Gida.apk
+          set -euo pipefail
+          if [ "$BUILD_KIND" = "dev" ]; then
+            mv "$APK_DIR/app-debug.apk" "$APK_DIR/$APK_NAME"
           else
-            mv android/app/build/outputs/apk/release/app-release.apk android/app/build/outputs/apk/release/Gida.apk
+            mv "$APK_DIR/app-release.apk" "$APK_DIR/$APK_NAME"
           fi
 
-      - name: Verify production APK signature
-        if: github.ref_name == 'builds'
+      - name: Verify APK signature
+        if: env.BUILD_KIND != 'dev'
         run: |
           set -euo pipefail
-          APK="android/app/build/outputs/apk/release/Gida.apk"
+          APK="$APK_DIR/$APK_NAME"
           APKSIGNER=$(find "$ANDROID_HOME/build-tools" -name apksigner -type f | sort -V | tail -n 1)
           if [ -z "$APKSIGNER" ]; then
             echo "Could not find apksigner in the Android SDK build-tools."
@@ -166,20 +220,56 @@ jobs:
           fi
           "$APKSIGNER" verify --print-certs "$APK"
 
-      - name: Create GitHub Release for production builds
-        if: github.ref_name == 'builds'
+      - name: Create GitHub release
+        if: env.BUILD_KIND != 'dev'
         uses: softprops/action-gh-release@v2
         with:
-          tag_name: build-${{ github.run_number }}
-          name: "Android build #${{ github.run_number }}"
-          body: Automated release APK built from commit ${{ github.sha }}.
-          files: android/app/build/outputs/apk/release/Gida.apk
+          tag_name: ${{ env.RELEASE_TAG }}
+          name: ${{ env.RELEASE_NAME }}
+          body: Automated ${{ env.BUILD_KIND }} APK built from commit ${{ github.event.pull_request.head.sha || github.sha }}.
+          files: ${{ env.APK_DIR }}/${{ env.APK_NAME }}
           fail_on_unmatched_files: true
+          # Pre-releases never become "latest", so the landing page link and
+          # production installs never pick up a preview.
+          prerelease: ${{ env.BUILD_KIND == 'preview' }}
+          make_latest: ${{ env.BUILD_KIND == 'production' && 'true' || 'false' }}
+
+      - name: Record release for in-app updates
+        if: env.BUILD_KIND != 'dev'
+        env:
+          SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
+          SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
+          APK_URL: https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_TAG }}/${{ env.APK_NAME }}
+          GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          RELEASE_NOTES: ${{ github.event.pull_request.title || github.event.head_commit.message }}
+        run: node scripts/release/release-registry.mjs record
+
+      # Testers on the same version get this PR's JavaScript on their next
+      # launch without reinstalling. Native changes bump the version (the
+      # check step enforces it), and the app then prompts for the new APK.
+      - name: Publish preview OTA update
+        if: env.BUILD_KIND == 'preview'
+        env:
+          EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: npx eas-cli update --channel preview --message "PR #$PR_NUMBER preview build $BUILD_NUMBER" --non-interactive
+
+      - name: Comment preview download link on the PR
+        if: env.BUILD_KIND == 'preview'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+          APK_URL: https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_TAG }}/${{ env.APK_NAME }}
+        run: |
+          gh pr comment "$PR_NUMBER" --repo "${{ github.repository }}" --body "📱 **Gida Preview build #$BUILD_NUMBER** is ready: [download $APK_NAME]($APK_URL)
+
+          Installs next to the production app. Testers already on this version get the changes on their next app launch (OTA); if the version changed, Gida Preview prompts them to install this APK."
 
       - name: Upload dev APK artifact
-        if: github.ref_name == 'dev'
+        if: env.BUILD_KIND == 'dev'
         uses: actions/upload-artifact@v4
         with:
           name: android-dev-apk-${{ github.run_number }}
-          path: android/app/build/outputs/apk/debug/Gida.apk
+          path: ${{ env.APK_DIR }}/${{ env.APK_NAME }}
           if-no-files-found: error

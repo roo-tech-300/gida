@@ -9,6 +9,7 @@ on:
         required: true
         options:
           - tester
+          - preview
           - production
 
 permissions:
@@ -45,4 +46,8 @@ jobs:
           test -n "$EXPO_TOKEN" || { echo "Set the EXPO_TOKEN repository secret."; exit 1; }
 
       - name: Publish update
+        env:
+          # Preview updates must be built with the Preview app config.
+          APP_VARIANT: ${{ inputs.channel == 'preview' && 'preview' || 'production' }}
+          EXPO_UPDATES_CHANNEL: ${{ inputs.channel }}
         run: npx eas-cli update --channel "${{ inputs.channel }}" --message "GitHub Actions update ${{ github.sha }}" --non-interactive

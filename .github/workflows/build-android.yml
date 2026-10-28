@@ -247,7 +247,9 @@ jobs:
           EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: npx eas-cli update --channel preview --message "PR #$PR_NUMBER preview build $BUILD_NUMBER" --non-interactive
+        # Block scalar: in a plain one, " #" would start a YAML comment.
+        run: |
+          npx eas-cli update --channel preview --message "PR #$PR_NUMBER preview build $BUILD_NUMBER" --non-interactive
 
       - name: Comment preview download link on the PR
         if: env.BUILD_KIND == 'preview'

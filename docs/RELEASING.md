@@ -59,6 +59,23 @@ Notes:
   It shares the `gida://` scheme, so after paying in Preview, Android asks
   which app to open.
 
+## What users see
+
+On Android release builds (`production` and `preview` channels), the app
+checks `app_releases` for its track at launch and when it returns to the
+foreground (at most once an hour):
+
+- **Update available**: the newest release has a higher `version` than the
+  installed APK. A dismissible sheet with release notes; *Later* hides it for
+  3 days, and a newer version shows again. *Download update* opens the APK in
+  the browser, and Android's installer takes over.
+- **Update required**: the installed version is below `min_supported_version`.
+  A full-screen block with only a download button.
+
+Newer builds of the same `version` never prompt; their JavaScript arrives as
+OTA updates. Debug APKs from `dev` (channel `tester`), dev mode and web never
+check.
+
 ## Forcing an update
 
 Every release is recorded in the Supabase table `public.app_releases`. The app

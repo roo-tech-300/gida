@@ -7,7 +7,8 @@ type TourEnablementToggleProps = {
   onChange: (next: { enableSelfGuidedTour?: boolean; enableGuidedTour?: boolean }) => void;
 };
 
-function ToggleRow({
+/** A labelled Enabled/Disabled switch card, shared by the listing wizard's settings. */
+export function ToggleRow({
   label,
   description,
   enabled,

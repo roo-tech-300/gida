@@ -9,6 +9,7 @@ export interface PickedVideo {
   file: UploadableFile;
   fileName: string;
   mimeType: string;
+  durationSeconds: number | null;
 }
 
 export type PickVideoResult =
@@ -50,5 +51,6 @@ export async function pickListingVideo(): Promise<PickVideoResult> {
   const mimeType = asset.mimeType ?? asset.file?.type ?? 'video/mp4';
   const fileName = asset.fileName ?? asset.file?.name ?? `walkthrough-${Date.now()}.mp4`;
   const file: UploadableFile = asset.file ?? { uri: asset.uri, name: fileName, type: mimeType };
-  return { kind: 'picked', video: { file, fileName, mimeType } };
+  const durationSeconds = asset.duration != null ? Math.round(asset.duration / 1000) : null;
+  return { kind: 'picked', video: { file, fileName, mimeType, durationSeconds } };
 }

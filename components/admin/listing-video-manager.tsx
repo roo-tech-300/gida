@@ -2,6 +2,8 @@ import { ActivityIndicator, Pressable, StyleSheet, Text, View } from 'react-nati
 import { Ionicons } from '@expo/vector-icons';
 
 import { CustomAlert, useCustomAlert } from '@/components/ui/custom-alert';
+import { AddVideoButton } from '@/components/admin/add-video-button';
+import { ListingVideoHeader } from '@/components/admin/listing-video-header';
 import { ListingVideoRow } from '@/components/admin/listing-video-row';
 import { ListingVideoUploadCard } from '@/components/admin/listing-video-upload-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
@@ -21,11 +23,7 @@ export function ListingVideoManager({ listingId }: { listingId: string }) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.sectionTitle}>Walkthrough Videos</Text>
-      <Text style={styles.hint}>
-        Short walkthroughs convert better than photos alone. Up to {LISTING_VIDEO_LIMITS.maxPerListing} videos,{' '}
-        {LISTING_VIDEO_LIMITS.maxDurationSeconds / 60} minutes each.
-      </Text>
+      <ListingVideoHeader />
 
       {isLoading ? <ActivityIndicator color={DesignColors.primary} style={styles.loader} /> : null}
 
@@ -48,17 +46,7 @@ export function ListingVideoManager({ listingId }: { listingId: string }) {
 
       {upload ? <ListingVideoUploadCard upload={upload} onCancel={cancel} onDismiss={dismiss} /> : null}
 
-      <Pressable
-        style={[styles.addButton, !canAdd && styles.addButtonDisabled]}
-        onPress={addVideo}
-        disabled={!canAdd}
-        accessibilityRole="button"
-      >
-        <Ionicons name="videocam-outline" size={20} color={DesignColors.onPrimaryContainer} />
-        <Text style={styles.addText}>
-          {atLimit ? `Limit of ${LISTING_VIDEO_LIMITS.maxPerListing} videos reached` : 'Add walkthrough video'}
-        </Text>
-      </Pressable>
+      <AddVideoButton onPress={addVideo} disabled={!canAdd} atLimit={atLimit} />
 
       <CustomAlert
         visible={alert.visible}
@@ -73,8 +61,6 @@ export function ListingVideoManager({ listingId }: { listingId: string }) {
 
 const styles = StyleSheet.create({
   section: { gap: DesignSpacing.sm, marginBottom: DesignSpacing.xl },
-  sectionTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
-  hint: { fontSize: 13, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 20 },
   loader: { paddingVertical: DesignSpacing.md },
   errorBox: {
     flexDirection: 'row',
@@ -85,15 +71,4 @@ const styles = StyleSheet.create({
     backgroundColor: DesignColors.dangerContainer,
   },
   errorText: { ...DesignTypography.bodyMd, color: DesignColors.danger, fontFamily },
-  addButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: DesignSpacing.sm,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  addButtonDisabled: { opacity: 0.5 },
-  addText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimaryContainer, fontFamily, fontWeight: '700' },
 });

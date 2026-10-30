@@ -1,5 +1,6 @@
 import { derivePropertyTier } from '@/utils/liquidity-math';
 import { mediaCdnUrl } from '@/utils/media-url';
+import type { PickedVideo } from '@/utils/pick-listing-video';
 
 export type FeedListing = {
   id: string;
@@ -72,6 +73,7 @@ export type DbListing = {
   enable_self_guided_tour?: boolean;
   enable_guided_tour?: boolean;
   video_preview_path?: string | null;
+  video_cover_enabled?: boolean;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [
@@ -180,6 +182,8 @@ export function dbToListingForm(item: DbListing) {
     step5: {
       heroImage: item.primary_image,
       galleryImages: [] as string[],
+      pendingVideos: [] as PickedVideo[],
+      videoCoverEnabled: item.video_cover_enabled ?? true,
     },
   };
 }

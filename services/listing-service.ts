@@ -48,6 +48,8 @@ export type CreateListingInput = {
   region_path?: string[] | null;
   enable_self_guided_tour: boolean;
   enable_guided_tour: boolean;
+  /** Use the walkthrough video's preview as the feed cover instead of the photo. */
+  video_cover_enabled: boolean;
 };
 
 export type CreateListingPhoto = {
@@ -106,6 +108,7 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
       region_path: input.region_path ?? null,
       enable_self_guided_tour: input.enable_self_guided_tour,
       enable_guided_tour: input.enable_guided_tour,
+      video_cover_enabled: input.video_cover_enabled,
       primary_image: null,
     })
     .select('id')
@@ -169,6 +172,7 @@ export type UpdateListingInput = {
   region_path?: string[] | null;
   enable_self_guided_tour?: boolean;
   enable_guided_tour?: boolean;
+  video_cover_enabled?: boolean;
 };
 
 export async function updateListing(listingId: string, input: UpdateListingInput): Promise<void> {

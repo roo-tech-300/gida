@@ -83,6 +83,8 @@ description (the PR template includes it). CI reads it from the labelled PR
 for previews, and from the merged PR for production pushes to `builds`. Write
 for students, 1–4 short lines. If the section is missing or empty, the release
 has no notes and the sheet hides the box; commit messages are never used.
+A same-version rebuild without notes (e.g. a CI-only change) keeps the
+previous release's notes, since older installs are offered the newest row.
 
 To change the notes of a release that's already out, edit its row; installs
 see it on their next check (within an hour):

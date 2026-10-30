@@ -63,7 +63,7 @@ async function supabase(path, init = {}) {
 
 async function latestRelease(releaseTrack, filter = '') {
   const rows = await supabase(
-    `app_releases?select=build_number,version_name,native_fingerprint,min_supported_version` +
+    `app_releases?select=build_number,version_name,native_fingerprint,min_supported_version,release_notes` +
       `&platform=eq.android&track=eq.${releaseTrack}${filter}&order=build_number.desc&limit=1`,
   );
   return rows[0] ?? null;
@@ -106,14 +106,18 @@ async function record() {
   const releaseTrack = track();
   const buildNumber = Number(required('BUILD_NUMBER'));
   const previous = await latestRelease(releaseTrack);
+  const version = versionName();
+  const notes = process.env.RELEASE_NOTES?.trim().slice(0, 2000) || null;
 
   const row = {
     track: releaseTrack,
     platform: 'android',
-    version_name: versionName(),
+    version_name: version,
     build_number: buildNumber,
     apk_url: required('APK_URL'),
-    release_notes: process.env.RELEASE_NOTES?.trim().slice(0, 2000) || null,
+    // Installs on an older version are offered the newest release, so a
+    // same-version rebuild without notes keeps describing this version.
+    release_notes: notes ?? (previous?.version_name === version ? previous.release_notes : null),
     // Carry the team's "must update" threshold forward.
     min_supported_version: previous?.min_supported_version ?? null,
     native_fingerprint: required('NATIVE_FINGERPRINT'),
@@ -122,7 +126,8 @@ async function record() {
   await supabase('app_releases', { method: 'POST', body: JSON.stringify(row), headers: { Prefer: 'return=minimal' } });
   console.log(
     `[release] Recorded ${releaseTrack} ${row.version_name} (build ${buildNumber}), ` +
-      `min supported version ${row.min_supported_version ?? 'none'}.`,
+      `min supported version ${row.min_supported_version ?? 'none'}, ` +
+      `${row.release_notes ? (notes ? 'with release notes' : `release notes kept from build ${previous.build_number}`) : 'no release notes'}.`,
   );
 }
 

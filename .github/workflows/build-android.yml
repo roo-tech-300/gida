@@ -234,6 +234,30 @@ jobs:
           prerelease: ${{ env.BUILD_KIND == 'preview' }}
           make_latest: ${{ env.BUILD_KIND == 'production' && 'true' || 'false' }}
 
+      # Users see these in the app's "What's new" box, so they only ever come
+      # from the PR description's "## Release notes" section (see
+      # .github/pull_request_template.md), never from commit messages. No
+      # section means no notes, and the app hides the box.
+      - name: Resolve release notes
+        if: env.BUILD_KIND != 'dev'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          PR_NUMBER: ${{ github.event.pull_request.number }}
+        run: |
+          set -euo pipefail
+          if [ -z "$PR_NUMBER" ]; then
+            # Push to builds: the merged PR this commit came from, if any.
+            PR_NUMBER=$(gh api "repos/${{ github.repository }}/commits/${{ github.sha }}/pulls" --jq '.[0].number // empty')
+          fi
+          NOTES=""
+          if [ -n "$PR_NUMBER" ]; then
+            NOTES=$(gh pr view "$PR_NUMBER" --repo "${{ github.repository }}" --json body --jq .body | node scripts/release/release-notes.mjs)
+          fi
+          echo "Release notes from PR ${PR_NUMBER:-none}:"
+          echo "${NOTES:-(none; the app will show no notes)}"
+          DELIM="NOTES_$(openssl rand -hex 8)"
+          { echo "RELEASE_NOTES<<$DELIM"; echo "$NOTES"; echo "$DELIM"; } >> "$GITHUB_ENV"
+
       - name: Record release for in-app updates
         if: env.BUILD_KIND != 'dev'
         env:
@@ -241,7 +265,6 @@ jobs:
           SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
           APK_URL: https://github.com/${{ github.repository }}/releases/download/${{ env.RELEASE_TAG }}/${{ env.APK_NAME }}
           GIT_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
-          RELEASE_NOTES: ${{ github.event.pull_request.title || github.event.head_commit.message }}
         run: node scripts/release/release-registry.mjs record
 
       # Testers on the same version get this PR's JavaScript on their next

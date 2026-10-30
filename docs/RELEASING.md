@@ -76,6 +76,22 @@ Newer builds of the same `version` never prompt; their JavaScript arrives as
 OTA updates. Debug APKs from `dev` (channel `tester`), dev mode and web never
 check.
 
+### Release notes ("What's new")
+
+The sheet's notes come only from the **`## Release notes`** section of the PR
+description (the PR template includes it). CI reads it from the labelled PR
+for previews, and from the merged PR for production pushes to `builds`. Write
+for students, 1–4 short lines. If the section is missing or empty, the release
+has no notes and the sheet hides the box; commit messages are never used.
+
+To change the notes of a release that's already out, edit its row; installs
+see it on their next check (within an hour):
+
+```sql
+UPDATE public.app_releases SET release_notes = E'• First line\n• Second line'
+WHERE track = 'production' AND build_number = 139;
+```
+
 ## Forcing an update
 
 Every release is recorded in the Supabase table `public.app_releases`. The app

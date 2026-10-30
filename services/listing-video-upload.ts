@@ -2,6 +2,7 @@ import { DetailedError, Upload } from 'tus-js-client';
 import { getAccessToken } from '@/services/listing-video-service';
 import type { PickedVideo, UploadableFile } from '@/utils/pick-listing-video';
 import { mediaServerUrl } from '@/utils/media-url';
+import { createUploadProgressTracker } from '@/utils/upload-progress';
 
 // Small enough that a dropped mobile connection only loses one chunk.
 const CHUNK_BYTES = 5 * 1024 * 1024;
@@ -51,6 +52,8 @@ export function uploadListingVideo(
 ): UploadHandle {
   let upload: Upload | null = null;
   let rejectDone: (error: Error) => void = () => {};
+  // Android reports inflated per-chunk progress; see createUploadProgressTracker.
+  const progress = createUploadProgressTracker(CHUNK_BYTES, onProgress);
 
   const done = new Promise<void>((resolve, reject) => {
     rejectDone = reject;
@@ -65,7 +68,8 @@ export function uploadListingVideo(
         req.setHeader('Authorization', `Bearer ${await getAccessToken()}`);
       },
       onShouldRetry: (error) => shouldRetry(error),
-      onProgress: (sent, total) => onProgress(total > 0 ? sent / total : 0),
+      onProgress: progress.onProgress,
+      onChunkComplete: (_chunkSize, bytesAccepted) => progress.onChunkComplete(bytesAccepted),
       onSuccess: () => resolve(),
       onError: (error) => reject(new Error(describeError(error))),
     });

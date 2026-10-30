@@ -17,6 +17,7 @@
   ],
   "exclude": [
     "worker",
+    "media-server",
     "supabase/functions"
   ]
 }

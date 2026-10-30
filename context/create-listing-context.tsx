@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
+import type { PickedVideo } from '@/utils/pick-listing-video';
 
-type CreateListingData = {
+export type CreateListingData = {
   step1: {
     title: string;
     description: string;
@@ -37,6 +38,9 @@ type CreateListingData = {
   step5: {
     heroImage: string | null;
     galleryImages: string[];
+    /** New listings only: uploaded once Publish has created the listing. */
+    pendingVideos: PickedVideo[];
+    videoCoverEnabled: boolean;
   };
 };
 
@@ -57,7 +61,7 @@ const defaultValue: CreateListingData = {
   step2: { selectedSchool: null, selectedCampus: null, landmark: '', coords: null, regionPath: [], transferAdminId: null, enableSelfGuidedTour: true, enableGuidedTour: true },
   step3: { selectedAmenities: [], featuresList: [] },
   step4: { rulesList: [], maxRoommates: 1 },
-  step5: { heroImage: null, galleryImages: [] },
+  step5: { heroImage: null, galleryImages: [], pendingVideos: [], videoCoverEnabled: true },
 };
 
 const CreateListingContext = createContext<CreateListingContextType>({

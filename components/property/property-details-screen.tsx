@@ -25,6 +25,7 @@ import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
 import { PropertyBottomBar } from './property-bottom-bar';
 import { PropertyPhotos } from './property-photos';
+import { PropertyVideos } from './property-videos';
 import { PropertyKeyAmenities, getToggleAmenities } from './property-key-amenities';
 import { PropertyAmenitiesList } from './property-amenities-list';
 import { BookTourModal } from './book-tour-modal';
@@ -176,6 +177,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
         <PropertyKeyAmenities amenities={keyAmenities} />
 
+        <PropertyVideos listingId={property.id} />
         <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
 
         {property.description ? (

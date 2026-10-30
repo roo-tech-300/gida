@@ -40,6 +40,8 @@ jobs:
       EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
       EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
       EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
+      EXPO_PUBLIC_MEDIA_CDN_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}
+      EXPO_PUBLIC_MEDIA_UPLOAD_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}
 
     steps:
       - name: Checkout
@@ -110,6 +112,8 @@ jobs:
           echo "EXPO_PUBLIC_SUPABASE_URL=${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}" >> .env
           echo "EXPO_PUBLIC_SUPABASE_ANON_KEY=${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}" >> .env
           echo "EXPO_PUBLIC_WORKER_URL=${{ secrets.EXPO_PUBLIC_WORKER_URL }}" >> .env
+          echo "EXPO_PUBLIC_MEDIA_CDN_URL=${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}" >> .env
+          echo "EXPO_PUBLIC_MEDIA_UPLOAD_URL=${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}" >> .env
 
       - name: Prebuild Android project
         env:
@@ -185,6 +189,8 @@ jobs:
           EXPO_PUBLIC_SUPABASE_URL: ${{ secrets.EXPO_PUBLIC_SUPABASE_URL }}
           EXPO_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.EXPO_PUBLIC_SUPABASE_ANON_KEY }}
           EXPO_PUBLIC_WORKER_URL: ${{ secrets.EXPO_PUBLIC_WORKER_URL }}
+          EXPO_PUBLIC_MEDIA_CDN_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_CDN_URL }}
+          EXPO_PUBLIC_MEDIA_UPLOAD_URL: ${{ secrets.EXPO_PUBLIC_MEDIA_UPLOAD_URL }}
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
@@ -247,7 +253,9 @@ jobs:
           EXPO_PROJECT_ID: ${{ secrets.EXPO_PROJECT_ID }}
           EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
           PR_NUMBER: ${{ github.event.pull_request.number }}
-        run: npx eas-cli update --channel preview --message "PR #$PR_NUMBER preview build $BUILD_NUMBER" --non-interactive
+        # Block scalar: in a plain one, " #" would start a YAML comment.
+        run: |
+          npx eas-cli update --channel preview --message "PR #$PR_NUMBER preview build $BUILD_NUMBER" --non-interactive
 
       - name: Comment preview download link on the PR
         if: env.BUILD_KIND == 'preview'

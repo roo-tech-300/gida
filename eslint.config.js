@@ -5,7 +5,7 @@ const expoConfig = require('eslint-config-expo/flat');
 module.exports = defineConfig([
   expoConfig,
   {
-    ignores: ['dist/*', 'dist-verify/*'],
+    ignores: ['dist/*', 'dist-verify/*', 'media-server/**'],
     rules: {
       // React Compiler lint (eslint-plugin-react-hooks) flags standard RN
       // Animated.Value refs, Reanimated shared values, and modal reset effects.

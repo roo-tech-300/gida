@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { ReadyListingVideo } from '@/types/listing-video';
 import { formatVideoDuration } from '@/utils/media-url';
+import { FeedVideoPreview } from '@/components/home/feed-video-preview';
 import { PropertyVideoSurface } from './property-video-surface';
 
 /** Give it `key={video.id}` so switching videos starts again from the poster. */
@@ -28,6 +29,8 @@ export function PropertyVideoPlayer({ video }: { video: ReadyListingVideo }) {
           accessibilityLabel={failed ? 'Retry video' : 'Play video tour'}
         >
           <Image source={{ uri: video.posterUrl }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" transition={200} />
+          {/* Silent 8s loop over the poster until the student taps play. */}
+          {failed ? null : <FeedVideoPreview uri={video.previewUrl} />}
           <View style={styles.scrim} />
           <View style={styles.center}>
             <View style={styles.playButton}>

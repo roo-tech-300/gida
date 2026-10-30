@@ -9,9 +9,10 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 /**
- * Silent looping preview layered over the card's cover photo. The feed mounts
- * it only on the visible card, so at most one preview downloads/plays at a time.
- * Until it can play (or if it fails) the cover photo underneath stays visible.
+ * Silent looping preview layered over a cover photo or poster. The feed mounts
+ * it only on the visible card; the property page's video tour on its player
+ * and thumbnails. Until it can play (or if it fails) the image underneath
+ * stays visible.
  */
 export function FeedVideoPreview({ uri }: { uri: string }) {
   const isFocused = useIsFocused();

@@ -6,6 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useListingVideos } from '@/hooks/use-listing-videos';
 import { isReadyVideo } from '@/types/listing-video';
+import { FeedVideoPreview } from '@/components/home/feed-video-preview';
 import { PropertyVideoPlayer } from './property-video-player';
 
 /** Video tour section for students. Renders nothing for listings without videos. */
@@ -40,6 +41,8 @@ export function PropertyVideos({ listingId }: { listingId: string }) {
               accessibilityLabel={`Video ${index + 1}`}
             >
               <Image source={{ uri: video.posterUrl }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="disk" />
+              {/* The selected video already loops above; keeping its thumb still caps decoders at 3. */}
+              {video.id === selected.id ? null : <FeedVideoPreview uri={video.previewUrl} />}
             </Pressable>
           ))}
         </ScrollView>

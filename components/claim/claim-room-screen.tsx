@@ -14,6 +14,7 @@ import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { usePhoneNumberGate } from '@/context/phone-number-gate-context';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 
 export function ClaimRoomScreen({ listingId }: { listingId: string }) {
@@ -21,6 +22,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { showToast } = useAppToast();
+  const { requirePhoneNumber, isCheckingPhoneNumber } = usePhoneNumberGate();
 
   const [selectedTargetOccupancy, setSelectedTargetOccupancy] = useState<number>(1);
   const [matchingMode, setMatchingMode] = useState<'open_pool' | 'friends'>('open_pool');
@@ -46,9 +48,13 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
   const price = calculateEqualShare(priceAmount, selectedTargetOccupancy);
 
   const handleSecureSpace = useCallback(async () => {
-    if (!dbListing) return;
+    if (!dbListing) {
+      showToast({ message: 'Listing details are still loading. Please try again.', type: 'info' });
+      return;
+    }
     const joinCode = matchingMode === 'friends' ? friendCode.trim() : '';
     try {
+      if (!(await requirePhoneNumber())) return;
       const { credit, podId, synced, created } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: selectedTargetOccupancy,
@@ -87,7 +93,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, selectedTargetOccupancy, purchaseSlot, friendCode, matchingMode, showToast, router]);
+  }, [dbListing, selectedTargetOccupancy, purchaseSlot, friendCode, matchingMode, showToast, router, requirePhoneNumber]);
 
   if (listingLoading) {
     return <SafeAreaView style={styles.safe}><ActivityIndicator size="large" color={DesignColors.primary} style={styles.center} /></SafeAreaView>;
@@ -134,11 +140,11 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
           <ClaimRulesCard rules={rules} maxRoommates={propertyTier} />
 
           <Pressable
-            style={[styles.lockButton, isPurchasing && styles.lockButtonDisabled]}
+            style={[styles.lockButton, (isPurchasing || isCheckingPhoneNumber) && styles.lockButtonDisabled]}
             onPress={handleSecureSpace}
-            disabled={isPurchasing}
+            disabled={isPurchasing || isCheckingPhoneNumber}
           >
-            {isPurchasing ? (
+            {isPurchasing || isCheckingPhoneNumber ? (
               <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
             ) : (
               <Text style={styles.lockText}>Confirm & Secure Spot</Text>

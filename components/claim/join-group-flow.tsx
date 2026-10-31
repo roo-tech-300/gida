@@ -8,6 +8,7 @@ import { WizardFooter } from '@/components/claim/wizard-footer';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useCreateSlotCredit } from '@/hooks/use-liquidity';
+import { usePhoneNumberGate } from '@/context/phone-number-gate-context';
 import { useListing } from '@/hooks/use-listing';
 import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
 import { findPodByGroupCode, currentUserId } from '@/services/liquidity-pod-service';
@@ -26,6 +27,7 @@ const FALLBACK_PRICE = 1200000;
 export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { showToast } = useAppToast();
+  const { requirePhoneNumber, isCheckingPhoneNumber } = usePhoneNumberGate();
 
   const [step, setStep] = useState(1);
   const [code, setCode] = useState('');
@@ -94,6 +96,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
     if (!dbListing || !pod) return;
     const seat = pod.current_total_intent + 1;
     try {
+      if (!(await requirePhoneNumber())) return;
       const { credit } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: pod.target_occupancy,
@@ -106,7 +109,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
       const message = caught instanceof Error ? caught.message : 'Failed to join the group.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, pod, code, purchaseSlot, showToast, onClose]);
+  }, [dbListing, pod, code, purchaseSlot, showToast, onClose, requirePhoneNumber]);
 
   const canContinue = step === 1 ? pod !== null && !validating : !listingLoading && !!dbListing;
   const footerLabel = step === 2 ? 'Join This Group' : 'Continue';
@@ -185,7 +188,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
       <WizardFooter
         label={footerLabel}
         icon={footerIcon}
-        loading={isPurchasing}
+        loading={isPurchasing || isCheckingPhoneNumber}
         disabled={!canContinue}
         onPress={handleFooterPress}
       />

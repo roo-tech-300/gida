@@ -9,6 +9,7 @@ import { DesignColors } from '@/constants/design';
 import { IS_APP_LAUNCHED } from '@/constants/launch';
 import { AppConfigProvider } from '@/context/app-context';
 import { AuthProvider, useAuth } from '@/context/auth-context';
+import { PhoneNumberGateProvider } from '@/context/phone-number-gate-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
 import { queryClient } from '@/lib/query-clients';
 import { checkForAppUpdate } from '@/src/lib/updates/updates';
@@ -149,6 +150,7 @@ export default function RootLayout() {
         <AuthProvider>
           <OnboardingProvider>
             <ToastProvider>
+              <PhoneNumberGateProvider>
               <ForegroundNotificationListener />
               <NotificationNavigationListener />
               <AppUpdatePrompt />
@@ -178,6 +180,7 @@ export default function RootLayout() {
                   </Stack>
                 </AuthGate>
               </MessageSyncProvider>
+              </PhoneNumberGateProvider>
             </ToastProvider>
           </OnboardingProvider>
         </AuthProvider>

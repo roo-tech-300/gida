@@ -2,6 +2,7 @@ import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service'
 import { acceptLodgeInvitation, fetchMyPendingInvitations, respondToLodgeInvitation } from '@/services/lodge-invitation-service';
 import type { DbListing } from '@/types/feed-listing';
 import type { PendingLodgeInvitation } from '@/types/liquidity';
+import { usePhoneNumberGate } from '@/context/phone-number-gate-context';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export type LodgeInviteAction = 'accept' | 'decline';
@@ -28,10 +29,12 @@ export function usePendingInvitationForListing(listingId?: string) {
 
 export function useRespondToLodgeInvitation() {
   const queryClient = useQueryClient();
+  const { requirePhoneNumber } = usePhoneNumberGate();
 
   return useMutation<LodgeInviteActionResult, Error, LodgeInviteActionInput>({
     mutationFn: async ({ invitation, action, listing }) => {
       if (action === 'accept') {
+        if (!(await requirePhoneNumber())) return null;
         return acceptLodgeInvitation(invitation, listing);
       }
       await respondToLodgeInvitation(invitation.id, 'declined');

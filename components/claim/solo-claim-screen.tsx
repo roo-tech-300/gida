@@ -13,21 +13,27 @@ import { useCreateSlotCredit } from '@/hooks/use-liquidity';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
 import { formatNaira } from '@/utils/format-naira';
 import { calculateEqualShare } from '@/utils/liquidity-math';
+import { usePhoneNumberGate } from '@/context/phone-number-gate-context';
 
 export function SoloClaimScreen({ listingId }: { listingId: string }) {
   const { data: detail, isLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isReserving } = useCreateSlotCredit();
   const { showToast } = useAppToast();
+  const { requirePhoneNumber, isCheckingPhoneNumber } = usePhoneNumberGate();
 
   const dbListing = detail?.dbListing;
   const listing = detail?.listing;
   const priceAmount = dbListing?.price_amount ?? 1200000;
 
   const handleReserve = useCallback(async () => {
-    if (!dbListing) return;
+    if (!dbListing) {
+      showToast({ message: 'Listing details are still loading. Please try again.', type: 'info' });
+      return;
+    }
     console.log('[SoloClaim] 1. Button clicked — starting reservation flow');
     console.log('[SoloClaim] 2. dbListing.id:', dbListing.id, 'price:', dbListing.price_amount);
     try {
+      if (!(await requirePhoneNumber())) return;
       console.log('[SoloClaim] 3. Calling purchaseSlot...');
       const { credit, podId, synced, created } = await purchaseSlot({ listing: dbListing, targetOccupancy: 1 });
       console.log('[SoloClaim] 4. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'synced:', synced, 'created:', created, 'status:', credit.status);
@@ -50,7 +56,7 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, purchaseSlot, showToast]);
+  }, [dbListing, purchaseSlot, showToast, requirePhoneNumber]);
 
   const price = calculateEqualShare(priceAmount, 1);
 
@@ -123,12 +129,12 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
 
           <View style={styles.footer}>
             <Pressable
-              style={[styles.primaryButton, isReserving && styles.primaryButtonDisabled]}
+              style={[styles.primaryButton, (isReserving || isCheckingPhoneNumber) && styles.primaryButtonDisabled]}
               onPress={handleReserve}
-              disabled={isReserving}
+              disabled={isReserving || isCheckingPhoneNumber}
               testID="solo-reserve-btn"
             >
-              {isReserving ? (
+              {isReserving || isCheckingPhoneNumber ? (
                 <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
               ) : (
                 <>

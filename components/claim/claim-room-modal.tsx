@@ -14,6 +14,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { useListing } from '@/hooks/use-listing';
 import { useCreateSlotCredit, useOpenPodsForListing } from '@/hooks/use-liquidity';
 import { useAuth } from '@/context/auth-context';
+import { usePhoneNumberGate } from '@/context/phone-number-gate-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
@@ -35,6 +36,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const { data: detail, isLoading: listingLoading } = useListing(listingId);
   const { mutateAsync: purchaseSlot, isPending: isPurchasing } = useCreateSlotCredit();
   const { profile } = useAuth();
+  const { requirePhoneNumber, isCheckingPhoneNumber } = usePhoneNumberGate();
   const { needsOnboarding } = useRoommateVisibility();
   const { showToast } = useAppToast();
   const { panHandlers, sheetHeight } = useDraggableSheet();
@@ -122,9 +124,13 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   };
 
   const handleReserve = useCallback(async () => {
-    if (!dbListing) return;
+    if (!dbListing) {
+      showToast({ message: 'Listing details are still loading. Please try again.', type: 'info' });
+      return;
+    }
     console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
     try {
+      if (!(await requirePhoneNumber())) return;
       console.log('[ClaimModal] 2. Calling purchaseSlot...');
       const { credit, podId } = await purchaseSlot({
         listing: dbListing,
@@ -153,12 +159,13 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.full_name, profile?.gender]);
+  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.full_name, profile?.gender, requirePhoneNumber]);
 
   const handleJoinOpenPod = useCallback(
     async (pod: Pod) => {
       if (!dbListing || !pod.group_code) return;
       try {
+        if (!(await requirePhoneNumber())) return;
         const { credit } = await purchaseSlot({
           listing: dbListing,
           targetOccupancy: pod.target_occupancy,
@@ -173,7 +180,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         showToast({ message, type: 'error' });
       }
     },
-    [dbListing, purchaseSlot, showToast, onClose],
+    [dbListing, purchaseSlot, showToast, onClose, requirePhoneNumber],
   );
 
   const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;
@@ -211,7 +218,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
               <OpenPodStep
                 listing={dbListing}
                 myGender={profile?.gender}
-                joining={isPurchasing}
+                joining={isPurchasing || isCheckingPhoneNumber}
                 onJoin={handleJoinOpenPod}
                 onDecline={() => {
                   setShowOpenPods(false);
@@ -239,7 +246,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 <WizardFooter
                   label="Continue"
                   icon="arrow-forward"
-                  loading={isPurchasing || openPodsLoading}
+                  loading={isPurchasing || isCheckingPhoneNumber || openPodsLoading}
                   disabled={!canContinue}
                   onPress={handleFooterPress}
                 />
@@ -254,7 +261,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                 isConfirmStep={isConfirmStep}
                 wantsRoommates={wantsRoommates}
                 openPodsLoading={openPodsLoading}
-                isPurchasing={isPurchasing}
+                isPurchasing={isPurchasing || isCheckingPhoneNumber}
                 propertyTier={propertyTier}
                 priceAmount={priceAmount}
                 listingTitle={listing?.title || 'Gida Property'}

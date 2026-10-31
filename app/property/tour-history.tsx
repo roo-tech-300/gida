@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef } from 'react';
+import { useCallback, useEffect } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -12,7 +12,6 @@ import { TourStatusChip } from '@/components/property/tour-status-chip';
 export default function TourHistoryRoute() {
   const { data: bookings = [], isError, isRefetching, refetch } = useTourBookings();
   const { showToast } = useAppToast();
-  const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     if (isError) {
@@ -20,24 +19,8 @@ export default function TourHistoryRoute() {
     }
   }, [isError, showToast]);
 
-  useEffect(() => {
-    return () => {
-      if (timerRef.current) {
-        clearTimeout(timerRef.current);
-      }
-    };
-  }, []);
-
   const onRefresh = useCallback(() => {
     void refetch();
-    setSimRefreshing(true);
-
-    if (timerRef.current) {
-      clearTimeout(timerRef.current);
-    }
-    timerRef.current = setTimeout(() => {
-      setSimRefreshing(false);
-    }, 1300);
   }, [refetch]);
 
   const refreshing = isRefetching;

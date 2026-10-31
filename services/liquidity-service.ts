@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { assertPhoneNumberOnFile } from '@/services/phone-number-service';
 import { ALREADY_RESERVED_MESSAGE, hasActiveBooking } from '@/services/booking-guard-service';
 import { derivePropertyTier, isValidTargetOccupancy, podOpenSlotStatus } from '@/utils/liquidity-math';
 import { resolveEstateForListing } from '@/utils/liquidity-estate';
@@ -57,6 +58,7 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
   const userId = await currentUserId();
   console.log('[LiquidityService] userId:', userId);
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+  await assertPhoneNumberOnFile(userId);
 
   // Backend check first: the database rejects a second active booking for
   // this listing (expired bookings never block a new one).

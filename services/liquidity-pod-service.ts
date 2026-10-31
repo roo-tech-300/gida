@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { assertPhoneNumberOnFile } from '@/services/phone-number-service';
 import { persistFounderPod } from '@/services/liquidity-pod-persistence';
 import { notifyFounderOfJoiner, type PodJoinSource } from '@/services/pod-join-message';
 import {
@@ -108,6 +109,7 @@ export type PurchaseSlotCreditResult = {
 export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource; onSuccess?: () => void }): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+  await assertPhoneNumberOnFile(userId);
 
   const pod = await findPodByGroupCode(args.code);
   if (!pod) throw new Error('Invite code not found. Ask your friend to share their invite code.');

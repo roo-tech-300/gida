@@ -1,4 +1,5 @@
 import { supabase } from '@/lib/supabase';
+import { assertPhoneNumberOnFile } from '@/services/phone-number-service';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
 import type { PendingLodgeInvitation, SlotCredit } from '@/types/liquidity';
@@ -119,6 +120,7 @@ export async function respondToLodgeInvitation(invitationId: string, status: 'ac
 export async function acceptLodgeInvitation(invitation: PendingLodgeInvitation, listing?: DbListing): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
   if (!userId) throw new Error(SIGN_IN_REQUIRED_MESSAGE);
+  await assertPhoneNumberOnFile(userId);
 
   const listingId = invitation.pod.listing_id;
   if (!listingId) throw new Error('This invite is missing its lodge details.');

@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useCallback, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';
@@ -69,7 +70,7 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
     open: () => animateTo(true),
   }), [animateTo]);
 
-  const overlayPan = useRef(
+  const overlayPanRef = useRef(
     PanResponder.create({
       onStartShouldSetPanResponderCapture: () => false,
       onMoveShouldSetPanResponderCapture: (_, g) => isOpenRef.current && Math.abs(g.dy) > 5,
@@ -84,7 +85,8 @@ export const FeedModeSelector = forwardRef<FeedModeSelectorRef, Props>(function 
         else animateTo(true);
       },
     }),
-  ).current;
+  );
+  const overlayPan = overlayPanRef.current;
 
   const slideY = anim.interpolate({
     inputRange: [0, 1],

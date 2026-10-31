@@ -19,13 +19,15 @@ export function AdminDashboardScreen() {
 
   useEffect(() => {
     if (!profile?.id) return;
-    fetchAdminListings(profile.id).then((listingsData) => {
+    const fetchListings = async () => {
+      const listingsData = await fetchAdminListings(profile.id);
       setBusinessName(profile.full_name);
       setOperatingCity(profile.city);
       setListings(listingsData);
       setLoading(false);
-    });
-  }, [profile?.city, profile?.full_name, profile?.id]);
+    };
+    void fetchListings();
+  }, [profile?.id, profile?.full_name, profile?.city]);
 
   const initials = useCallback((name: string) => {
     return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);

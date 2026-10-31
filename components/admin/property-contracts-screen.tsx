@@ -15,6 +15,7 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
 };
 
 export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const property = useMemo(() => {
     for (const l of LANDLORDS) {
       const p = l.properties.find((pr) => pr.id === propertyId);

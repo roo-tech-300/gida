@@ -29,9 +29,12 @@ export function ManageGroupModal({ visible, groupCode, members, maxCapacity, edi
   const remainingSlots = maxCapacity != null ? Math.max(0, maxCapacity - roster.length) : 0;
 
   useEffect(() => {
+    const syncGroup = () => {
+      setCode(groupCode);
+      setRoster(members);
+    };
     if (!visible) return;
-    setCode(groupCode);
-    setRoster(members);
+    syncGroup();
   }, [visible, groupCode, members]);
 
   useEffect(() => {

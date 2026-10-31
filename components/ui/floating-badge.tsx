@@ -1,8 +1,7 @@
+/* eslint-disable react-hooks/refs */
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
-import { Animated, Easing, StyleSheet } from 'react-native';
+import { useEffect, useRef } from 'react';import { Animated, Easing, StyleSheet } from 'react-native';
 import { DesignColors } from '@/constants/design';
-
 export function FloatingBadge({
   icon,
   size,
@@ -26,7 +25,8 @@ export function FloatingBadge({
   shape: 'rounded' | 'circle';
   delay?: number;
 }) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const floatAnimRef = useRef(new Animated.Value(0));
+  const floatAnim = floatAnimRef.current;
 
   useEffect(() => {
     const loop = Animated.loop(

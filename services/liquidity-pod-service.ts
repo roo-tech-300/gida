@@ -97,7 +97,13 @@ export async function removeMemberFromPod(podId: string, targetUserId: string): 
   return data as Pod;
 }
 
-export type PurchaseSlotCreditResult = { credit: SlotCredit; podId: string; synced: boolean };
+export type PurchaseSlotCreditResult = {
+  credit: SlotCredit;
+  podId: string;
+  synced: boolean;
+  /** True only when this call created a new pod; false when joining an existing one. */
+  created: boolean;
+};
 
 export async function joinPodByCode(args: { code: string; listing: DbListing; estate: Estate; estateId: string; propertyTier: number; source?: PodJoinSource; onSuccess?: () => void }): Promise<PurchaseSlotCreditResult> {
   const userId = await currentUserId();
@@ -146,7 +152,7 @@ export async function joinPodByCode(args: { code: string; listing: DbListing; es
   }
 
   args.onSuccess?.();
-  return { credit, podId: pod.id, synced: true };
+  return { credit, podId: pod.id, synced: true, created: false };
 }
 
 export type InvitedFriend = { id: string; name: string };
@@ -228,5 +234,5 @@ export async function createFounderCredit(args: { listing: DbListing; estate: Es
   console.log('[PodService] Creating invitations...');
   await createPodInvitations(realPodId, userId, args.invitedFriends ?? [], args.listing, undefined, args.creatorGender);
   console.log('[PodService] createFounderCredit done — returning credit');
-  return { credit, podId: realPodId, synced: true };
+  return { credit, podId: realPodId, synced: true, created: true };
 }

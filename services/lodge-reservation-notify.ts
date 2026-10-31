@@ -10,6 +10,13 @@ type NotifyAdminInput = {
   userName: string;
 };
 
+/**
+ * DMs the listing admin that a NEW pod was created and needs review.
+ *
+ * Call this only when the applicant created the pod (founder/solo flow). A
+ * member joining an existing pod must never trigger this — the admin reviews
+ * the pod once, not every seat that fills.
+ */
 export async function notifyAdminOfReservation(input: NotifyAdminInput): Promise<void> {
   console.log('[NotifyAdmin] notifyAdminOfReservation called — podId:', input.podId, 'listingId:', input.listingId);
   const userId = await currentUserId();
@@ -64,6 +71,8 @@ type NotifyUserInput = {
   userId: string;
   listingId: string;
   podId: string;
+  /** The member's slot credit, so the applicant can jump straight to payment. */
+  creditId: string;
   decision: 'accepted' | 'rejected';
   reason?: string;
 };
@@ -82,6 +91,7 @@ export async function notifyUserOfDecision(input: NotifyUserInput): Promise<void
       type: 'lodge_decision',
       podId: input.podId,
       listingId: input.listingId,
+      creditId: input.creditId,
       title: listing?.title ?? 'Gida Property',
       image: listing?.primary_image ?? null,
       decision: input.decision,

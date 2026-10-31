@@ -29,18 +29,20 @@ export function SoloClaimScreen({ listingId }: { listingId: string }) {
     console.log('[SoloClaim] 2. dbListing.id:', dbListing.id, 'price:', dbListing.price_amount);
     try {
       console.log('[SoloClaim] 3. Calling purchaseSlot...');
-      const { credit, podId, synced } = await purchaseSlot({ listing: dbListing, targetOccupancy: 1 });
-      console.log('[SoloClaim] 4. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'synced:', synced, 'status:', credit.status);
+      const { credit, podId, synced, created } = await purchaseSlot({ listing: dbListing, targetOccupancy: 1 });
+      console.log('[SoloClaim] 4. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'synced:', synced, 'created:', created, 'status:', credit.status);
       showToast({ message: 'Application submitted for admin review.', type: 'success' });
       if (!synced) {
         showToast({ message: "Reserved locally — couldn't sync to the server. Sign in to persist your spot.", type: 'error' });
       }
-      console.log('[SoloClaim] 5. Calling notifyAdminOfReservation...');
-      try {
-        await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: 'A resident' });
-        console.log('[SoloClaim] 8. notifyAdminOfReservation completed successfully');
-      } catch (notifyErr) {
-        console.error('[SoloClaim] 8. notifyAdminOfReservation FAILED:', notifyErr);
+      if (created) {
+        console.log('[SoloClaim] 5. Notifying admin of the new pod...');
+        try {
+          await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: 'A resident' });
+          console.log('[SoloClaim] 8. notifyAdminOfReservation completed successfully');
+        } catch (notifyErr) {
+          console.error('[SoloClaim] 8. notifyAdminOfReservation FAILED:', notifyErr);
+        }
       }
       router.back();
     } catch (error) {

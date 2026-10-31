@@ -35,8 +35,11 @@ export default function LocationUnlockCallbackScreen() {
   const targetOccupancy = Number(params.targetOccupancy ?? '1');
 
   useEffect(() => {
+    const setStatusSafe = (next: Status) => {
+      setStatus(next);
+    };
     if (!reference || !listingId) {
-      setStatus('failed');
+      setStatusSafe('failed');
       return;
     }
     let cancelled = false;
@@ -58,10 +61,10 @@ export default function LocationUnlockCallbackScreen() {
             }
             return;
           }
-          setStatus('failed');
+          setStatusSafe('failed');
         })
         .catch(() => {
-          if (!cancelled) setStatus('failed');
+          if (!cancelled) setStatusSafe('failed');
         });
       return () => { cancelled = true; };
     }
@@ -79,10 +82,10 @@ export default function LocationUnlockCallbackScreen() {
           );
           return;
         }
-        setStatus(result.unlocked ? 'unlocked' : 'failed');
+        setStatusSafe(result.unlocked ? 'unlocked' : 'failed');
       })
       .catch(() => {
-        if (!cancelled) setStatus('failed');
+        if (!cancelled) setStatusSafe('failed');
       });
     return () => { cancelled = true; };
   }, [reference, listingId, verify, kind, creditId, targetOccupancy, params.date, params.time, params.bookingId, queryClient]);

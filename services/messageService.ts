@@ -37,6 +37,7 @@ type ProfileSummary = {
   id: string;
   name: string;
   avatarUrl: string | null;
+  isAdmin: boolean;
 };
 
 function normalizePair(a: string, b: string): [string, string] {
@@ -60,11 +61,16 @@ function mapMessageRow(row: MessageRow): ServerChatMessage {
 function mapConversationRow(row: ConversationRow, readerId: string, participant: ProfileSummary): Conversation {
   const isReaderA = row.participant_a === readerId;
   const otherId = isReaderA ? row.participant_b : row.participant_a;
-  const other = otherId === participant.id ? participant : { id: otherId, name: 'Gida user', avatarUrl: null };
+  const other = otherId === participant.id ? participant : { id: otherId, name: 'Gida user', avatarUrl: null, isAdmin: false };
 
   return {
     id: row.id,
-    participant: other,
+    participant: {
+      id: other.id,
+      name: other.name,
+      avatarUrl: other.avatarUrl,
+      isAdmin: other.isAdmin,
+    },
     lastMessage: row.last_message_preview ?? '',
     lastMessageAt: row.last_message_at ?? row.created_at,
     lastMessageSenderId: row.last_message_sender_id,
@@ -78,12 +84,21 @@ async function fetchProfilesByIds(ids: string[]): Promise<Record<string, Profile
   if (uniqueIds.length === 0) return {};
 
   const profiles = await fetchProfilesInChunks(uniqueIds);
+
+  // Fetch admin status in one query for all participant IDs
+  const { data: adminRows } = await supabase
+    .from('admin_profiles')
+    .select('id')
+    .in('id', uniqueIds);
+  const adminIdSet = new Set((adminRows ?? []).map((r: { id: string }) => r.id));
+
   const map: Record<string, ProfileSummary> = {};
   for (const [id, profile] of Object.entries(profiles)) {
     map[id] = {
       id,
       name: profile.full_name || 'Gida user',
       avatarUrl: profile.avatar_url || null,
+      isAdmin: adminIdSet.has(id),
     };
   }
   return map;

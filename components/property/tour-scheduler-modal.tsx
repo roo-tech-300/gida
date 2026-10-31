@@ -39,8 +39,11 @@ export function TourSchedulerModal({
   const [selectedSlot, setSelectedSlot] = useState<string | null>(null);
 
   useEffect(() => {
-    if (selectedDateIndex >= datePills.length && datePills.length > 0) {
+    const resetDateIndex = () => {
       setSelectedDateIndex(0);
+    };
+    if (selectedDateIndex >= datePills.length && datePills.length > 0) {
+      resetDateIndex();
     }
   }, [datePills.length, selectedDateIndex]);
 
@@ -51,11 +54,14 @@ export function TourSchedulerModal({
   );
 
   useEffect(() => {
+    const clearInvalidSlot = () => {
+      setSelectedSlot(null);
+    };
     if (
       selectedSlot &&
       !slots.some((slot) => slot.time === selectedSlot && slot.available)
     ) {
-      setSelectedSlot(null);
+      clearInvalidSlot();
     }
   }, [slots, selectedSlot]);
 

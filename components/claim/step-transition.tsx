@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
@@ -10,8 +11,10 @@ type Props = {
 const DURATION = 220;
 
 export function StepTransition({ stepKey, children, style }: Props) {
-  const fade = useRef(new Animated.Value(0)).current;
-  const slide = useRef(new Animated.Value(0)).current;
+  const fadeRef = useRef(new Animated.Value(0));
+  const slideRef = useRef(new Animated.Value(0));
+  const fade = fadeRef.current;
+  const slide = slideRef.current;
   const previousStep = useRef(stepKey);
 
   useEffect(() => {

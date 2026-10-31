@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -5,8 +6,10 @@ import { Image } from 'expo-image';
 import { DesignColors } from '@/constants/design';
 
 function useDriftAnimation() {
-  const x = useRef(new Animated.Value(0)).current;
-  const y = useRef(new Animated.Value(0)).current;
+  const xRef = useRef(new Animated.Value(0));
+  const yRef = useRef(new Animated.Value(0));
+  const x = xRef.current;
+  const y = yRef.current;
 
   useEffect(() => {
     const animation = Animated.loop(

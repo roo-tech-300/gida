@@ -157,6 +157,8 @@ export type AdminLodgeDetail = {
   };
   members: AdminLodgeMember[];
   listing: { id: string; title: string; primaryImage: string | null; location: string; priceAmount: number } | null;
+  /** True when the pod is still pending but every member's slot credit has expired. */
+  expired: boolean;
 };
 
 export async function fetchAdminLodgeDetail(podId: string): Promise<AdminLodgeDetail | null> {
@@ -196,6 +198,20 @@ export async function fetchAdminLodgeDetail(podId: string): Promise<AdminLodgeDe
       amountPaid: m.amount_paid,
     }));
 
+    // An application is effectively expired when it is still pending but all
+    // member slot credits have expired (payment deadline passed with no decision).
+    const memberCreditIds = members.map((m) => m.slotCreditId).filter(Boolean);
+    let expired = false;
+    if (memberCreditIds.length > 0 && memberCreditIds.every(Boolean)) {
+      const { data: credits } = await supabase
+        .from('slot_credits')
+        .select('status')
+        .in('id', memberCreditIds);
+      if (credits && credits.length === memberCreditIds.length) {
+        expired = credits.every((c) => c.status === 'expired');
+      }
+    }
+
     return {
       pod: {
         id: pod.id,
@@ -209,6 +225,7 @@ export async function fetchAdminLodgeDetail(podId: string): Promise<AdminLodgeDe
       listing: listingRow
         ? { id: listingRow.id, title: listingRow.title, primaryImage: listingRow.primary_image, location: listingRow.location_landmark, priceAmount: listingRow.price_amount }
         : null,
+      expired,
     };
   } catch (error) {
     console.error('[AdminLodgeService] Failed to fetch detail:', error);

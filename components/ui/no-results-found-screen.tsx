@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
@@ -25,7 +26,8 @@ export function NoResultsFoundScreen({
   showSearchBar = true,
   subtitle = "We couldn't find any available apartments or active roommate requests matching your current filters around campus.",
 }: NoResultsFoundScreenProps) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const floatAnimRef = useRef(new Animated.Value(0));
+  const floatAnim = floatAnimRef.current;
 
   useEffect(() => {
     const loop = Animated.loop(

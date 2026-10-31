@@ -25,6 +25,7 @@ export function RoommateDeck({ itemHeight, query, onQueryChange }: Props) {
 
   const { data: allRoommates = [], isLoading, isRefetching, refetch } = useRoommates();
 
+  // eslint-disable-next-line react-hooks/preserve-manual-memoization
   const filtered = useMemo(() => {
     const others = profile?.id ? allRoommates.filter((p) => p.id !== profile.id) : allRoommates;
     const q = query.trim().toLowerCase();

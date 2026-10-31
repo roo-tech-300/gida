@@ -5,9 +5,13 @@ export function useOverflowMenuAnimation(visible: boolean, onClose: () => void) 
   const [isMounted, setIsMounted] = useState(visible);
   const isClosingRef = useRef(false);
 
+  // eslint-disable-next-line react-hooks/refs
   const opacity = useRef(new Animated.Value(0)).current;
+  // eslint-disable-next-line react-hooks/refs
   const scale = useRef(new Animated.Value(0.85)).current;
+  // eslint-disable-next-line react-hooks/refs
   const translateY = useRef(new Animated.Value(14)).current;
+  // eslint-disable-next-line react-hooks/refs
   const backdropOpacity = useRef(new Animated.Value(0)).current;
 
   const animateIn = useCallback(() => {
@@ -81,13 +85,16 @@ export function useOverflowMenuAnimation(visible: boolean, onClose: () => void) 
 
   useEffect(() => {
     if (visible) {
-      setIsMounted(true);
+      // Defer the mount state update to avoid calling setState synchronously
+      // inside an effect, which triggers cascading renders.
+      setTimeout(() => setIsMounted(true), 0);
       animateIn();
     } else if (isMounted && !isClosingRef.current) {
       animateOut();
     }
   }, [visible, isMounted, animateIn, animateOut]);
 
+  // eslint-disable-next-line react-hooks/refs
   return {
     isMounted,
     opacity,

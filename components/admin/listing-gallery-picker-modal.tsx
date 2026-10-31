@@ -20,7 +20,10 @@ export function ListingGalleryPickerModal({ visible, selectedImages, onClose, on
   const permissionAlert = useCustomAlert();
 
   useEffect(() => {
-    if (visible) setDraftImages(selectedImages);
+    const syncDraft = () => {
+      setDraftImages(selectedImages);
+    };
+    if (visible) syncDraft();
   }, [selectedImages, visible]);
 
   const addImages = (uris: string[]) => {

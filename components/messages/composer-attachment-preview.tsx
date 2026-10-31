@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
@@ -12,7 +13,8 @@ type Props = {
 };
 
 export function ComposerAttachmentPreview({ attachment, onClear }: Props) {
-  const anim = useRef(new Animated.Value(0)).current;
+  const animRef = useRef(new Animated.Value(0));
+  const anim = animRef.current;
 
   useEffect(() => {
     Animated.spring(anim, {

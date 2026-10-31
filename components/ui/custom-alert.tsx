@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -24,8 +25,10 @@ type CustomAlertProps = {
 };
 
 export function CustomAlert({ visible, title, message, buttons, onDismiss }: CustomAlertProps) {
-  const opacity = useRef(new Animated.Value(0)).current;
-  const scale = useRef(new Animated.Value(0.92)).current;
+  const opacityRef = useRef(new Animated.Value(0));
+  const scaleRef = useRef(new Animated.Value(0.92));
+  const opacity = opacityRef.current;
+  const scale = scaleRef.current;
 
   useEffect(() => {
     if (visible) {

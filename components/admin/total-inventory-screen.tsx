@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { router } from 'expo-router';
 
@@ -18,6 +18,17 @@ const TABS: { key: Tab; label: string }[] = [
 ];
 
 export function TotalInventoryScreen() {
+  const [query, setQuery] = useState('');
+  const [debouncedQuery, setDebouncedQuery] = useState('');
+  const [activeTab, setActiveTab] = useState<Tab>('all');
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDebouncedQuery(query);
+    }, 300);
+    return () => clearTimeout(timeout);
+  }, [query]);
+
   const {
     data: adminListings,
     isLoading,
@@ -26,32 +37,17 @@ export function TotalInventoryScreen() {
     refetch,
     fetchNextPage,
     isFetchingNextPage,
-  } = useAdminListingsPaginated();
-  const [query, setQuery] = useState('');
-  const [activeTab, setActiveTab] = useState<Tab>('all');
+  } = useAdminListingsPaginated(20, debouncedQuery, activeTab);
 
   const listingItems = useMemo(
     () => (adminListings?.pages ?? []).reduce<AdminListing[]>((acc, page) => acc.concat(page), []),
     [adminListings],
   );
 
-  const filtered = useMemo(() => {
-    let items = listingItems;
-    if (activeTab === 'available') items = items.filter((i) => i.status.toLowerCase() === 'available');
-    if (activeTab === 'booked') items = items.filter((i) => i.status.toLowerCase() === 'booked');
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      items = items.filter(
-        (i) => i.title.toLowerCase().includes(q) || i.location_landmark.toLowerCase().includes(q),
-      );
-    }
-    return items;
-  }, [activeTab, listingItems, query]);
-
   const totalCount = listingItems.length;
   const availableCount = listingItems.filter((i) => i.status.toLowerCase() === 'available').length;
   const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
-  const hasFilters = query.trim().length > 0 || activeTab !== 'all';
+  const hasFilters = debouncedQuery.trim().length > 0 || activeTab !== 'all';
 
   return (
     <ListScreen<AdminListing>
@@ -91,7 +87,7 @@ export function TotalInventoryScreen() {
           </ScrollView>
         </>
       }
-      data={filtered}
+      data={listingItems}
       keyExtractor={(item) => item.id}
       isLoading={isLoading && listingItems.length === 0}
       isError={isError}

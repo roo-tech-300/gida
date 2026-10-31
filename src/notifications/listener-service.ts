@@ -114,9 +114,8 @@ export const notificationReceivedListener = (
 
   try {
     const messageListener = onMessage(messaging, (remoteMessage) => {
-      console.log('[Notifications] Foreground message received:', remoteMessage);
-
       const foregroundMessage = remoteMessage as unknown as ForegroundRemoteMessage;
+      console.log('[Notifications] Foreground message received:', foregroundMessage);
       try {
         foregroundMessage.finishNotification?.();
       } catch (error) {

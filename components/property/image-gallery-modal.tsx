@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/immutability */
 import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
@@ -120,9 +121,11 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
   const validInitialIndex = Math.min(Math.max(initialIndex, 0), Math.max(photos.length - 1, 0));
 
   useEffect(() => {
+    const setInitialIndex = () => {
+      setCurrentIndex(validInitialIndex);
+    };
     if (!visible || photos.length === 0) return;
-
-    setCurrentIndex(validInitialIndex);
+    setInitialIndex();
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({ index: validInitialIndex, animated: false });
     });

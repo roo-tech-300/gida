@@ -1,5 +1,5 @@
-import { Platform } from 'react-native';
 import * as ExpoClipboard from 'expo-clipboard';
+import { Platform } from 'react-native';
 
 export async function copyTextToClipboard(text: string): Promise<boolean> {
   try {

@@ -59,6 +59,8 @@ export type LodgeDecisionAttachment = {
   type: 'lodge_decision';
   podId: string;
   listingId: string;
+  /** The applicant's slot credit. Optional: absent on decision messages sent before this field existed. */
+  creditId?: string;
   title: string;
   image: string | null;
   decision: 'accepted' | 'rejected';
@@ -112,6 +114,7 @@ export type MessageParticipant = {
   id: string;
   name: string;
   avatarUrl: string | null;
+  isAdmin?: boolean;
 };
 
 export type Conversation = {

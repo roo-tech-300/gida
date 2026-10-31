@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext } from 'react';
 import { useColorScheme } from 'react-native';
 
 interface AppConfigContextType {
@@ -9,11 +9,7 @@ const AppConfigContext = createContext<AppConfigContextType | undefined>(undefin
 
 export function AppConfigProvider({ children }: { children: React.ReactNode }) {
   const systemColorScheme = useColorScheme();
-  const [isDarkMode, setIsDarkMode] = useState(systemColorScheme === 'dark');
-
-  useEffect(() => {
-    setIsDarkMode(systemColorScheme === 'dark');
-  }, [systemColorScheme]);
+  const isDarkMode = systemColorScheme === 'dark';
 
   return (
     <AppConfigContext.Provider value={{ isDarkMode }}>

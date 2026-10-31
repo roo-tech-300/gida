@@ -38,6 +38,12 @@ export function InventoryCard({ listing, onPress }: { listing: AdminListing; onP
         <View style={styles.metaRow}>
           <MetaPill icon="cash-outline" label={`₦${(listing.price_amount || 0).toLocaleString('en-US')}`} />
           {listing.featured ? <MetaPill icon="star-outline" label="Featured" /> : null}
+          {listing.slashed_price && listing.slashed_price > listing.price_amount ? (
+            <MetaPill
+              icon="pricetag-outline"
+              label={`Slash: ₦${listing.slashed_price.toLocaleString('en-US')}`}
+            />
+          ) : null}
         </View>
 
         <View style={styles.bottomRow}>

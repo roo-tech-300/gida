@@ -78,13 +78,34 @@ export function MessagesScreen() {
           </ScrollView>
         ) : filtered.length === 0 ? (
           <ScrollView
-            contentContainerStyle={styles.center}
+            contentContainerStyle={styles.emptyScroll}
             alwaysBounceVertical
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => handleRefresh()} tintColor={DesignColors.primary} />}
           >
-            <Ionicons name="chatbubble-ellipses-outline" size={40} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
-            <Text style={styles.emptyHint}>Tap “Say Hello” on any roommate to start chatting.</Text>
+            <View style={styles.emptyCenter}>
+              <View style={styles.iconArea}>
+                <View style={styles.bubbleContainer}>
+                  <View style={[styles.bubble, styles.bubbleLarge]}>
+                    <Ionicons name="chatbubble-ellipses" size={28} color={DesignColors.primary} />
+                  </View>
+                  <View style={[styles.bubble, styles.bubbleSmall]}>
+                    <Ionicons name="chatbubbles" size={18} color={DesignColors.secondary} />
+                  </View>
+                </View>
+              </View>
+              <Text style={styles.emptyTitle}>No conversations yet</Text>
+              <Text style={styles.emptyHint}>
+                Find a roommate or property and tap “Say Hello” to start chatting.
+              </Text>
+              <Pressable
+                onPress={() => router.push('/(tabs)')}
+                style={({ pressed }) => [styles.ctaButton, pressed && styles.ctaButtonPressed]}
+                accessibilityRole="button"
+              >
+                <Text style={styles.ctaLabel}>Discover Roommates</Text>
+                <Ionicons name="arrow-forward" size={18} color={DesignColors.onPrimary} />
+              </Pressable>
+            </View>
           </ScrollView>
         ) : (
           <ScrollView
@@ -122,10 +143,59 @@ const styles = StyleSheet.create({
     paddingHorizontal: DesignSpacing.xl,
     paddingVertical: DesignSpacing.xl,
   },
+  emptyScroll: {
+    flexGrow: 1,
+  },
+  emptyCenter: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingHorizontal: DesignSpacing.marginMobile,
+    gap: DesignSpacing.md,
+  },
+  iconArea: {
+    width: 200,
+    height: 200,
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: DesignSpacing.sm,
+  },
+  bubbleContainer: {
+    width: 144,
+    height: 144,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  bubble: {
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.glassFill,
+    borderWidth: 1,
+    borderColor: DesignColors.glassBorder,
+  },
+  bubbleLarge: {
+    width: 96,
+    height: 96,
+    borderRadius: 48,
+    zIndex: 1,
+  },
+  bubbleSmall: {
+    position: 'absolute',
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    bottom: 10,
+    right: 16,
+    backgroundColor: DesignColors.surfaceContainerHigh,
+    borderColor: DesignColors.borderSoft,
+    zIndex: 2,
+    transform: [{ rotate: '-8deg' }],
+  },
   emptyTitle: {
-    ...DesignTypography.titleMd,
+    ...DesignTypography.headlineMd,
     color: DesignColors.onSurface,
     fontFamily,
+    fontWeight: '700',
     textAlign: 'center',
   },
   emptyHint: {
@@ -133,6 +203,27 @@ const styles = StyleSheet.create({
     color: DesignColors.onSurfaceVariant,
     fontFamily,
     textAlign: 'center',
+    maxWidth: 320,
+    lineHeight: 22,
+  },
+  ctaButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    paddingHorizontal: 32,
+    paddingVertical: 16,
+    borderRadius: 999,
+    backgroundColor: DesignColors.primary,
+    marginTop: DesignSpacing.sm,
+  },
+  ctaButtonPressed: {
+    opacity: 0.9,
+  },
+  ctaLabel: {
+    ...DesignTypography.bodyLg,
+    color: DesignColors.onPrimary,
+    fontFamily,
+    fontWeight: '700',
   },
   retryButton: {
     marginTop: DesignSpacing.md,

@@ -21,6 +21,7 @@ export type CreateListingInput = {
   category: string;
   layout_type: 'self_contain' | 'single_room' | 'flat';
   price_amount: number;
+  slashed_price?: number | null;
   lease_term: 'per_semester' | 'per_annum';
   units_available: number;
   number_of_bedrooms: number;
@@ -81,6 +82,7 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
       category: input.category,
       layout_type: input.layout_type,
       price_amount: input.price_amount,
+      slashed_price: input.slashed_price,
       lease_term: input.lease_term,
       units_available: input.units_available,
       number_of_bedrooms: input.number_of_bedrooms,
@@ -168,6 +170,7 @@ export type UpdateListingInput = {
   title?: string;
   description?: string | null;
   price_amount?: number;
+  slashed_price?: number | null;
   status?: string;
   region_path?: string[] | null;
   enable_self_guided_tour?: boolean;
@@ -178,7 +181,17 @@ export type UpdateListingInput = {
 export async function updateListing(listingId: string, input: UpdateListingInput): Promise<void> {
   const { error } = await supabase
     .from('listings')
-    .update(input)
+    .update({
+      admin_id: input.admin_id,
+      title: input.title,
+      description: input.description,
+      price_amount: input.price_amount,
+      slashed_price: input.slashed_price,
+      status: input.status,
+      region_path: input.region_path,
+      enable_self_guided_tour: input.enable_self_guided_tour,
+      enable_guided_tour: input.enable_guided_tour,
+    })
     .eq('id', listingId);
 
   if (error) throw error;

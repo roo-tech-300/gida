@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef } from 'react';
 import { FlatList, Pressable, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
@@ -12,7 +12,6 @@ import { TourStatusChip } from '@/components/property/tour-status-chip';
 export default function TourHistoryRoute() {
   const { data: bookings = [], isError, isRefetching, refetch } = useTourBookings();
   const { showToast } = useAppToast();
-  const [simRefreshing, setSimRefreshing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
@@ -41,7 +40,7 @@ export default function TourHistoryRoute() {
     }, 1300);
   }, [refetch]);
 
-  const refreshing = isRefetching || simRefreshing;
+  const refreshing = isRefetching;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>

@@ -84,6 +84,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [isOnline, setIsOnline] = useState(true);
   const [sessionVerified, setSessionVerified] = useState(false);
 
+  // Keep a ref for the current profile email so fetchProfile doesn't need
+  // profile?.email in its dep array (which would cause infinite re-renders).
+  // Updating a ref during render is safe — it doesn't trigger re-renders.
+  const profileEmailRef = useRef<string | null>(null);
+  profileEmailRef.current = profile?.email ?? null;
+
   const fetchProfile = useCallback(async (userId: string, email: string | null = null) => {
     const { data: profileData, error } = await supabase
       .from('profiles')
@@ -96,22 +102,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
 
-    const { data: adminData } = await supabase
+    const { data: adminData, error: adminError } = await supabase
       .from('admin_profiles')
       .select('role, assigned_region_id')
       .eq('id', userId)
       .maybeSingle();
 
+    if (adminError) {
+      console.error('[Auth] Failed to fetch admin profile:', adminError.message);
+    }
+
     const merged: AuthProfile = {
       ...profileData,
-      email: email ?? profile?.email ?? null,
+      email: email ?? profileEmailRef.current ?? null,
       admin_role: adminData?.role ?? null,
       assigned_region_id: adminData?.assigned_region_id ?? null,
+      // admin_profiles is the source of truth: profiles.is_admin is stale/false
+      // for real admins. Only fall back to the profile flag if the admin lookup
+      // itself failed, so a transient error cannot silently revoke admin access.
+      is_admin: adminError ? Boolean(profileData.is_admin) : Boolean(adminData),
     };
 
     setProfile(merged);
     cacheProfile(merged);
-  }, [profile?.email]);
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -277,7 +291,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     setProfile(null);
     setHasSession(false);
     setSessionVerified(false);
-  }, [queryClient]);
+  }, []);
 
   return (
     <AuthContext.Provider

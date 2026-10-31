@@ -11,6 +11,9 @@ type Props = {
 
 export function SearchListingResult({ listing, onPress }: Props) {
   const price = `₦${listing.price_amount.toLocaleString('en-US')}`;
+  const slashedPrice = listing.slashed_price && listing.slashed_price > listing.price_amount
+    ? `₦${listing.slashed_price.toLocaleString('en-US')}`
+    : null;
   const beds = listing.number_of_bedrooms > 0 ? `${listing.number_of_bedrooms} Bed` : '';
   const baths = listing.number_of_bathrooms > 0 ? `${listing.number_of_bathrooms} Bath` : '';
 
@@ -33,6 +36,9 @@ export function SearchListingResult({ listing, onPress }: Props) {
         </View>
         <View style={styles.metaRow}>
           <Text style={styles.price}>{price}/yr</Text>
+          {slashedPrice && (
+            <Text style={styles.slashedPriceMeta}>{slashedPrice}</Text>
+          )}
           {(beds || baths) && (
             <Text style={styles.meta}>
               {[beds, baths].filter(Boolean).join(' · ')}
@@ -94,6 +100,15 @@ const styles = StyleSheet.create({
     color: DesignColors.primaryBright,
     fontFamily,
     fontWeight: '700',
+  },
+  slashedPriceMeta: {
+    ...DesignTypography.labelLg,
+    color: DesignColors.outlineVariant,
+    fontFamily,
+    fontWeight: '700',
+    textDecorationLine: 'line-through',
+    textDecorationColor: DesignColors.outlineVariant,
+    marginLeft: 4,
   },
   meta: {
     ...DesignTypography.bodyMd,

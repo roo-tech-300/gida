@@ -9,12 +9,15 @@ import { useVideoPlayer, VideoView } from 'expo-video';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 /**
- * Silent looping preview layered over a cover photo or poster. The feed mounts
- * it only on the visible card; the property page's video tour on its player
- * and thumbnails. Until it can play (or if it fails) the image underneath
- * stays visible.
+ * Silent looping preview layered over a cover photo or poster.
+ *
+ * - `isActive`: true for the card currently filling the screen. Only active
+ *   videos play; preloaded (upcoming) videos stay paused but mounted so their
+ *   MP4 metadata is already fetched by FFmpeg.wasm when the user swipes to them.
+ * - Cross-fades opacity between 0 and 1 so the video appears seamlessly on top
+ *   of the cover photo instead of popping in after a mount delay.
  */
-export function FeedVideoPreview({ uri }: { uri: string }) {
+export function FeedVideoPreview({ uri, isActive = false }: { uri: string; isActive?: boolean }) {
   const isFocused = useIsFocused();
   const opacity = useSharedValue(0);
   const player = useVideoPlayer(uri, (p) => {
@@ -26,19 +29,30 @@ export function FeedVideoPreview({ uri }: { uri: string }) {
   const { status, error } = useEvent(player, 'statusChange', { status: player.status });
 
   useEffect(() => {
-    if (isFocused) player.play();
-    else player.pause();
-  }, [isFocused, player]);
+    // Play only when active, app focused, and video is ready. Pause otherwise.
+    if (isActive && isFocused && status === 'readyToPlay') {
+      player.play();
+    } else if (!isActive || !isFocused) {
+      player.pause();
+    }
+  }, [isActive, isFocused, status, player]);
 
   useEffect(() => {
-    if (status === 'readyToPlay') opacity.value = withTiming(1, { duration: 300 });
     if (status === 'error') {
       opacity.value = 0;
       console.error('[FeedVideoPreview] Preview failed, showing cover photo instead:', uri, error?.message);
     }
   }, [status, error, uri, opacity]);
 
+  // Cross-fade opacity so the video fades in over the cover photo.
+  useEffect(() => {
+    const target = isActive && isFocused && status === 'readyToPlay' ? 1 : 0;
+    opacity.value = withTiming(target, { duration: 300 });
+  }, [isActive, isFocused, status, opacity]);
+
   const fadeStyle = useAnimatedStyle(() => ({ opacity: opacity.value }));
+
+  if (!uri) return null;
 
   return (
     <Animated.View style={[StyleSheet.absoluteFill, fadeStyle]} pointerEvents="none">

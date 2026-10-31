@@ -18,9 +18,11 @@ type Props = {
   height: number;
   /** True for the card currently filling the screen; only it plays a preview. */
   isActive?: boolean;
+  /** True for upcoming cards whose video should be preloaded (paused, not playing). */
+  shouldPreload?: boolean;
 };
 
-export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height, isActive = false }: Props) {
+export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListing, height, isActive = false, shouldPreload = false }: Props) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const [priceAmount] = listing.price.split('/');
 
@@ -39,7 +41,9 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
           <ActivityIndicator size="large" color={DesignColors.primary} />
         </View>
       )}
-      {isActive && listing.videoPreviewUrl ? <FeedVideoPreview uri={listing.videoPreviewUrl} /> : null}
+      {(isActive || shouldPreload) && listing.videoPreviewUrl ? (
+        <FeedVideoPreview uri={listing.videoPreviewUrl} isActive={isActive} />
+      ) : null}
 
       <View style={styles.gradientOverlay}>
         <Svg height="100%" width="100%">

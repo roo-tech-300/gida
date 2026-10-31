@@ -1,22 +1,20 @@
-/* eslint-disable react-hooks/immutability */
 import { Ionicons } from '@expo/vector-icons';
-import { Image } from 'expo-image';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { ActivityIndicator, FlatList, Modal, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
-import { Gesture, GestureDetector, GestureHandlerRootView } from 'react-native-gesture-handler';
-import Animated, { runOnJS, useAnimatedStyle, useSharedValue, withSpring } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { useCallback, useEffect, useRef, useState } from 'react';
+import { FlatList, Modal, Platform, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { GestureHandlerRootView } from 'react-native-gesture-handler';
 
 import { DesignColors, fontFamily } from '@/constants/design';
+import { type GalleryMedia, mediaKey } from '@/types/gallery-media';
+import { GalleryBottomBadge, GalleryTopBar } from './gallery-chrome';
+import { GallerySlide } from './gallery-slide';
+import { GalleryVideoSlide } from './gallery-video-slide';
 
 type Props = {
-  photos: string[];
+  media: GalleryMedia[];
   initialIndex: number;
   visible: boolean;
   onClose: () => void;
 };
-
-type SlideProps = { uri: string; isZoomed: boolean; onZoomChange: (zoomed: boolean) => void };
 
 function getSlideIndex(nativeEvent: {
   contentOffset: { x: number };
@@ -27,109 +25,68 @@ function getSlideIndex(nativeEvent: {
   return Math.max(0, idx);
 }
 
-function GallerySlide({ uri, isZoomed, onZoomChange }: SlideProps) {
-  const [loaded, setLoaded] = useState(false);
-  const [showSpinner, setShowSpinner] = useState(false);
-  const scale = useSharedValue(1);
-  const translateX = useSharedValue(0);
-  const translateY = useSharedValue(0);
-  const startTranslateX = useSharedValue(0);
-  const startTranslateY = useSharedValue(0);
-
-  useEffect(() => {
-    if (loaded) return;
-    const timer = setTimeout(() => setShowSpinner(true), 150);
-    return () => clearTimeout(timer);
-  }, [loaded]);
-  const startScale = useSharedValue(1);
-
-  const pinchGesture = useMemo(
-    () =>
-      Gesture.Pinch()
-        .onBegin(() => {
-          startScale.value = scale.value;
-        })
-        .onUpdate((event) => {
-          scale.value = Math.min(Math.max(startScale.value * event.scale, 1), 3);
-          if (scale.value > 1.03) runOnJS(onZoomChange)(true);
-        })
-        .onEnd(() => {
-          if (scale.value < 1.03) {
-            scale.value = withSpring(1);
-            translateX.value = withSpring(0);
-            translateY.value = withSpring(0);
-            runOnJS(onZoomChange)(false);
-          }
-        }),
-    [onZoomChange, scale, startScale, translateX, translateY],
-  );
-
-  const panGesture = useMemo(
-    () =>
-      Gesture.Pan()
-        .enabled(isZoomed)
-        .activeOffsetX([-12, 12])
-        .activeOffsetY([-12, 12])
-        .onBegin(() => {
-          startTranslateX.value = translateX.value;
-          startTranslateY.value = translateY.value;
-        })
-        .onUpdate((event) => {
-          if (scale.value <= 1.03) return;
-          translateX.value = startTranslateX.value + event.translationX;
-          translateY.value = startTranslateY.value + event.translationY;
-        })
-        .onEnd(() => {
-          if (scale.value <= 1.03) return;
-          translateX.value = withSpring(0);
-          translateY.value = withSpring(0);
-        }),
-    [isZoomed, scale, startTranslateX, startTranslateY, translateX, translateY],
-  );
-
-  const gesture = useMemo(() => (isZoomed ? Gesture.Simultaneous(pinchGesture, panGesture) : pinchGesture), [isZoomed, panGesture, pinchGesture]);
-
-  const animatedStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: translateX.value }, { translateY: translateY.value }, { scale: scale.value }],
-  }));
-
-  return (
-    <GestureDetector gesture={gesture}>
-      <Animated.View style={styles.slide}>
-        <Animated.View style={[styles.imageFrame, animatedStyle]}>
-          <Image
-            source={{ uri }}
-            style={[styles.image, { opacity: loaded ? 1 : 0 }]}
-            contentFit="contain"
-            cachePolicy="disk"
-            transition={300}
-            onLoadEnd={() => setLoaded(true)}
-          />
-        </Animated.View>
-        {showSpinner && !loaded && <ActivityIndicator size="large" color={DesignColors.primary} />}
-      </Animated.View>
-    </GestureDetector>
-  );
-}
-
-export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Props) {
-  const insets = useSafeAreaInsets();
+export function ImageGalleryModal({ media, initialIndex, visible, onClose }: Props) {
   const { width: screenWidth, height: screenHeight } = useWindowDimensions();
   const [currentIndex, setCurrentIndex] = useState(initialIndex);
   const [isZoomed, setIsZoomed] = useState(false);
-  const listRef = useRef<FlatList<string>>(null);
-  const validInitialIndex = Math.min(Math.max(initialIndex, 0), Math.max(photos.length - 1, 0));
+  const listRef = useRef<FlatList<GalleryMedia>>(null);
+  const backdropRef = useRef<View>(null);
+  const validInitialIndex = Math.min(Math.max(initialIndex, 0), Math.max(media.length - 1, 0));
+
+  const scrollToPrev = useCallback(() => {
+    if (currentIndex <= 0) return;
+    const next = currentIndex - 1;
+    setCurrentIndex(next);
+    listRef.current?.scrollToIndex({ index: next, animated: true });
+  }, [currentIndex]);
+
+  const scrollToNext = useCallback(() => {
+    if (currentIndex >= media.length - 1) return;
+    const next = currentIndex + 1;
+    setCurrentIndex(next);
+    listRef.current?.scrollToIndex({ index: next, animated: true });
+  }, [currentIndex, media.length]);
 
   useEffect(() => {
-    const setInitialIndex = () => {
-      setCurrentIndex(validInitialIndex);
-    };
-    if (!visible || photos.length === 0) return;
-    setInitialIndex();
+    if (!visible || media.length === 0) return;
+    setCurrentIndex(validInitialIndex);
     requestAnimationFrame(() => {
       listRef.current?.scrollToIndex({ index: validInitialIndex, animated: false });
     });
-  }, [photos.length, validInitialIndex, visible]);
+  }, [media.length, validInitialIndex, visible]);
+
+  // Keyboard navigation (web-friendly): left/right arrows, Escape to close.
+  useEffect(() => {
+    if (!visible) return;
+    if (typeof window === 'undefined' || typeof window.addEventListener !== 'function') return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'ArrowLeft') scrollToPrev();
+      else if (e.key === 'ArrowRight') scrollToNext();
+      else if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [visible, onClose, scrollToPrev, scrollToNext]);
+
+  // Mouse-wheel navigation (web): scroll up/left = prev, down/right = next.
+  useEffect(() => {
+    if (!visible) return;
+    const node = backdropRef.current as unknown as HTMLElement | null;
+    if (!node?.addEventListener) return;
+    let lastNav = 0;
+    const onWheel = (e: WheelEvent) => {
+      if (isZoomed) return;
+      const delta = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+      if (Math.abs(delta) < 20) return;
+      const now = Date.now();
+      if (now - lastNav < 350) return;
+      lastNav = now;
+      if (delta > 0) scrollToNext();
+      else scrollToPrev();
+    };
+    node.addEventListener('wheel', onWheel, { passive: true });
+    return () => node.removeEventListener('wheel', onWheel);
+  }, [visible, isZoomed, scrollToNext, scrollToPrev]);
 
   const handleMomentumEnd = useCallback(
     (e: { nativeEvent: { contentOffset: { x: number }; layoutMeasurement: { width: number } } }) => {
@@ -154,16 +111,21 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
     });
   }, []);
 
-  if (!visible) return null;
+  if (!visible || media.length === 0) return null;
+
+  // Arrows are a web-only affordance: on mobile users swipe, and the buttons
+  // would cover the photo. Desktop web has no drag-to-scroll, so they stay.
+  const showNav = Platform.OS === 'web' && media.length > 1;
 
   return (
     <Modal visible transparent animationType="fade" statusBarTranslucent onRequestClose={onClose}>
       <GestureHandlerRootView style={styles.root}>
-        <View style={styles.backdrop}>
+        <View ref={backdropRef} style={styles.backdrop}>
           <FlatList
             ref={listRef}
-            data={photos}
-            keyExtractor={(_, i) => String(i)}
+            data={media}
+            keyExtractor={mediaKey}
+            extraData={currentIndex}
             horizontal
             pagingEnabled
             bounces={false}
@@ -183,37 +145,35 @@ export function ImageGalleryModal({ photos, initialIndex, visible, onClose }: Pr
             onScroll={handleScroll}
             scrollEventThrottle={16}
             onScrollToIndexFailed={handleScrollToIndexFailed}
-            renderItem={({ item }) => (
+            renderItem={({ item, index }) => (
               <View style={[styles.item, { width: screenWidth, height: screenHeight }]}>
-                <GallerySlide uri={item} isZoomed={isZoomed} onZoomChange={setIsZoomed} />
+                {item.type === 'photo' ? (
+                  <GallerySlide uri={item.uri} isZoomed={isZoomed} onZoomChange={setIsZoomed} />
+                ) : (
+                  <GalleryVideoSlide video={item.video} isActive={index === currentIndex} />
+                )}
               </View>
             )}
           />
 
-          <View style={[styles.topBar, { top: insets.top }]}>
-            <Pressable onPress={onClose} style={styles.closeBtn}>
-              <Ionicons name="close" size={24} color={DesignColors.onSurface} />
-            </Pressable>
-            <Text style={styles.counter}>
-              {currentIndex + 1} / {photos.length}
-            </Text>
-            <View style={styles.actionGhost} />
-          </View>
+          <GalleryTopBar index={currentIndex} total={media.length} onClose={onClose} />
 
           <View style={styles.hintWrap} pointerEvents="none">
             <Text style={styles.hintText}>Pinch to zoom</Text>
           </View>
 
-          <View style={[styles.bottomBadge, { bottom: Math.max(insets.bottom + 16, 24) }]}>
-            <Text style={styles.bottomBadgeText}>
-              {currentIndex + 1} of {photos.length}
-            </Text>
-            <View style={styles.dotsRow}>
-              {photos.map((_, index) => (
-                <View key={index} style={[styles.dot, index === currentIndex && styles.dotActive]} />
-              ))}
+          {showNav && (
+            <View style={styles.navWrap} pointerEvents="box-none">
+              <Pressable style={styles.navBtn} onPress={scrollToPrev} disabled={currentIndex <= 0}>
+                <Ionicons name="chevron-back-outline" size={32} color={DesignColors.onSurface} />
+              </Pressable>
+              <Pressable style={styles.navBtn} onPress={scrollToNext} disabled={currentIndex >= media.length - 1}>
+                <Ionicons name="chevron-forward-outline" size={32} color={DesignColors.onSurface} />
+              </Pressable>
             </View>
-          </View>
+          )}
+
+          <GalleryBottomBadge index={currentIndex} total={media.length} />
         </View>
       </GestureHandlerRootView>
     </Modal>
@@ -225,48 +185,6 @@ const styles = StyleSheet.create({
   backdrop: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   list: { flex: 1 },
   item: { flex: 1 },
-  slide: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  imageFrame: {
-    width: '100%',
-    height: '100%',
-  },
-  image: {
-    width: '100%',
-    height: '100%',
-  },
-  topBar: {
-    position: 'absolute',
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    backgroundColor: DesignColors.scrim,
-  },
-  closeBtn: {
-    width: 40,
-    height: 40,
-    borderRadius: 20,
-    backgroundColor: DesignColors.cardBorder,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  counter: {
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-  },
-  actionGhost: { width: 40 },
   hintWrap: {
     position: 'absolute',
     left: 0,
@@ -282,34 +200,23 @@ const styles = StyleSheet.create({
     textTransform: 'uppercase',
     fontFamily,
   },
-  bottomBadge: {
+  navWrap: {
     position: 'absolute',
-    left: 16,
-    right: 16,
+    left: 0,
+    right: 0,
+    top: 0,
+    bottom: 0,
+    justifyContent: 'space-between',
     alignItems: 'center',
-    gap: 10,
-  },
-  bottomBadgeText: {
-    color: DesignColors.onSurface,
-    fontSize: 12,
-    fontWeight: '700',
-    letterSpacing: 1.2,
-    textTransform: 'uppercase',
-    fontFamily,
-  },
-  dotsRow: {
     flexDirection: 'row',
+    paddingHorizontal: 12,
+  },
+  navBtn: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(0,0,0,0.35)',
     alignItems: 'center',
-    gap: 6,
-  },
-  dot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: DesignColors.borderStrong,
-  },
-  dotActive: {
-    width: 24,
-    backgroundColor: DesignColors.primary,
+    justifyContent: 'center',
   },
 });

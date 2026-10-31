@@ -14,6 +14,7 @@ import { ImageGalleryModal } from '@/components/property/image-gallery-modal';
 import { PropertyHeroHeader } from '@/components/property/property-hero-header';
 import { PropertyBottomSheet } from '@/components/property/property-bottom-sheet';
 import { PropertyPhotos } from '@/components/property/property-photos';
+import type { GalleryMedia } from '@/types/gallery-media';
 import { ListingDeleteModal } from './listing-delete-modal';
 import { ListingVideoManager } from './listing-video-manager';
 
@@ -32,6 +33,11 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
     if (property.image) return [property.image];
     return [];
   }, [property.image, photos]);
+
+  const media = useMemo<GalleryMedia[]>(
+    () => allPhotos.map((uri) => ({ type: 'photo', uri })),
+    [allPhotos],
+  );
 
   const openGallery = (index: number) => {
     setGalleryIndex(index);
@@ -101,7 +107,7 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
           </View>
         </View>
 
-        <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
+        <PropertyPhotos media={media} onMediaPress={openGallery} />
 
         <ListingVideoManager listingId={property.id} />
 
@@ -123,7 +129,7 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
       </View>
 
       <ImageGalleryModal
-        photos={allPhotos}
+        media={media}
         initialIndex={galleryIndex}
         visible={galleryOpen}
         onClose={() => setGalleryOpen(false)}

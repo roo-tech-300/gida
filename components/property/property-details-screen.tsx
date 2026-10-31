@@ -25,7 +25,9 @@ import { PropertyHeroHeader } from './property-hero-header';
 import { PropertyBottomSheet } from './property-bottom-sheet';
 import { PropertyBottomBar } from './property-bottom-bar';
 import { PropertyPhotos } from './property-photos';
-import { PropertyVideos } from './property-videos';
+import { useListingVideos } from '@/hooks/use-listing-videos';
+import { isReadyVideo } from '@/types/listing-video';
+import type { GalleryMedia } from '@/types/gallery-media';
 import { PropertyKeyAmenities, getToggleAmenities } from './property-key-amenities';
 import { PropertyAmenitiesList } from './property-amenities-list';
 import { BookTourModal } from './book-tour-modal';
@@ -45,6 +47,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   const { data: myTours = [] } = useTourBookings();
   const { data: reviews = [], isLoading: isLoadingReviews, isError: isReviewsError, error: reviewsError, refetch: refetchReviews } = useReviews(property.id);
   const { data: reviewEligibility } = useReviewEligibility(property.id);
+  const { data: videoData } = useListingVideos(property.id);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [tourModalOpen, setTourModalOpen] = useState(false);
@@ -58,6 +61,15 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     if (property.image) return [property.image];
     return [];
   }, [property.image, photos]);
+
+  // Photos first, then ready walkthrough videos — one scrollable gallery.
+  const media = useMemo<GalleryMedia[]>(() => {
+    const photoItems: GalleryMedia[] = allPhotos.map((uri) => ({ type: 'photo', uri }));
+    const videoItems: GalleryMedia[] = (videoData ?? [])
+      .filter(isReadyVideo)
+      .map((video) => ({ type: 'video', video }));
+    return [...photoItems, ...videoItems];
+  }, [allPhotos, videoData]);
 
   const hasReviews = reviews.length > 0;
 
@@ -153,7 +165,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   return (
     <SafeAreaView style={styles.safe}>
-      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} onShare={() => setShareModalOpen(true)} />
+      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => media.length > 0 && openGallery(0)} onShare={() => setShareModalOpen(true)} />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
         <View style={styles.statusBadge}>
@@ -186,8 +198,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
         <PropertyKeyAmenities amenities={keyAmenities} />
 
-        <PropertyVideos listingId={property.id} />
-        <PropertyPhotos photos={photos} onImagePress={(index) => openGallery(index)} />
+        <PropertyPhotos media={media} onMediaPress={openGallery} />
 
         {property.description ? (
           <View style={styles.overviewSection}>
@@ -266,7 +277,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       />
 
       <ImageGalleryModal
-        photos={allPhotos}
+        media={media}
         initialIndex={galleryIndex}
         visible={galleryOpen}
         onClose={() => setGalleryOpen(false)}

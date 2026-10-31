@@ -1,4 +1,7 @@
+import { useMemo } from 'react';
+
 import { ImageGalleryModal } from '@/components/property/image-gallery-modal';
+import type { GalleryMedia } from '@/types/gallery-media';
 
 type PlacePhotoGalleryProps = {
   photos: string[];
@@ -7,12 +10,10 @@ type PlacePhotoGalleryProps = {
 };
 
 export function PlacePhotoGallery({ photos, visible, onClose }: PlacePhotoGalleryProps) {
-  return (
-    <ImageGalleryModal
-      photos={photos}
-      initialIndex={0}
-      visible={visible}
-      onClose={onClose}
-    />
+  const media = useMemo<GalleryMedia[]>(
+    () => photos.map((uri) => ({ type: 'photo', uri })),
+    [photos],
   );
+
+  return <ImageGalleryModal media={media} initialIndex={0} visible={visible} onClose={onClose} />;
 }

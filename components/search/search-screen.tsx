@@ -159,10 +159,9 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
           <Animated.View
             style={[styles.sheet, { transform: [{ translateY: slideY }], paddingTop: insets.top }]}
             pointerEvents={isOpen ? 'auto' : 'none'}
-            {...overlayPan.panHandlers}
           >
             <SafeKeyboardView style={styles.sheetContent}>
-              <View style={styles.dragHandleRow}>
+              <View style={styles.dragHandleRow} {...overlayPan.panHandlers}>
                 <View style={styles.dragHandle} />
               </View>
 

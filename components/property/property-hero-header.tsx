@@ -8,15 +8,26 @@ import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
 
-export function PropertyHeroHeader({ property, photoCount, onHeroPress, onShare }: { property: FeedListing; photoCount?: number; onHeroPress?: () => void; onShare?: () => void }) {
+type Props = {
+  property: FeedListing;
+  /** Photos plus videos, shown in the hero badge. */
+  mediaCount?: number;
+  onHeroPress?: () => void;
+  onShare?: () => void;
+  /** Overrides the primary image; used to fall back to a video's poster. */
+  heroImage?: string;
+};
+
+export function PropertyHeroHeader({ property, mediaCount, onHeroPress, onShare, heroImage }: Props) {
   const [imageLoaded, setImageLoaded] = useState(false);
   const insets = useSafeAreaInsets();
+  const uri = heroImage ?? property.image;
 
   return (
     <>
       <Pressable style={styles.heroWrap} onPress={onHeroPress}>
         <Image
-          source={{ uri: property.image }}
+          source={{ uri }}
           style={[styles.heroImage, { opacity: imageLoaded ? 1 : 0 }]}
           contentFit="cover"
           cachePolicy="disk"
@@ -32,7 +43,7 @@ export function PropertyHeroHeader({ property, photoCount, onHeroPress, onShare 
         <View style={styles.heroBadges}>
           <View style={styles.heroBadge}>
             <Ionicons name="camera-outline" size={14} color={DesignColors.onSurface} />
-            <Text style={styles.heroBadgeText}>{photoCount ?? property.photoCount} PHOTOS</Text>
+            <Text style={styles.heroBadgeText}>{mediaCount ?? property.photoCount} MEDIA</Text>
           </View>
           {property.hasVirtualTour && (
             <View style={styles.heroBadge}>

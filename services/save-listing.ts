@@ -10,28 +10,41 @@ import {
   type CreateListingInput,
 } from '@/services/listing-service';
 import { buildListingInput } from '@/utils/build-listing-input';
+import { photoUris } from '@/types/wizard-media';
 
 function isRemoteUrl(str: string) {
   return str.startsWith('https://') || str.startsWith('http://');
 }
 
-/** Creates the listing row, then uploads its hero and gallery photos. Returns the new id. */
+/**
+ * Every photo in display order. The cover photo comes first, so the listing's
+ * primary image and the gallery's first item are the same picture.
+ */
+function orderedPhotos(step5: CreateListingData['step5']): string[] {
+  const heroPhoto = step5.hero?.kind === 'photo' ? [step5.hero.uri] : [];
+  return [...new Set([...heroPhoto, ...photoUris(step5.gallery)])];
+}
+
+/** Creates the listing row, then uploads its photos. Returns the new id. */
 export async function createListingWithPhotos(data: CreateListingData, profile: AuthProfile | null): Promise<string> {
-  const { step5 } = data;
   const { id } = await createListing(buildListingInput(data, profile));
 
-  if (step5.heroImage) {
-    const primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
-    await updateListingPrimaryImage(id, primaryUrl);
-  }
+  const photos = orderedPhotos(data.step5);
+  const [cover, ...rest] = photos;
+  const urls: string[] = [];
+  // The cover first (it is the most visible), then the rest in parallel.
+  if (cover) urls.push(await uploadListingImage(id, cover, 'hero.jpg'));
+  urls.push(
+    ...(await Promise.all(rest.map((uri, index) => uploadListingImage(id, uri, `gallery/${index + 1}.jpg`)))),
+  );
 
-  if (step5.galleryImages.length > 0) {
-    const galleryLocal = step5.galleryImages.filter((u) => !isRemoteUrl(u));
-    const galleryUrls = await Promise.all(
-      galleryLocal.map((uri, i) => uploadListingImage(id, uri, `gallery/${i}.jpg`)),
-    );
+  // A video cover has no photo yet; the first gallery photo still gives feed
+  // cards a poster until the video's own poster is generated.
+  await updateListingPrimaryImage(id, urls[0] ?? null);
+
+  if (urls.length > 0) {
     await insertListingPhotos(
-      galleryUrls.map((url, i) => ({ listing_id: id, image_url: url, display_order: i + 1 })),
+      urls.map((url, index) => ({ listing_id: id, image_url: url, display_order: index + 1 })),
     );
   }
 
@@ -55,21 +68,28 @@ export async function updateListingWithPhotos(
   const { data: existingRows } = await supabase.from('listing_photos').select('image_url').eq('listing_id', id);
   const existingUrls = (existingRows || []).map((r) => r.image_url).filter(Boolean);
 
-  if (step5.heroImage) {
-    const newHeroUrl = isRemoteUrl(step5.heroImage)
-      ? step5.heroImage
-      : await uploadListingImage(id, step5.heroImage, 'hero.jpg');
-    await updateListingPrimaryImage(id, newHeroUrl);
-  } else {
-    await updateListingPrimaryImage(id, null);
-  }
+  // Listings created before the media refactor kept the cover only in
+  // `primary_image`; their gallery already starts with a copy of it. Adding the
+  // cover to `listing_photos` would show the same picture twice, so leave their
+  // gallery untouched until they pick a new cover.
+  const heroUri = step5.hero?.kind === 'photo' ? step5.hero.uri : null;
+  const legacyCoverOnly =
+    heroUri !== null &&
+    isRemoteUrl(heroUri) &&
+    existingUrls.length > 0 &&
+    !existingUrls.includes(heroUri);
+  const allPhotos = orderedPhotos(step5);
+  const photos = legacyCoverOnly ? allPhotos.filter((uri) => uri !== heroUri) : allPhotos;
 
-  const finalUrls = step5.galleryImages.filter(isRemoteUrl);
-  const newLocalUris = step5.galleryImages.filter((item) => !isRemoteUrl(item));
-  const uploadedNew = await Promise.all(
-    newLocalUris.map((uri, i) => uploadListingImage(id, uri, `gallery/edit-${Date.now()}-${i}.jpg`)),
+  const finalUrls = await Promise.all(
+    photos.map((uri, index) => {
+      if (isRemoteUrl(uri)) return uri;
+      const suffix = index === 0 ? `hero-edit-${Date.now()}.jpg` : `gallery/edit-${Date.now()}-${index}.jpg`;
+      return uploadListingImage(id, uri, suffix);
+    }),
   );
-  finalUrls.push(...uploadedNew);
+
+  await updateListingPrimaryImage(id, legacyCoverOnly ? heroUri : finalUrls[0] ?? null);
 
   const removedUrls = existingUrls.filter((url) => !finalUrls.includes(url));
   for (const url of removedUrls) {
@@ -88,7 +108,7 @@ export async function updateListingWithPhotos(
 
   if (finalUrls.length > 0) {
     await insertListingPhotos(
-      finalUrls.map((url, i) => ({ listing_id: id, image_url: url, display_order: i + 1 })),
+      finalUrls.map((url, index) => ({ listing_id: id, image_url: url, display_order: index + 1 })),
     );
   }
 }

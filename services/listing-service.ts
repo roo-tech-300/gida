@@ -191,6 +191,7 @@ export async function updateListing(listingId: string, input: UpdateListingInput
       region_path: input.region_path,
       enable_self_guided_tour: input.enable_self_guided_tour,
       enable_guided_tour: input.enable_guided_tour,
+      video_cover_enabled: input.video_cover_enabled,
     })
     .eq('id', listingId);
 

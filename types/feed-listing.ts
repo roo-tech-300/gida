@@ -1,6 +1,7 @@
 import { derivePropertyTier } from '@/utils/liquidity-math';
 import { mediaCdnUrl } from '@/utils/media-url';
-import type { PickedVideo } from '@/utils/pick-listing-video';
+import type { ListingVideo } from '@/types/listing-video';
+import type { WizardMedia } from '@/types/wizard-media';
 
 export type FeedListing = {
   id: string;
@@ -148,7 +149,12 @@ const amenityBooleans: (keyof DbListing)[] = [
   'has_wardrobe',
 ];
 
-export function dbToListingForm(item: DbListing) {
+/**
+ * Rebuilds the wizard's answers from a listing row. `photos` and `videos` come
+ * from the listing's gallery tables; the cover is whichever video the feed is
+ * using (when the video cover is on), otherwise the primary image.
+ */
+export function dbToListingForm(item: DbListing, photos: string[] = [], videos: ListingVideo[] = []) {
   const layoutType = item.layout_type as 'self_contain' | 'single_room' | 'flat';
   const priceDigits = String(Math.round(item.price_amount));
   const sizeDigits = item.size_sqft ? String(item.size_sqft) : '';
@@ -194,11 +200,33 @@ export function dbToListingForm(item: DbListing) {
       rulesList: item.rules || [],
       maxRoommates: item.max_roommates,
     },
-    step5: {
-      heroImage: item.primary_image,
-      galleryImages: [] as string[],
-      pendingVideos: [] as PickedVideo[],
-      videoCoverEnabled: item.video_cover_enabled ?? true,
-    },
+    step5: buildMediaStep(item, photos, videos),
   };
+}
+
+function buildMediaStep(item: DbListing, photos: string[], videos: ListingVideo[]) {
+  // `videos` is ordered by display_order, so the first row is the cover video
+  // even while it is still processing.
+  const coverVideo = item.video_cover_enabled ? videos[0] ?? null : null;
+  // Older listings may have photos but no primary_image (the wizard used to
+  // allow skipping the cover). Fall back so editing them still shows a cover.
+  const heroPhoto = coverVideo ? null : item.primary_image ?? photos[0] ?? null;
+  const hero: WizardMedia | null = coverVideo
+    ? { kind: 'uploaded-video', video: coverVideo }
+    : heroPhoto
+      ? { kind: 'photo', uri: heroPhoto }
+      : videos[0]
+        ? { kind: 'uploaded-video', video: videos[0] }
+        : null;
+  const heroVideoId = hero?.kind === 'uploaded-video' ? hero.video.id : null;
+  const gallery: WizardMedia[] = [
+    // The cover photo is stored as the first gallery photo; it must not show twice.
+    ...photos
+      .filter((uri) => uri !== heroPhoto)
+      .map((uri): WizardMedia => ({ kind: 'photo', uri })),
+    ...videos
+      .filter((video) => video.id !== heroVideoId)
+      .map((video): WizardMedia => ({ kind: 'uploaded-video', video })),
+  ];
+  return { hero, gallery };
 }

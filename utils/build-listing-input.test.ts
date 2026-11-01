@@ -1,5 +1,13 @@
 import type { CreateListingData } from '@/context/create-listing-context';
 import { buildListingInput } from '@/utils/build-listing-input';
+import type { PickedVideo } from '@/utils/pick-listing-video';
+
+const pickedVideo: PickedVideo = {
+  file: { uri: 'file:///clip.mp4', name: 'clip.mp4', type: 'video/mp4' },
+  fileName: 'clip.mp4',
+  mimeType: 'video/mp4',
+  durationSeconds: 30,
+};
 
 function wizard(step5: Partial<CreateListingData['step5']> = {}): CreateListingData {
   return {
@@ -14,7 +22,7 @@ function wizard(step5: Partial<CreateListingData['step5']> = {}): CreateListingD
     },
     step3: { selectedAmenities: ['has_borehole'], featuresList: [] },
     step4: { rulesList: [], maxRoommates: 2 },
-    step5: { heroImage: null, galleryImages: [], pendingVideos: [], videoCoverEnabled: true, ...step5 },
+    step5: { hero: null, gallery: [], ...step5 },
   };
 }
 
@@ -34,8 +42,13 @@ describe('buildListingInput', () => {
     });
   });
 
-  it('carries the video cover choice', () => {
-    expect(buildListingInput(wizard(), null).video_cover_enabled).toBe(true);
-    expect(buildListingInput(wizard({ videoCoverEnabled: false }), null).video_cover_enabled).toBe(false);
+  it('uses the video cover only when the cover itself is a video', () => {
+    expect(buildListingInput(wizard(), null).video_cover_enabled).toBe(false);
+    expect(
+      buildListingInput(wizard({ hero: { kind: 'photo', uri: 'file:///hero.jpg' } }), null).video_cover_enabled,
+    ).toBe(false);
+    expect(
+      buildListingInput(wizard({ hero: { kind: 'video', video: pickedVideo } }), null).video_cover_enabled,
+    ).toBe(true);
   });
 });

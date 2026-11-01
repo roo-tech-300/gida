@@ -40,6 +40,18 @@ async function readServerError(response: Response): Promise<string> {
   return `Media server error (${response.status})`;
 }
 
+/**
+ * Moves a video to the front of the listing's videos, so the feed uses its
+ * preview as the cover. Requires the set_listing_hero_video migration.
+ */
+export async function setListingHeroVideo(listingId: string, videoId: string): Promise<void> {
+  const { error } = await supabase.rpc('set_listing_hero_video', {
+    p_listing_id: listingId,
+    p_video_id: videoId,
+  });
+  if (error) throw error;
+}
+
 /** Deletes the files on the media server, which also removes the row. */
 export async function deleteListingVideo(videoId: string): Promise<void> {
   const token = await getAccessToken();

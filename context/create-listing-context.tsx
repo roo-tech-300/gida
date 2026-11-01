@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
-import type { PickedVideo } from '@/utils/pick-listing-video';
+import type { WizardMedia } from '@/types/wizard-media';
 
 export type CreateListingData = {
   step1: {
@@ -37,11 +37,10 @@ export type CreateListingData = {
     maxRoommates: number;
   };
   step5: {
-    heroImage: string | null;
-    galleryImages: string[];
-    /** New listings only: uploaded once Publish has created the listing. */
-    pendingVideos: PickedVideo[];
-    videoCoverEnabled: boolean;
+    /** The cover: the first thing students see. A photo or a video. */
+    hero: WizardMedia | null;
+    /** Everything else; photos and videos share one ordered list. */
+    gallery: WizardMedia[];
   };
 };
 
@@ -62,7 +61,7 @@ const defaultValue: CreateListingData = {
   step2: { selectedSchool: null, selectedCampus: null, landmark: '', coords: null, regionPath: [], transferAdminId: null, enableSelfGuidedTour: true, enableGuidedTour: true },
   step3: { selectedAmenities: [], featuresList: [] },
   step4: { rulesList: [], maxRoommates: 1 },
-  step5: { heroImage: null, galleryImages: [], pendingVideos: [], videoCoverEnabled: true },
+  step5: { hero: null, gallery: [] },
 };
 
 const CreateListingContext = createContext<CreateListingContextType>({

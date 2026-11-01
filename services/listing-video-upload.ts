@@ -15,11 +15,19 @@ export class UploadCanceledError extends Error {
 }
 
 export interface UploadHandle {
-  done: Promise<void>;
+  /** Resolves with the upload id (the listing_videos row id), when known. */
+  done: Promise<string | null>;
   abort: () => void;
 }
 
 type TusInput = ConstructorParameters<typeof Upload>[0];
+
+/** The server names the tus upload with the row id it inserts on finish. */
+function uploadIdFromUrl(url: string | null): string | null {
+  if (!url) return null;
+  const segment = url.split('?')[0].split('/').filter(Boolean).pop();
+  return segment || null;
+}
 
 /**
  * tus-js-client's React Native build reads `{ uri }` objects (see its
@@ -55,7 +63,7 @@ export function uploadListingVideo(
   // Android reports inflated per-chunk progress; see createUploadProgressTracker.
   const progress = createUploadProgressTracker(CHUNK_BYTES, onProgress);
 
-  const done = new Promise<void>((resolve, reject) => {
+  const done = new Promise<string | null>((resolve, reject) => {
     rejectDone = reject;
     upload = new Upload(toTusInput(video.file), {
       endpoint: mediaServerUrl('/uploads'),
@@ -70,7 +78,7 @@ export function uploadListingVideo(
       onShouldRetry: (error) => shouldRetry(error),
       onProgress: progress.onProgress,
       onChunkComplete: (_chunkSize, bytesAccepted) => progress.onChunkComplete(bytesAccepted),
-      onSuccess: () => resolve(),
+      onSuccess: () => resolve(uploadIdFromUrl(upload?.url ?? null)),
       onError: (error) => reject(new Error(describeError(error))),
     });
     upload.start();

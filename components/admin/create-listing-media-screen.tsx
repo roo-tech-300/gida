@@ -5,16 +5,17 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
-import { ListingGalleryGrid } from '@/components/admin/listing-gallery-grid';
-import { ListingHeroPicker } from '@/components/admin/listing-hero-picker';
-import { ListingMediaVideos } from '@/components/admin/listing-media-videos';
+import { ListingHeroMediaPicker } from '@/components/admin/listing-hero-media-picker';
+import { ListingMediaGrid } from '@/components/admin/listing-media-grid';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { useCreateListingForm } from '@/context/create-listing-context';
 import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
 import { usePublishListing } from '@/hooks/use-publish-listing';
 
 export function CreateListingMediaScreen() {
   const exitWizard = useExitListingWizard();
   const { publish, isPublishing, isEditing } = usePublishListing();
+  const { editListingId } = useCreateListingForm();
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -27,12 +28,13 @@ export function CreateListingMediaScreen() {
         <ScrollView style={styles.scroll} contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
           <View style={styles.hero}>
             <Text style={styles.heroTitle}>Property Media</Text>
-            <Text style={styles.heroSub}>Add high-quality photos and walkthrough videos to attract tenants</Text>
+            <Text style={styles.heroSub}>
+              Add photos and videos. Pick a cover — a photo or a short video — and mix the rest into the gallery.
+            </Text>
           </View>
 
-          <ListingHeroPicker />
-          <ListingGalleryGrid />
-          <ListingMediaVideos />
+          <ListingHeroMediaPicker />
+          <ListingMediaGrid listingId={editListingId ?? undefined} />
         </ScrollView>
 
         <View style={styles.ctaRow}>

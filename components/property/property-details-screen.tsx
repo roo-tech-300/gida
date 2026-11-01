@@ -62,14 +62,22 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     return [];
   }, [property.image, photos]);
 
+  const readyVideos = useMemo(() => (videoData ?? []).filter(isReadyVideo), [videoData]);
+
   // Photos first, then ready walkthrough videos — one scrollable gallery.
   const media = useMemo<GalleryMedia[]>(() => {
     const photoItems: GalleryMedia[] = allPhotos.map((uri) => ({ type: 'photo', uri }));
-    const videoItems: GalleryMedia[] = (videoData ?? [])
-      .filter(isReadyVideo)
-      .map((video) => ({ type: 'video', video }));
+    const videoItems: GalleryMedia[] = readyVideos.map((video) => ({ type: 'video', video }));
     return [...photoItems, ...videoItems];
-  }, [allPhotos, videoData]);
+  }, [allPhotos, readyVideos]);
+
+  // The chosen cover wins: when it is a video, its poster stands in for the
+  // photo until the gallery opens.
+  const coverVideo = dbListing?.video_cover_enabled ? readyVideos[0] ?? null : null;
+  const heroImage = coverVideo?.posterUrl || property.image || '';
+  const heroIndex = coverVideo
+    ? media.findIndex((item) => item.type === 'video' && item.video.id === coverVideo.id)
+    : 0;
 
   const hasReviews = reviews.length > 0;
 
@@ -165,7 +173,13 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   return (
     <SafeAreaView style={styles.safe}>
-      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => media.length > 0 && openGallery(0)} onShare={() => setShareModalOpen(true)} />
+      <PropertyHeroHeader
+        property={property}
+        heroImage={heroImage}
+        mediaCount={media.length}
+        onHeroPress={() => media.length > 0 && openGallery(Math.max(heroIndex, 0))}
+        onShare={() => setShareModalOpen(true)}
+      />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
         <View style={styles.statusBadge}>

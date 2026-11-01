@@ -3,7 +3,7 @@ import { registerAbort, setUpload, setUploadProgress } from '@/utils/listing-vid
 import type { PickedVideo } from '@/utils/pick-listing-video';
 
 export type ListingVideoUploadOutcome =
-  | { kind: 'done' }
+  | { kind: 'done'; videoId: string | null }
   | { kind: 'canceled' }
   | { kind: 'failed'; message: string };
 
@@ -24,8 +24,8 @@ export async function runListingVideoUpload(
   registerAbort(listingId, handle.abort);
 
   try {
-    await handle.done;
-    return { kind: 'done' };
+    const videoId = await handle.done;
+    return { kind: 'done', videoId };
   } catch (error) {
     if (error instanceof UploadCanceledError) return { kind: 'canceled' };
     console.error('[ListingVideoUpload] Upload failed:', error);

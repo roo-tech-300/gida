@@ -15,8 +15,9 @@ import { PropertyHeroHeader } from '@/components/property/property-hero-header';
 import { PropertyBottomSheet } from '@/components/property/property-bottom-sheet';
 import { PropertyPhotos } from '@/components/property/property-photos';
 import type { GalleryMedia } from '@/types/gallery-media';
+import { isReadyVideo } from '@/types/listing-video';
+import { useListingVideos } from '@/hooks/use-listing-videos';
 import { ListingDeleteModal } from './listing-delete-modal';
-import { ListingVideoManager } from './listing-video-manager';
 
 const HERO_HEIGHT = 340;
 
@@ -24,6 +25,7 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
   const insets = useSafeAreaInsets();
   const queryClient = useQueryClient();
   const { prefillForEdit } = useCreateListingForm();
+  const { data: videos = [], isLoading: videosLoading } = useListingVideos(property.id);
   const [galleryOpen, setGalleryOpen] = useState(false);
   const [galleryIndex, setGalleryIndex] = useState(0);
   const [showDelete, setShowDelete] = useState(false);
@@ -34,10 +36,21 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
     return [];
   }, [property.image, photos]);
 
+  const readyVideos = useMemo(() => videos.filter(isReadyVideo), [videos]);
+
   const media = useMemo<GalleryMedia[]>(
-    () => allPhotos.map((uri) => ({ type: 'photo', uri })),
-    [allPhotos],
+    () => [
+      ...allPhotos.map((uri): GalleryMedia => ({ type: 'photo', uri })),
+      ...readyVideos.map((video): GalleryMedia => ({ type: 'video', video })),
+    ],
+    [allPhotos, readyVideos],
   );
+
+  const coverVideo = dbListing.video_cover_enabled ? readyVideos[0] ?? null : null;
+  const heroImage = coverVideo?.posterUrl || property.image || '';
+  const heroIndex = coverVideo
+    ? media.findIndex((item) => item.type === 'video' && item.video.id === coverVideo.id)
+    : 0;
 
   const openGallery = (index: number) => {
     setGalleryIndex(index);
@@ -54,15 +67,19 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
   });
 
   const handleEdit = () => {
-    const formData = dbToListingForm(dbListing);
-    formData.step5.galleryImages = photos || [];
+    const formData = dbToListingForm(dbListing, photos ?? [], videos);
     prefillForEdit(formData, property.id);
     router.push('/admin/create-listing-core-specs');
   };
 
   return (
     <SafeAreaView style={styles.safe}>
-      <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} />
+      <PropertyHeroHeader
+        property={property}
+        heroImage={heroImage}
+        mediaCount={media.length}
+        onHeroPress={() => media.length > 0 && openGallery(Math.max(heroIndex, 0))}
+      />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
         <View style={styles.statusBadge}>
@@ -109,8 +126,6 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
 
         <PropertyPhotos media={media} onMediaPress={openGallery} />
 
-        <ListingVideoManager listingId={property.id} />
-
         <View style={styles.tourStateSection}>
           <Text style={styles.sectionTitle}>Tour Availability</Text>
           <TourAvailabilityState dbListing={dbListing} />
@@ -118,7 +133,11 @@ export function ListingDetailAdminScreen({ property, photos, dbListing }: { prop
       </PropertyBottomSheet>
 
       <View style={[styles.actionBar, { paddingBottom: Math.max(insets.bottom, DesignSpacing.md) }]}>
-        <Pressable style={styles.editBtn} onPress={handleEdit}>
+        <Pressable
+          style={[styles.editBtn, videosLoading && styles.editBtnDisabled]}
+          onPress={handleEdit}
+          disabled={videosLoading}
+        >
           <Ionicons name="create-outline" size={20} color={DesignColors.onPrimaryContainer} />
           <Text style={styles.editText}>Edit</Text>
         </Pressable>
@@ -382,6 +401,7 @@ const styles = StyleSheet.create({
     borderTopWidth: 1,
     borderTopColor: 'DesignColors.cardBorder',
   },
+  editBtnDisabled: { opacity: 0.5 },
   editBtn: {
     flex: 1,
     flexDirection: 'row',

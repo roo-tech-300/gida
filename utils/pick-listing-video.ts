@@ -29,6 +29,26 @@ export function validatePickedVideo(durationMs: number | null | undefined, sizeB
   return null;
 }
 
+/**
+ * expo-image-picker reports milliseconds on native but seconds on web (its
+ * web implementation reads HTMLVideoElement.duration), so normalise here
+ * before validating or displaying a duration.
+ */
+export function videoDurationMs(asset: ImagePicker.ImagePickerAsset): number | null {
+  if (asset.duration == null) return null;
+  return Platform.OS === 'web' ? asset.duration * 1000 : asset.duration;
+}
+
+/** Normalises an expo-image-picker asset into what the upload client needs. */
+export function pickedVideoFromAsset(asset: ImagePicker.ImagePickerAsset): PickedVideo {
+  const mimeType = asset.mimeType ?? asset.file?.type ?? 'video/mp4';
+  const fileName = asset.fileName ?? asset.file?.name ?? `clip-${Date.now()}.mp4`;
+  const file: UploadableFile = asset.file ?? { uri: asset.uri, name: fileName, type: mimeType };
+  const durationMs = videoDurationMs(asset);
+  const durationSeconds = durationMs != null ? Math.round(durationMs / 1000) : null;
+  return { file, fileName, mimeType, durationSeconds };
+}
+
 export async function pickListingVideo(): Promise<PickVideoResult> {
   if (Platform.OS !== 'web') {
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
@@ -45,12 +65,8 @@ export async function pickListingVideo(): Promise<PickVideoResult> {
 
   const asset = result.assets[0];
   const sizeBytes = asset.file?.size ?? asset.fileSize;
-  const problem = validatePickedVideo(asset.duration, sizeBytes);
+  const problem = validatePickedVideo(videoDurationMs(asset), sizeBytes);
   if (problem) return { kind: 'invalid', message: problem };
 
-  const mimeType = asset.mimeType ?? asset.file?.type ?? 'video/mp4';
-  const fileName = asset.fileName ?? asset.file?.name ?? `walkthrough-${Date.now()}.mp4`;
-  const file: UploadableFile = asset.file ?? { uri: asset.uri, name: fileName, type: mimeType };
-  const durationSeconds = asset.duration != null ? Math.round(asset.duration / 1000) : null;
-  return { kind: 'picked', video: { file, fileName, mimeType, durationSeconds } };
+  return { kind: 'picked', video: pickedVideoFromAsset(asset) };
 }

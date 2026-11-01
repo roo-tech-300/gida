@@ -43,10 +43,15 @@ export function PhoneNumberGateProvider({ children }: { children: ReactNode }) {
     setLookupError(null);
     try {
       const savedNumber = await lookupPhoneNumber();
-      if (savedNumber) finish(true);
+      if (savedNumber) {
+        finish(true);
+      } else {
+        setVisible(true);
+      }
     } catch (error) {
       console.error('[PhoneNumberGate] Could not check the saved phone number:', error);
       setLookupError(error instanceof Error ? error.message : 'Could not check your saved number. Try again.');
+      setVisible(true);
     } finally {
       setChecking(false);
     }
@@ -56,7 +61,6 @@ export function PhoneNumberGateProvider({ children }: { children: ReactNode }) {
     if (pending.current) return pending.current;
     pending.current = new Promise<boolean>((resolve) => {
       resolver.current = resolve;
-      setVisible(true);
       void verifyPhoneNumber();
     });
     return pending.current;

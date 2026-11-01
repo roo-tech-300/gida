@@ -69,14 +69,16 @@ export function PhoneNumberGateProvider({ children }: { children: ReactNode }) {
   return (
     <PhoneNumberGateContext.Provider value={{ requirePhoneNumber, isCheckingPhoneNumber: checking }}>
       {children}
-      <PhoneNumberGateModal
-        visible={visible}
-        checking={checking}
-        lookupError={lookupError}
-        onRetry={retryCheck}
-        onCancel={() => finish(false)}
-        onSaved={() => finish(true)}
-      />
+      {visible ? (
+        <PhoneNumberGateModal
+          visible={visible}
+          checking={checking}
+          lookupError={lookupError}
+          onRetry={retryCheck}
+          onCancel={() => finish(false)}
+          onSaved={() => finish(true)}
+        />
+      ) : null}
     </PhoneNumberGateContext.Provider>
   );
 }

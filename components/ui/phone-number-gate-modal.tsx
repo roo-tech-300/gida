@@ -54,7 +54,7 @@ export function PhoneNumberGateModal({ visible, checking, lookupError, onRetry, 
       <SafeAreaView style={styles.safe} edges={['top', 'bottom']}>
         <KeyboardAvoidingView style={styles.flex} behavior={Platform.OS === 'ios' ? 'padding' : 'height'}>
           <Pressable style={styles.backdrop} onPress={cancel}>
-            <View style={styles.card} onStartShouldSetResponder={() => true}>
+            <Pressable style={styles.card} onPress={(event) => event.stopPropagation()}>
               <Text style={styles.title}>Add your phone number</Text>
               <Text style={styles.copy}>
                 We need it before you book a lodge or join a pod. Your number is private and available only to people in your pod. A WhatsApp number is preferred so roommates can coordinate.
@@ -91,7 +91,7 @@ export function PhoneNumberGateModal({ visible, checking, lookupError, onRetry, 
               <Pressable disabled={saving} onPress={cancel} style={styles.cancel}>
                 <Text style={styles.cancelText}>Not now</Text>
               </Pressable>
-            </View>
+            </Pressable>
           </Pressable>
         </KeyboardAvoidingView>
       </SafeAreaView>

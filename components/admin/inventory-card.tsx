@@ -4,6 +4,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import type { AdminListing } from '@/services/adminService';
+import { ListingReadinessProgress } from '@/components/admin/listing-readiness-progress';
 
 function formatCreatedDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -25,6 +26,12 @@ export function InventoryCard({ listing, onPress }: { listing: AdminListing; onP
         <View style={[styles.badge, { backgroundColor: s.bg }]}>
           <Text style={[styles.badgeText, { color: s.color }]}>{s.label}</Text>
         </View>
+        {listing.published === false ? (
+          <View style={styles.draftBadge}>
+            <Ionicons name="eye-off-outline" size={13} color={DesignColors.primaryFixed} />
+            <Text style={styles.draftBadgeText}>NOT LIVE</Text>
+          </View>
+        ) : null}
       </View>
       <View style={styles.body}>
         <View style={styles.titleBlock}>
@@ -45,6 +52,14 @@ export function InventoryCard({ listing, onPress }: { listing: AdminListing; onP
             />
           ) : null}
         </View>
+
+        {listing.published === false && (listing.video_expected_count ?? 0) > 0 ? (
+          <ListingReadinessProgress
+            listingId={listing.id}
+            expected={listing.video_expected_count ?? 0}
+            statuses={(listing.listing_videos ?? []).map((video) => video.status)}
+          />
+        ) : null}
 
         <View style={styles.bottomRow}>
           <View style={styles.managerInfo}>
@@ -96,6 +111,13 @@ const styles = StyleSheet.create({
     fontWeight: '700',
     letterSpacing: 1,
   },
+  draftBadge: {
+    position: 'absolute', top: 16, right: 16, zIndex: 2,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999,
+    backgroundColor: DesignColors.glassOpaque,
+  },
+  draftBadgeText: { fontSize: 10, color: DesignColors.onSurface, fontFamily, fontWeight: '800', letterSpacing: 0.7 },
   body: {
     gap: 14,
     padding: 16,

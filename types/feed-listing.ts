@@ -77,6 +77,8 @@ export type DbListing = {
   enable_guided_tour?: boolean;
   video_preview_path?: string | null;
   video_cover_enabled?: boolean;
+  published?: boolean;
+  video_expected_count?: number;
 };
 
 const amenityMap: { key: keyof DbListing; label: string }[] = [

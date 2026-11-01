@@ -47,8 +47,6 @@ export function ShareListingModal({
     if (!myId || sharingId !== null) return;
     setSharingId(conversation.id);
     try {
-      // Date.now() is called inside an async event handler, not during render
-      // eslint-disable-next-line react-hooks/purity
       const clientSentAt = Date.now();
       if (isConnected === false) {
         createOutboxMessage({

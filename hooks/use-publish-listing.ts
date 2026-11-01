@@ -55,6 +55,8 @@ export function usePublishListing() {
     // Background: the admin can leave the wizard while videos upload.
     uploadQueuedVideos(id, videos, queryClient, { heroIndex })
       .then((summary) => {
+        queryClient.invalidateQueries({ queryKey: ['admin-listings'] });
+        queryClient.invalidateQueries({ queryKey: ['listings'] });
         if (summary.failed === 0) return;
         const plural = summary.failed === 1 ? '' : 's';
         showToast({
@@ -73,7 +75,12 @@ export function usePublishListing() {
     queryClient.invalidateQueries({ queryKey: ['listings'] });
 
     const videoNote = queueVideos(id);
-    showToast({ message: `Listing published successfully!${videoNote}`, type: 'success' });
+    showToast({
+      message: videoNote
+        ? 'Listing saved. It will appear to customers when every video is ready.'
+        : 'Listing published successfully!',
+      type: 'success',
+    });
     reset();
     leaveWizard('/admin/total-inventory');
   };
@@ -92,7 +99,12 @@ export function usePublishListing() {
     queryClient.invalidateQueries({ queryKey: ['listing', id] });
     queryClient.invalidateQueries({ queryKey: ['listings'] });
     const videoNote = queueVideos(id);
-    showToast({ message: `Listing updated successfully!${videoNote}`, type: 'success' });
+    showToast({
+      message: videoNote
+        ? 'Listing saved. It will appear to customers when every video is ready.'
+        : 'Listing updated successfully!',
+      type: 'success',
+    });
     reset();
     leaveWizard(`/admin/listing/${id}`);
   };

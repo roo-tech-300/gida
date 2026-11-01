@@ -51,6 +51,8 @@ export type CreateListingInput = {
   enable_guided_tour: boolean;
   /** Use the walkthrough video's preview as the feed cover instead of the photo. */
   video_cover_enabled: boolean;
+  /** Every selected video must finish processing before customers can see this listing. */
+  video_expected_count: number;
 };
 
 export type CreateListingPhoto = {
@@ -111,6 +113,8 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
       enable_self_guided_tour: input.enable_self_guided_tour,
       enable_guided_tour: input.enable_guided_tour,
       video_cover_enabled: input.video_cover_enabled,
+      video_expected_count: input.video_expected_count,
+      published: input.video_expected_count === 0,
       primary_image: null,
     })
     .select('id')
@@ -176,6 +180,7 @@ export type UpdateListingInput = {
   enable_self_guided_tour?: boolean;
   enable_guided_tour?: boolean;
   video_cover_enabled?: boolean;
+  video_expected_count?: number;
 };
 
 export async function updateListing(listingId: string, input: UpdateListingInput): Promise<void> {
@@ -192,6 +197,9 @@ export async function updateListing(listingId: string, input: UpdateListingInput
       enable_self_guided_tour: input.enable_self_guided_tour,
       enable_guided_tour: input.enable_guided_tour,
       video_cover_enabled: input.video_cover_enabled,
+      ...(input.video_expected_count !== undefined
+        ? { video_expected_count: input.video_expected_count, published: input.video_expected_count === 0 }
+        : {}),
     })
     .eq('id', listingId);
 

@@ -13,6 +13,9 @@ export type AdminListing = {
   featured: boolean;
   status: string;
   created_at: string;
+  published?: boolean;
+  video_expected_count?: number;
+  listing_videos?: { status: 'queued' | 'processing' | 'ready' | 'failed' }[];
 };
 
 export async function fetchAdminListings(adminId: string): Promise<AdminListing[]> {
@@ -29,7 +32,7 @@ export async function fetchAdminListings(adminId: string): Promise<AdminListing[
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, listing_videos(status)')
     .order('created_at', { ascending: false });
 
   if (adminRow.role === 'super_admin') {
@@ -143,7 +146,7 @@ export async function fetchAdminListingsPaginated(
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, listing_videos(status)')
     .order('created_at', { ascending: false })
     .range(from, to);
 
@@ -160,9 +163,9 @@ export async function fetchAdminListingsPaginated(
 
   if (error) {
     console.error('[AdminService] Failed to fetch admin listings:', error.message);
-    return [];
+    throw new Error(error.message);
   }
-  return (data ?? []) as AdminListing[];
+  return (data ?? []) as unknown as AdminListing[];
 }
 
 export async function fetchAdminProfilesPaginated(page = 1, limit = 50): Promise<AdminMember[]> {

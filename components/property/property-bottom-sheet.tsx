@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useRef } from 'react';
 import { Animated, PanResponder, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';

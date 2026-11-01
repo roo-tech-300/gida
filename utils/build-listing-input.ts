@@ -1,7 +1,7 @@
 import type { AuthProfile } from '@/context/auth-context';
 import type { CreateListingData } from '@/context/create-listing-context';
 import type { CreateListingInput } from '@/services/listing-service';
-import { isVideoMedia } from '@/types/wizard-media';
+import { countVideos, isVideoMedia } from '@/types/wizard-media';
 
 function parseSizeSqft(step1: CreateListingData['step1']): number | null {
   const num = parseFloat(step1.sizeValue.replace(/,/g, ''));
@@ -54,5 +54,6 @@ export function buildListingInput(data: CreateListingData, profile: AuthProfile 
     enable_guided_tour: step2.enableGuidedTour,
     // Picking a video as the cover is the choice: no separate toggle.
     video_cover_enabled: isVideoMedia(step5.hero),
+    video_expected_count: countVideos(step5.gallery) + (step5.hero?.kind === 'video' ? 1 : 0),
   };
 }

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useCallback, useEffect, useRef } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 

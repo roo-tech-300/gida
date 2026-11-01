@@ -22,6 +22,7 @@ async function hydrateSlashedPrices(rows: RecommendedDbListing[]): Promise<void>
   const { data, error } = await supabase
     .from('listings')
     .select('id, slashed_price')
+    .eq('published', true)
     .in('id', rows.map((row) => row.id));
 
   if (error) {
@@ -70,6 +71,7 @@ async function withVideoPreviews(rows: RecommendedDbListing[]): Promise<Recommen
   const { data, error } = await supabase
     .from('listings')
     .select('id, video_preview_path')
+    .eq('published', true)
     .in('id', rows.map((row) => row.id))
     .not('video_preview_path', 'is', null);
 

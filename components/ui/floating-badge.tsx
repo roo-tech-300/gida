@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { Ionicons } from '@expo/vector-icons';
 import { useEffect, useRef } from 'react';import { Animated, Easing, StyleSheet } from 'react-native';
 import { DesignColors } from '@/constants/design';

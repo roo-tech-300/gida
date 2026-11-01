@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useRef } from 'react';
 import { Animated, PanResponder, useWindowDimensions } from 'react-native';
 

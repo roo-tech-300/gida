@@ -71,6 +71,7 @@ export async function searchListings(query: string): Promise<ListingSearchResult
   const { data, error } = await supabase
     .from('listings')
     .select('id, title, layout_type, location_landmark, city, campus, price_amount, slashed_price, number_of_bedrooms, number_of_bathrooms, primary_image, category')
+    .eq('published', true)
     .or(filters.join(','))
     .limit(SEARCH_LIMIT);
 

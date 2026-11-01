@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useEffect, useRef } from 'react';
 import { Animated, StyleSheet, View } from 'react-native';
 import { Image } from 'expo-image';

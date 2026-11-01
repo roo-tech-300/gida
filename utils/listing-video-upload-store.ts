@@ -9,14 +9,26 @@ export type ListingVideoUploadState =
 const uploads = new Map<string, ListingVideoUploadState>();
 const aborts = new Map<string, () => void>();
 const listeners = new Set<() => void>();
+const listingListeners = new Map<string, Set<() => void>>();
 
-function emit(): void {
+function emit(listingId: string): void {
   listeners.forEach((listener) => listener());
+  listingListeners.get(listingId)?.forEach((listener) => listener());
 }
 
 export function subscribeToUploads(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
+}
+
+export function subscribeToListingUpload(listingId: string, listener: () => void): () => void {
+  const subscribers = listingListeners.get(listingId) ?? new Set<() => void>();
+  subscribers.add(listener);
+  listingListeners.set(listingId, subscribers);
+  return () => {
+    subscribers.delete(listener);
+    if (subscribers.size === 0) listingListeners.delete(listingId);
+  };
 }
 
 export function getUpload(listingId: string): ListingVideoUploadState | null {
@@ -25,7 +37,7 @@ export function getUpload(listingId: string): ListingVideoUploadState | null {
 
 export function setUpload(listingId: string, state: ListingVideoUploadState): void {
   uploads.set(listingId, state);
-  emit();
+  emit(listingId);
 }
 
 /** Progress events fire constantly; only re-render on whole-percent changes. */
@@ -39,7 +51,7 @@ export function setUploadProgress(listingId: string, fileName: string, fraction:
 export function clearUpload(listingId: string): void {
   uploads.delete(listingId);
   aborts.delete(listingId);
-  emit();
+  emit(listingId);
 }
 
 export function registerAbort(listingId: string, abort: () => void): void {

@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/refs */
 import { useCallback, forwardRef, useImperativeHandle, useRef, useState } from 'react';
 import { Ionicons } from '@expo/vector-icons';
 import { Animated, Easing, PanResponder, Pressable, StyleSheet, Text, View } from 'react-native';

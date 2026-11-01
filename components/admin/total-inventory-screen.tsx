@@ -44,9 +44,16 @@ export function TotalInventoryScreen() {
     [adminListings],
   );
 
+  useEffect(() => {
+    if (!listingItems.some((listing) => listing.published === false)) return;
+    const interval = setInterval(() => void refetch(), 5000);
+    return () => clearInterval(interval);
+  }, [listingItems, refetch]);
+
   const totalCount = listingItems.length;
-  const availableCount = listingItems.filter((i) => i.status.toLowerCase() === 'available').length;
-  const occupancy = totalCount > 0 ? Math.round(((totalCount - availableCount) / totalCount) * 100) : 0;
+  const liveListings = listingItems.filter((listing) => listing.published !== false);
+  const availableCount = liveListings.filter((i) => i.status.toLowerCase() === 'available').length;
+  const occupancy = liveListings.length > 0 ? Math.round(((liveListings.length - availableCount) / liveListings.length) * 100) : 0;
   const hasFilters = debouncedQuery.trim().length > 0 || activeTab !== 'all';
 
   return (

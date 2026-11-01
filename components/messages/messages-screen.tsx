@@ -6,7 +6,6 @@ import { useRouter } from 'expo-router';
 
 import { MessageThreadFilters } from '@/components/messages/message-thread-filters';
 import { MessageThreadList } from '@/components/messages/message-thread-list';
-import { NotificationEnableBanner } from '@/components/messages/notification-enable-banner';
 import { AppBottomNav } from '@/components/navigation/app-bottom-nav';
 import { ScreenTitle } from '@/components/ui/screen-title';
 import { useAppToast } from '@/components/ui/toast-card';
@@ -47,8 +46,6 @@ export function MessagesScreen() {
       <View style={styles.filters}>
         <MessageThreadFilters filters={MESSAGE_FILTERS} activeFilter={filter} onFilterChange={(value) => setFilter(value as MessageFilter)} />
       </View>
-
-      <NotificationEnableBanner />
 
       <View style={styles.flex}>
         {isLoading ? (

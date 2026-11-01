@@ -15,7 +15,13 @@ export type AdminListing = {
   created_at: string;
   published?: boolean;
   video_expected_count?: number;
-  listing_videos?: { status: 'queued' | 'processing' | 'ready' | 'failed' }[];
+  video_cover_enabled?: boolean;
+  listing_videos?: {
+    status: 'queued' | 'processing' | 'ready' | 'failed';
+    poster_path: string | null;
+    display_order: number;
+    created_at: string;
+  }[];
 };
 
 export async function fetchAdminListings(adminId: string): Promise<AdminListing[]> {
@@ -32,7 +38,7 @@ export async function fetchAdminListings(adminId: string): Promise<AdminListing[
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, listing_videos(status)')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, video_cover_enabled, listing_videos(status, poster_path, display_order, created_at)')
     .order('created_at', { ascending: false });
 
   if (adminRow.role === 'super_admin') {
@@ -146,7 +152,7 @@ export async function fetchAdminListingsPaginated(
 
   let query = supabase
     .from('listings')
-    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, listing_videos(status)')
+    .select('id, title, price_amount, slashed_price, location_landmark, city, primary_image, featured, status, created_at, published, video_expected_count, video_cover_enabled, listing_videos(status, poster_path, display_order, created_at)')
     .order('created_at', { ascending: false })
     .range(from, to);
 

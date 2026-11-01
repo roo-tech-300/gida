@@ -11,13 +11,11 @@ import { MessageChatList } from '@/components/messages/message-chat-list';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
 import { MessageComposer } from '@/components/messages/message-composer';
 import { ListingPickerModal, type PickerSource } from '@/components/messages/listing-picker-modal';
-import { NotificationPermissionPromptModal } from '@/components/notifications/notification-permission-prompt-modal';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
-import { useContextualNotificationPrompt } from '@/hooks/use-contextual-notification-prompt';
 import { useInitialChatAttachment } from '@/hooks/use-initial-chat-attachment';
 import type { ChatMessage, ListingAttachment, MessageReply } from '@/types/messages';
 import { copyTextToClipboard } from '@/utils/clipboard';
@@ -45,9 +43,6 @@ export function MessageChatScreen() {
   // Resolved from the shared ['listing', id] cache — no extra fetch in practice.
   const seededAttachment = useInitialChatAttachment();
   const attachment = attachmentOverride === undefined ? seededAttachment : attachmentOverride;
-
-  const { modalVisible, triggerPromptIfAppropriate, closeModal } =
-    useContextualNotificationPrompt('first_sent_message');
 
   const {
     participant,
@@ -78,7 +73,6 @@ export function MessageChatScreen() {
       setDraft('');
       setAttachmentOverride(null);
       setReplyTarget(null);
-      triggerPromptIfAppropriate();
     } catch (error) {
       console.error('[MessageChat] Failed to send message:', error);
       showToast({ message: 'Message could not be sent. Please try again.', type: 'error' });
@@ -207,12 +201,6 @@ export function MessageChatScreen() {
         }}
       />
 
-      <NotificationPermissionPromptModal
-        visible={modalVisible}
-        title="Stay updated on replies"
-        description={`Turn on notifications so you know right away when ${participant?.name ?? 'they'} reply.`}
-        onClose={closeModal}
-      />
     </SafeAreaView>
   );
 }

@@ -1,6 +1,7 @@
 import { MessageSyncProvider } from '@/components/messages/message-sync-provider';
 import { ForegroundNotificationListener } from '@/components/notifications/foreground-notification-listener';
 import { NotificationNavigationListener } from '@/components/notifications/notification-navigation-listener';
+import { NotificationStartupPrompt } from '@/components/notifications/notification-startup-prompt';
 import { DefaultHead } from '@/components/seo/default-head';
 import { SplashScreen } from '@/components/splash/splash-screen';
 import { OfflineBanner } from '@/components/ui/offline-banner';
@@ -133,7 +134,12 @@ function AuthGate({ children }: { children: React.ReactNode }) {
 
   if (isLoading) return <SplashScreen />;
 
-  return <>{children}</>;
+  return (
+    <>
+      {children}
+      <NotificationStartupPrompt enabled={isAuthenticated && Boolean(profile?.onboarded)} />
+    </>
+  );
 }
 
 export default function RootLayout() {

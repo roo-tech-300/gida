@@ -5,6 +5,7 @@ import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import type { AdminListing } from '@/services/adminService';
 import { ListingReadinessProgress } from '@/components/admin/listing-readiness-progress';
+import { mediaCdnUrl } from '@/utils/media-url';
 
 function formatCreatedDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
@@ -18,11 +19,29 @@ const STATUS_STYLE: Record<string, { bg: string; color: string; label: string }>
 
 export function InventoryCard({ listing, onPress }: { listing: AdminListing; onPress?: () => void }) {
   const s = STATUS_STYLE[listing.status.toLowerCase()] || STATUS_STYLE.available;
+  const firstReadyVideo = [...(listing.listing_videos ?? [])]
+    .filter((video) => video.status === 'ready' && video.poster_path)
+    .sort((a, b) => a.display_order - b.display_order || a.created_at.localeCompare(b.created_at))[0];
+  const videoCover = listing.video_cover_enabled ? firstReadyVideo : null;
+  const coverImage = mediaCdnUrl(videoCover?.poster_path ?? null) ?? listing.primary_image ?? mediaCdnUrl(firstReadyVideo?.poster_path ?? null);
   return (
     <View style={styles.card}>
       <View style={styles.imageWrap}>
-        <Image source={{ uri: listing.primary_image || undefined }} style={styles.image} contentFit="cover" />
+        {coverImage ? (
+          <Image source={{ uri: coverImage }} style={styles.image} contentFit="cover" transition={180} />
+        ) : (
+          <View style={styles.emptyMedia}>
+            <Ionicons name="images-outline" size={42} color={DesignColors.primaryFixed} />
+            <Text style={styles.emptyMediaText}>Property media</Text>
+          </View>
+        )}
         <View style={styles.overlay} />
+        {videoCover ? (
+          <View style={styles.videoBadge}>
+            <Ionicons name="play" size={13} color={DesignColors.onPrimary} />
+            <Text style={styles.videoBadgeText}>VIDEO COVER</Text>
+          </View>
+        ) : null}
         <View style={[styles.badge, { backgroundColor: s.bg }]}>
           <Text style={[styles.badgeText, { color: s.color }]}>{s.label}</Text>
         </View>
@@ -94,6 +113,21 @@ const styles = StyleSheet.create({
   },
   imageWrap: { height: 200, position: 'relative' },
   image: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0 },
+  emptyMedia: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: 8,
+    backgroundColor: DesignColors.surfaceContainerHighest,
+  },
+  emptyMediaText: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
+  videoBadge: {
+    position: 'absolute', top: 16, left: 16, zIndex: 2,
+    flexDirection: 'row', alignItems: 'center', gap: 5,
+    paddingHorizontal: 10, paddingVertical: 7, borderRadius: 999,
+    backgroundColor: DesignColors.primaryFixed,
+  },
+  videoBadgeText: { ...DesignTypography.labelSm, color: DesignColors.onPrimary, fontFamily, fontWeight: '800', letterSpacing: 0.5 },
   overlay: {
     position: 'absolute', top: 0, left: 0, right: 0, bottom: 0,
     backgroundColor: DesignColors.scrimLight,

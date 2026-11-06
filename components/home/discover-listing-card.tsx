@@ -77,6 +77,9 @@ export function DiscoverListingCard({ listing, liked, onToggleLike, onViewListin
           </View>
           <View style={styles.priceBlock}>
             <Text style={styles.price}>{priceAmount}</Text>
+            {listing.slashedPrice && (
+              <Text style={styles.slashedPrice}>{listing.slashedPrice}</Text>
+            )}
             <Text style={styles.priceLabel}>per year</Text>
           </View>
         </View>
@@ -198,6 +201,13 @@ const styles = StyleSheet.create({
     ...DesignTypography.labelSm,
     color: DesignColors.onSurfaceVariant,
     fontFamily,
+  },
+  slashedPrice: {
+    ...DesignTypography.labelSm,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    textDecorationLine: 'line-through',
+    marginTop: 2,
   },
   metaDivider: {
     borderTopWidth: 1,

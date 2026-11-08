@@ -15,7 +15,13 @@ export function ForegroundNotificationListener() {
   const handleForegroundMessage = useCallback(
     (remoteMessage: ForegroundRemoteMessage) => {
       const data = (remoteMessage.data ?? {}) as Record<string, string | undefined>;
-      const listingId = data.listingId ?? data.listing_id ?? null;
+      const listingId =
+        data.listingId ??
+        data.listing_id ??
+        data.propertyId ??
+        data.property_id ??
+        (data.type === 'apartment_match' ? data.id : undefined) ??
+        null;
       const senderId = data.senderId ?? data.sender_id ?? null;
 
       const fallbackTitle = listingId ? 'We just found you a lodge' : 'New Message';

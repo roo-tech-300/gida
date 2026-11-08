@@ -105,14 +105,28 @@ serve(async (request: Request) => {
       .eq('id', listingId)
       .single();
 
-    // In testing mode: notify all registered devices (even at 0% match) so you can test immediately
+    // Call matching RPC function with 70% match threshold
+    const { data: matches, error: matchError } = await database.rpc(
+      'find_matching_users_for_listing',
+      { p_listing_id: listingId, p_min_score: 70 },
+    );
+
+    if (matchError) throw new Error(`Match query failed: ${matchError.message}`);
+    if (!matches || matches.length === 0) {
+      return json({ delivered: 0, reason: 'No users matched 70% threshold' });
+    }
+
+    const userIds = matches.map((m: { user_id: string }) => m.user_id);
+    const scoreMap = new Map(matches.map((m: { user_id: string; match_score: number }) => [m.user_id, Math.round(m.match_score)]));
+
     const { data: tokens, error: tokenError } = await database
       .from('device_tokens')
-      .select('token, user_id');
+      .select('token, user_id')
+      .in('user_id', userIds);
 
     if (tokenError) throw new Error(`Device token lookup failed: ${tokenError.message}`);
     if (!tokens || tokens.length === 0) {
-      return json({ delivered: 0, reason: 'No active device tokens found' });
+      return json({ delivered: 0, reason: 'No active device tokens found for matched users' });
     }
 
     const accessToken = await createAccessToken(account);
@@ -120,7 +134,8 @@ serve(async (request: Request) => {
     const notificationTitle = 'We just found you a lodge';
     const notificationBody = `We found ${listingTitle} check it out`;
 
-    const results = await Promise.all(tokens.map(async ({ token }) => {
+    const results = await Promise.all(tokens.map(async ({ token, user_id }) => {
+      const score = scoreMap.get(user_id) ?? 70;
       const res = await fetch(`https://fcm.googleapis.com/v1/projects/${account.project_id}/messages:send`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${accessToken}`, 'Content-Type': 'application/json' },
@@ -131,7 +146,12 @@ serve(async (request: Request) => {
               title: notificationTitle,
               body: notificationBody,
             },
-            data: { type: 'apartment_match', listingId },
+            data: {
+              type: 'apartment_match',
+              listingId: String(listingId),
+              listing_id: String(listingId),
+              matchScore: String(score),
+            },
             android: { priority: 'high', notification: { sound: 'default' } },
           },
         }),
@@ -145,8 +165,8 @@ serve(async (request: Request) => {
     }));
 
     const delivered = results.filter((r) => r.ok).length;
-    console.log('[MatchAlert] Dispatch complete', { listingId, totalTokens: tokens.length, delivered });
-    return json({ delivered, failed: results.length - delivered, totalTokens: tokens.length });
+    console.log('[MatchAlert] Dispatch complete (70% threshold)', { listingId, matchedUsers: matches.length, delivered });
+    return json({ delivered, failed: results.length - delivered, matchedUsers: matches.length });
   } catch (error: unknown) {
     console.error('[MatchAlert] Failed:', error);
     return json({ error: error instanceof Error ? error.message : 'Unexpected notification failure' }, 500);

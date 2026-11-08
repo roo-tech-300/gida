@@ -5,15 +5,26 @@ import { getInitialNotification, onNotificationOpenedApp } from '@react-native-f
 import { getNativeMessaging } from '@/src/notifications/native-messaging';
 import { setPendingPushNavigation } from '@/src/notifications/pending-navigation';
 
-// Accept both camelCase (our Edge Function) and snake_case (fallback / legacy)
+// Accept camelCase, snake_case, and alternate keys from FCM payloads
 type RawPushData = Record<string, string | undefined>;
 
 function extractSenderId(data: RawPushData): string | null {
   return data.senderId ?? data.sender_id ?? data.sender ?? null;
 }
 
+function extractListingId(data: RawPushData): string | null {
+  return (
+    data.listingId ??
+    data.listing_id ??
+    data.propertyId ??
+    data.property_id ??
+    (data.type === 'apartment_match' ? data.id : undefined) ??
+    null
+  );
+}
+
 function buildNotificationPath(data: RawPushData): string | null {
-  const listingId = data.listingId ?? data.listing_id;
+  const listingId = extractListingId(data);
   if (listingId || data.type === 'apartment_match') {
     if (!listingId) {
       console.warn('[Notifications] Match alert push missing listingId', data);
@@ -41,9 +52,7 @@ export function NotificationNavigationListener() {
     let active = true;
 
     // Cold-start / killed-app tap: the notification that launched the app.
-    // We CANNOT call router.push() here because AuthGate hasn't resolved yet
-    // and will overwrite the navigation. Store it — AuthGate consumes it once
-    // auth is settled (single consumer, no timeout race).
+    // Store it so AuthGate consumes it once auth is settled.
     void getInitialNotification(messaging)
       .then((message) => {
         if (!active || !message?.data) return;
@@ -57,17 +66,18 @@ export function NotificationNavigationListener() {
         console.error('[Notifications] Failed to read initial notification:', error),
       );
 
-    // Background-to-foreground tap: app was backgrounded, user tapped the
-    // notification. Auth is already settled here, so navigate immediately.
+    // Background-to-foreground tap: app was backgrounded, user tapped the notification.
     const unsubscribe = onNotificationOpenedApp(messaging, (message) => {
       const path = buildNotificationPath((message.data ?? {}) as RawPushData);
       if (!path) return;
       console.log('[Notifications] Background-tap push — navigating to', path);
-      try {
-        router.push(path as never);
-      } catch (error: unknown) {
-        console.error('[Notifications] Background-tap navigation failed:', error);
-      }
+      setTimeout(() => {
+        try {
+          router.push(path as never);
+        } catch (error: unknown) {
+          console.error('[Notifications] Background-tap navigation failed:', error);
+        }
+      }, 50);
     });
 
     return () => {

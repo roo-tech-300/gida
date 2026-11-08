@@ -7,7 +7,15 @@ import {
   searchAdminCandidates,
   type CreateAdminProfileInput,
 } from '@/services/adminService';
-import { fetchRecentAdminActivity, fetchSuperAdminStats } from '@/services/super-admin-service';
+import { fetchAppUserCount, fetchRecentAdminActivity, fetchSuperAdminStats } from '@/services/super-admin-service';
+
+export function useAppUserCount() {
+  return useQuery({
+    queryKey: ['app-user-count'],
+    queryFn: fetchAppUserCount,
+    staleTime: 60_000,
+  });
+}
 
 export function useAdminProfiles() {
   return useQuery({

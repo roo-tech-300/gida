@@ -35,6 +35,19 @@ export function SocialLinksFooter({ onOpenLink }: SocialLinksFooterProps) {
           </Animated.View>
         ))}
       </View>
+      <View style={styles.legalLinks}>
+        <Pressable accessibilityRole="link" onPress={() => onOpenLink('https://gida.apartments/privacy')}>
+          <Text style={styles.legalLinkText}>Privacy Policy</Text>
+        </Pressable>
+        <Text style={styles.legalDivider}>•</Text>
+        <Pressable accessibilityRole="link" onPress={() => onOpenLink('https://gida.apartments/terms')}>
+          <Text style={styles.legalLinkText}>Terms of Service</Text>
+        </Pressable>
+        <Text style={styles.legalDivider}>•</Text>
+        <Pressable accessibilityRole="link" onPress={() => onOpenLink('https://gida.apartments/teams')}>
+          <Text style={[styles.legalLinkText, styles.legalLinkHighlight]}>Meet the Team</Text>
+        </Pressable>
+      </View>
       <Text style={styles.brand}>GIDA <Text style={styles.dot}>•</Text> FIND YOUR PLACE</Text>
     </Animated.View>
   );
@@ -86,6 +99,29 @@ const styles = StyleSheet.create({
     transform: [{ scale: 1.12 }],
     backgroundColor: DesignColors.primaryTint,
     borderColor: DesignColors.primaryTintBorder,
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: DesignSpacing.sm,
+    marginTop: DesignSpacing.sm,
+    marginBottom: DesignSpacing.xs,
+    flexWrap: 'wrap',
+    justifyContent: 'center',
+  },
+  legalLinkText: {
+    fontSize: 12,
+    fontFamily,
+    color: DesignColors.onSurfaceVariant,
+    textDecorationLine: 'underline',
+  },
+  legalLinkHighlight: {
+    color: DesignColors.primaryFixed,
+    fontWeight: '600',
+  },
+  legalDivider: {
+    color: DesignColors.outlineVariant,
+    fontSize: 12,
   },
   brand: {
     ...DesignTypography.labelCaps,

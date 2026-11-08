@@ -66,6 +66,19 @@ function timeAgo(timestamp: string): string {
   return `${days} day${days === 1 ? '' : 's'} ago`;
 }
 
+export async function fetchAppUserCount(): Promise<number> {
+  const { count, error } = await supabase
+    .from('profiles')
+    .select('id', { count: 'exact', head: true });
+
+  if (error) {
+    console.error('[SuperAdminService] Failed to fetch user count:', error.message);
+    return 0;
+  }
+
+  return count ?? 0;
+}
+
 export async function fetchRecentAdminActivity(limit = 5): Promise<AdminActivity[]> {
   const [adminsResult, listingsResult] = await Promise.all([
     supabase

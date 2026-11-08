@@ -12,6 +12,7 @@ import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
 import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
 import type { AdminActivity } from '@/services/super-admin-service';
 import { useAuth } from '@/context/auth-context';
+import { DevStatsSection } from '@/components/admin/dev-stats-section';
 
 type ActionItem = {
   key: string;
@@ -49,6 +50,7 @@ const ACTION_COLOR_MAP: Record<string, string> = {
 
 export function SuperAdminDashboardScreen() {
   const { profile } = useAuth();
+  const isSuperAdmin = profile?.admin_role === 'super_admin';
   const { data: stats } = useAdminStats();
   const { data: activity, isError: activityError } = useRecentAdminActivity();
   const { unread, clearUnread } = useRealtimeTourAlerts();
@@ -89,10 +91,12 @@ export function SuperAdminDashboardScreen() {
           <AdminHeader initials={initials} name={displayName} roleLabel="Super Admin" subtitle="GLOBAL ACCESS" />
 
           <View style={styles.metricsRow}>
-            <MetricCard label="Total Regions" value={String(stats?.totalRegions ?? '—')} />
-            <MetricCard label="Regional Admins" value={String(stats?.regionalAdmins ?? '—')} />
-            <MetricCard label="Field Admins" value={String(stats?.fieldAdmins ?? '—')} />
+            <MetricCard label="Total Regions" value={String(stats?.totalRegions ?? '\u2014')} />
+            <MetricCard label="Regional Admins" value={String(stats?.regionalAdmins ?? '\u2014')} />
+            <MetricCard label="Field Admins" value={String(stats?.fieldAdmins ?? '\u2014')} />
           </View>
+
+          {isSuperAdmin && <DevStatsSection />}
 
           <View style={styles.actionGrid}>
             {ACTIONS.map((action) => (

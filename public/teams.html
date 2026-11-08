@@ -1,0 +1,517 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Meet the Team - Gida</title>
+    <meta name="description" content="Meet the people building Gida - the team behind Nigeria's smartest student housing and roommate platform.">
+    <meta property="og:title" content="Meet the Team - Gida">
+    <meta property="og:description" content="Meet the people building Gida - Nigeria's smartest student housing platform.">
+    <meta property="og:image" content="https://gida.apartments/landing/gida.png">
+    <meta property="og:url" content="https://gida.apartments/teams">
+    <meta name="twitter:card" content="summary_large_image">
+    <link rel="icon" type="image/png" href="landing/gida.png">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:ital,wght@0,400;0,500;0,600;1,400&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --font-sans: 'Inter', sans-serif;
+            --font-serif: 'Playfair Display', serif;
+            --color-bg: #09090b;
+            --color-surface: #131315;
+            --color-surface-low: #0e0e10;
+            --color-surface-high: #1b1b1d;
+            --color-on-surface: #e5e1e4;
+            --color-on-surface-variant: #c7c4d8;
+            --color-primary: #9D7E43;
+            --color-primary-bright: #b8944f;
+            --color-primary-fixed: #d4ba88;
+            --color-primary-tint: rgba(157, 126, 67, 0.12);
+            --color-primary-tint-border: rgba(157, 126, 67, 0.35);
+            --color-glass-bg: rgba(24, 24, 28, 0.6);
+            --color-glass-border: rgba(255, 255, 255, 0.08);
+            --color-border-soft: rgba(255, 255, 255, 0.06);
+        }
+
+        *, *::before, *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            min-height: 100vh;
+            font-family: var(--font-sans);
+            background:
+                radial-gradient(ellipse 80% 40% at 50% 0%, rgba(157, 126, 67, 0.14), transparent 60%),
+                linear-gradient(180deg, var(--color-surface-low) 0%, var(--color-bg) 100%);
+            color: var(--color-on-surface);
+            line-height: 1.75;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* NAV */
+        .nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 18px 32px;
+            background: rgba(9, 9, 11, 0.72);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border-bottom: 1px solid var(--color-glass-border);
+        }
+
+        .nav-brand {
+            font-family: var(--font-serif);
+            font-size: 1.5rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-primary-bright);
+            text-decoration: none;
+        }
+
+        .nav-back {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            color: var(--color-on-surface-variant);
+            text-decoration: none;
+            font-size: 0.875rem;
+            font-weight: 500;
+            border: 1px solid var(--color-glass-border);
+            padding: 8px 16px;
+            border-radius: 9999px;
+            transition: all 0.22s ease;
+            background: rgba(0, 0, 0, 0.2);
+        }
+
+        .nav-back:hover {
+            border-color: var(--color-primary-tint-border);
+            color: var(--color-primary-fixed);
+            background: var(--color-primary-tint);
+        }
+
+        .nav-back svg {
+            width: 14px;
+            height: 14px;
+            transition: transform 0.22s ease;
+        }
+
+        .nav-back:hover svg {
+            transform: translateX(-2px);
+        }
+
+        /* PAGE SHELL */
+        .shell {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 140px 24px 100px;
+        }
+
+        /* HERO */
+        .hero {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .hero-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--color-primary);
+            border: 1px solid var(--color-primary-tint-border);
+            background: var(--color-primary-tint);
+            padding: 6px 14px;
+            border-radius: 9999px;
+            margin-bottom: 24px;
+        }
+
+        .hero-label::before {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--color-primary);
+        }
+
+        .hero h1 {
+            font-family: var(--font-serif);
+            font-size: clamp(2.4rem, 5vw, 4rem);
+            font-weight: 500;
+            letter-spacing: 0.04em;
+            line-height: 1.15;
+            color: #ffffff;
+            margin-bottom: 20px;
+        }
+
+        .hero h1 em {
+            font-style: italic;
+            color: var(--color-primary-bright);
+        }
+
+        .hero-sub {
+            max-width: 580px;
+            margin: 0 auto;
+            font-size: 1.05rem;
+            color: var(--color-on-surface-variant);
+            line-height: 1.8;
+        }
+
+        /* DIVIDER */
+        .divider {
+            width: 48px;
+            height: 2px;
+            background: linear-gradient(90deg, var(--color-primary), transparent);
+            margin: 32px auto 0;
+            border-radius: 2px;
+        }
+
+        /* TEAM GRID */
+        .team-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 24px;
+        }
+
+        /* MEMBER CARD */
+        .card {
+            position: relative;
+            background: var(--color-glass-bg);
+            border: 1px solid var(--color-glass-border);
+            border-radius: 24px;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            transition: border-color 0.3s ease, transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .card:hover {
+            border-color: var(--color-primary-tint-border);
+            transform: translateY(-4px);
+            box-shadow: 0 24px 60px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(157, 126, 67, 0.12) inset;
+        }
+
+        .card-photo-wrap {
+            position: relative;
+            aspect-ratio: 4 / 3;
+            overflow: hidden;
+            background: var(--color-surface-high);
+        }
+
+        .card-photo-wrap img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center top;
+            transition: transform 0.5s ease;
+            filter: grayscale(20%);
+        }
+
+        .card:hover .card-photo-wrap img {
+            transform: scale(1.04);
+            filter: grayscale(0%);
+        }
+
+        .card-photo-wrap::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to bottom, transparent 50%, rgba(9, 9, 11, 0.85) 100%);
+        }
+
+        .card-role-badge {
+            position: absolute;
+            bottom: 16px;
+            left: 16px;
+            z-index: 2;
+            font-size: 0.65rem;
+            font-weight: 700;
+            letter-spacing: 0.16em;
+            text-transform: uppercase;
+            color: var(--color-primary-fixed);
+            background: rgba(157, 126, 67, 0.2);
+            border: 1px solid var(--color-primary-tint-border);
+            padding: 5px 12px;
+            border-radius: 9999px;
+            backdrop-filter: blur(8px);
+        }
+
+        .card-body {
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            flex: 1;
+        }
+
+        .card-name {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #ffffff;
+            letter-spacing: -0.01em;
+        }
+
+        .card-bio {
+            font-size: 0.9rem;
+            color: var(--color-on-surface-variant);
+            line-height: 1.75;
+            flex: 1;
+        }
+
+        .card-footer {
+            margin-top: 4px;
+            padding-top: 16px;
+            border-top: 1px solid var(--color-border-soft);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .card-initials {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: var(--color-primary-tint);
+            border: 1px solid var(--color-primary-tint-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--color-primary-fixed);
+            flex-shrink: 0;
+        }
+
+        .card-footer-text {
+            font-size: 0.75rem;
+            color: var(--color-on-surface-variant);
+            opacity: 0.6;
+        }
+
+        /* FOOTER */
+        .page-footer {
+            margin-top: 80px;
+            padding-top: 40px;
+            border-top: 1px solid var(--color-glass-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .footer-brand {
+            font-family: var(--font-serif);
+            font-size: 1.1rem;
+            font-weight: 500;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: var(--color-primary-bright);
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 20px;
+        }
+
+        .footer-links a {
+            font-size: 0.8rem;
+            color: var(--color-on-surface-variant);
+            text-decoration: none;
+            transition: color 0.2s ease;
+        }
+
+        .footer-links a:hover {
+            color: var(--color-primary-fixed);
+        }
+
+        .footer-copy {
+            font-size: 0.75rem;
+            color: var(--color-on-surface-variant);
+            opacity: 0.4;
+            width: 100%;
+        }
+
+        /* RESPONSIVE */
+        @media (max-width: 760px) {
+            .nav { padding: 16px 20px; }
+            .shell { padding: 110px 18px 72px; }
+            .hero { margin-bottom: 48px; }
+            .hero h1 { font-size: 2.2rem; }
+            .team-grid { grid-template-columns: 1fr; }
+            .page-footer { flex-direction: column; align-items: flex-start; }
+        }
+
+        /* PLACEHOLDER AVATAR */
+        .avatar-placeholder {
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            background: linear-gradient(135deg, #1b1b1d 0%, #0e0e10 100%);
+        }
+
+        .avatar-placeholder-initials {
+            font-family: var(--font-serif);
+            font-size: clamp(2.5rem, 6vw, 3.5rem);
+            font-weight: 500;
+            color: var(--color-primary);
+            opacity: 0.6;
+        }
+
+        .avatar-placeholder-line {
+            width: 40px;
+            height: 2px;
+            background: var(--color-primary-tint-border);
+            border-radius: 2px;
+        }
+    </style>
+</head>
+<body>
+
+    <!-- NAV -->
+    <nav class="nav">
+        <a href="/" class="nav-brand">Gida</a>
+        <a href="/" class="nav-back">
+            <svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M10 3L5 8l5 5"/>
+            </svg>
+            Home
+        </a>
+    </nav>
+
+    <main class="shell">
+
+        <!-- HERO -->
+        <section class="hero">
+            <div class="hero-label">Our Team</div>
+            <h1>Built by people who <em>care</em></h1>
+            <p class="hero-sub">
+                Gida was started by a focused founding team at FUT Minna with one goal - to make finding student housing as reliable as it should have always been.
+            </p>
+            <div class="divider"></div>
+        </section>
+
+        <!-- TEAM GRID -->
+        <section class="team-grid">
+
+            <!-- Joshua - CEO -->
+            <article class="card">
+                <div class="card-photo-wrap">
+                    <div class="avatar-placeholder">
+                        <div class="avatar-placeholder-initials">JO</div>
+                        <div class="avatar-placeholder-line"></div>
+                    </div>
+                    <span class="card-role-badge">Chief Executive Officer</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-name">Joshua Okpanachi</h2>
+                    <p class="card-bio">
+                        Joshua leads Gida's vision and overall company direction. With a sharp eye for product strategy and an unwavering commitment to solving real student problems, he drives the team toward building something that genuinely matters - a housing experience worthy of trust. His leadership is defined by clarity, urgency, and deep care for the people Gida serves.
+                    </p>
+                    <div class="card-footer">
+                        <div class="card-initials">JO</div>
+                        <span class="card-footer-text">Co-Founder &bull; Minna, Nigeria</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Gabriel - COO -->
+            <article class="card">
+                <div class="card-photo-wrap">
+                    <div class="avatar-placeholder">
+                        <div class="avatar-placeholder-initials">GG</div>
+                        <div class="avatar-placeholder-line"></div>
+                    </div>
+                    <span class="card-role-badge">Chief Operating Officer</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-name">Gabriel Godwin</h2>
+                    <p class="card-bio">
+                        Gabriel keeps the engine running. As COO, he owns the systems, partnerships, and day-to-day operations that keep Gida delivering on its promises. He brings operational rigour to a fast-moving team - turning ideas into processes that actually work at scale.
+                    </p>
+                    <div class="card-footer">
+                        <div class="card-initials">GG</div>
+                        <span class="card-footer-text">Co-Founder &bull; Minna, Nigeria</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Eluzia - CTO -->
+            <article class="card">
+                <div class="card-photo-wrap">
+                    <div class="avatar-placeholder">
+                        <div class="avatar-placeholder-initials">EA</div>
+                        <div class="avatar-placeholder-line"></div>
+                    </div>
+                    <span class="card-role-badge">Chief Technology Officer</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-name">Eluzia Ameh-Ako</h2>
+                    <p class="card-bio">
+                        Eluzia is the engineering mind behind everything Gida runs on. A Computer Engineer from the Federal University of Technology, Minna, he architected the platform from the ground up - crafting a full-stack system in React Native and TypeScript that handles real-time matching, tour scheduling, payment flows, and multi-tier admin infrastructure. Before Gida, he shipped a live ticketing platform for campus events and a postgraduate management system - both production-grade, both built from scratch. He thinks in systems, designs for resilience, and writes code the way engineers twice his experience do. At Gida, Eluzia defines the technical roadmap, sets the architecture standards, and leads the engineering culture that makes the product possible.
+                    </p>
+                    <div class="card-footer">
+                        <div class="card-initials">EA</div>
+                        <span class="card-footer-text">Co-Founder &bull; FUT Minna, Nigeria</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Michael - Lead Developer -->
+            <article class="card">
+                <div class="card-photo-wrap">
+                    <div class="avatar-placeholder">
+                        <div class="avatar-placeholder-initials">MO</div>
+                        <div class="avatar-placeholder-line"></div>
+                    </div>
+                    <span class="card-role-badge">Lead Developer</span>
+                </div>
+                <div class="card-body">
+                    <h2 class="card-name">Michael Obe</h2>
+                    <p class="card-bio">
+                        Michael turns complex requirements into polished, reliable software. As Lead Developer and Co-Founder, he spearheads day-to-day engineering execution - shipping features, squashing bugs, and holding the bar on code quality across the entire codebase. Detail-oriented and dependable, he is key to making sure what ships actually works.
+                    </p>
+                    <div class="card-footer">
+                        <div class="card-initials">MO</div>
+                        <span class="card-footer-text">Co-Founder &bull; Minna, Nigeria</span>
+                    </div>
+                </div>
+            </article>
+
+        </section>
+
+        <!-- FOOTER -->
+        <footer class="page-footer">
+            <span class="footer-brand">Gida</span>
+            <nav class="footer-links" aria-label="Footer navigation">
+                <a href="/">Home</a>
+                <a href="/privacy">Privacy</a>
+                <a href="/terms">Terms</a>
+                <a href="/teams">Meet the Team</a>
+                <a href="mailto:help@gida.apartments">Contact</a>
+            </nav>
+            <p class="footer-copy">&copy; 2026 Gida Apartments. All rights reserved. &bull; FUT Minna, Niger State, Nigeria.</p>
+        </footer>
+
+    </main>
+
+</body>
+</html>

@@ -23,6 +23,7 @@ import React, { useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
 const PUBLIC_WEB_CONTENT_PATHS: readonly string[] = [
+  '/teams',
   '/housing/minna',
   '/housing/gidan-kwano',
   '/housing/bosso',
@@ -181,7 +182,8 @@ export default function RootLayout() {
                     <Stack.Screen name="referral-dashboard" />
                     <Stack.Screen name="personal-info" />
                     <Stack.Screen name="signup" />
-                    <Stack.Screen name="r/[code]" />
+                    <Stack.Screen name="teams" />
+                                        <Stack.Screen name="r/[code]" />
                     <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
                   </Stack>
                 </AuthGate>

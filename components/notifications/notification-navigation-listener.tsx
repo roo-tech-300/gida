@@ -12,10 +12,19 @@ function extractSenderId(data: RawPushData): string | null {
   return data.senderId ?? data.sender_id ?? data.sender ?? null;
 }
 
-function buildMessagePath(data: RawPushData): string | null {
+function buildNotificationPath(data: RawPushData): string | null {
+  const listingId = data.listingId ?? data.listing_id;
+  if (listingId || data.type === 'apartment_match') {
+    if (!listingId) {
+      console.warn('[Notifications] Match alert push missing listingId', data);
+      return null;
+    }
+    return `/property/${encodeURIComponent(listingId)}`;
+  }
+
   const senderId = extractSenderId(data);
   if (!senderId) {
-    console.warn('[Notifications] Push payload missing senderId — cannot navigate to conversation', data);
+    console.warn('[Notifications] Push payload missing target destination', data);
     return null;
   }
   return `/messages/${encodeURIComponent(senderId)}`;
@@ -38,7 +47,7 @@ export function NotificationNavigationListener() {
     void getInitialNotification(messaging)
       .then((message) => {
         if (!active || !message?.data) return;
-        const path = buildMessagePath(message.data as RawPushData);
+        const path = buildNotificationPath(message.data as RawPushData);
         if (path) {
           console.log('[Notifications] Cold-start push — deferring navigation to', path);
           setPendingPushNavigation(path);
@@ -51,12 +60,12 @@ export function NotificationNavigationListener() {
     // Background-to-foreground tap: app was backgrounded, user tapped the
     // notification. Auth is already settled here, so navigate immediately.
     const unsubscribe = onNotificationOpenedApp(messaging, (message) => {
-      const path = buildMessagePath((message.data ?? {}) as RawPushData);
+      const path = buildNotificationPath((message.data ?? {}) as RawPushData);
       if (!path) return;
       console.log('[Notifications] Background-tap push — navigating to', path);
       try {
         router.push(path as never);
-      } catch (error) {
+      } catch (error: unknown) {
         console.error('[Notifications] Background-tap navigation failed:', error);
       }
     });

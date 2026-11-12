@@ -68,7 +68,7 @@ export function JoinConfirm({
       <View style={styles.deadlineNote}>
         <Ionicons name="time-outline" size={16} color={DesignColors.primaryBright} />
         <Text style={styles.deadlineText}>
-          Everyone in the group pays within 3 days of the reservation — the whole group&apos;s spot stays locked together.
+          Once Gida approves, everyone in the group has 3 days to pay — the whole group&apos;s spot stays locked together.
         </Text>
       </View>
     </View>

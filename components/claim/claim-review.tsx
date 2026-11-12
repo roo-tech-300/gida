@@ -73,8 +73,8 @@ export function ClaimReview({
       <View style={styles.deadlineCard}>
         <Ionicons name="time-outline" size={18} color={DesignColors.warning} />
         <Text style={styles.deadlineText}>
-          Pay within <Text style={styles.deadlineStrong}>3 days</Text> to keep your spot — every member of your
-          group shares the same deadline.
+          Once Gida approves, you have <Text style={styles.deadlineStrong}>3 days</Text> to pay and keep your spot —
+          every member of your group shares the same deadline.
         </Text>
       </View>
     </>

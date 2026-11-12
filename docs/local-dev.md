@@ -47,3 +47,22 @@ Seed data lives in `dummy/local-seed-data.ts`; the runner is `scripts/dev/seed-l
 Production was built by running SQL in the dashboard, so it has no migration history. The older scripts in `sql/` and `sql/applied-migrations/` are a record of what was applied there; the baseline already includes them.
 
 When production changes, regenerate the baseline rather than hand-editing it.
+
+## Payments locally (parent pay link)
+
+Real Paystack is never called locally. Two extra processes stand in for it:
+
+| Process | Command | Port |
+|---|---|---|
+| Worker (the real worker code, run by wrangler) | `npm run dev:worker` | 8787 |
+| Fake Paystack (checkout page + signed webhook) | `npm run dev:paystack` | 4010 |
+
+1. Create `worker/.dev.vars` (gitignored) with `SUPABASE_URL=http://127.0.0.1:54321`, the local `SUPABASE_SERVICE_ROLE_KEY`
+   (`npx supabase status -o env`), `PAYSTACK_SECRET_KEY=sk_test_local_only`, `PAYSTACK_BASE_URL=http://127.0.0.1:4010`
+   and `PAY_PAGE_ORIGIN=http://<your LAN ip>:8081`.
+2. Set `EXPO_PUBLIC_WORKER_URL=http://<your LAN ip>:8787` in `.env.local` and restart Expo.
+3. Sign in as `ada@gida.test`, open My Home, tap **Send to a parent**. On web without a share sheet the message is copied;
+   the link is also in the `payment_links` table. Open it in a private window (no login), enter any email, pay on the fake
+   checkout, and watch Ada's My Home update.
+
+Leaving `EXPO_PUBLIC_WORKER_URL` empty keeps the old simulated student checkout and disables the parent page.

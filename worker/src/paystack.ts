@@ -3,9 +3,8 @@ import { z } from 'zod';
 import type { Env } from './env';
 import { confirmTourBooking } from './tour-confirm';
 import { confirmSlotPayment } from './slot-confirm';
-import { json, paystackHeaders, upsertPayment, type PaymentRow } from './paystack-helpers';
+import { createPaystackTransaction, json, paystackBase, paystackHeaders, upsertPayment, type PaymentRow } from './paystack-helpers';
 
-const PAYSTACK_BASE = 'https://api.paystack.co';
 const LOCATION_ACCESS_FEE_NGN = 500;
 const ASSISTED_TOUR_FEE_NGN = 2000;
 
@@ -142,23 +141,11 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
   if (kind === 'lodge') {
     metadata.slotCreditId = slotCreditId;
   }
-  const response = await fetch(`${PAYSTACK_BASE}/transaction/initialize`, {
-    method: 'POST',
-    headers: paystackHeaders(env),
-    body: JSON.stringify({
-      email,
-      amount: amountKobo,
-      reference,
-      callback_url: callbackUrl,
-      metadata,
-    }),
-  });
-
-  const result = (await response.json()) as { status: boolean; message?: string; data?: { authorization_url: string; reference: string } };
-  if (!response.ok || !result.status || !result.data) {
-    return json({ error: result.message ?? 'Failed to initialize payment.' }, 502);
+  const created = await createPaystackTransaction(env, { email, amountKobo, reference, callbackUrl, metadata });
+  if (!created.ok) {
+    return json({ error: created.message }, 502);
   }
-  return json({ authorizationUrl: result.data.authorization_url, reference: result.data.reference });
+  return json({ authorizationUrl: created.authorizationUrl, reference: created.reference });
 }
 
 async function handleVerify(request: Request, env: Env): Promise<Response> {
@@ -167,7 +154,7 @@ async function handleVerify(request: Request, env: Env): Promise<Response> {
     return json({ error: 'Invalid payload.' }, 400);
   }
 
-  const response = await fetch(`${PAYSTACK_BASE}/transaction/verify/${encodeURIComponent(parseResult.data.reference)}`, {
+  const response = await fetch(`${paystackBase(env)}/transaction/verify/${encodeURIComponent(parseResult.data.reference)}`, {
     method: 'GET',
     headers: paystackHeaders(env),
   });

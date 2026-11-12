@@ -14,7 +14,9 @@
     "db:stop": "npx -y supabase@3.1.0 stop",
     "db:status": "npx -y supabase@3.1.0 status",
     "db:reset": "npx -y supabase@3.1.0 db reset && npm run db:seed",
-    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/dev/seed-local.ts"
+    "db:seed": "node --disable-warning=MODULE_TYPELESS_PACKAGE_JSON scripts/dev/seed-local.ts",
+    "dev:paystack": "node scripts/dev/fake-paystack.mjs",
+    "dev:worker": "cd worker && npx wrangler dev --port 8787 --ip 0.0.0.0"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.1.1",

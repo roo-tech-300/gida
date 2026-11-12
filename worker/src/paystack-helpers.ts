@@ -50,3 +50,43 @@ export async function upsertPayment(env: Env, row: PaymentRow): Promise<boolean>
   }
   return true;
 }
+
+const DEFAULT_PAYSTACK_BASE = 'https://api.paystack.co';
+
+export function paystackBase(env: Env): string {
+  return (env.PAYSTACK_BASE_URL ?? DEFAULT_PAYSTACK_BASE).replace(/\/$/, '');
+}
+
+export type PaystackInitInput = {
+  email: string;
+  amountKobo: number;
+  reference: string;
+  callbackUrl: string;
+  metadata: Record<string, unknown>;
+};
+
+export type PaystackInitResult =
+  | { ok: true; authorizationUrl: string; reference: string }
+  | { ok: false; message: string };
+
+/** Starts a Paystack transaction. Shared by the signed-in checkout and the parent pay link. */
+export async function createPaystackTransaction(env: Env, input: PaystackInitInput): Promise<PaystackInitResult> {
+  const response = await fetch(`${paystackBase(env)}/transaction/initialize`, {
+    method: 'POST',
+    headers: paystackHeaders(env),
+    body: JSON.stringify({
+      email: input.email,
+      amount: input.amountKobo,
+      reference: input.reference,
+      callback_url: input.callbackUrl,
+      metadata: input.metadata,
+    }),
+  });
+  const result = (await response.json().catch(() => null)) as
+    | { status?: boolean; message?: string; data?: { authorization_url: string; reference: string } }
+    | null;
+  if (!response.ok || !result?.status || !result.data) {
+    return { ok: false, message: result?.message ?? 'Failed to initialize payment.' };
+  }
+  return { ok: true, authorizationUrl: result.data.authorization_url, reference: result.data.reference };
+}

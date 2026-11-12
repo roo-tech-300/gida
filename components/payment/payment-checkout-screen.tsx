@@ -16,6 +16,7 @@ import { verifyLodgePayment } from '@/services/lodge-payment-service';
 import { extractReference } from '@/utils/paystack';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { ReservationManagementCard } from '@/components/payment/reservation-management-card';
+import { WhoPaysCard } from '@/components/payment/who-pays-card';
 import { styles } from './payment-checkout.styles';
 
 function TopBar({ title }: { title: string }) {
@@ -264,8 +265,9 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       <ScrollView bounces={false} contentContainerStyle={styles.content}>
         <GlassHeroCard estateName={estateName} imageUri={credit.estate?.primary_image} intentSize={credit.intent_size} targetOccupancy={credit.target_occupancy} />
         {!isPaid && !isExpired && <ClaimCountdown expiresAt={credit.payment_deadline} onExpired={() => setLocallyExpired(true)} />}
-        <ReservationManagementCard credit={credit} />
         <GlassAmountCard amount={amount} />
+        <WhoPaysCard creditId={creditId} amount={amount} placeTitle={estateName} />
+        <ReservationManagementCard credit={credit} />
       </ScrollView>
       <View style={styles.footer}>
         <Pressable

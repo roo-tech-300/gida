@@ -3,6 +3,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { AuthButton } from '@/components/auth/auth-button';
+import { useSharePaymentLink } from '@/hooks/use-share-payment-link';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { nextStepCopy, type NextStepCopy } from '@/utils/reservation-copy';
 import { formatHoldDeadline, type ReservationStage } from '@/utils/reservation-state';
@@ -20,6 +21,7 @@ type Props = { credit: SlotCredit; stage: ReservationStage };
 export function MyHomeNextStep({ credit, stage }: Props) {
   const router = useRouter();
   const copy = nextStepCopy(credit, stage);
+  const { share, isSharing } = useSharePaymentLink();
 
   return (
     <View style={[styles.card, { borderColor: BORDER[copy.tone] }]} testID="my-home-next-step">
@@ -34,6 +36,15 @@ export function MyHomeNextStep({ credit, stage }: Props) {
         <Text style={styles.body}>{copy.body}</Text>
       )}
       <AuthButton label={copy.ctaLabel} variant={copy.tone === 'problem' ? 'secondary' : 'primary'} onPress={() => router.push(copy.href)} />
+      {stage === 'awaiting_payment' ? (
+        <AuthButton
+          label="Send to a parent"
+          variant="secondary"
+          isLoading={isSharing}
+          onPress={() => share({ creditId: credit.id, amount: credit.amount_paid ?? 0, placeTitle: credit.estate?.name })}
+          testID="my-home-send-to-parent"
+        />
+      ) : null}
     </View>
   );
 }

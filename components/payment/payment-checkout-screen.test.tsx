@@ -17,6 +17,10 @@ jest.mock('@/hooks/use-lodge-payment', () => ({
   useInitializeLodgePayment: jest.fn(() => ({ mutateAsync: mockInitializePayment })),
 }));
 
+jest.mock('@/hooks/use-share-payment-link', () => ({
+  useSharePaymentLink: jest.fn(() => ({ share: jest.fn(), isSharing: false })),
+}));
+
 jest.mock('expo-router', () => ({
   useRouter: jest.fn(() => ({ push: jest.fn(), back: jest.fn() })),
   useFocusEffect: jest.fn(),
@@ -80,6 +84,18 @@ describe('PaymentCheckoutScreen (dummy payment flow)', () => {
     expect(getByTestId('checkout-amount')).toBeTruthy();
     expect(getByText('₦600,000')).toBeTruthy();
     expect(getByTestId('checkout-pay-btn')).toBeTruthy();
+  });
+
+  it('offers to send the payment link to a parent', async () => {
+    mockCredits([PENDING_CREDIT]);
+    const { getByTestId, getByText } = await render(
+      <ToastProvider>
+        <PaymentCheckoutScreen creditId="credit-test-1" />
+      </ToastProvider>,
+    );
+
+    expect(getByText('Is a parent paying?')).toBeTruthy();
+    expect(getByTestId('send-to-parent-btn')).toBeTruthy();
   });
 
   it('processes payment after the simulated delay and shows the success screen', async () => {

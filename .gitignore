@@ -47,3 +47,8 @@ app-example
 # Supabase CLI local state
 supabase/.temp/
 supabase/.branches/
+
+# Worker local secrets and tooling
+worker/.dev.vars
+worker/.wrangler/
+worker/node_modules/

@@ -1,4 +1,4 @@
-import { useCallback, type ReactElement } from 'react';
+import { useCallback } from 'react';
 import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 
 import { AuthButton } from '@/components/auth/auth-button';
@@ -12,7 +12,6 @@ import { PlaceCard } from './place-card';
 
 type Props = {
   listings: FeedListing[];
-  header: ReactElement;
   likedIds: ReadonlySet<string>;
   isLoading: boolean;
   isRefetching: boolean;
@@ -33,7 +32,7 @@ function countLabel(count: number, filtered: boolean): string {
 
 /** A scannable list of places: about 1.6 cards per screen so students can compare. */
 export function PlacesFeed({
-  listings, header, likedIds, isLoading, isRefetching, isFetchingMore, hasActiveFilters,
+  listings, likedIds, isLoading, isRefetching, isFetchingMore, hasActiveFilters,
   onToggleLike, onOpen, onRefresh, onEndReached, onClearFilters,
 }: Props) {
   const spotsLeft = useSpotsLeft(listings.map((listing) => listing.id));
@@ -51,7 +50,6 @@ export function PlacesFeed({
       renderItem={renderItem}
       ListHeaderComponent={
         <View style={styles.header}>
-          {header}
           {!isLoading ? (
             <Text style={styles.count} testID="places-count">
               {countLabel(listings.length, hasActiveFilters)}

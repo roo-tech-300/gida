@@ -59,14 +59,13 @@ export function DiscoverHomeScreen() {
 
       {mode === 'places' ? (
         <View style={styles.flex}>
+          {/* Pinned above the list so the filters never scroll out of reach. */}
+          <View style={styles.pinned}>
+            <DiscoverSearchField placeholder={SEARCH_PLACEHOLDER} onPress={openSearch} />
+            <PlaceFilterBar filters={filters} onChange={update} onClear={clear} />
+          </View>
           <PlacesFeed
             listings={visible}
-            header={
-              <View style={styles.headerStack}>
-                <DiscoverSearchField placeholder={SEARCH_PLACEHOLDER} onPress={openSearch} />
-                <PlaceFilterBar filters={filters} onChange={update} onClear={clear} />
-              </View>
-            }
             likedIds={likedIds}
             isLoading={places.isLoading}
             isRefetching={places.isRefetching}
@@ -104,4 +103,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   flex: { flex: 1 },
   headerStack: { gap: DesignSpacing.md, paddingTop: DesignSpacing.md },
+  pinned: { gap: DesignSpacing.sm, paddingTop: DesignSpacing.md, paddingBottom: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest },
 });

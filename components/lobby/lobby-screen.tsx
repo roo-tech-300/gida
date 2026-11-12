@@ -103,11 +103,11 @@ export function LobbyScreen() {
           <Pressable onPress={() => router.back()} hitSlop={10}>
             <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />
           </Pressable>
-          <Text style={styles.topBarTitle}>Your Lobby</Text>
+          <Text style={styles.topBarTitle}>Your household</Text>
         </View>
         <View style={styles.center}>
           <ActivityIndicator size="large" color={DesignColors.primaryBright} />
-          <Text style={styles.loadingText}>Loading your lobby…</Text>
+          <Text style={styles.loadingText}>Loading your household…</Text>
         </View>
       </SafeAreaView>
     );
@@ -120,11 +120,11 @@ export function LobbyScreen() {
           <Pressable onPress={() => router.back()} hitSlop={10}>
             <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />
           </Pressable>
-          <Text style={styles.topBarTitle}>Your Lobby</Text>
+          <Text style={styles.topBarTitle}>Your household</Text>
         </View>
         <View style={styles.center}>
           <Ionicons name="alert-circle-outline" size={40} color={DesignColors.error} />
-          <Text style={styles.errorText}>Failed to load your lobby data.</Text>
+          <Text style={styles.errorText}>We could not load your household. Please try again.</Text>
         </View>
       </SafeAreaView>
     );
@@ -136,7 +136,7 @@ export function LobbyScreen() {
         <Pressable onPress={() => router.back()} hitSlop={10}>
           <Ionicons name="arrow-back" size={22} color={DesignColors.onSurface} />
         </Pressable>
-        <Text style={styles.topBarTitle}>Your Lobby</Text>
+        <Text style={styles.topBarTitle}>Your household</Text>
       </View>
 
       <ScrollView
@@ -184,7 +184,7 @@ export function LobbyScreen() {
               <Ionicons name="card-outline" size={18} color={DesignColors.tertiary} />
             </View>
             <View style={styles.bannerInfo}>
-              <Text style={styles.bannerTitle}>Payment required</Text>
+              <Text style={styles.bannerTitle}>Payment due</Text>
               <ClaimCountdown expiresAt={credit.payment_deadline} variant="inline" />
             </View>
             <Pressable testID="lobby-pay-now" style={styles.bannerAction} onPress={() => router.push({ pathname: '/property/pay-slot', params: { id: credit.id } })}>

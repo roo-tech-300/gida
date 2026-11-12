@@ -1,5 +1,5 @@
 /**
- * Gida design tokens — sourced from md files/Design.md
+ * Gida design tokens — sourced from docs/Design.md
  */
 
 export const DesignColors = {

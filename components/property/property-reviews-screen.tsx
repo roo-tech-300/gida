@@ -81,7 +81,7 @@ export function PropertyReviewsScreen({ listingId }: Props) {
         {eligibility?.canReview ? <AddReviewForm listingId={listingId} /> : null}
         {!eligibility?.canReview && eligibility?.paid ? (
           <View style={styles.notice}>
-            <Text style={styles.noticeTitle}>You have used all 3 review slots.</Text>
+            <Text style={styles.noticeTitle}>You have used all 3 of your reviews.</Text>
           </View>
         ) : null}
 

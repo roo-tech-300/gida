@@ -15,6 +15,7 @@ import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
+import { formatNaira } from '@/utils/format-naira';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
 import { ShareListingModal } from '@/components/messages/share-listing-modal';
 import { InviteResponseModal } from './invite-response-modal';
@@ -76,7 +77,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
   // only determined once both queries settle; until then show a bare spinner.
   const ctaPending = (isCheckingCredit || isLoadingInvitation) && !credit && !invitation;
 
-  let ctaLabel = 'Claim Spot';
+  let ctaLabel = 'Reserve';
   let ctaIcon: keyof typeof Ionicons.glyphMap = 'enter-outline';
   const isSingleOccupancy = dbListing?.max_roommates === 1;
   let onCtaPress: () => void = () => {
@@ -89,15 +90,15 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
   if (credit && !isClaimable) {
     if (isPaid) {
-      ctaLabel = isSolo ? 'View Booking' : 'Go to Lobby';
+      ctaLabel = isSolo ? 'View booking' : 'Open household';
       ctaIcon = isSolo ? 'checkmark-circle-outline' : 'people-outline';
       onCtaPress = () => router.push(isSolo ? `/property/booking?id=${credit.id}` : { pathname: '/property/lobby', params: { creditId: credit.id } });
     } else if (isPendingVerification) {
-      ctaLabel = 'Application Pending';
+      ctaLabel = 'Under review';
       ctaIcon = 'time-outline';
       onCtaPress = () => {};
     } else {
-      ctaLabel = 'Pay Now';
+      ctaLabel = 'Pay now';
       ctaIcon = 'card-outline';
       onCtaPress = () => router.push(`/property/pay-slot?id=${credit.id}`);
     }
@@ -162,7 +163,14 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
           <Text style={styles.location}>{property.location}</Text>
         </View>
 
-        <View style={styles.priceSection}><Text style={styles.price}>{property.price}</Text></View>
+        <View style={styles.priceSection}>
+          <Text style={styles.price}>{formatNaira(property.pricePerPerson)}</Text>
+          <Text style={styles.priceNote}>
+            {(property.propertyTier ?? 1) > 1
+              ? `per person, per year · ${formatNaira(property.priceAmount)} for the whole place`
+              : 'per year'}
+          </Text>
+        </View>
         <View style={styles.statsRow}>
           {property.beds ? <StatItem label="BEDROOMS" value={property.beds} /> : null}
           {property.baths ? <StatItem label="BATHROOMS" value={property.baths} /> : null}
@@ -198,7 +206,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
             <Text style={styles.reviewLimitTitle}>Review limit reached</Text>
             <Text style={styles.reviewLimitText}>
               {reviewEligibility.paid
-                ? `You have used all 3 review slots for this property.`
+                ? `You have used all 3 of your reviews for this place.`
                 : 'You need a paid slot on this property before reviewing.'}
             </Text>
           </View>
@@ -316,7 +324,8 @@ const styles = StyleSheet.create({
     marginBottom: DesignSpacing.lg,
   },
   location: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  priceSection: { marginBottom: DesignSpacing.lg },
+  priceSection: { marginBottom: DesignSpacing.lg, gap: 2 },
+  priceNote: { ...DesignTypography.labelLg, color: DesignColors.onSurfaceVariant, fontFamily },
   price: { fontSize: 32, fontWeight: '800', color: DesignColors.primaryBright, fontFamily, letterSpacing: -0.5 },
   statsRow: {
     flexDirection: 'row',

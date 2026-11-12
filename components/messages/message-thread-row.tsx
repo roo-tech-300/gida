@@ -1,3 +1,4 @@
+import { Ionicons } from '@expo/vector-icons';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -7,12 +8,16 @@ import { type Conversation } from '@/types/messages';
 import { formatRelativeTime } from '@/utils/format-relative-time';
 import { getInitials } from '@/utils/initials';
 
+const SUPPORT_NAME = 'Gida Support';
+
 export function MessageThreadRow({
   thread,
   onPress,
+  isSupport = false,
 }: {
   thread: Conversation;
   onPress?: () => void;
+  isSupport?: boolean;
 }) {
   const { profile } = useAuth();
   const isUnread = thread.unreadCount > 0;
@@ -27,7 +32,11 @@ export function MessageThreadRow({
       style={[styles.row, isUnread && styles.rowUnread]}
     >
       <View style={styles.avatarWrap}>
-        {thread.participant.avatarUrl ? (
+        {isSupport ? (
+          <View style={[styles.avatar, styles.avatarFallback]} testID="support-avatar">
+            <Text style={styles.supportMark}>g</Text>
+          </View>
+        ) : thread.participant.avatarUrl ? (
           <Image source={{ uri: thread.participant.avatarUrl }} style={styles.avatar} contentFit="cover" />
         ) : (
           <View style={[styles.avatar, styles.avatarFallback]}>
@@ -43,8 +52,14 @@ export function MessageThreadRow({
             style={[styles.name, isUnread && styles.nameUnread]}
             numberOfLines={1}
           >
-            {thread.participant.name}
+            {isSupport ? SUPPORT_NAME : thread.participant.name}
           </Text>
+          {isSupport ? (
+            <View style={styles.verified}>
+              <Ionicons name="checkmark-circle" size={13} color={DesignColors.primaryFixed} />
+              <Text style={styles.verifiedText}>Verified</Text>
+            </View>
+          ) : null}
           <Text style={[styles.time, isUnread && styles.timeUnread]}>
             {formatRelativeTime(thread.lastMessageAt)}
           </Text>
@@ -89,6 +104,9 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     backgroundColor: DesignColors.primary,
   },
+  supportMark: { fontSize: 30, lineHeight: 34, color: DesignColors.onPrimary, fontFamily, fontWeight: '800' },
+  verified: { flexDirection: 'row', alignItems: 'center', gap: 3, paddingHorizontal: 8, height: 20, borderRadius: 10, backgroundColor: DesignColors.primaryTint },
+  verifiedText: { ...DesignTypography.labelSm, color: DesignColors.primaryFixed, fontFamily, fontWeight: '700' },
   avatarInitials: {
     fontSize: 18,
     color: DesignColors.onPrimary,

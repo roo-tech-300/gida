@@ -125,7 +125,7 @@ export function ClaimRoomScreen({ listingId }: { listingId: string }) {
             {isPurchasing ? (
               <ActivityIndicator size="small" color={DesignColors.onPrimaryContainer} />
             ) : (
-              <Text style={styles.lockText}>Confirm & Secure Spot</Text>
+              <Text style={styles.lockText}>Hold my spot</Text>
             )}
           </Pressable>
         </ScrollView>

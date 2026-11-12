@@ -59,7 +59,7 @@ export function ReservationManagementCard({ credit }: Props) {
     ? null
     : podsError
       ? 'Could not load group'
-      : `${filled} of ${targetTier} slots${remaining > 0 ? ` — ${remaining} left` : ''}`;
+      : `${filled} of ${targetTier} spots${remaining > 0 ? ` — ${remaining} left` : ''}`;
 
   return (
     <>

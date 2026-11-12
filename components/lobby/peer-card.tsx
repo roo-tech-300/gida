@@ -33,7 +33,7 @@ export function PeerCard({ peer, onInvite }: PeerCardProps) {
       </View>
       <Pressable style={styles.inviteBtn} onPress={() => onInvite(peer.user_id)} testID={`invite-btn-${peer.user_id}`}>
         <Ionicons name="add-circle-outline" size={18} color={DesignColors.onPrimary} />
-        <Text style={styles.inviteText}>Invite to Pod</Text>
+        <Text style={styles.inviteText}>Invite to household</Text>
       </Pressable>
     </View>
   );

@@ -43,3 +43,7 @@ app-example
 /ios
 /android
 .aider*
+
+# Supabase CLI local state
+supabase/.temp/
+supabase/.branches/

@@ -46,7 +46,7 @@ export function BookingConfirmationScreen({ creditId }: { creditId: string }) {
   const amount = credit.amount_paid ?? 0;
   const occupancyText = isSolo
     ? 'Entire property secured — this space is all yours.'
-    : `${credit.target_occupancy} slots secured. Head to the lobby to complete your roommate group.`;
+    : `${credit.target_occupancy} spots secured. Open your household to complete your group.`;
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
@@ -97,7 +97,7 @@ export function BookingConfirmationScreen({ creditId }: { creditId: string }) {
         </Pressable>
         {!isSolo && (
           <Pressable style={styles.secondaryButton} onPress={() => router.push({ pathname: '/property/lobby', params: { creditId } })} testID="booking-go-to-lobby">
-            <Text style={styles.secondaryText}>Go to Lobby</Text>
+            <Text style={styles.secondaryText}>Open household</Text>
           </Pressable>
         )}
       </View>

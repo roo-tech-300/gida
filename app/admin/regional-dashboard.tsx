@@ -1,5 +1,5 @@
-import { RegionalDashboardScreen } from '@/components/admin/regional-dashboard-screen';
+import { RoleManageScreen } from '@/components/admin/role-manage-screen';
 
 export default function RegionalDashboardRoute() {
-  return <RegionalDashboardScreen />;
+  return <RoleManageScreen role="regional_admin" />;
 }

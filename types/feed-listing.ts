@@ -5,6 +5,10 @@ export type FeedListing = {
   title: string;
   location: string;
   price: string;
+  /** Total annual rent for the whole place, in naira. */
+  priceAmount: number;
+  /** Annual rent per person (total ÷ people sharing), the number students compare. */
+  pricePerPerson: number;
   beds: string;
   baths: string;
   size: string;
@@ -84,6 +88,8 @@ const amenityMap: { key: keyof DbListing; label: string }[] = [
 
 export function mapDbToFeedListing(item: DbListing): FeedListing {
   const loc = [item.location_landmark, item.city].filter(Boolean).join(', ');
+  const tier = derivePropertyTier(item.property_tier, item.max_roommates);
+  const priceAmount = Number(item.price_amount) || 0;
 
   const booleanAmenities = amenityMap
     .filter((a) => item[a.key])
@@ -96,8 +102,10 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     title: item.title,
     location: loc,
     price: `₦${(item.price_amount || 0).toLocaleString('en-US')}/year`,
-    beds: item.number_of_bedrooms > 0 ? `${item.number_of_bedrooms} Beds` : '',
-    baths: item.number_of_bathrooms > 0 ? `${item.number_of_bathrooms} Baths` : '',
+    priceAmount,
+    pricePerPerson: Math.round(priceAmount / Math.max(1, tier)),
+    beds: item.number_of_bedrooms > 0 ? `${item.number_of_bedrooms} ${item.number_of_bedrooms === 1 ? 'Bed' : 'Beds'}` : '',
+    baths: item.number_of_bathrooms > 0 ? `${item.number_of_bathrooms} ${item.number_of_bathrooms === 1 ? 'Bath' : 'Baths'}` : '',
     size: item.size_sqft ? `${item.size_sqft.toLocaleString('en-US')} sqft` : '',
     floor: item.total_floors ? `${item.total_floors} Floors` : 'Ground',
     status: item.status || 'Available',

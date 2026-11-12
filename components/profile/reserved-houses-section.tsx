@@ -58,8 +58,8 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
   return (
     <View style={styles.section}>
       <View style={styles.headerRow}>
-        <Text style={styles.sectionTitle}>My Lodge</Text>
-        <Text style={styles.sectionHint}>{reserved.length} saved</Text>
+        <Text style={styles.sectionTitle}>Your reservations</Text>
+        <Text style={styles.sectionHint}>{reserved.length}</Text>
       </View>
       {isLoading ? (
         <View style={styles.stateCard}>
@@ -79,7 +79,7 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
       ) : (
         <View style={styles.list}>
           {reserved.map((credit) => {
-            const estateName = credit.estate?.name ?? 'Reserved Property';
+            const estateName = credit.estate?.name ?? 'Reserved place';
             const statusLabel = getStatusLabel(credit);
             const subLabel = getStatusDetail(credit);
             const coverImage = getCoverImage(credit);
@@ -118,9 +118,9 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
 
 function getStatusLabel(credit: SlotCredit) {
   if (credit.status === 'expired') return 'Expired';
-  if (credit.pod_verification_status === 'pending_verification') return 'Awaiting Review';
-  if (credit.pod_verification_status === 'rejected') return 'Not Approved';
-  if (credit.status === 'booked_pending_claim') return 'Pay Now';
+  if (credit.pod_verification_status === 'pending_verification') return 'Under review';
+  if (credit.pod_verification_status === 'rejected') return 'Not approved';
+  if (credit.status === 'booked_pending_claim') return 'Pay now';
   if (credit.status === 'booked') return 'Reserved';
   if (credit.status === 'paid_unmatched') return 'Paid';
   if (credit.status === 'matched') return 'Matched';
@@ -128,7 +128,7 @@ function getStatusLabel(credit: SlotCredit) {
 }
 
 function getStatusDetail(credit: SlotCredit) {
-  const occupancy = credit.target_occupancy > 1 ? `${credit.target_occupancy} slots` : 'Solo booking';
+  const occupancy = credit.target_occupancy > 1 ? `Your spot: 1 of ${credit.target_occupancy}` : 'The whole place';
   const payment = credit.status === 'booked' || credit.status === 'booked_pending_claim' ? 'Payment pending'
     : credit.pod_verification_status === 'pending_verification' ? 'Admin reviewing'
     : credit.pod_verification_status === 'rejected' ? 'Not approved'

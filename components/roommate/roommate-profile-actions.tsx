@@ -16,7 +16,7 @@ export function RoommateProfileActions({ onSayHello, onShare }: Props) {
       </Pressable>
       <Pressable style={styles.primaryBtn} onPress={onSayHello}>
         <Ionicons name="chatbubble-ellipses-outline" size={20} color={DesignColors.onPrimary} />
-        <Text style={styles.primaryText}>Say Hello</Text>
+        <Text style={styles.primaryText}>Say hi</Text>
       </Pressable>
     </View>
   );

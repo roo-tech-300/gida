@@ -82,7 +82,7 @@ describe('LobbyScreen & Peer Matching Integration', () => {
       </ToastProvider>,
     );
 
-    expect(getByText('Payment required')).toBeTruthy();
+    expect(getByText('Payment due')).toBeTruthy();
     expect(getByTestId('lobby-pay-now')).toBeTruthy();
   });
 });

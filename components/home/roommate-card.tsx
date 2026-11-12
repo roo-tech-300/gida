@@ -69,7 +69,7 @@ export function RoommateCard({ roommate, onViewProfile, onSayHello }: Props) {
           <Text style={styles.secondaryBtnText}>View Profile</Text>
         </Pressable>
         <Pressable onPress={() => onSayHello(roommate.id)} style={styles.primaryBtn}>
-          <Text style={styles.primaryBtnText}>Say Hello</Text>
+          <Text style={styles.primaryBtnText}>Say hi</Text>
         </Pressable>
       </View>
     </View>

@@ -1,4 +1,3 @@
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { Ionicons } from '@expo/vector-icons';
@@ -7,10 +6,9 @@ import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-nativ
 
 interface FeatureUnderConstructionProps {
   onGoBack?: () => void;
-  activeTab?: 'discover' | 'messages' | 'saved' | 'profile';
 }
 
-export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: FeatureUnderConstructionProps) {
+export function FeatureUnderConstruction({ onGoBack }: FeatureUnderConstructionProps) {
   const floatAnim = useRef(new Animated.Value(0)).current;
 
   useEffect(() => {
@@ -102,7 +100,6 @@ export function FeatureUnderConstruction({ onGoBack, activeTab = 'messages' }: F
         )}
       </View>
 
-      <DiscoverBottomNav activeTab={activeTab} />
     </View>
   );
 }

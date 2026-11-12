@@ -7,10 +7,11 @@ import { useRouter } from 'expo-router';
 import { MessageThreadFilters } from '@/components/messages/message-thread-filters';
 import { MessageThreadList } from '@/components/messages/message-thread-list';
 import { NotificationEnableBanner } from '@/components/messages/notification-enable-banner';
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversations } from '@/hooks/use-conversations';
+import { useSupportIds } from '@/hooks/use-support-ids';
+import { splitThreads } from '@/utils/thread-kind';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
 import { MESSAGE_FILTERS, type Conversation, type MessageFilter } from '@/types/messages';
 
@@ -20,6 +21,7 @@ export function MessagesScreen() {
   const [filter, setFilter] = useState<MessageFilter>('All');
   const { data, isLoading, isError, refetch, isRefetching } = useConversations();
   const { flushOutbox } = useMessageSync();
+  const supportIds = useSupportIds();
 
   const handleRefresh = () => {
     void flushOutbox();
@@ -28,21 +30,21 @@ export function MessagesScreen() {
 
   useEffect(() => {
     if (isError) {
-      showToast({ message: 'Could not load your messages. Pull down to retry.', type: 'error' });
+      showToast({ message: 'Could not load your chats. Pull down to retry.', type: 'error' });
     }
   }, [isError, showToast]);
 
-  const threads = data ?? [];
-  const filtered = filter === 'Unread' ? threads.filter((t) => t.unreadCount > 0) : threads;
+  const threads = splitThreads(data ?? [], supportIds, filter);
+  const isEmpty = threads.support.length + threads.direct.length === 0;
 
   const handleSelect = (thread: Conversation) => {
     router.push(`/messages/${thread.participant.id}`);
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={styles.header}>
-        <Text style={styles.title}>Messages</Text>
+        <Text style={styles.title}>Chats</Text>
       </View>
 
       <View style={styles.filters}>
@@ -63,7 +65,7 @@ export function MessagesScreen() {
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => handleRefresh()} tintColor={DesignColors.primary} />}
           >
             <Ionicons name="cloud-offline-outline" size={40} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.emptyTitle}>Could not load messages</Text>
+            <Text style={styles.emptyTitle}>Could not load your chats</Text>
             <Text style={styles.emptyHint}>Pull down to try again.</Text>
             <Pressable
               onPress={() => handleRefresh()}
@@ -77,15 +79,15 @@ export function MessagesScreen() {
               )}
             </Pressable>
           </ScrollView>
-        ) : filtered.length === 0 ? (
+        ) : isEmpty ? (
           <ScrollView
             contentContainerStyle={styles.center}
             alwaysBounceVertical
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => handleRefresh()} tintColor={DesignColors.primary} />}
           >
             <Ionicons name="chatbubble-ellipses-outline" size={40} color={DesignColors.onSurfaceVariant} />
-            <Text style={styles.emptyTitle}>No conversations yet</Text>
-            <Text style={styles.emptyHint}>Tap “Say Hello” on any roommate to start chatting.</Text>
+            <Text style={styles.emptyTitle}>{filter === 'All' ? 'No chats yet' : `No ${filter.toLowerCase()} chats`}</Text>
+            <Text style={styles.emptyHint}>{filter === 'All' ? 'Open Discover, switch to People and tap “Say hi” on a student.' : 'Nothing here right now.'}</Text>
           </ScrollView>
         ) : (
           <ScrollView
@@ -93,12 +95,11 @@ export function MessagesScreen() {
             alwaysBounceVertical
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => handleRefresh()} tintColor={DesignColors.primary} />}
           >
-            <MessageThreadList threads={filtered} onSelectThread={handleSelect} />
+            <MessageThreadList threads={threads} onSelectThread={handleSelect} />
           </ScrollView>
         )}
       </View>
 
-      <DiscoverBottomNav activeTab="messages" />
     </SafeAreaView>
   );
 }

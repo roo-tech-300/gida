@@ -216,7 +216,7 @@ export function TourSchedulerModal({
         <View style={styles.section}>
           <View style={styles.sectionTitleRow}>
             <View style={styles.sectionAccent} />
-            <Text style={styles.sectionLabel}>Available Slots</Text>
+            <Text style={styles.sectionLabel}>Available times</Text>
           </View>
           <TourSlotGrid slots={slots} selectedSlot={selectedSlot} onSelect={setSelectedSlot} />
         </View>

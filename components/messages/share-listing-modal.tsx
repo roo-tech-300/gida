@@ -131,7 +131,7 @@ export function ShareListingModal({
             <View style={styles.empty}>
               <Ionicons name="chatbubbles-outline" size={36} color={DesignColors.onSurfaceVariant} />
               <Text style={styles.emptyText}>
-                No chats yet.{'\n'}Say Hello to a roommate first, then you can share homes from here.
+                No chats yet.{'\n'}Say hi to a student first, then you can share places from here.
               </Text>
             </View>
           ) : (

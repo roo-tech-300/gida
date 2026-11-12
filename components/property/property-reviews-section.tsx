@@ -46,7 +46,7 @@ export function PropertyReviewsSection({ reviews, avgRating }: Props) {
           </View>
         </View>
           <View style={styles.metaRow}>
-            <Text style={styles.verified}>Verified Paid Slot</Text>
+            <Text style={styles.verified}>Verified resident</Text>
             {review.review_number > 1 ? <Text style={styles.counter}>Review #{review.review_number}</Text> : null}
           </View>
           <Text style={styles.text}>{review.text}</Text>

@@ -2,8 +2,9 @@ import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { BackButton } from '@/components/ui/back-button';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -49,7 +50,10 @@ export function SavedSpacesEmptyState() {
   }, []);
 
   return (
-    <View style={styles.safe}>
+    <SafeAreaView style={styles.safe}>
+      <View style={styles.back}>
+        <BackButton />
+      </View>
       <ScrollView
         contentContainerStyle={styles.scroll}
         keyboardShouldPersistTaps="handled"
@@ -93,25 +97,24 @@ export function SavedSpacesEmptyState() {
             </Animated.View>
           </View>
 
-          <Text style={styles.title}>Your Shortlist is Empty</Text>
+          <Text style={styles.title}>Your shortlist is empty</Text>
           <Text style={styles.subtitle}>
             Tap the heart icon on any lodge to save your top choices here for
             quick comparison.
           </Text>
 
           <Pressable onPress={() => router.replace('/(tabs)')} style={styles.button}>
-            <Text style={styles.buttonText}>Find Your Next Space</Text>
+            <Text style={styles.buttonText}>Find a place</Text>
             <Ionicons name="arrow-forward" size={18} color={DesignColors.onPrimary} />
           </Pressable>
         </View>
       </ScrollView>
-
-      <DiscoverBottomNav activeTab="saved" />
-    </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  back: { paddingHorizontal: DesignSpacing.marginMobile, paddingTop: DesignSpacing.sm },
   safe: {
     flex: 1,
     backgroundColor: DesignColors.surfaceContainerLowest,

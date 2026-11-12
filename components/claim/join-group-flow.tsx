@@ -77,7 +77,7 @@ export function JoinGroupFlow({ onClose, onExitJoin }: Props) {
       }
       const alreadyMember = found.members?.some((m) => m.user_id === userId);
       if (alreadyMember) {
-        setError("You're already in this group. Head to your lobby to continue.");
+        setError("You're already in this group. Open your household to continue.");
         return;
       }
       setPod(found);

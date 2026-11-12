@@ -114,7 +114,7 @@ export type Conversation = {
   createdAt: string;
 };
 
-export const MESSAGE_FILTERS = ['All', 'Unread'] as const;
+export const MESSAGE_FILTERS = ['All', 'Support', 'Unread'] as const;
 
 export type MessageFilter = (typeof MESSAGE_FILTERS)[number];
 

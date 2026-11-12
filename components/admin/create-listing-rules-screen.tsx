@@ -88,7 +88,7 @@ export function CreateListingRulesScreen() {
           </View>
 
           <View style={styles.fieldGroup}>
-            <Text style={styles.label}>Roommates / Slots</Text>
+            <Text style={styles.label}>Students sharing</Text>
             <View style={[styles.glassInput, styles.roommateCard]}>
               <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
               <View style={styles.roommateLeft}>
@@ -110,7 +110,7 @@ export function CreateListingRulesScreen() {
                 })}
               </View>
             </View>
-            <Text style={styles.fieldHint}>Reserve 1, several, or all slots for roommates.</Text>
+            <Text style={styles.fieldHint}>How many students can share this place.</Text>
           </View>
         </ScrollView>
 

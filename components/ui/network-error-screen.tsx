@@ -2,7 +2,6 @@ import { Ionicons } from '@expo/vector-icons';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { FloatingBadge } from '@/components/ui/floating-badge';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 
@@ -114,7 +113,6 @@ export function NetworkErrorScreen({
         </View>
       </ScrollView>
 
-      <DiscoverBottomNav activeTab="discover" />
     </View>
   );
 }

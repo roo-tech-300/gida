@@ -3,7 +3,7 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, RefreshControl, ScrollView, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
+import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useSavedListings, useToggleSave } from '@/hooks/use-saved-listings';
 
@@ -40,7 +40,6 @@ export function SavedPropertiesScreen() {
         <View style={styles.center}>
           <ActivityIndicator size="large" color={DesignColors.primary} />
         </View>
-        <DiscoverBottomNav activeTab="saved" />
       </SafeAreaView>
     );
   }
@@ -61,8 +60,9 @@ export function SavedPropertiesScreen() {
             <RefreshControl refreshing={isRefetching} onRefresh={refetch} tintColor={DesignColors.primary} />
           }>
           <View style={styles.header}>
-            <Text style={styles.title}>Saved Properties</Text>
-            <Text style={styles.subtitle}>Your collection of residences</Text>
+            <BackButton />
+            <Text style={styles.title}>Saved places</Text>
+            <Text style={styles.subtitle}>Your shortlist, ready to compare</Text>
           </View>
 
           <View style={[styles.list, isWide && styles.listWide]}>
@@ -77,7 +77,6 @@ export function SavedPropertiesScreen() {
             ))}
           </View>
         </ScrollView>
-        <DiscoverBottomNav activeTab="saved" />
       </View>
     </SafeAreaView>
   );

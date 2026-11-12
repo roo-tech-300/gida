@@ -1,4 +1,6 @@
 import { Ionicons } from '@expo/vector-icons';
+
+import { formatNaira } from '@/utils/format-naira';
 import { Image } from 'expo-image';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
@@ -42,14 +44,14 @@ export function SavedPropertyCard({
 
         <View style={styles.metaRow}>
           <MetaPill icon="bed-outline" label={listing.beds || 'Studio'} />
-          <MetaPill icon="water-outline" label={listing.baths || 'N/A'} />
-          <MetaPill icon="square-outline" label={listing.size || '-'} />
+          {listing.baths ? <MetaPill icon="water-outline" label={listing.baths} /> : null}
+          {listing.size ? <MetaPill icon="square-outline" label={listing.size} /> : null}
         </View>
 
         <View style={styles.priceRow}>
           <View>
-            <Text style={styles.priceLabel}>Per Academic Year</Text>
-            <Text style={styles.price}>{listing.price}</Text>
+            <Text style={styles.priceLabel}>Per person, per year</Text>
+            <Text style={styles.price}>{formatNaira(listing.pricePerPerson)}</Text>
           </View>
           <Pressable onPress={() => onView(listing.id)} style={styles.viewButton}>
             <Text style={styles.viewButtonText}>View</Text>

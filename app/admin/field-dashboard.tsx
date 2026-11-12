@@ -1,5 +1,5 @@
-import { FieldAdminDashboardScreen } from '@/components/admin/field-dashboard-screen';
+import { RoleManageScreen } from '@/components/admin/role-manage-screen';
 
 export default function FieldDashboardRoute() {
-  return <FieldAdminDashboardScreen />;
+  return <RoleManageScreen role="field_admin" />;
 }

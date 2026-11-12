@@ -11,21 +11,21 @@ type Props = {
 
 const ROLE_CONFIG: Record<AdminRole, { title: string; desc: string; route: string; icon: keyof typeof Ionicons.glyphMap }> = {
   super_admin: {
-    title: 'Super Admin Dashboard',
-    desc: 'Global access to manage all regions, admins, and inventory across the entire platform.',
-    route: '/admin/super-dashboard',
+    title: 'Admin: Today',
+    desc: 'Applications and tours waiting for you, plus platform-wide management.',
+    route: '/admin/today',
     icon: 'globe-outline',
   },
   regional_admin: {
-    title: 'Regional Admin Dashboard',
-    desc: 'Manage your assigned region: listings, field admins, and regional performance.',
-    route: '/admin/regional-dashboard',
+    title: 'Admin: Today',
+    desc: 'Applications and tours waiting for you, plus your region’s management tools.',
+    route: '/admin/today',
     icon: 'business-outline',
   },
   field_admin: {
-    title: 'Field Admin Dashboard',
-    desc: 'Track property verifications, field reports, and your assigned zone tasks.',
-    route: '/admin/field-dashboard',
+    title: 'Admin: Today',
+    desc: 'Applications and tours waiting for you, plus your zone’s tools.',
+    route: '/admin/today',
     icon: 'location-outline',
   },
 };

@@ -194,7 +194,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
           onPress={() => router.push(credit.target_occupancy === 1 ? { pathname: '/property/booking', params: { id: creditId } } : { pathname: '/property/lobby', params: { creditId } })}
           testID="checkout-continue"
         >
-          <Text style={styles.payText}>{credit.target_occupancy === 1 ? 'View Booking' : 'Continue to Lobby'}</Text>
+          <Text style={styles.payText}>{credit.target_occupancy === 1 ? 'View booking' : 'Open household'}</Text>
           <Ionicons name="arrow-forward" size={16} color={DesignColors.onPrimaryContainer} />
         </Pressable>
       </View>

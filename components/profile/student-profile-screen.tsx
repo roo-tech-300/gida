@@ -1,9 +1,7 @@
-import { DiscoverBottomNav } from '@/components/home/discover-bottom-nav';
 import { ReplayTourModal } from '@/components/tour/replay-tour-modal';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
-import { useUserSlotCredits } from '@/hooks/use-liquidity';
 import { fetchMyRoommatePreferences } from '@/services/roommateProfileService';
 import { useNotificationPermission } from '@/src/use-notification-permission-platform';
 import { Ionicons } from '@expo/vector-icons';
@@ -12,21 +10,16 @@ import { useCallback, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { ActiveAdminCard } from './active-admin-card';
-import { ExpiredMarqueeBanner } from './expired-marquee-banner';
-import { JoinGroupCard } from './join-group-card';
-import { PendingLodgeInvites } from './pending-lodge-invite-card';
 import { ProfileHeader } from './profile-header';
 import { ProfileRow } from './profile-row';
-import { ReservedHousesSection } from './reserved-houses-section';
 import { useAvatarUpload } from './use-avatar-upload';
-import { useExpiredLodges } from './use-expired-lodges';
 import { useRoommateCompletion } from './use-roommate-completion';
 
 export function StudentProfileScreen() {
   const { signOut, profile, refreshProfile } = useAuth();
   const [signingOut, setSigningOut] = useState(false);
   const [tourModalOpen, setTourModalOpen] = useState(false);
-  const [currentTime] = useState(() => Date.now());
+  const [refreshing, setRefreshing] = useState(false);
   const { showToast } = useAppToast();
   const { status: notificationStatus, enable: enableNotifications } = useNotificationPermission();
   const userId = profile?.id;
@@ -42,15 +35,6 @@ export function StudentProfileScreen() {
     enabled: !!userId,
     staleTime: 5 * 60 * 1000,
   });
-  const {
-    data: reservations,
-    isError: reservationsError,
-    isPending: reservationsPending,
-    isRefetching: reservationsRefetching,
-    refetch: refetchReservations,
-  } = useUserSlotCredits();
-
-  const expiredLodges = useExpiredLodges(reservations, currentTime);
   const roommateCompletion = useRoommateCompletion(preferences, profile);
 
   const sleepSchedule = preferences?.roommate?.sleep_schedule ?? 'Not set yet';
@@ -64,6 +48,18 @@ export function StudentProfileScreen() {
       : 'Flexible';
   const profileBio = profile?.bio ?? 'No bio yet';
   const schoolLabel = profile?.school ?? 'Not set yet';
+
+  const onRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await refreshProfile();
+    } catch (error) {
+      console.error('[Profile] Failed to refresh profile:', error);
+      showToast({ message: 'Could not refresh your profile. Please try again.', type: 'error' });
+    } finally {
+      setRefreshing(false);
+    }
+  }, [refreshProfile, showToast]);
 
   const handleLogout = async () => {
     setSigningOut(true);
@@ -103,7 +99,7 @@ export function StudentProfileScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.safe}>
+    <SafeAreaView style={styles.safe} edges={['top']}>
       <View style={{ flex: 1 }}>
         <ScrollView
           bounces
@@ -111,8 +107,8 @@ export function StudentProfileScreen() {
           keyboardShouldPersistTaps="handled"
           refreshControl={
             <RefreshControl
-              refreshing={reservationsRefetching}
-              onRefresh={() => { void refetchReservations(); }}
+              refreshing={refreshing}
+              onRefresh={() => { void onRefresh(); }}
               tintColor={DesignColors.primaryBright}
               colors={[DesignColors.primaryBright]}
             />
@@ -125,12 +121,6 @@ export function StudentProfileScreen() {
             uploading={uploading}
             onAvatarPress={handleAvatarPress}
           />
-
-          <ExpiredMarqueeBanner expiredLodges={expiredLodges} />
-
-          <JoinGroupCard />
-          <PendingLodgeInvites />
-          <ReservedHousesSection reservations={reservations ?? []} hasError={reservationsError} isLoading={reservationsPending} />
 
           <View style={styles.sectionFlat}>
             <Text style={styles.sectionTitleFlat}>Personal Information</Text>
@@ -200,7 +190,6 @@ export function StudentProfileScreen() {
           <Text style={styles.version}>Gida Campus Edition • v4.2.0</Text>
         </ScrollView>
 
-        <DiscoverBottomNav activeTab="profile" />
         <ReplayTourModal visible={tourModalOpen} onClose={closeTour} />
       </View>
     </SafeAreaView>

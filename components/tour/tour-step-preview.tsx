@@ -44,7 +44,7 @@ function renderPreview(stepId: AppTourStepId) {
         </View>
         <View style={[styles.box, styles.boxActive]}>
           <Ionicons name="people-outline" size={18} color={DesignColors.onPrimaryContainer} />
-          <Text style={styles.titleActive}>{isSwitch ? 'Find a Peer' : 'Shared Pod'}</Text>
+          <Text style={styles.titleActive}>{isSwitch ? 'Find a Peer' : 'Shared household'}</Text>
           <Text style={styles.subActive}>{isSwitch ? 'Roommates' : 'Split 50/50'}</Text>
         </View>
       </View>

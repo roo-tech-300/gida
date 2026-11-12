@@ -48,10 +48,10 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
     const ok = await acceptMutation.mutateAsync(detail.pod.id);
     if (ok) {
       await notifyAllMembers('accepted');
-      showToast({ message: 'Pod accepted. All members can now proceed to payment.', type: 'success' });
+      showToast({ message: 'Approved. Everyone in the household can now pay.', type: 'success' });
       router.back();
     } else {
-      showToast({ message: 'Failed to accept pod. Try again.', type: 'error' });
+      showToast({ message: 'Could not approve this request. Please try again.', type: 'error' });
     }
   }, [detail, acceptMutation, showToast, notifyAllMembers]);
 
@@ -60,12 +60,12 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
     const ok = await rejectMutation.mutateAsync({ podId: detail.pod.id, reason: rejectReason.trim() });
     if (ok) {
       await notifyAllMembers('rejected', rejectReason.trim());
-      showToast({ message: 'Pod rejected.', type: 'success' });
+      showToast({ message: 'Declined. The household has been told why.', type: 'success' });
       setRejectModalOpen(false);
       setRejectReason('');
       router.back();
     } else {
-      showToast({ message: 'Failed to reject pod. Try again.', type: 'error' });
+      showToast({ message: 'Could not decline this request. Please try again.', type: 'error' });
     }
   }, [detail, rejectReason, rejectMutation, showToast, notifyAllMembers]);
 
@@ -77,7 +77,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
         <Pressable onPress={() => router.back()} style={styles.closeButton} hitSlop={8}>
           <Ionicons name="close" size={22} color={DesignColors.onSurface} />
         </Pressable>
-        <Text style={styles.title}>Pod application</Text>
+        <Text style={styles.title}>Request</Text>
         <View style={styles.closeButton} />
       </View>
 
@@ -111,7 +111,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
                 disabled={rejectMutation.isPending || acceptMutation.isPending}
               >
                 <Ionicons name="close-circle-outline" size={18} color={DesignColors.error} />
-                <Text style={styles.rejectText}>Reject</Text>
+                <Text style={styles.rejectText}>Decline</Text>
               </Pressable>
               <Pressable
                 style={[styles.acceptButton, (rejectMutation.isPending || acceptMutation.isPending) && styles.buttonDisabled]}
@@ -123,7 +123,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
                 ) : (
                   <>
                     <Ionicons name="checkmark-circle-outline" size={18} color={DesignColors.onPrimary} />
-                    <Text style={styles.acceptText}>Accept</Text>
+                    <Text style={styles.acceptText}>Approve</Text>
                   </>
                 )}
               </Pressable>
@@ -145,8 +145,8 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
       {rejectModalOpen && (
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <Text style={styles.modalTitle}>Reject Pod</Text>
-            <Text style={styles.modalSubtitle}>Provide a reason for rejecting this pod application.</Text>
+            <Text style={styles.modalTitle}>Decline request</Text>
+            <Text style={styles.modalSubtitle}>Tell the household why. They will see this reason.</Text>
             <TextInput
               style={styles.modalInput}
               value={rejectReason}
@@ -172,7 +172,7 @@ export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
                 {rejectMutation.isPending ? (
                   <ActivityIndicator size="small" color={DesignColors.onPrimary} />
                 ) : (
-                  <Text style={styles.modalConfirmText}>Reject</Text>
+                  <Text style={styles.modalConfirmText}>Decline</Text>
                 )}
               </Pressable>
             </View>

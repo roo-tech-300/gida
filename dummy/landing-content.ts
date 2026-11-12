@@ -57,7 +57,7 @@ export const SCREENSHOTS: Record<number, ImageSourcePropType> = {
 };
 
 export const LANDING_IMAGES = {
-  logo: require('@/assets/images/landing/logo.png'),
+  logo: require('@/assets/images/logo.png'),
   house: require('@/assets/images/landing/house.png'),
 } as const;
 

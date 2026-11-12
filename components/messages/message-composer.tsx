@@ -7,7 +7,10 @@ type MessageComposerProps = {
   draft: string;
   onDraftChange: (value: string) => void;
   onSend: () => void;
-  onOpenAttachments: () => void;
+  /** Omit to hide the attachment button (household chat is text only). */
+  onOpenAttachments?: () => void;
+  placeholder?: string;
+  maxLength?: number;
   selectedAttachmentLabel?: string;
 };
 
@@ -17,6 +20,8 @@ export function MessageComposer({
   onSend,
   onOpenAttachments,
   selectedAttachmentLabel,
+  placeholder = 'Message',
+  maxLength,
 }: MessageComposerProps) {
   const canSend = draft.trim().length > 0 || Boolean(selectedAttachmentLabel);
 
@@ -24,12 +29,15 @@ export function MessageComposer({
     <View style={styles.composerShell}>
       {selectedAttachmentLabel ? <Text style={styles.hint}>{selectedAttachmentLabel}</Text> : null}
       <View style={styles.composer}>
-        <Pressable onPress={onOpenAttachments} style={styles.iconButton}>
-          <Ionicons name="add" size={22} color={DesignColors.onSurface} />
-        </Pressable>
+        {onOpenAttachments ? (
+          <Pressable onPress={onOpenAttachments} style={styles.iconButton}>
+            <Ionicons name="add" size={22} color={DesignColors.onSurface} />
+          </Pressable>
+        ) : null}
         <TextInput
           multiline
-          placeholder="Message"
+          placeholder={placeholder}
+          maxLength={maxLength}
           placeholderTextColor={DesignColors.onSurfaceVariant}
           style={styles.input}
           value={draft}

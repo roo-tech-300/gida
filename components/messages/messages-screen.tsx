@@ -9,10 +9,13 @@ import { MessageThreadList } from '@/components/messages/message-thread-list';
 import { NotificationEnableBanner } from '@/components/messages/notification-enable-banner';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { useAuth } from '@/context/auth-context';
 import { useConversations } from '@/hooks/use-conversations';
+import { useHouseholdChats } from '@/hooks/use-household-chats';
 import { useSupportIds } from '@/hooks/use-support-ids';
 import { splitThreads } from '@/utils/thread-kind';
 import { useMessageSync } from '@/components/messages/message-sync-provider';
+import type { HouseholdChat } from '@/types/household-chat';
 import { MESSAGE_FILTERS, type Conversation, type MessageFilter } from '@/types/messages';
 
 export function MessagesScreen() {
@@ -22,10 +25,13 @@ export function MessagesScreen() {
   const { data, isLoading, isError, refetch, isRefetching } = useConversations();
   const { flushOutbox } = useMessageSync();
   const supportIds = useSupportIds();
+  const { profile } = useAuth();
+  const households = useHouseholdChats();
 
   const handleRefresh = () => {
     void flushOutbox();
     void refetch();
+    void households.refetch();
   };
 
   useEffect(() => {
@@ -35,10 +41,15 @@ export function MessagesScreen() {
   }, [isError, showToast]);
 
   const threads = splitThreads(data ?? [], supportIds, filter);
-  const isEmpty = threads.support.length + threads.direct.length === 0;
+  const visibleHouseholds = (households.data ?? []).filter((chat) => filter === 'All' || (filter === 'Unread' && chat.unreadCount > 0));
+  const isEmpty = threads.support.length + threads.direct.length + visibleHouseholds.length === 0;
 
   const handleSelect = (thread: Conversation) => {
     router.push(`/messages/${thread.participant.id}`);
+  };
+
+  const handleSelectHousehold = (chat: HouseholdChat) => {
+    router.push(`/messages/household/${chat.podId}`);
   };
 
   return (
@@ -95,7 +106,13 @@ export function MessagesScreen() {
             alwaysBounceVertical
             refreshControl={<RefreshControl refreshing={isRefetching} onRefresh={() => handleRefresh()} tintColor={DesignColors.primary} />}
           >
-            <MessageThreadList threads={threads} onSelectThread={handleSelect} />
+            <MessageThreadList
+              threads={threads}
+              households={visibleHouseholds}
+              myId={profile?.id}
+              onSelectThread={handleSelect}
+              onSelectHousehold={handleSelectHousehold}
+            />
           </ScrollView>
         )}
       </View>

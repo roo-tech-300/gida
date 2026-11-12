@@ -3,12 +3,14 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { act, renderHook, waitFor } from '@testing-library/react-native';
 
 import { useAuth } from '@/context/auth-context';
+import { fetchHouseholdChats } from '@/services/household-chat-service';
 import { fetchMyConversations } from '@/services/messageService';
 import { useUnreadMessages } from '@/hooks/use-unread-messages';
 import type { Conversation } from '@/types/messages';
 
 jest.mock('@/context/auth-context', () => ({ useAuth: jest.fn() }));
 jest.mock('@/services/messageService', () => ({ fetchMyConversations: jest.fn() }));
+jest.mock('@/services/household-chat-service', () => ({ fetchHouseholdChats: jest.fn() }));
 jest.mock('@/services/offline-message-store', () => ({
   getLocalSortKey: jest.fn(() => null),
   getOfflineThreads: jest.fn(() => []),
@@ -18,6 +20,7 @@ jest.mock('@/services/offline-message-store', () => ({
 const USER_ID = 'user-123';
 const mockedUseAuth = jest.mocked(useAuth);
 const mockedFetchConversations = jest.mocked(fetchMyConversations);
+const mockedFetchHouseholds = jest.mocked(fetchHouseholdChats);
 
 function conversation(id: string, unreadCount: number): Conversation {
   return {
@@ -50,6 +53,7 @@ function createClient(): QueryClient {
 describe('useUnreadMessages', () => {
   beforeEach(() => {
     jest.clearAllMocks();
+    mockedFetchHouseholds.mockResolvedValue([]);
     mockedUseAuth.mockReturnValue({
       profile: { id: USER_ID } as ReturnType<typeof useAuth>['profile'],
     } as ReturnType<typeof useAuth>);
@@ -63,6 +67,18 @@ describe('useUnreadMessages', () => {
 
     await waitFor(() => expect(result.current).toBe(5));
     expect(mockedFetchConversations).toHaveBeenCalledTimes(1);
+  });
+
+  it('adds unread household messages to the badge', async () => {
+    mockedFetchConversations.mockResolvedValue([conversation('one', 1)]);
+    mockedFetchHouseholds.mockResolvedValue([{
+      podId: 'pod-1', listingTitle: 'Royal Lodge', memberCount: 2, memberIds: ['a', 'b'], memberNames: ['Ada', 'Amina'],
+      lastMessage: 'hi', lastMessageAt: '2026-01-01T00:00:00.000Z', lastSenderId: 'b', lastSenderName: 'Amina', unreadCount: 4,
+    }]);
+
+    const { result } = await renderHook(() => useUnreadMessages(), { wrapper: createWrapper(createClient()) });
+
+    await waitFor(() => expect(result.current).toBe(5));
   });
 
   it('keeps two mounted navbar instances in sync when conversations are invalidated', async () => {

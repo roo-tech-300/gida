@@ -7,6 +7,7 @@ import type {
 } from '@/types/messages';
 import { subscribeToMessageNotifications } from '@/src/notifications';
 import { fetchProfilesInChunks } from '@/utils/profile-chunking';
+import { getStaffDirectory, routePair } from '@/services/support-routing';
 
 type ConversationRow = {
   id: string;
@@ -86,9 +87,13 @@ async function fetchProfilesByIds(ids: string[]): Promise<Record<string, Profile
   return map;
 }
 
-export async function getOrCreateConversation(myId: string, otherId: string): Promise<Conversation> {
+export async function getOrCreateConversation(requesterId: string, requestedOtherId: string): Promise<Conversation> {
+  // Chats between a student and any staff member all resolve to the one Support thread.
+  const routed = await routePair(requesterId, requestedOtherId);
+  const myId = routed.readerId;
+  const otherId = routed.otherId;
   console.log('[MsgService] getOrCreateConversation — myId:', myId, 'otherId:', otherId);
-  const [a, b] = normalizePair(myId, otherId);
+  const [a, b] = normalizePair(routed.firstId, routed.secondId);
   console.log('[MsgService] Normalized pair:', a, b);
 
   let { data, error } = await supabase
@@ -143,24 +148,35 @@ export async function getOrCreateConversation(myId: string, otherId: string): Pr
 }
 
 export async function fetchMyConversations(myId: string): Promise<Conversation[]> {
+  // Staff also see the shared Support threads, answering as the support admin.
+  const { supportAdminId, staffIds } = await getStaffDirectory().catch(() => ({ supportAdminId: null, staffIds: new Set<string>() }));
+  const sharedSupportId = supportAdminId && supportAdminId !== myId && staffIds.has(myId) ? supportAdminId : null;
+  const mine = `participant_a.eq.${myId},participant_b.eq.${myId}`;
+  const shared = sharedSupportId ? `,participant_a.eq.${sharedSupportId},participant_b.eq.${sharedSupportId}` : '';
+
   const { data, error } = await supabase
     .from('conversations')
     .select('*')
-    .or(`participant_a.eq.${myId},participant_b.eq.${myId}`)
+    .or(mine + shared)
     .order('last_message_at', { ascending: false, nullsFirst: false })
     .limit(100);
 
   if (error) throw error;
 
   const rows = (data ?? []) as ConversationRow[];
-  const otherIds = rows.map((row) => (row.participant_a === myId ? row.participant_b : row.participant_a));
+  const readerFor = (row: ConversationRow) => (row.participant_a === myId || row.participant_b === myId ? myId : (sharedSupportId ?? myId));
+  const otherIds = rows.map((row) => {
+    const reader = readerFor(row);
+    return row.participant_a === reader ? row.participant_b : row.participant_a;
+  });
   const profiles = await fetchProfilesByIds(otherIds);
 
   return rows
     .map((row) => {
-      const otherId = row.participant_a === myId ? row.participant_b : row.participant_a;
+      const reader = readerFor(row);
+      const otherId = row.participant_a === reader ? row.participant_b : row.participant_a;
       const profile = profiles[otherId] ?? { id: otherId, name: 'Gida user', avatarUrl: null };
-      return mapConversationRow(row, myId, profile);
+      return mapConversationRow(row, reader, profile);
     })
     .filter((conversation) => conversation.lastMessageAt !== conversation.createdAt || conversation.lastMessage !== '');
 }

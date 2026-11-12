@@ -84,10 +84,19 @@ serve(async (request: Request) => {
       database.from('profiles').select('full_name').eq('id', senderId).maybeSingle(),
     ]);
     if (conversationError || !conversation) throw new Error(`Conversation lookup failed: ${conversationError?.message ?? 'not found'}`);
-    if (conversation.participant_a !== senderId && conversation.participant_b !== senderId) {
-      return json({ error: 'Message sender is not a conversation participant' }, 400);
+    const senderIsParticipant = conversation.participant_a === senderId || conversation.participant_b === senderId;
+    let recipientId: string;
+    if (senderIsParticipant) {
+      recipientId = conversation.participant_a === senderId ? conversation.participant_b : conversation.participant_a;
+    } else {
+      // A staff member answering a shared Support thread: the recipient is the participant who is not staff.
+      const [senderStaff, aStaff] = await Promise.all([
+        database.from('admin_profiles').select('id').eq('id', senderId).maybeSingle(),
+        database.from('admin_profiles').select('id').eq('id', conversation.participant_a).maybeSingle(),
+      ]);
+      if (!senderStaff.data) return json({ error: 'Message sender is not a conversation participant' }, 400);
+      recipientId = aStaff.data ? conversation.participant_b : conversation.participant_a;
     }
-    const recipientId = conversation.participant_a === senderId ? conversation.participant_b : conversation.participant_a;
     const { data: tokens, error: tokenError } = await database.from('device_tokens').select('token').eq('user_id', recipientId);
     if (tokenError) throw new Error(`Device token lookup failed: ${tokenError.message}`);
     if (!tokens?.length) return json({ delivered: 0, reason: 'No device tokens for recipient' });

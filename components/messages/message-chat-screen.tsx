@@ -16,6 +16,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useConversationThread } from '@/hooks/use-conversation-thread';
+import { useSupportIds } from '@/hooks/use-support-ids';
 import { useContextualNotificationPrompt } from '@/hooks/use-contextual-notification-prompt';
 import type { ListingAttachment } from '@/types/messages';
 
@@ -51,6 +52,11 @@ export function MessageChatScreen() {
     isFetchingNextPage,
     fetchNextPage,
   } = useConversationThread(otherId ?? '');
+  const supportIds = useSupportIds();
+  const isSupport = !!participant && supportIds.has(participant.id);
+  const viewerIsStaff = !!myId && supportIds.has(myId);
+  const displayName = isSupport ? 'Gida Support' : participant?.name;
+  const displayAvatar = isSupport ? null : participant?.avatarUrl;
 
   useEffect(() => {
     if (isConversationError) {
@@ -84,8 +90,9 @@ export function MessageChatScreen() {
     <SafeAreaView style={styles.safe}>
       <SafeKeyboardView style={styles.flex}>
         <MessageChatHeader
-          name={participant?.name}
-          avatarUrl={participant?.avatarUrl}
+          name={displayName}
+          avatarUrl={displayAvatar}
+          subtitle={isSupport ? 'Reservations, payments and move-in help' : viewerIsStaff ? 'Student • Support inbox' : undefined}
           onBack={handleBack}
         />
 
@@ -97,8 +104,10 @@ export function MessageChatScreen() {
           <View style={styles.emptyWrap}>
             <View style={styles.empty}>
               <Ionicons name="hand-left-outline" size={34} color={DesignColors.onSurfaceVariant} />
-              <Text style={styles.emptyTitle}>No messages yet</Text>
-              <Text style={styles.emptyHint}>Say hello below to break the ice.</Text>
+              <Text style={styles.emptyTitle}>{isSupport ? 'How can we help?' : 'No messages yet'}</Text>
+              <Text style={styles.emptyHint}>
+                {isSupport ? 'Ask about a reservation, a payment or moving in. One thread keeps everything in one place.' : 'Say hello below to break the ice.'}
+              </Text>
             </View>
           </View>
         ) : (
@@ -106,8 +115,8 @@ export function MessageChatScreen() {
             messages={messages}
             unreadBoundaryId={unreadBoundaryId}
             myId={myId}
-            participantName={participant?.name}
-            participantAvatar={participant?.avatarUrl}
+            participantName={displayName}
+            participantAvatar={displayAvatar}
             onRetry={() => {
               void flushOutbox();
               showToast({ message: 'Retrying queued message…', type: 'info' });

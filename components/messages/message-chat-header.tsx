@@ -7,10 +7,11 @@ import { getInitials } from '@/utils/initials';
 type Props = {
   name?: string;
   avatarUrl?: string | null;
+  subtitle?: string;
   onBack: () => void;
 };
 
-export function MessageChatHeader({ name, avatarUrl, onBack }: Props) {
+export function MessageChatHeader({ name, avatarUrl, subtitle = 'Potential roommate • Gida', onBack }: Props) {
   return (
     <View style={styles.header}>
       <Pressable onPress={onBack} style={styles.backButton} hitSlop={8} accessibilityRole="button" accessibilityLabel="Back">
@@ -28,7 +29,7 @@ export function MessageChatHeader({ name, avatarUrl, onBack }: Props) {
       </View>
       <View style={styles.headerText}>
         <Text style={styles.name} numberOfLines={1}>{name ?? 'Loading…'}</Text>
-        <Text style={styles.subtitle}>Potential roommate • Gida</Text>
+        <Text style={styles.subtitle}>{subtitle}</Text>
       </View>
     </View>
   );

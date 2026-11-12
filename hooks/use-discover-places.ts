@@ -29,6 +29,8 @@ export function useDiscoverPlaces() {
     isError: active.isError,
     isRefetching: active.isRefetching,
     isFetchingMore: active.isFetchingNextPage,
+    hasMore: Boolean(active.hasNextPage),
+    pageCount: active.data?.pages.length ?? 0,
     refetch: active.refetch,
     loadMore,
   };

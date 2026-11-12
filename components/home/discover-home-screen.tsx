@@ -7,6 +7,7 @@ import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { SearchScreen, type SearchScreenRef } from '@/components/search/search-screen';
 import { DesignColors, DesignSpacing } from '@/constants/design';
 import { useDiscoverPlaces } from '@/hooks/use-discover-places';
+import { useFillFilteredFeed } from '@/hooks/use-fill-filtered-feed';
 import { usePlaceFilters } from '@/hooks/use-place-filters';
 import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { activeFilterCount, applyPlaceFilters } from '@/utils/place-filters';
@@ -34,6 +35,14 @@ export function DiscoverHomeScreen() {
   const likedIds = useMemo(() => new Set(savedIds), [savedIds]);
   const visible = useMemo(() => applyPlaceFilters(places.listings, filters), [places.listings, filters]);
   const filterCount = activeFilterCount(filters);
+  useFillFilteredFeed({
+    hasActiveFilters: filterCount > 0,
+    visibleCount: visible.length,
+    hasMore: places.hasMore,
+    isFetching: places.isFetchingMore || places.isLoading,
+    pageCount: places.pageCount,
+    loadMore: places.loadMore,
+  });
 
   const openSearch = useCallback(() => searchRef.current?.open(), []);
   const openListing = useCallback((id: string) => router.push(`/property/${id}`), [router]);

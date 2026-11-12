@@ -4,6 +4,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { AuthButton } from '@/components/auth/auth-button';
 import { LoadingFooter } from '@/components/ui/loading-footer';
 import { ListState } from '@/components/ui/list-state';
+import { useSpotsLeft } from '@/hooks/use-spots-left';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
 
@@ -35,11 +36,12 @@ export function PlacesFeed({
   listings, header, likedIds, isLoading, isRefetching, isFetchingMore, hasActiveFilters,
   onToggleLike, onOpen, onRefresh, onEndReached, onClearFilters,
 }: Props) {
+  const spotsLeft = useSpotsLeft(listings.map((listing) => listing.id));
   const renderItem = useCallback(
     ({ item }: { item: FeedListing }) => (
-      <PlaceCard listing={item} liked={likedIds.has(item.id)} onToggleLike={onToggleLike} onPress={onOpen} />
+      <PlaceCard listing={item} liked={likedIds.has(item.id)} spotsLeft={spotsLeft[item.id]} onToggleLike={onToggleLike} onPress={onOpen} />
     ),
-    [likedIds, onToggleLike, onOpen],
+    [likedIds, spotsLeft, onToggleLike, onOpen],
   );
 
   return (

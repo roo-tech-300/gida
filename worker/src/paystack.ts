@@ -26,6 +26,7 @@ type PaymentMetadata = {
   listingId?: string;
   tourBookingId?: string;
   slotCreditId?: string;
+  paidBy?: string;
 };
 
 function requireUuid(value: string | undefined): string | null {
@@ -171,7 +172,10 @@ async function handleVerify(request: Request, env: Env): Promise<Response> {
   const kind = data.metadata?.kind === 'tour' ? 'tour' : data.metadata?.kind === 'lodge' ? 'lodge' : 'location';
 
   if (kind === 'lodge' && data.metadata?.slotCreditId) {
-    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference);
+    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference, {
+      paidBy: data.metadata.paidBy === 'parent' ? 'parent' : 'student',
+      amountKobo: data.amount,
+    });
     if (!result.confirmed) {
       return json({ unlocked: false, status: 'confirm-failed' }, 500);
     }
@@ -222,7 +226,10 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
   }
 
   if (kind === 'lodge' && data.metadata?.slotCreditId) {
-    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference);
+    const result = await confirmSlotPayment(env, data.metadata.slotCreditId, data.reference, {
+      paidBy: data.metadata.paidBy === 'parent' ? 'parent' : 'student',
+      amountKobo: data.amount,
+    });
     if (!result.confirmed) {
       console.error(`[Webhook] Lodge confirm failed for credit ${data.metadata.slotCreditId}`);
     }

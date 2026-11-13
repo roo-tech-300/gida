@@ -231,7 +231,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, fencedGate: true, burglary: true, wardrobe: true, cabinet: true },
     features: ['Own bathroom', 'Night security'],
     rules: ['No cooking with charcoal', 'Quiet hours 10pm to 6am'],
-    photos: ['lodges/self-contain-room.jpg', 'lodges/lodge-exterior.jpg', 'houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png'],
+    photos: ['lodges/self-contain-room.jpg', 'lodges/lodge-exterior.jpg', 'houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg'],
   },
   {
     key: 'gkhaven', title: 'Gidan Kwano Haven', landlord: 'mrsokoro', admin: 'regional', layout: 'self_contain',
@@ -241,7 +241,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, generator: true, fencedGate: true, wardrobe: true },
     features: ['Solar backup', 'Keke stop at the gate'],
     rules: ['Visitors sign in at the gate'],
-    photos: ['lodges/self-contain-room.jpg', 'houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png', 'lodges/lodge-exterior.jpg'],
+    photos: ['lodges/self-contain-room.jpg', 'houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg', 'lodges/lodge-exterior.jpg'],
   },
   {
     key: 'talba', title: 'Talba Court, 2-bed flat', landlord: 'chief', admin: 'regional', layout: 'flat',
@@ -251,7 +251,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, generator: true, internet: true, fencedGate: true, burglary: true, wardrobe: true, cabinet: true },
     features: ['Balcony', 'Wi-Fi included', 'Generator 6pm to 11pm'],
     rules: ['No pets', 'Rent covers water and estate dues'],
-    photos: ['houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png', 'houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png', 'lodges/shared-kitchen.jpg'],
+    photos: ['houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg', 'houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg', 'lodges/shared-kitchen.jpg'],
   },
   {
     key: 'bossogate', title: 'Bosso Gate single rooms', landlord: 'mrsokoro', admin: 'field', layout: 'single_room',
@@ -261,7 +261,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, fencedGate: true, sharedKitchen: true, sharedBathroom: true },
     features: ['2 min walk to gate', 'Cleaner twice weekly'],
     rules: ['No overnight guests'],
-    photos: ['houses/Gemini_Generated_Image_1miazv1miazv1mia.png', 'lodges/shared-kitchen.jpg', 'lodges/lodge-exterior.jpg'],
+    photos: ['houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg', 'lodges/shared-kitchen.jpg', 'lodges/lodge-exterior.jpg'],
   },
   {
     key: 'rcf', title: 'RCF Suites', landlord: 'chief', admin: 'field', layout: 'self_contain',
@@ -271,7 +271,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, generator: true, internet: true, fencedGate: true, burglary: true, wardrobe: true, cabinet: true },
     features: ['Fibre internet', 'Kitchenette'],
     rules: ['Quiet compound, no parties'],
-    photos: ['houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png', 'lodges/self-contain-room.jpg', 'houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png'],
+    photos: ['houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg', 'lodges/self-contain-room.jpg', 'houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg'],
   },
   {
     key: 'gktwin', title: 'GK Twin Rooms', landlord: 'mrsokoro', admin: 'regional', layout: 'flat',
@@ -281,7 +281,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, fencedGate: true, burglary: true, wardrobe: true },
     features: ['Furnished sitting room', 'Shuttle nearby'],
     rules: ['Share cleaning duties weekly'],
-    photos: ['lodges/sitting-room.jpg', 'lodges/shared-two-bed.jpg', 'houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png'],
+    photos: ['lodges/sitting-room.jpg', 'lodges/shared-two-bed.jpg', 'houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg'],
   },
   {
     key: 'livingfaith', title: 'Living Faith Court', landlord: 'alhaji', admin: 'field', layout: 'flat',
@@ -291,7 +291,7 @@ export const SEED_LISTINGS: SeedListing[] = [
     amenities: { borehole: true, fencedGate: true, burglary: true, wardrobe: true, sharedKitchen: true },
     features: ['Tarred road', 'Two bathrooms'],
     rules: ['No smoking indoors'],
-    photos: ['houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png', 'lodges/shared-two-bed.jpg', 'lodges/sitting-room.jpg'],
+    photos: ['houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg', 'lodges/shared-two-bed.jpg', 'lodges/sitting-room.jpg'],
   },
 ];
 

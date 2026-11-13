@@ -1,4 +1,3 @@
-import { useMemo } from 'react';
 import { ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -14,19 +13,17 @@ const STATUS_STYLES: Record<string, { bg: string; color: string; label: string }
   terminated: { bg: DesignColors.dangerContainer, color: DesignColors.error, label: 'Terminated' },
 };
 
-export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
-  const property = useMemo(() => {
-    for (const l of LANDLORDS) {
-      const p = l.properties.find((pr) => pr.id === propertyId);
-      if (p) return { ...p, landlord: l.full_name };
-    }
-    return null;
-  }, [propertyId]);
+function findProperty(propertyId: string) {
+  for (const landlord of LANDLORDS) {
+    const property = landlord.properties.find((p) => p.id === propertyId);
+    if (property) return { ...property, landlord: landlord.full_name };
+  }
+  return null;
+}
 
-  const contracts = useMemo(
-    () => CONTRACTS.filter((c) => c.property_id === propertyId),
-    [propertyId],
-  );
+export function PropertyContractsScreen({ propertyId }: { propertyId: string }) {
+  const property = findProperty(propertyId);
+  const contracts = CONTRACTS.filter((c) => c.property_id === propertyId);
 
   if (!property) {
     return (

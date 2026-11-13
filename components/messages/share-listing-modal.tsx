@@ -1,3 +1,4 @@
+import { nowMs } from '@/utils/clock';
 import { useMemo, useState } from 'react';
 import { useNetInfo } from '@react-native-community/netinfo';
 import { useQueryClient } from '@tanstack/react-query';
@@ -47,7 +48,7 @@ export function ShareListingModal({
     if (!myId || sharingId !== null) return;
     setSharingId(conversation.id);
     try {
-      const clientSentAt = Date.now();
+      const clientSentAt = nowMs();
       if (isConnected === false) {
         createOutboxMessage({
           conversationId: conversation.id,

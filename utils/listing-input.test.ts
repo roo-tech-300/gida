@@ -1,5 +1,5 @@
 import type { CreateListingData } from '@/context/create-listing-context';
-import { buildListingInput, parseSizeSqft, validateListingForm } from './listing-input';
+import { buildListingInput, formatPriceInput, layoutRoomDefaults, parseSizeSqft, validateCoreSpecs, validateListingForm } from './listing-input';
 
 function makeData(overrides: Partial<CreateListingData['step1']> = {}): CreateListingData {
   return {
@@ -73,5 +73,33 @@ describe('validateListingForm', () => {
     const far = makeData();
     far.step4.maxRoommates = 5;
     expect(validateListingForm(far)).toMatch(/between 1 and 4/);
+  });
+});
+
+describe('layoutRoomDefaults', () => {
+  it('fixes counts for single rooms and self-contains', () => {
+    expect(layoutRoomDefaults('single_room', 3, 2)).toEqual({ bedrooms: 0, bathrooms: 0 });
+    expect(layoutRoomDefaults('self_contain', 3, 2)).toEqual({ bedrooms: 0, bathrooms: 1 });
+  });
+
+  it('keeps at least one bedroom and bathroom for flats', () => {
+    expect(layoutRoomDefaults('flat', 0, 0)).toEqual({ bedrooms: 1, bathrooms: 1 });
+    expect(layoutRoomDefaults('flat', 3, 2)).toEqual({ bedrooms: 3, bathrooms: 2 });
+  });
+});
+
+describe('validateCoreSpecs', () => {
+  it('flags the first missing field and accepts a complete step', () => {
+    expect(validateCoreSpecs(makeData({ title: '' }).step1)).toBe('Listing title is required.');
+    expect(validateCoreSpecs(makeData({ price: '' }).step1)).toBe('Please set a price.');
+    expect(validateCoreSpecs(makeData().step1)).toBeNull();
+  });
+});
+
+describe('formatPriceInput', () => {
+  it('adds thousands separators and strips non-digits', () => {
+    expect(formatPriceInput('250000')).toBe('250,000');
+    expect(formatPriceInput('₦1,2a00')).toBe('1,200');
+    expect(formatPriceInput('abc')).toBe('');
   });
 });

@@ -69,3 +69,31 @@ export function validateListingForm(data: CreateListingData): string | null {
   if (!step5.heroImage && step5.galleryImages.length === 0) return 'Please add at least one photo.';
   return null;
 }
+
+type LayoutType = NonNullable<CreateListingData['step1']['layoutType']>;
+
+/** Bedroom/bathroom counts implied by picking a layout (flats keep at least one of each). */
+export function layoutRoomDefaults(
+  layout: LayoutType,
+  bedrooms: number,
+  bathrooms: number,
+): { bedrooms: number; bathrooms: number } {
+  if (layout === 'single_room') return { bedrooms: 0, bathrooms: 0 };
+  if (layout === 'self_contain') return { bedrooms: 0, bathrooms: 1 };
+  return { bedrooms: Math.max(1, bedrooms), bathrooms: Math.max(1, bathrooms) };
+}
+
+/** Step-1 check run before moving on to the location step. */
+export function validateCoreSpecs(step1: CreateListingData['step1']): string | null {
+  if (!step1.title.trim()) return 'Listing title is required.';
+  if (!step1.landlordId) return 'Please select a landlord.';
+  if (!step1.layoutType) return 'Please select a layout type.';
+  if (!step1.price) return 'Please set a price.';
+  return null;
+}
+
+/** Formats typed digits as a thousands-separated price ("250000" -> "250,000"). */
+export function formatPriceInput(raw: string): string {
+  const digits = raw.replace(/\D/g, '');
+  return digits ? Number(digits).toLocaleString('en-US') : '';
+}

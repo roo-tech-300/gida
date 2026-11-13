@@ -13,18 +13,14 @@ import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
 
 import { styles } from './create-listing-core-specs-screen.styles';
+import { RoomCountCard } from '@/components/admin/room-count-card';
+import { formatPriceInput, layoutRoomDefaults, validateCoreSpecs } from '@/utils/listing-input';
 
 const layoutOptions: { key: 'self_contain' | 'single_room' | 'flat'; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'single_room', label: 'Single Room', icon: 'albums-outline' },
   { key: 'self_contain', label: 'Self-Contain', icon: 'bed-outline' },
   { key: 'flat', label: 'Flat', icon: 'business-outline' },
 ];
-
-function formatPrice(raw: string) {
-  const digits = raw.replace(/\D/g, '');
-  if (!digits) return '';
-  return Number(digits).toLocaleString('en-US');
-}
 
 export function CreateListingCoreSpecsScreen() {
   const { data, setStep1 } = useCreateListingForm();
@@ -34,10 +30,11 @@ export function CreateListingCoreSpecsScreen() {
 
   const canProceed = step1.title.trim() && step1.landlordId && step1.layoutType && step1.price;
   const handleForward = () => {
-    if (!step1.title.trim()) { showToast({ message: 'Listing title is required.', type: 'error' }); return; }
-    if (!step1.landlordId) { showToast({ message: 'Please select a landlord.', type: 'error' }); return; }
-    if (!step1.layoutType) { showToast({ message: 'Please select a layout type.', type: 'error' }); return; }
-    if (!step1.price) { showToast({ message: 'Please set a price.', type: 'error' }); return; }
+    const problem = validateCoreSpecs(step1);
+    if (problem) {
+      showToast({ message: problem, type: 'error' });
+      return;
+    }
     router.push('/admin/create-listing-location');
   };
 
@@ -106,11 +103,7 @@ export function CreateListingCoreSpecsScreen() {
                   key={opt.key}
                   style={[styles.layoutCard, active && styles.layoutCardActive]}
                   onPress={() => {
-                    const updates: Parameters<typeof setStep1>[0] = { layoutType: opt.key };
-                    if (opt.key === 'single_room') { updates.bedrooms = 0; updates.bathrooms = 0; }
-                    else if (opt.key === 'self_contain') { updates.bedrooms = 0; updates.bathrooms = 1; }
-                    else { updates.bedrooms = Math.max(1, step1.bedrooms); updates.bathrooms = Math.max(1, step1.bathrooms); }
-                    setStep1(updates);
+                    setStep1({ layoutType: opt.key, ...layoutRoomDefaults(opt.key, step1.bedrooms, step1.bathrooms) });
                   }}
                 >
                   <WebBlurView intensity={25} tint="dark" style={styles.glassBlur} />
@@ -124,44 +117,8 @@ export function CreateListingCoreSpecsScreen() {
 
         {step1.layoutType === 'flat' && (
           <View style={styles.roomRow}>
-            <View style={[styles.roomCard, { flex: 1 }]}>
-              <WebBlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
-              <Text style={styles.roomLabel}>Bedrooms</Text>
-              <View style={styles.roomStepper}>
-                <Pressable
-                  style={styles.roomBtn}
-                  onPress={() => setStep1({ bedrooms: Math.max(1, step1.bedrooms - 1) })}
-                >
-                  <Ionicons name="remove" size={18} color={DesignColors.primary} />
-                </Pressable>
-                <Text style={styles.roomCount}>{String(step1.bedrooms).padStart(2, '0')}</Text>
-                <Pressable
-                  style={styles.roomBtn}
-                  onPress={() => setStep1({ bedrooms: step1.bedrooms + 1 })}
-                >
-                  <Ionicons name="add" size={18} color={DesignColors.primary} />
-                </Pressable>
-              </View>
-            </View>
-            <View style={[styles.roomCard, { flex: 1 }]}>
-              <WebBlurView intensity={25} tint="dark" style={styles.roomCardBlur} />
-              <Text style={styles.roomLabel}>Bathrooms</Text>
-              <View style={styles.roomStepper}>
-                <Pressable
-                  style={styles.roomBtn}
-                  onPress={() => setStep1({ bathrooms: Math.max(1, step1.bathrooms - 1) })}
-                >
-                  <Ionicons name="remove" size={18} color={DesignColors.primary} />
-                </Pressable>
-                <Text style={styles.roomCount}>{String(step1.bathrooms).padStart(2, '0')}</Text>
-                <Pressable
-                  style={styles.roomBtn}
-                  onPress={() => setStep1({ bathrooms: step1.bathrooms + 1 })}
-                >
-                  <Ionicons name="add" size={18} color={DesignColors.primary} />
-                </Pressable>
-              </View>
-            </View>
+            <RoomCountCard label="Bedrooms" value={step1.bedrooms} onChange={(bedrooms) => setStep1({ bedrooms })} />
+            <RoomCountCard label="Bathrooms" value={step1.bathrooms} onChange={(bathrooms) => setStep1({ bathrooms })} />
           </View>
         )}
 
@@ -176,7 +133,7 @@ export function CreateListingCoreSpecsScreen() {
                 placeholder="250,000"
                 placeholderTextColor={DesignColors.divider}
                 value={step1.price}
-                onChangeText={(text) => setStep1({ price: formatPrice(text) })}
+                onChangeText={(text) => setStep1({ price: formatPriceInput(text) })}
                 keyboardType="numeric"
               />
             </View>

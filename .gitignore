@@ -56,3 +56,6 @@ worker/node_modules/
 # Local lint dumps and build logs
 _eslint.json
 gradlelogs.txt
+
+# Originals saved by scripts/ops/compress-storage-images.py
+storage-backup/

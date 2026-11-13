@@ -44,7 +44,7 @@ Seed data lives in `dummy/local-seed-data.ts`; the runner is `scripts/dev/seed-l
 
 `supabase/migrations/20261111000000_baseline_from_hosted.sql` was generated on 2026-11-11 from the hosted project's system catalogs (tables, functions, triggers, RLS policies, storage buckets, realtime). It contains no rows. Two production webhook triggers were left out on purpose: they call hosted edge functions and one carries a shared secret, so local data must never fire them.
 
-Production was built by running SQL in the dashboard, so it has no migration history. The older scripts in `sql/` and `sql/applied-migrations/` are a record of what was applied there; the baseline already includes them.
+Production was built by running SQL in the dashboard, so it has no migration history. The older scripts in `docs/legacy-sql/` are a record of what was applied there; the baseline already includes them.
 
 When production changes, regenerate the baseline rather than hand-editing it.
 

@@ -197,7 +197,7 @@ export function CreateListingMediaScreen() {
     for (const url of removedUrls) {
       const path = url.split('/listing-images/')[1];
       if (path) {
-        await supabase.storage.from('listing-images').remove([path]).catch(() => {});
+        await supabase.storage.from('listing-images').remove([path]).catch((error: unknown) => console.error('[Listing] Failed to remove storage file:', path, error));
       }
     }
 

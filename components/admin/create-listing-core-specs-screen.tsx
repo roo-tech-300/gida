@@ -104,7 +104,7 @@ export function CreateListingCoreSpecsScreen() {
                   key={opt.key}
                   style={[styles.layoutCard, active && styles.layoutCardActive]}
                   onPress={() => {
-                    const updates: any = { layoutType: opt.key };
+                    const updates: Parameters<typeof setStep1>[0] = { layoutType: opt.key };
                     if (opt.key === 'single_room') { updates.bedrooms = 0; updates.bathrooms = 0; }
                     else if (opt.key === 'self_contain') { updates.bedrooms = 0; updates.bathrooms = 1; }
                     else { updates.bedrooms = Math.max(1, step1.bedrooms); updates.bathrooms = Math.max(1, step1.bathrooms); }

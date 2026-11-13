@@ -8,6 +8,7 @@ import { useAuth } from '@/context/auth-context';
 import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { getErrorMessage } from '@/utils/error-message';
 
 function getInitials(name: string): string {
   const parts = name.trim().split(/\s+/);
@@ -40,9 +41,9 @@ export function RoommateAvatarSection() {
       await uploadAvatar(profile.id, uri);
       await refreshProfile();
       showToast({ message: 'Profile picture set!', type: 'success' });
-    } catch (err: any) {
+    } catch (err: unknown) {
       console.error('[RoommateAvatar] Upload failed:', err);
-      showToast({ message: err?.message || 'Failed to upload avatar.', type: 'error' });
+      showToast({ message: getErrorMessage(err, 'Failed to upload avatar.'), type: 'error' });
     } finally {
       setUploading(false);
     }

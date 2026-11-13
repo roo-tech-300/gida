@@ -67,7 +67,7 @@ export async function launchImageLibraryAsync(
   if (Platform.OS === 'web') {
     return pickFromWeb(options.allowsMultipleSelection ?? false);
   }
-  const nativeResult = await ImagePicker.launchImageLibraryAsync(options as any);
+  const nativeResult = await ImagePicker.launchImageLibraryAsync({ ...options, mediaTypes: options.mediaTypes as ImagePicker.MediaType[] | undefined });
   return {
     canceled: nativeResult.canceled,
     assets: (nativeResult.assets ?? []).map((a) => ({ uri: a.uri, width: a.width, height: a.height })),

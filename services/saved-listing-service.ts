@@ -38,5 +38,6 @@ export async function getSavedListings(userId: string): Promise<ReturnType<typeo
 
   if (error) throw error;
 
-  return (data || []).map((r: any) => mapDbToFeedListing(r.listings as DbListing));
+  const rows = (data ?? []) as unknown as { listings: DbListing }[];
+  return rows.map((row) => mapDbToFeedListing(row.listings));
 }

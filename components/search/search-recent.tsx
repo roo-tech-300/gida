@@ -23,13 +23,17 @@ export function saveRecent(query: string) {
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(RECENT_KEY, JSON.stringify(recents.slice(0, MAX_RECENT)));
     }
-  } catch {}
+  } catch (error) {
+    console.error('[SearchRecent] Failed to save recent search:', error);
+  }
 }
 
 export function clearRecents() {
   try {
     if (typeof localStorage !== 'undefined') localStorage.removeItem(RECENT_KEY);
-  } catch {}
+  } catch (error) {
+    console.error('[SearchRecent] Failed to clear recent searches:', error);
+  }
 }
 
 type Props = {

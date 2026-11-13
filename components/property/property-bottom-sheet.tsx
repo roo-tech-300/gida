@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { Animated, PanResponder, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -16,13 +16,22 @@ export function PropertyBottomSheet({
   const translateY = useRef(new Animated.Value(heroHeight)).current;
   const isExpanded = useRef(false);
   const startY = useRef(0);
+  const currentY = useRef(heroHeight);
+
+  // Animated.Value has no public getter, so mirror its value through a listener.
+  useEffect(() => {
+    const id = translateY.addListener(({ value }) => {
+      currentY.current = value;
+    });
+    return () => translateY.removeListener(id);
+  }, [translateY]);
 
   const panResponder = useRef(
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) < Math.abs(gesture.dy),
       onPanResponderGrant: () => {
-        startY.current = (translateY as any).__getValue();
+        startY.current = currentY.current;
       },
       onPanResponderMove: (_, gesture) => {
         const next = startY.current + gesture.dy;

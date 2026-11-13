@@ -10,6 +10,7 @@ import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { useCreateLandlord } from '@/hooks/use-create-landlord';
 import { useAppToast } from '@/components/ui/toast-card';
+import { getErrorMessage } from '@/utils/error-message';
 
 export function CreateLandlordScreen() {
   const [fullName, setFullName] = useState('');
@@ -53,10 +54,9 @@ export function CreateLandlordScreen() {
       });
       showToast({ message: 'Landlord added successfully.', type: 'success' });
       router.back();
-    } catch (error: any) {
-      const msg = error?.message || error?.error_description || JSON.stringify(error);
-      console.log('CreateLandlord error:', msg);
-      showToast({ message: msg || 'Failed to save landlord. Please try again.', type: 'error' });
+    } catch (error: unknown) {
+      console.error('[CreateLandlord] Failed to save landlord:', error);
+      showToast({ message: getErrorMessage(error, 'Failed to save landlord. Please try again.'), type: 'error' });
     }
   };
 

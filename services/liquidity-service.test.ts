@@ -32,7 +32,7 @@ function makeChain(): Chain {
   chain.insert = jest.fn(() => chain);
   chain.update = jest.fn(() => chain);
   chain.delete = jest.fn(() => chain);
-  chain.then = jest.fn(async (resolve: (value: any) => void) => resolve({ data: null, error: null }));
+  chain.then = jest.fn(async (resolve: (value: { data: null; error: null }) => void) => resolve({ data: null, error: null }));
   return chain;
 }
 

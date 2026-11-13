@@ -25,7 +25,8 @@ export default {
 
     try {
       const origin = await fetch(originUrl);
-      if (!origin.ok) return new Response('Not found', { status: origin.status === 404 ? 404 : 502 });
+      // Supabase answers a missing public object with 400, not 404.
+      if (!origin.ok) return new Response('Not found', { status: origin.status === 400 || origin.status === 404 ? 404 : 502 });
 
       const response = new Response(origin.body, origin);
       response.headers.set('Cache-Control', ONE_YEAR);

@@ -58,6 +58,8 @@ export function useSaveListing() {
     if (galleryLocal.length > 0) {
       const urls = await Promise.all(galleryLocal.map((uri, i) => uploadListingImage(id, uri, `gallery/${i}.jpg`)));
       await insertListingPhotos(toPhotoRows(id, urls));
+      // Gallery-only listings have no hero, so the first photo becomes the cover.
+      if (!step5.heroImage) await updateListingPrimaryImage(id, urls[0]);
     }
 
     showToast({ message: 'Listing published successfully!', type: 'success' });
@@ -79,8 +81,6 @@ export function useSaveListing() {
         ? step5.heroImage
         : await uploadListingImage(id, step5.heroImage, 'hero.jpg');
       await updateListingPrimaryImage(id, heroUrl);
-    } else {
-      await updateListingPrimaryImage(id, null);
     }
 
     const keptUrls = step5.galleryImages.filter(isRemoteUrl);
@@ -89,6 +89,7 @@ export function useSaveListing() {
       newLocalUris.map((uri, i) => uploadListingImage(id, uri, `gallery/edit-${Date.now()}-${i}.jpg`)),
     );
     const finalUrls = [...keptUrls, ...uploadedUrls];
+    if (!step5.heroImage) await updateListingPrimaryImage(id, finalUrls[0] ?? null);
 
     for (const url of existingUrls.filter((existing) => !finalUrls.includes(existing))) {
       const path = url.split(`/${LISTING_IMAGES_BUCKET}/`)[1];

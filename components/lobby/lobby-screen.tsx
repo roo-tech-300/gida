@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { ClaimCountdown } from '@/components/claim/claim-countdown';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors } from '@/constants/design';
-import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import type { ManageGroupMember } from '@/types/group-member';
 import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { inviteRoommateToPod, removeMemberFromPod } from '@/services/liquidity-service';
 import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';

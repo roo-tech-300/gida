@@ -6,7 +6,7 @@ import { Ionicons } from '@expo/vector-icons';
 import { AppTourCard } from './app-tour-card';
 import { TourControls } from './tour-controls';
 import { DesignColors, DesignRadius, DesignSpacing } from '@/constants/design';
-import { APP_TOUR_STEPS } from '@/dummy/app-tour-data';
+import { APP_TOUR_STEPS } from '@/constants/app-tour-steps';
 
 type Props = {
   visible: boolean;

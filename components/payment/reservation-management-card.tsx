@@ -7,7 +7,7 @@ import { useActivePods } from '@/hooks/use-liquidity';
 import { findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
 import { inviteRoommateToPod } from '@/services/liquidity-service';
 import { ManageGroupModal } from '@/components/lobby/manage-group-modal';
-import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import type { ManageGroupMember } from '@/types/group-member';
 import type { SlotCredit } from '@/types/liquidity';
 
 interface Props {

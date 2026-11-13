@@ -8,7 +8,7 @@ import { useAppToast } from '@/components/ui/toast-card';
 import { copyTextToClipboard } from '@/utils/clipboard';
 import { InlineInviteSearch } from '@/components/lobby/inline-invite-search';
 import { GroupMemberRow } from '@/components/lobby/group-member-row';
-import type { ManageGroupMember } from '@/dummy/group-members-mock';
+import type { ManageGroupMember } from '@/types/group-member';
 
 type Props = {
   visible: boolean;

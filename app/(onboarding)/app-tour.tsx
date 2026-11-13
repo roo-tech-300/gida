@@ -7,7 +7,7 @@ import { OnboardingProgress } from '@/components/onboarding/onboarding-progress'
 import { TourControls } from '@/components/tour/tour-controls';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useAuth } from '@/context/auth-context';
-import { APP_TOUR_STEPS } from '@/dummy/app-tour-data';
+import { APP_TOUR_STEPS } from '@/constants/app-tour-steps';
 import { completeOnboardingProfile } from '@/services/profileService';
 
 export default function AppTourScreen() {

@@ -72,12 +72,6 @@ async function reconcileExpiredPods(baseUrl: string, key: string, expiredCreditI
 async function expireStaleSlotCredits(env: Env): Promise<SlotCreditExpireResult> {
   const now = new Date().toISOString();
   const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
-  const headers = {
-    'Content-Type': 'application/json',
-    apikey: env.SUPABASE_SERVICE_ROLE_KEY,
-    Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
-    Prefer: 'return=representation',
-  };
 
   let totalExpired = 0;
   let totalIds: string[] = [];

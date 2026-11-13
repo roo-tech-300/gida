@@ -12,7 +12,7 @@ import { TourStatusChip } from '@/components/property/tour-status-chip';
 export default function TourHistoryRoute() {
   const { data: bookings = [], isError, isRefetching, refetch } = useTourBookings();
   const { showToast } = useAppToast();
-  const [simRefreshing, setSimRefreshing] = useState(false);
+  const [simRefreshing] = useState(false);
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {

@@ -1,0 +1,133 @@
+import { StyleSheet } from 'react-native';
+
+import { DesignColors, DesignRadius, fontFamily } from '@/constants/design';
+
+export const layoutStyles = StyleSheet.create({
+  backdrop: {
+    flex: 1,
+    backgroundColor: DesignColors.scrim,
+    justifyContent: 'flex-end',
+  },
+  sheet: {
+    backgroundColor: DesignColors.surfaceContainerLowest,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    borderWidth: 1,
+    borderColor: DesignColors.borderMedium,
+    overflow: 'hidden',
+  },
+  sheetBody: { flex: 1 },
+  handleArea: {
+    height: 30,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  handle: {
+    width: 40,
+    height: 4,
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.surfaceContainerHighest,
+  },
+  header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 20,
+    paddingBottom: 14,
+  },
+  headerSide: {
+    width: 30,
+    height: 30,
+    borderRadius: 15,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  stepWrap: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  stepLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 2.4,
+    color: DesignColors.primaryBright,
+    fontFamily,
+    textTransform: 'uppercase',
+  },
+  divider: {
+    height: StyleSheet.hairlineWidth,
+    backgroundColor: DesignColors.cardBorder,
+  },
+  scroll: { flex: 1 },
+  content: {
+    paddingHorizontal: 20,
+    paddingTop: 20,
+    paddingBottom: 28,
+    gap: 14,
+  },
+  title: {
+    fontSize: 20,
+    fontWeight: '600',
+    letterSpacing: -0.2,
+    color: DesignColors.onSurface,
+    fontFamily,
+  },
+  subtitle: {
+    fontSize: 13,
+    fontWeight: '400',
+    lineHeight: 18,
+    letterSpacing: 0.2,
+    color: DesignColors.onSurfaceVariant,
+    fontFamily,
+    marginTop: -8,
+  },
+  bold: {
+    fontWeight: '700',
+    color: DesignColors.onSurface,
+  },
+  optionList: { gap: 10 },
+  optionCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    backgroundColor: DesignColors.surfaceContainerLow,
+    borderRadius: DesignRadius.md,
+    padding: 14,
+    borderWidth: 1,
+    borderColor: DesignColors.cardBorder,
+    overflow: 'hidden',
+  },
+  optionCardPressed: {
+    borderColor: DesignColors.primaryTintBorder,
+    backgroundColor: DesignColors.primaryTint,
+  },
+  optionAccent: {
+    width: 3,
+    alignSelf: 'stretch',
+    borderRadius: DesignRadius.full,
+    backgroundColor: DesignColors.primaryBright,
+  },
+  optionIconBg: {
+    width: 44,
+    height: 44,
+    borderRadius: 22,
+    backgroundColor: DesignColors.primaryTint,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  optionCopy: { flex: 1, gap: 2 },
+  optionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    letterSpacing: 1,
+    color: DesignColors.primaryBright,
+    fontFamily,
+    textTransform: 'uppercase',
+  },
+  optionTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: DesignColors.onSurface,
+    fontFamily,
+  },
+});

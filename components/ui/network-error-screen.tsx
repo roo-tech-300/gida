@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 
 import { FloatingBadge } from '@/components/ui/floating-badge';
@@ -14,7 +14,7 @@ export function NetworkErrorScreen({
   onRetry,
   subtitle = 'Check your network, or maybe our maintenance team is giving the buildings a fresh coat of digital paint. Let\u2019s try again in a moment.',
 }: NetworkErrorScreenProps) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const [floatAnim] = useState(() => new Animated.Value(0));
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {

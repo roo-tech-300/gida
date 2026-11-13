@@ -1,4 +1,4 @@
-import { useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, useWindowDimensions } from 'react-native';
 
 const COLLAPSED_RATIO = 0.52;
@@ -10,16 +10,26 @@ export function useDraggableSheet() {
   const collapsed = Math.round(screenHeight * COLLAPSED_RATIO);
   const expanded = Math.round(screenHeight * EXPANDED_RATIO);
 
-  const height = useRef(new Animated.Value(expanded)).current;
+  const [height] = useState(() => new Animated.Value(expanded));
   const startY = useRef(0);
+  const currentHeight = useRef(expanded);
 
-  const panResponder = useRef(
+  // Animated.Value has no public getter, so mirror its value through a listener.
+  useEffect(() => {
+    const id = height.addListener(({ value }) => {
+      currentHeight.current = value;
+    });
+    return () => height.removeListener(id);
+  }, [height]);
+
+  // eslint-disable-next-line react-hooks/refs -- the callbacks only read refs inside gesture events, never during render
+  const [panResponder] = useState(() =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gesture) =>
         Math.abs(gesture.dy) > 4 && Math.abs(gesture.dy) > Math.abs(gesture.dx),
       onPanResponderGrant: () => {
-        startY.current = (height as unknown as { __getValue(): number }).__getValue();
+        startY.current = currentHeight.current;
       },
       onPanResponderMove: (_, gesture) => {
         const next = startY.current - gesture.dy;
@@ -32,7 +42,7 @@ export function useDraggableSheet() {
         Animated.spring(height, { toValue: shouldExpand ? expanded : collapsed, ...SPRING }).start();
       },
     }),
-  ).current;
+  );
 
   return { panHandlers: panResponder.panHandlers, sheetHeight: height };
 }

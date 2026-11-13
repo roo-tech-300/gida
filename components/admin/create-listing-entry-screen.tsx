@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, Pressable, StyleSheet, Text, View } from 'react-native';
 import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
@@ -9,7 +9,7 @@ import { BackButton } from '@/components/ui/back-button';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 export function CreateListingEntryScreen() {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const [floatAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const loop = Animated.loop(

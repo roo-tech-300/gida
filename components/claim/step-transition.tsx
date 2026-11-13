@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, Easing, StyleProp, StyleSheet, ViewStyle } from 'react-native';
 
 type Props = {
@@ -10,8 +10,8 @@ type Props = {
 const DURATION = 220;
 
 export function StepTransition({ stepKey, children, style }: Props) {
-  const fade = useRef(new Animated.Value(0)).current;
-  const slide = useRef(new Animated.Value(0)).current;
+  const [fade] = useState(() => new Animated.Value(0));
+  const [slide] = useState(() => new Animated.Value(0));
   const previousStep = useRef(stepKey);
 
   useEffect(() => {

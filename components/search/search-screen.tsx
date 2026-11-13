@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useImperativeHandle, useRef, useState, forwardRef } from 'react';
+import { forwardRef, useCallback, useEffect, useImperativeHandle, useRef, useState } from 'react';
 import {
   Animated,
   BackHandler,
@@ -39,7 +39,7 @@ export const SearchScreen = forwardRef<SearchScreenRef, Props>(function SearchSc
   const [isOpen, setIsOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
   const isOpenRef = useRef(false);
-  const anim = useRef(new Animated.Value(0)).current;
+  const [anim] = useState(() => new Animated.Value(0));
   const inputRef = useRef<TextInput>(null);
 
   const [query, setQuery] = useState('');

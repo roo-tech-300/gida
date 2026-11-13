@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Animated, PanResponder, ScrollView, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -13,7 +13,7 @@ export function PropertyBottomSheet({
 }) {
   const insets = useSafeAreaInsets();
   const headroom = insets.top + 64;
-  const translateY = useRef(new Animated.Value(heroHeight)).current;
+  const [translateY] = useState(() => new Animated.Value(heroHeight));
   const isExpanded = useRef(false);
   const startY = useRef(0);
   const currentY = useRef(heroHeight);
@@ -26,7 +26,8 @@ export function PropertyBottomSheet({
     return () => translateY.removeListener(id);
   }, [translateY]);
 
-  const panResponder = useRef(
+  // eslint-disable-next-line react-hooks/refs -- the callbacks only read refs inside gesture events, never during render
+  const [panResponder] = useState(() =>
     PanResponder.create({
       onStartShouldSetPanResponder: () => true,
       onMoveShouldSetPanResponder: (_, gesture) => Math.abs(gesture.dx) < Math.abs(gesture.dy),
@@ -58,7 +59,7 @@ export function PropertyBottomSheet({
         }
       },
     }),
-  ).current;
+  );
 
   return (
     <Animated.View

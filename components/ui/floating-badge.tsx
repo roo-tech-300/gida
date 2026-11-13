@@ -1,5 +1,5 @@
 import { Ionicons } from '@expo/vector-icons';
-import { useEffect, useRef } from 'react';
+import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet } from 'react-native';
 import { DesignColors } from '@/constants/design';
 
@@ -26,7 +26,7 @@ export function FloatingBadge({
   shape: 'rounded' | 'circle';
   delay?: number;
 }) {
-  const floatAnim = useRef(new Animated.Value(0)).current;
+  const [floatAnim] = useState(() => new Animated.Value(0));
 
   useEffect(() => {
     const loop = Animated.loop(

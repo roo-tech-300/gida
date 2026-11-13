@@ -15,7 +15,6 @@ import { useSavedIds, useToggleSave } from '@/hooks/use-saved-listings';
 import { useAppToast } from '@/components/ui/toast-card';
 import { useQueryClient } from '@tanstack/react-query';
 import { formatTourDate } from '@/utils/tour-availability';
-import { formatNaira } from '@/utils/format-naira';
 import { ClaimRoomModal } from '@/components/claim/claim-room-modal';
 import { ShareListingModal } from '@/components/messages/share-listing-modal';
 import { InviteResponseModal } from './invite-response-modal';
@@ -32,6 +31,8 @@ import { PropertyReviewsSection } from './property-reviews-section';
 import { AddReviewForm } from './add-review-form';
 
 import { styles } from './property-details-screen.styles';
+import { isCreditPaid, resolvePropertyCta } from '@/utils/property-cta';
+import { PropertySummary } from './property-summary';
 
 const HERO_HEIGHT = 340;
 
@@ -69,50 +70,30 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
     setGalleryOpen(true);
   };
 
-  const isPaid = !!credit && (credit.status === 'paid_unmatched' || credit.status === 'matched' || credit.status === 'subletting');
-  const isSolo = !!credit && credit.target_occupancy === 1;
-  const isPendingVerification = !!credit && credit.pod_verification_status === 'pending_verification';
-  const isRejected = !!credit && credit.pod_verification_status === 'rejected';
-  const isClaimable = !credit || credit.status === 'expired' || isRejected;
+  const isPaid = isCreditPaid(credit);
 
   // The CTA state (pending invite / unpaid reservation / paid / free to claim) is
   // only determined once both queries settle; until then show a bare spinner.
   const ctaPending = (isCheckingCredit || isLoadingInvitation) && !credit && !invitation;
+  const cta = resolvePropertyCta({
+    credit,
+    hasInvitation: !!invitation,
+    isLoading: isCheckingCredit || isLoadingInvitation,
+    isSingleOccupancy: dbListing?.max_roommates === 1,
+  });
 
-  let ctaLabel = 'Reserve';
-  let ctaIcon: keyof typeof Ionicons.glyphMap = 'enter-outline';
-  const isSingleOccupancy = dbListing?.max_roommates === 1;
-  let onCtaPress: () => void = () => {
-    if (isSingleOccupancy) {
-      router.push(`/property/solo-claim?id=${property.id}`);
-    } else {
-      setClaimModalOpen(true);
+  const handleCtaPress = () => {
+    const { action } = cta;
+    switch (action.type) {
+      case 'claim': return setClaimModalOpen(true);
+      case 'solo-claim': return router.push(`/property/solo-claim?id=${property.id}`);
+      case 'view-booking': return router.push(`/property/booking?id=${action.creditId}`);
+      case 'open-household': return router.push({ pathname: '/property/lobby', params: { creditId: action.creditId } });
+      case 'pay': return router.push(`/property/pay-slot?id=${action.creditId}`);
+      case 'open-invite': return setInviteModalOpen(true);
+      case 'none': return undefined;
     }
   };
-
-  if (credit && !isClaimable) {
-    if (isPaid) {
-      ctaLabel = isSolo ? 'View booking' : 'Open household';
-      ctaIcon = isSolo ? 'checkmark-circle-outline' : 'people-outline';
-      onCtaPress = () => router.push(isSolo ? `/property/booking?id=${credit.id}` : { pathname: '/property/lobby', params: { creditId: credit.id } });
-    } else if (isPendingVerification) {
-      ctaLabel = 'Under review';
-      ctaIcon = 'time-outline';
-      onCtaPress = () => {};
-    } else {
-      ctaLabel = 'Pay now';
-      ctaIcon = 'card-outline';
-      onCtaPress = () => router.push(`/property/pay-slot?id=${credit.id}`);
-    }
-  } else if (invitation) {
-    ctaLabel = "You're Invited";
-    ctaIcon = 'mail-open-outline';
-    onCtaPress = () => setInviteModalOpen(true);
-  }
-
-  if (ctaPending) {
-    ctaLabel = '';
-  }
 
   const activeTour = myTours.find(
     (tour) => tour.listing_id === property.id && (tour.status === 'pending_payment' || tour.status === 'booked'),
@@ -154,31 +135,7 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       <PropertyHeroHeader property={property} photoCount={allPhotos.length} onHeroPress={() => allPhotos.length > 0 && openGallery(0)} onShare={() => setShareModalOpen(true)} />
 
       <PropertyBottomSheet heroHeight={HERO_HEIGHT}>
-        <View style={styles.statusBadge}>
-          <Text style={styles.statusText}>{property.status.toUpperCase()}</Text>
-        </View>
-
-        <Text style={styles.title}>{property.title}</Text>
-
-        <View style={styles.locationRow}>
-          <Ionicons name="location-outline" size={16} color={DesignColors.onSurfaceVariant} />
-          <Text style={styles.location}>{property.location}</Text>
-        </View>
-
-        <View style={styles.priceSection}>
-          <Text style={styles.price}>{formatNaira(property.pricePerPerson)}</Text>
-          <Text style={styles.priceNote}>
-            {(property.propertyTier ?? 1) > 1
-              ? `per person, per year · ${formatNaira(property.priceAmount)} for the whole place`
-              : 'per year'}
-          </Text>
-        </View>
-        <View style={styles.statsRow}>
-          {property.beds ? <StatItem label="BEDROOMS" value={property.beds} /> : null}
-          {property.baths ? <StatItem label="BATHROOMS" value={property.baths} /> : null}
-          {property.size ? <StatItem label="INTERIOR" value={property.size} /> : null}
-          {property.floor ? <StatItem label="FLOOR" value={property.floor} /> : null}
-        </View>
+        <PropertySummary property={property} />
 
         <PropertyKeyAmenities amenities={keyAmenities} />
 
@@ -243,9 +200,9 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
       </PropertyBottomSheet>
 
       <PropertyBottomBar
-        ctaLabel={ctaLabel}
-        ctaIcon={ctaIcon}
-        onCtaPress={onCtaPress}
+        ctaLabel={cta.label}
+        ctaIcon={cta.icon}
+        onCtaPress={handleCtaPress}
         onVisitProperty={toursAvailable || !!activeTour ? () => setTourModalOpen(true) : undefined}
         showSpinner={ctaPending}
         liked={isSaved}
@@ -283,14 +240,5 @@ export function PropertyDetailsScreen({ property, photos, dbListing }: { propert
 
       <ShareListingModal visible={shareModalOpen} listing={property} onClose={() => setShareModalOpen(false)} />
     </SafeAreaView>
-  );
-}
-
-function StatItem({ label, value }: { label: string; value: string }) {
-  return (
-    <View style={styles.statItem}>
-      <Text style={styles.statValue}>{value}</Text>
-      <Text style={styles.statLabel}>{label}</Text>
-    </View>
   );
 }

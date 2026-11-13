@@ -8,6 +8,7 @@ import { WizardFooter } from '@/components/claim/wizard-footer';
 import type { Pod, PodMember } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
 import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
+import { getInitials } from '@/utils/initials';
 
 const FALLBACK_PRICE = 1200000;
 
@@ -19,12 +20,6 @@ const AVATAR_COLORS = [
   '#D5F5E6',
   '#F5D5E0',
 ];
-
-function getInitials(name: string): string {
-  const parts = (name ?? '').trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return (name ?? '').slice(0, 2).toUpperCase() || '??';
-}
 
 function getAvatarColor(name: string): string {
   let hash = 0;

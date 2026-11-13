@@ -9,12 +9,7 @@ import { uploadAvatar } from '@/services/profileService';
 import { useAppToast } from '@/components/ui/toast-card';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { getErrorMessage } from '@/utils/error-message';
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0]?.substring(0, 2).toUpperCase() ?? '?';
-}
+import { getInitials } from '@/utils/initials';
 
 export function RoommateAvatarSection() {
   const { profile, refreshProfile } = useAuth();

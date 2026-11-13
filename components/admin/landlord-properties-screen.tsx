@@ -14,7 +14,7 @@ import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 import { useLandlords } from '@/hooks/use-landlords';
 import { useLandlordListingsPaginated } from '@/hooks/use-landlord-listings-paginated';
 import { LandlordPropertyCard } from '@/components/admin/landlord-property-card';
-import { getInitials } from '@/utils/get-initials';
+import { getInitials } from '@/utils/initials';
 import { LandlordProfileModal } from '@/components/admin/landlord-profile-modal';
 import { useAppToast } from '@/components/ui/toast-card';
 import { LoadingFooter } from '@/components/ui/loading-footer';

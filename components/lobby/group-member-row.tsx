@@ -3,6 +3,7 @@ import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { ManageGroupMember } from '@/types/group-member';
+import { getInitials } from '@/utils/initials';
 
 const AVATAR_COLORS = [
   DesignColors.primaryContainer,
@@ -12,13 +13,6 @@ const AVATAR_COLORS = [
   '#D5F5E6',
   '#F5D5E0',
 ];
-
-function getInitials(name: string): string {
-  const safe = name ?? '';
-  const parts = safe.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
-  return safe.slice(0, 2).toUpperCase() || '??';
-}
 
 function getAvatarColor(name: string): string {
   const safe = name ?? '';
@@ -40,7 +34,6 @@ interface Props {
   member: ManageGroupMember;
   onKick?: (member: ManageGroupMember) => void;
 }
-
 
 export function GroupMemberRow({ member, onKick }: Props) {
   const config = STATUS_CONFIG[member.status];

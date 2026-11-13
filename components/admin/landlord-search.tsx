@@ -4,10 +4,7 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useLandlords } from '@/hooks/use-landlords';
-
-function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
+import { getInitials } from '@/utils/initials';
 
 type Props = {
   selectedId: string | null;

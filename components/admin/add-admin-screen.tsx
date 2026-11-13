@@ -15,15 +15,7 @@ import { useSearchAdminCandidates } from '@/hooks/use-admin-profiles';
 import type { AdminCandidate } from '@/types/admin';
 
 import { styles } from './add-admin-screen.styles';
-
-function getInitials(name: string): string {
-  return name
-    .split(' ')
-    .map((part) => part[0] ?? '')
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
+import { getInitials } from '@/utils/initials';
 
 export function AddAdminScreen() {
   const router = useRouter();

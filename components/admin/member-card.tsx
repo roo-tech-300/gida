@@ -3,7 +3,7 @@ import { StyleSheet, Text, View } from 'react-native';
 
 import { DesignColors, fontFamily } from '@/constants/design';
 import type { AdminMember } from '@/types/admin';
-import { getInitials } from '@/utils/get-initials';
+import { getInitials } from '@/utils/initials';
 
 const ROLE_LABELS: Record<AdminMember['role'], string> = {
   super_admin: 'Super Admin',

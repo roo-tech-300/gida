@@ -19,16 +19,8 @@ import { TourDatePicker } from './tour-date-picker';
 import { TourSlotGrid } from './tour-slot-grid';
 
 import { styles } from './tour-scheduler-modal.styles';
-
-function getInitials(fullName: string): string {
-  return fullName
-    .split(' ')
-    .map((part) => part.charAt(0))
-    .filter(Boolean)
-    .slice(0, 2)
-    .join('')
-    .toUpperCase();
-}
+import { getInitials } from '@/utils/initials';
+import { blockingReserveMessage, shouldRefreshAvailability } from '@/utils/tour-reserve-errors';
 
 export function TourSchedulerModal({
   propertyId,
@@ -96,27 +88,12 @@ export function TourSchedulerModal({
         date: dateKey(selectedDate),
         time: selectedSlot,
       });
-      if (reserve.error === 'slot_full') {
-        queryClient.invalidateQueries({ queryKey: ['tour-availability', propertyId] });
-        showToast({ message: 'That time just filled up. Please pick another slot.', type: 'error' });
-        return;
-      }
-      if (reserve.error === 'admin_unavailable') {
-        queryClient.invalidateQueries({ queryKey: ['tour-availability', propertyId] });
-        showToast({ message: 'This admin is already guiding another tour at that time. Please pick a different slot.', type: 'error' });
-        return;
-      }
-
-      if (reserve.error === 'tours_disabled') {
-        showToast({ message: 'Tours are no longer available for this listing.', type: 'error' });
-        return;
-      }
-      if (reserve.error === 'no_location') {
-        showToast({ message: "This listing doesn't have a mapped location yet, so tours can't be scheduled.", type: 'error' });
-        return;
-      }
-      if (reserve.error === 'listing_not_found') {
-        showToast({ message: 'This listing is no longer available.', type: 'error' });
+      const blockedMessage = blockingReserveMessage(reserve.error);
+      if (blockedMessage) {
+        if (shouldRefreshAvailability(reserve.error)) {
+          queryClient.invalidateQueries({ queryKey: ['tour-availability', propertyId] });
+        }
+        showToast({ message: blockedMessage, type: 'error' });
         return;
       }
 

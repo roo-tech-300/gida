@@ -6,16 +6,13 @@ import { router } from 'expo-router';
 import { useEscapeKey } from '@/components/claim/use-escape-key';
 import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import type { LandlordWithCount } from '@/services/landlord-service';
+import { getInitials } from '@/utils/initials';
 
 type Props = {
   visible: boolean;
   landlord: LandlordWithCount | null;
   onClose: () => void;
 };
-
-function getInitials(name: string): string {
-  return name.split(' ').map((w) => w[0]).join('').toUpperCase().slice(0, 2);
-}
 
 function formatDate(iso: string): string {
   return new Date(iso).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });

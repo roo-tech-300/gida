@@ -9,7 +9,7 @@ import { SearchBar } from '@/components/ui/search-bar';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { useLandlordsPaginated } from '@/hooks/use-landlords-paginated';
 import type { LandlordWithCount } from '@/services/landlord-service';
-import { getInitials } from '@/utils/get-initials';
+import { getInitials } from '@/utils/initials';
 
 export function LandlordContractsScreen() {
   const router = useRouter();

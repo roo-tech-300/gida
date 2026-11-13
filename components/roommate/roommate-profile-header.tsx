@@ -6,17 +6,12 @@ import { useRouter } from 'expo-router';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { RoommateProfile } from '@/types/roommates';
+import { getInitials } from '@/utils/initials';
 
 type Props = {
   roommate: RoommateProfile;
   matchScore?: number;
 };
-
-function getInitials(name: string): string {
-  const parts = name.trim().split(/\s+/);
-  if (parts.length >= 2) return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
-  return parts[0]?.substring(0, 2).toUpperCase() ?? '?';
-}
 
 export function RoommateProfileHeader({ roommate, matchScore }: Props) {
   const router = useRouter();

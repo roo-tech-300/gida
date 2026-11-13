@@ -52,3 +52,7 @@ supabase/.branches/
 worker/.dev.vars
 worker/.wrangler/
 worker/node_modules/
+
+# Local lint dumps and build logs
+_eslint.json
+gradlelogs.txt

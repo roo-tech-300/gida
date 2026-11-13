@@ -17,13 +17,14 @@ import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
-import { isGenderCompatible, podEffectiveGender, podOpenSlotStatus , derivePropertyTier } from '@/utils/liquidity-math';
-import type { Pod } from '@/types/liquidity';
+import { isGenderCompatible, podEffectiveGender, derivePropertyTier } from '@/utils/liquidity-math';
 
 import { generateInviteCode } from '@/services/liquidity-pod-service';
 import { useDraggableSheet } from './use-draggable-sheet';
 import { useEscapeKey } from './use-escape-key';
 import { styles } from './claim-room-modal.styles';
+import { computeClaimPlan, reservationSuccessMessage } from '@/utils/claim-plan';
+import { useJoinOpenPod } from '@/hooks/use-join-open-pod';
 
 type Props = {
   visible: boolean;
@@ -60,33 +61,15 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const hasOpenPods = compatibleOpenPods.length > 0;
 
   useEffect(() => {
-    if (wantsRoommates !== true || openPodsLoading || !openPods) return;
-    console.log('[OpenPods] Checking whether this lodge has an empty slot this user can fill.');
-    if (compatibleOpenPods.length === 0) {
-      console.log('[OpenPods] No — this lodge has no pods that are looking for roommates for this user.');
-      return;
-    }
-    for (const pod of compatibleOpenPods) {
-      const s = podOpenSlotStatus(pod);
-      console.log(
-        `[OpenPods] Yes — this lodge has a pod that has ${s.occupied}/${s.target} member(s), so ${s.available} seat(s) are still free for this user.`,
-      );
-    }
-  }, [wantsRoommates, openPodsLoading, openPods, compatibleOpenPods]);
-
-  useEffect(() => {
     if (!listingLoading && propertyTier <= 1 && wantsRoommates === null) {
       setWantsRoommates(false);
     }
   }, [listingLoading, propertyTier, wantsRoommates]);
 
-  const isBuyout = wantsRoommates === false;
-  const hasFriendsStep = !isBuyout && haveCount > 0;
-  const totalSteps = isBuyout ? 2 : hasFriendsStep ? 5 : 4;
+  const { isBuyout, hasFriendsStep, totalSteps, peopleTotal, matchedCount, codeSeats } = computeClaimPlan(
+    wantsRoommates, roommateCount, haveCount, friends.length,
+  );
   const isConfirmStep = step === totalSteps;
-  const peopleTotal = isBuyout ? 1 : 1 + roommateCount;
-  const matchedCount = isBuyout ? 0 : Math.max(0, roommateCount - haveCount);
-  const codeSeats = isBuyout ? 0 : Math.max(0, haveCount - friends.length);
 
   useEffect(() => {
     if (!visible) {
@@ -123,9 +106,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
 
   const handleReserve = useCallback(async () => {
     if (!dbListing) return;
-    console.log('[ClaimModal] 1. handleReserve called — listingId:', dbListing.id, 'peopleTotal:', peopleTotal);
     try {
-      console.log('[ClaimModal] 2. Calling purchaseSlot...');
       const { credit, podId } = await purchaseSlot({
         listing: dbListing,
         targetOccupancy: peopleTotal,
@@ -133,17 +114,10 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         invitedFriends: friends.map((friend) => ({ id: friend.id, name: friend.name })),
         creatorGender: profile?.gender,
       });
-      console.log('[ClaimModal] 3. purchaseSlot returned — credit.id:', credit.id, 'podId:', podId, 'status:', credit.status);
-      const message = isBuyout
-        ? 'Spot reserved! You\'re all set for solo living.'
-        : matchedCount > 0
-          ? `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`
-          : 'Spot secured! Invite your friends to keep the group together.';
+      const message = reservationSuccessMessage(isBuyout, matchedCount);
       showToast({ message, type: 'success' });
-      console.log('[ClaimModal] 4. Notifying admin...');
       try {
         await notifyAdminOfReservation({ podId, listingId: dbListing.id, creditId: credit.id, userName: profile?.full_name ?? 'A resident' });
-        console.log('[ClaimModal] 5. Admin notified successfully');
       } catch (notifyErr) {
         console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
       }
@@ -155,26 +129,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
     }
   }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.gender]);
 
-  const handleJoinOpenPod = useCallback(
-    async (pod: Pod) => {
-      if (!dbListing || !pod.group_code) return;
-      try {
-        const { credit } = await purchaseSlot({
-          listing: dbListing,
-          targetOccupancy: pod.target_occupancy,
-          joinCode: pod.group_code,
-          source: 'recommendation',
-        });
-        showToast({ message: `You're in! Seat ${pod.current_total_intent + 1} of ${pod.target_occupancy} is yours.`, type: 'success' });
-        onClose();
-        router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
-      } catch (error) {
-        const message = error instanceof Error ? error.message : 'Failed to join the group.';
-        showToast({ message, type: 'error' });
-      }
-    },
-    [dbListing, purchaseSlot, showToast, onClose],
-  );
+  const handleJoinOpenPod = useJoinOpenPod(dbListing, purchaseSlot, onClose);
 
   const canContinue = step === 1 ? wantsRoommates !== null && (wantsRoommates !== true || !openPodsLoading) : true;
 

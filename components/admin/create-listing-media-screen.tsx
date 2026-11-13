@@ -6,7 +6,6 @@ import { requestMediaLibraryPermissionsAsync, launchImageLibraryAsync } from '@/
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useQueryClient } from '@tanstack/react-query';
 
 import { BackButton } from '@/components/ui/back-button';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
@@ -15,28 +14,16 @@ import { ListingGalleryPickerModal } from '@/components/admin/listing-gallery-pi
 import { DesignColors } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
-import { useCreateListing } from '@/hooks/use-create-listing';
-import { uploadListingImage, updateListingPrimaryImage, insertListingPhotos, updateListing, type CreateListingInput } from '@/services/listing-service';
-import { useAppToast } from '@/components/ui/toast-card';
-import { useAuth } from '@/context/auth-context';
-import { supabase } from '@/lib/supabase';
+import { useSaveListing } from '@/hooks/use-save-listing';
 
 import { styles } from './create-listing-media-screen.styles';
 
-function isRemoteUrl(str: string) {
-  return str.startsWith('https://') || str.startsWith('http://');
-}
-
 export function CreateListingMediaScreen() {
-  const { data, setStep5, reset, editListingId } = useCreateListingForm();
-  const { step5, step1, step2, step3, step4 } = data;
-  const { mutateAsync: createMutate } = useCreateListing();
-  const { showToast } = useAppToast();
-  const queryClient = useQueryClient();
-  const { profile } = useAuth();
+  const { data, setStep5, editListingId } = useCreateListingForm();
+  const { step5 } = data;
+  const { publish: handlePublish, isPublishing } = useSaveListing();
   const exitWizard = useExitListingWizard();
   const [pickerOpen, setPickerOpen] = useState(false);
-  const [isPublishing, setIsPublishing] = useState(false);
   const [heroLoading, setHeroLoading] = useState(false);
   const permissionAlert = useCustomAlert();
 
@@ -65,218 +52,6 @@ export function CreateListingMediaScreen() {
     }
     } finally {
       setHeroLoading(false);
-    }
-  };
-
-  const buildListingInput = (): CreateListingInput => {
-    const isFlat = step1.layoutType === 'flat';
-    const bedroomCount = isFlat ? step1.bedrooms : 0;
-    const bathroomCount = isFlat ? step1.bathrooms : step1.layoutType === 'self_contain' ? 1 : 0;
-    return {
-      admin_id: step2.transferAdminId ?? profile?.id ?? '',
-      title: step1.title.trim(),
-      description: step1.description.trim() || null,
-      landlord_id: step1.landlordId,
-      category: 'student_housing',
-      layout_type: step1.layoutType!,
-      price_amount: parseFloat(step1.price.replace(/,/g, '')),
-      lease_term: 'per_annum',
-      units_available: step1.units,
-      number_of_bedrooms: bedroomCount,
-      number_of_bathrooms: bathroomCount,
-      max_roommates: step4.maxRoommates,
-      property_tier: step4.maxRoommates,
-      rules: step4.rulesList,
-      location_landmark: step2.landmark.trim(),
-      city: profile?.city || 'Minna',
-      campus: step2.selectedCampus || step2.selectedSchool,
-      latitude: step2.coords?.latitude ?? null,
-      longitude: step2.coords?.longitude ?? null,
-      is_shared_bathroom: step3.selectedAmenities.includes('is_shared_bathroom'),
-      is_shared_kitchen: step3.selectedAmenities.includes('is_shared_kitchen'),
-      has_borehole: step3.selectedAmenities.includes('has_borehole'),
-      has_generator: step3.selectedAmenities.includes('has_generator'),
-      has_fenced_gate: step3.selectedAmenities.includes('has_fenced_gate'),
-      has_internet: step3.selectedAmenities.includes('has_internet'),
-      has_burglary: step3.selectedAmenities.includes('has_burglary'),
-      has_cabinet: step3.selectedAmenities.includes('has_cabinet'),
-      has_wardrobe: step3.selectedAmenities.includes('has_wardrobe'),
-      custom_features: step3.featuresList,
-      size_sqft: (() => {
-        const num = parseFloat(step1.sizeValue.replace(/,/g, ''));
-        if (isNaN(num)) return null;
-        return step1.sizeUnit === 'sqm' ? Math.round(num * 10.7639) : Math.round(num);
-      })(),
-      total_floors: step1.isStoreyBuilding ? step1.totalFloors : null,
-      region_path: step2.regionPath.length > 0 ? step2.regionPath : null,
-      enable_self_guided_tour: step2.enableSelfGuidedTour,
-      enable_guided_tour: step2.enableGuidedTour,
-    };
-  };
-
-  const handleCreate = async () => {
-    const listingInput = buildListingInput();
-    const { id } = await createMutate(listingInput);
-
-    let primaryUrl = null;
-    if (step5.heroImage) {
-      primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
-      await updateListingPrimaryImage(id, primaryUrl);
-    }
-
-    if (step5.galleryImages.length > 0) {
-      const galleryLocal = step5.galleryImages.filter((u) => !isRemoteUrl(u));
-      const uploads = galleryLocal.map((uri, i) =>
-        uploadListingImage(id, uri, `gallery/${i}.jpg`)
-      );
-      const galleryUrls = await Promise.all(uploads);
-
-      const photos = galleryUrls.map((url, i) => ({
-        listing_id: id,
-        image_url: url,
-        display_order: i + 1,
-      }));
-      await insertListingPhotos(photos);
-    }
-
-    showToast({ message: 'Listing published successfully!', type: 'success' });
-    reset();
-    // Same stale-stack reasoning as handleUpdate: drop the wizard slides
-    // before landing on inventory so back never returns into the wizard.
-    if (router.canDismiss()) {
-      router.dismissAll();
-    }
-    router.replace('/admin/total-inventory');
-  };
-
-  const handleUpdate = async () => {
-    const id = editListingId!;
-
-    const updatePayload: Partial<CreateListingInput> = { ...buildListingInput() };
-    delete updatePayload.category;
-    if (!step2.transferAdminId) {
-      delete updatePayload.admin_id;
-    }
-    await updateListing(id, updatePayload);
-
-    const { data: existingRows } = await supabase
-      .from('listing_photos')
-      .select('image_url')
-      .eq('listing_id', id);
-
-    const existingUrls = (existingRows || []).map((r) => r.image_url).filter(Boolean);
-
-    let newHeroUrl: string | null = null;
-    if (step5.heroImage) {
-      if (isRemoteUrl(step5.heroImage)) {
-        newHeroUrl = step5.heroImage;
-      } else {
-        newHeroUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
-      }
-      await updateListingPrimaryImage(id, newHeroUrl);
-    } else {
-      await updateListingPrimaryImage(id, null);
-    }
-
-    const finalUrls: string[] = [];
-    const newLocalUris: string[] = [];
-
-    for (const item of step5.galleryImages) {
-      if (isRemoteUrl(item)) {
-        finalUrls.push(item);
-      } else {
-        newLocalUris.push(item);
-      }
-    }
-
-    const uploadedNew = await Promise.all(
-      newLocalUris.map((uri, i) => uploadListingImage(id, uri, `gallery/edit-${Date.now()}-${i}.jpg`))
-    );
-    finalUrls.push(...uploadedNew);
-
-    const removedUrls = existingUrls.filter((url) => !finalUrls.includes(url));
-
-    for (const url of removedUrls) {
-      const path = url.split('/listing-images/')[1];
-      if (path) {
-        await supabase.storage.from('listing-images').remove([path]).catch((error: unknown) => console.error('[Listing] Failed to remove storage file:', path, error));
-      }
-    }
-
-    if (existingUrls.length > 0 || finalUrls.length > 0) {
-      await supabase.from('listing_photos').delete().eq('listing_id', id);
-    }
-
-    if (finalUrls.length > 0) {
-      const photos = finalUrls.map((url, i) => ({
-        listing_id: id,
-        image_url: url,
-        display_order: i + 1,
-      }));
-      await insertListingPhotos(photos);
-    }
-
-    queryClient.invalidateQueries({ queryKey: ['listing', id] });
-    queryClient.invalidateQueries({ queryKey: ['listings'] });
-    showToast({ message: 'Listing updated successfully!', type: 'success' });
-    reset();
-    // Clear the wizard slides off the stack first: `replace` alone only swaps
-    // the top route (step 5), leaving steps 1-4 underneath — so the details
-    // screen's back button would pop back into step 4. Dismissing first drops
-    // the whole wizard, then replace lands cleanly on the details page.
-    if (router.canDismiss()) {
-      router.dismissAll();
-    }
-    router.replace(`/admin/listing/${id}`);
-  };
-
-  const handlePublish = async () => {
-    if (!step1.title.trim()) {
-      showToast({ message: 'Title is required. Go back to step 1.', type: 'error' });
-      return;
-    }
-    if (!step1.landlordId) {
-      showToast({ message: 'Please select a landlord in step 1.', type: 'error' });
-      return;
-    }
-    if (!step1.layoutType) {
-      showToast({ message: 'Please select a layout type in step 1.', type: 'error' });
-      return;
-    }
-    if (!step1.price) {
-      showToast({ message: 'Please enter a price in step 1.', type: 'error' });
-      return;
-    }
-    if (step4.maxRoommates < 1 || step4.maxRoommates > 4) {
-      showToast({ message: 'Max roommates must be between 1 and 4 in step 4.', type: 'error' });
-      return;
-    }
-    if (!step2.coords) {
-      showToast({ message: 'Please lock the GPS location in step 2.', type: 'error' });
-      return;
-    }
-    if (!step2.selectedSchool) {
-      showToast({ message: 'Please select a school in step 2.', type: 'error' });
-      return;
-    }
-    if (!step5.heroImage && step5.galleryImages.length === 0) {
-      showToast({ message: 'Please add at least one photo.', type: 'error' });
-      return;
-    }
-
-    setIsPublishing(true);
-    try {
-      if (isEditing) {
-        await handleUpdate();
-      } else {
-        await handleCreate();
-      }
-    } catch (error) {
-      console.error('[CreateListing] Failed to save listing:', error);
-      const msg = error instanceof Error ? error.message : String(error);
-      showToast({ message: msg || 'Failed to save listing.', type: 'error' });
-    } finally {
-      setIsPublishing(false);
     }
   };
 

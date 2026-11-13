@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, type ReactNode } from 'react';
 
-type CreateListingData = {
+export type CreateListingData = {
   step1: {
     title: string;
     description: string;

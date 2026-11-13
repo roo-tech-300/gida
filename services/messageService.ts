@@ -32,6 +32,13 @@ type MessageRow = {
   read_at: string | null;
 };
 
+// Keep in sync with ConversationRow / MessageRow above. Explicit columns avoid
+// fetching jsonb and bookkeeping fields (reply_to, updated_at) the app never reads.
+const CONVERSATION_COLUMNS =
+  'id, participant_a, participant_b, last_message_at, last_message_preview, last_message_sender_id, unread_a, unread_b, created_at';
+const MESSAGE_COLUMNS =
+  'id, conversation_id, sender_id, body, attachment, created_at, client_sent_at, read_at';
+
 type ProfileSummary = {
   id: string;
   name: string;
@@ -98,7 +105,7 @@ export async function getOrCreateConversation(requesterId: string, requestedOthe
 
   let { data, error } = await supabase
     .from('conversations')
-    .select('*')
+    .select(CONVERSATION_COLUMNS)
     .eq('participant_a', a)
     .eq('participant_b', b)
     .maybeSingle();
@@ -112,7 +119,7 @@ export async function getOrCreateConversation(requesterId: string, requestedOthe
     const result = await supabase
       .from('conversations')
       .insert({ participant_a: a, participant_b: b })
-      .select('*')
+      .select(CONVERSATION_COLUMNS)
       .single();
 
     error = result.error;
@@ -121,7 +128,7 @@ export async function getOrCreateConversation(requesterId: string, requestedOthe
       console.log('[MsgService] Duplicate key — refetching existing conversation');
       const refetch = await supabase
         .from('conversations')
-        .select('*')
+        .select(CONVERSATION_COLUMNS)
         .eq('participant_a', a)
         .eq('participant_b', b)
         .maybeSingle();
@@ -156,7 +163,7 @@ export async function fetchMyConversations(myId: string): Promise<Conversation[]
 
   const { data, error } = await supabase
     .from('conversations')
-    .select('*')
+    .select(CONVERSATION_COLUMNS)
     .or(mine + shared)
     .order('last_message_at', { ascending: false, nullsFirst: false })
     .limit(100);
@@ -188,7 +195,7 @@ export async function fetchConversationMessages(
 ): Promise<ServerChatMessage[]> {
   const query = supabase
     .from('messages')
-    .select('*')
+    .select(MESSAGE_COLUMNS)
     .eq('conversation_id', conversationId);
 
   if (from !== undefined && to !== undefined) {
@@ -210,7 +217,7 @@ export async function fetchMessagesPaginated(
 ): Promise<ServerChatMessage[]> {
   const { data, error } = await supabase
     .from('messages')
-    .select('*')
+    .select(MESSAGE_COLUMNS)
     .eq('conversation_id', conversationId)
     .order('client_sent_at', { ascending: false }) // NEWEST FIRST
     .range(from, to);
@@ -238,7 +245,7 @@ export async function sendMessage(input: SendMessageInput): Promise<ServerChatMe
       attachment: input.attachment,
       client_sent_at: input.clientSentAt,
     })
-    .select('*')
+    .select(MESSAGE_COLUMNS)
     .single();
 
   if (error) {

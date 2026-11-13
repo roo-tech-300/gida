@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { resolveImageArrayBuffer } from '@/utils/image-buffer';
+import { compressImage, LISTING_PHOTO_PRESET } from '@/utils/compress-image';
 import { mapDbToFeedListing, type DbListing, type FeedListing } from '@/types/feed-listing';
 
 export async function fetchMyAdminListings(adminId: string): Promise<FeedListing[]> {
@@ -58,16 +59,6 @@ export type CreateListingPhoto = {
 
 const STORAGE_BUCKET = 'listing-images';
 
-function getContentType(fileName: string, uri: string): string {
-  const source = `${fileName} ${uri}`.toLowerCase();
-
-  if (source.includes('.png')) return 'image/png';
-  if (source.includes('.webp')) return 'image/webp';
-  if (source.includes('.heic')) return 'image/heic';
-  if (source.includes('.heif')) return 'image/heif';
-  return 'image/jpeg';
-}
-
 export async function createListing(input: CreateListingInput): Promise<{ id: string }> {
   const { data, error } = await supabase
     .from('listings')
@@ -115,20 +106,30 @@ export async function createListing(input: CreateListingInput): Promise<{ id: st
   return data as { id: string };
 }
 
+/** One year. Safe because every upload gets a unique path and is never overwritten. */
+const IMAGE_CACHE_SECONDS = '31536000';
+
+function uniquePhotoPath(listingId: string, fileName: string): string {
+  const stem = fileName.replace(/\.[^./]+$/, '');
+  const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
+  return `${listingId}/${stem}-${suffix}.jpg`;
+}
+
 export async function uploadListingImage(
   listingId: string,
   localUri: string,
   fileName: string,
 ): Promise<string> {
-  const filePath = `${listingId}/${fileName}`;
-  const contentType = getContentType(fileName, localUri);
-  const fileBuffer = await resolveImageArrayBuffer(localUri);
+  const filePath = uniquePhotoPath(listingId, fileName);
+  const compressedUri = await compressImage(localUri, LISTING_PHOTO_PRESET);
+  const fileBuffer = await resolveImageArrayBuffer(compressedUri);
 
   const { error: uploadError } = await supabase.storage
     .from(STORAGE_BUCKET)
     .upload(filePath, fileBuffer, {
-      contentType,
-      upsert: true,
+      contentType: 'image/jpeg',
+      cacheControl: IMAGE_CACHE_SECONDS,
+      upsert: false,
     });
 
   if (uploadError) throw uploadError;

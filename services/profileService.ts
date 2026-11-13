@@ -1,5 +1,6 @@
 import { supabase } from '@/lib/supabase';
 import { resolveImageArrayBuffer } from '@/utils/image-buffer';
+import { compressImage, AVATAR_PRESET } from '@/utils/compress-image';
 import type { OnboardingData } from '@/types/onboarding';
 
 export type ProfileRecord = {
@@ -77,26 +78,24 @@ export async function completeOnboardingProfile(userId: string): Promise<void> {
 
 const AVATAR_BUCKET = 'avatars';
 
-function getContentType(uri: string): string {
-  const lower = uri.toLowerCase();
-  if (lower.endsWith('.png')) return 'image/png';
-  if (lower.endsWith('.webp')) return 'image/webp';
-  if (lower.endsWith('.heic')) return 'image/heic';
-  if (lower.endsWith('.heif')) return 'image/heif';
-  return 'image/jpeg';
-}
+const AVATAR_CACHE_SECONDS = '31536000';
 
 export async function uploadAvatar(
   userId: string,
   localUri: string,
 ): Promise<string> {
-  const filePath = `${userId}/avatar.jpg`;
-  const contentType = getContentType(localUri);
-  const fileBuffer = await resolveImageArrayBuffer(localUri);
+  // A new path per upload: the old one is cached for a year, so overwriting it would show stale avatars.
+  const filePath = `${userId}/avatar-${Date.now().toString(36)}.jpg`;
+  const compressedUri = await compressImage(localUri, AVATAR_PRESET);
+  const fileBuffer = await resolveImageArrayBuffer(compressedUri);
 
   const { error: uploadError } = await supabase.storage
     .from(AVATAR_BUCKET)
-    .upload(filePath, fileBuffer, { contentType, upsert: true });
+    .upload(filePath, fileBuffer, {
+      contentType: 'image/jpeg',
+      cacheControl: AVATAR_CACHE_SECONDS,
+      upsert: false,
+    });
 
   if (uploadError) throw uploadError;
 
@@ -113,5 +112,23 @@ export async function uploadAvatar(
 
   if (dbError) throw dbError;
 
+  await removeOldAvatars(userId, filePath);
+
   return publicUrl;
+}
+
+/** Best-effort cleanup so replaced avatars don't pile up in storage. */
+async function removeOldAvatars(userId: string, keepPath: string): Promise<void> {
+  try {
+    const { data: files, error } = await supabase.storage.from(AVATAR_BUCKET).list(userId);
+    if (error) throw error;
+    const stale = (files ?? [])
+      .map((file) => `${userId}/${file.name}`)
+      .filter((path) => path !== keepPath);
+    if (stale.length === 0) return;
+    const { error: removeError } = await supabase.storage.from(AVATAR_BUCKET).remove(stale);
+    if (removeError) throw removeError;
+  } catch (error) {
+    console.error('[uploadAvatar] Failed to clean up old avatars:', error);
+  }
 }

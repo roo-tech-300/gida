@@ -1,17 +1,19 @@
 import { useCallback, useState } from 'react';
-import { ActivityIndicator, Pressable, RefreshControl, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, TextInput, View } from 'react-native';
 import { Image } from 'expo-image';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import { useAuth } from '@/context/auth-context';
 import { useAdminLodgeDetail, useAcceptLodgeReservation, useRejectLodgeReservation } from '@/hooks/use-admin-lodge-reservations';
 import { useAppToast } from '@/components/ui/toast-card';
 import { notifyUserOfDecision } from '@/services/lodge-reservation-notify';
 import { formatNaira } from '@/utils/format-naira';
 import type { AdminLodgeDetail, AdminLodgeMember } from '@/services/admin-lodge-verification-service';
+
+import { styles } from './lodge-reservation-detail-screen.styles';
 
 export function LodgeReservationDetailScreen({ podId }: { podId: string }) {
   const { profile } = useAuth();
@@ -278,168 +280,3 @@ function formatCreatedDate(iso: string): string {
   if (Number.isNaN(date.getTime())) return iso;
   return date.toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' });
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingVertical: DesignSpacing.sm,
-  },
-  closeButton: {
-    width: 36,
-    height: 36,
-    borderRadius: DesignRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.borderSoft,
-  },
-  title: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
-  centered: { flex: 1, alignItems: 'center', justifyContent: 'center', gap: DesignSpacing.md, padding: DesignSpacing.lg },
-  errorTitle: { ...DesignTypography.titleMd, color: DesignColors.onSurface, fontFamily, textAlign: 'center' },
-  retryButton: {
-    paddingHorizontal: DesignSpacing.lg,
-    paddingVertical: 10,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.primary,
-  },
-  retryText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimary, fontFamily, fontWeight: '600' },
-  content: { padding: DesignSpacing.marginMobile, gap: DesignSpacing.md, paddingBottom: DesignSpacing.xl * 2 },
-  card: {
-    backgroundColor: DesignColors.glassFill,
-    borderRadius: DesignRadius.xl,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    padding: DesignSpacing.lg,
-    gap: DesignSpacing.md,
-  },
-  propertyCard: { flexDirection: 'row', alignItems: 'center' },
-  propertyImage: {
-    width: 72,
-    height: 72,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.surfaceContainer,
-  },
-  propertyImageFallback: {
-    width: 72,
-    height: 72,
-    borderRadius: DesignRadius.lg,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.primaryTint,
-  },
-  propertyBody: { flex: 1, gap: 4 },
-  propertyTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  propertyMeta: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  propertyPrice: { ...DesignTypography.headlineMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
-  sectionTitle: { ...DesignTypography.bodyLg, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  emptyMembers: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  memberRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
-  memberAvatar: {
-    width: 36,
-    height: 36,
-    borderRadius: DesignRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.primaryTint,
-  },
-  memberAvatarText: { ...DesignTypography.bodyMd, color: DesignColors.primaryBright, fontFamily, fontWeight: '700' },
-  memberBody: { flex: 1, gap: 2 },
-  memberName: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  memberAmount: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  infoRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
-  infoIcon: {
-    width: 28,
-    height: 28,
-    borderRadius: DesignRadius.full,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: DesignColors.borderSoft,
-  },
-  rowLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flex: 1 },
-  rowValue: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  actionsRow: {
-    flexDirection: 'row',
-    gap: DesignSpacing.md,
-  },
-  rejectButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.full,
-    borderWidth: 1,
-    borderColor: DesignColors.error,
-    backgroundColor: DesignColors.errorContainer,
-  },
-  rejectText: { ...DesignTypography.bodyMd, color: DesignColors.error, fontFamily, fontWeight: '700' },
-  acceptButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: 6,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.primary,
-  },
-  acceptText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimary, fontFamily, fontWeight: '700' },
-  buttonDisabled: { opacity: 0.5 },
-  rejectionCard: {
-    flexDirection: 'row',
-    gap: DesignSpacing.sm,
-    padding: DesignSpacing.md,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.errorContainer,
-    borderWidth: 1,
-    borderColor: DesignColors.error,
-  },
-  rejectionBody: { flex: 1, gap: 4 },
-  rejectionLabel: { ...DesignTypography.labelSm, color: DesignColors.error, fontFamily, fontWeight: '700' },
-  rejectionReason: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, lineHeight: 22 },
-  modalOverlay: {
-    ...StyleSheet.absoluteFill,
-    backgroundColor: 'rgba(0,0,0,0.5)',
-    alignItems: 'center',
-    justifyContent: 'center',
-    zIndex: 100,
-  },
-  modalContent: {
-    width: '85%',
-    backgroundColor: DesignColors.surfaceContainerLowest,
-    borderRadius: DesignRadius.xl,
-    padding: DesignSpacing.lg,
-    gap: DesignSpacing.md,
-  },
-  modalTitle: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  modalSubtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  modalInput: {
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    borderRadius: DesignRadius.lg,
-    padding: DesignSpacing.md,
-    minHeight: 80,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-  },
-  modalActions: { flexDirection: 'row', gap: DesignSpacing.md, justifyContent: 'flex-end' },
-  modalCancel: {
-    paddingHorizontal: DesignSpacing.lg,
-    paddingVertical: 10,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.borderSoft,
-  },
-  modalCancelText: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '600' },
-  modalConfirm: {
-    paddingHorizontal: DesignSpacing.lg,
-    paddingVertical: 10,
-    borderRadius: DesignRadius.full,
-    backgroundColor: DesignColors.error,
-  },
-  modalConfirmText: { ...DesignTypography.bodyMd, color: DesignColors.onPrimary, fontFamily, fontWeight: '700' },
-});

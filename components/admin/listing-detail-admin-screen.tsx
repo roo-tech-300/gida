@@ -1,11 +1,11 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignSpacing } from '@/constants/design';
 import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { dbToListingForm } from '@/types/feed-listing';
 import { deleteListing } from '@/services/listing-service';
@@ -15,6 +15,8 @@ import { PropertyHeroHeader } from '@/components/property/property-hero-header';
 import { PropertyBottomSheet } from '@/components/property/property-bottom-sheet';
 import { PropertyPhotos } from '@/components/property/property-photos';
 import { ListingDeleteModal } from './listing-delete-modal';
+
+import { styles } from './listing-detail-admin-screen.styles';
 
 const HERO_HEIGHT = 340;
 
@@ -177,222 +179,3 @@ function TourAvailabilityState({ dbListing }: { dbListing: DbListing }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: {
-    flex: 1,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-  },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: DesignColors.successContainer,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: DesignSpacing.sm,
-  },
-  statusText: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.secondary,
-    fontFamily,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  title: {
-    ...DesignTypography.headlineLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '800',
-    marginBottom: DesignSpacing.xs,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: DesignSpacing.lg,
-  },
-  location: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  priceSection: {
-    marginBottom: DesignSpacing.lg,
-  },
-  priceLabel: {
-    ...DesignTypography.labelCaps,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    marginBottom: 4,
-  },
-  price: {
-    fontSize: 32,
-    fontWeight: '800',
-    color: DesignColors.primaryBright,
-    fontFamily,
-    letterSpacing: -0.5,
-  },
-  statsRow: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    paddingVertical: DesignSpacing.md,
-    marginBottom: DesignSpacing.lg,
-  },
-  statItem: {
-    flex: 1,
-    alignItems: 'center',
-    gap: 2,
-  },
-  statValue: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  statLabel: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-  },
-  overviewSection: {
-    marginBottom: DesignSpacing.lg,
-  },
-  sectionTitle: {
-    ...DesignTypography.headlineMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    marginBottom: DesignSpacing.sm,
-  },
-  description: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 24,
-  },
-  amenitiesSection: {
-    marginBottom: DesignSpacing.xl,
-  },
-  amenitiesGrid: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: DesignSpacing.sm,
-  },
-  amenityCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    width: '48%',
-    backgroundColor: DesignColors.surfaceContainerLow,
-    paddingHorizontal: DesignSpacing.md,
-    paddingVertical: DesignSpacing.md,
-    borderRadius: DesignRadius.sm,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-  },
-  amenityText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-  },
-  tourStateSection: {
-    marginBottom: DesignSpacing.xl,
-  },
-  tourCard: {
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.sm,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    padding: DesignSpacing.md,
-    gap: DesignSpacing.sm,
-  },
-  tourRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-  },
-  tourLabel: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-  },
-  tourPill: {
-    paddingHorizontal: 12,
-    paddingVertical: 4,
-    borderRadius: 999,
-    borderWidth: 1,
-  },
-  tourPillOn: {
-    backgroundColor: DesignColors.successContainer,
-    borderColor: DesignColors.successContainer,
-  },
-  tourPillOff: {
-    backgroundColor: DesignColors.dangerContainer,
-    borderColor: DesignColors.dangerContainer,
-  },
-  tourPillText: {
-    ...DesignTypography.labelSm,
-    fontFamily,
-    fontWeight: '700',
-  },
-  tourPillTextOn: {
-    color: DesignColors.success,
-  },
-  tourPillTextOff: {
-    color: DesignColors.danger,
-  },
-  tourNote: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 20,
-  },
-  actionBar: {
-    position: 'absolute',
-    bottom: 0,
-    left: 0,
-    right: 0,
-    flexDirection: 'row',
-    gap: DesignSpacing.sm,
-    paddingHorizontal: DesignSpacing.marginMobile,
-    paddingVertical: DesignSpacing.md,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderTopWidth: 1,
-    borderTopColor: 'DesignColors.cardBorder',
-  },
-  editBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: DesignSpacing.sm,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  editText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onPrimaryContainer,
-    fontFamily,
-    fontWeight: '700',
-  },
-  deleteBtn: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: DesignSpacing.sm,
-    paddingVertical: 14,
-    borderRadius: DesignRadius.lg,
-    backgroundColor: DesignColors.dangerContainer,
-    borderWidth: 1,
-    borderColor: DesignColors.dangerContainer,
-  },
-  deleteText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.danger,
-    fontFamily,
-    fontWeight: '700',
-  },
-});

@@ -1,0 +1,96 @@
+import { StyleSheet } from 'react-native';
+import { DesignColors, fontFamily } from '@/constants/design';
+
+export const styles = StyleSheet.create({
+  root: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  backdrop: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
+  list: { flex: 1 },
+  item: { flex: 1 },
+  slide: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: DesignColors.surfaceContainerLowest,
+  },
+  imageFrame: {
+    width: '100%',
+    height: '100%',
+  },
+  image: {
+    width: '100%',
+    height: '100%',
+  },
+  topBar: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingHorizontal: 16,
+    paddingVertical: 12,
+    backgroundColor: DesignColors.scrim,
+  },
+  closeBtn: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: DesignColors.cardBorder,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  counter: {
+    color: DesignColors.onSurface,
+    fontFamily,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+  },
+  actionGhost: { width: 40 },
+  hintWrap: {
+    position: 'absolute',
+    left: 0,
+    right: 0,
+    top: 84,
+    alignItems: 'center',
+  },
+  hintText: {
+    color: DesignColors.onSurfaceVariant,
+    fontSize: 10,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    fontFamily,
+  },
+  bottomBadge: {
+    position: 'absolute',
+    left: 16,
+    right: 16,
+    alignItems: 'center',
+    gap: 10,
+  },
+  bottomBadgeText: {
+    color: DesignColors.onSurface,
+    fontSize: 12,
+    fontWeight: '700',
+    letterSpacing: 1.2,
+    textTransform: 'uppercase',
+    fontFamily,
+  },
+  dotsRow: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 6,
+  },
+  dot: {
+    width: 6,
+    height: 6,
+    borderRadius: 3,
+    backgroundColor: DesignColors.borderStrong,
+  },
+  dotActive: {
+    width: 24,
+    backgroundColor: DesignColors.primary,
+  },
+});

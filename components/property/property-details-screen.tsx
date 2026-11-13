@@ -1,10 +1,10 @@
 import { useMemo, useState } from 'react';
-import { Pressable, StyleSheet, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { router } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 
-import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import type { FeedListing, DbListing } from '@/types/feed-listing';
 import { useCreditForListing } from '@/hooks/use-liquidity';
 import { usePendingInvitationForListing } from '@/hooks/use-lodge-invitations';
@@ -30,6 +30,8 @@ import { BookTourModal } from './book-tour-modal';
 import { PropertyRulesCard } from './property-rules-card';
 import { PropertyReviewsSection } from './property-reviews-section';
 import { AddReviewForm } from './add-review-form';
+
+import { styles } from './property-details-screen.styles';
 
 const HERO_HEIGHT = 340;
 
@@ -292,128 +294,3 @@ function StatItem({ label, value }: { label: string; value: string }) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surface },
-  statusBadge: {
-    alignSelf: 'flex-start',
-    backgroundColor: DesignColors.successContainer,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 999,
-    marginBottom: DesignSpacing.sm,
-  },
-  statusText: {
-    ...DesignTypography.labelSm,
-    color: DesignColors.secondary,
-    fontFamily,
-    fontWeight: '700',
-    letterSpacing: 1,
-  },
-  title: {
-    ...DesignTypography.headlineLg,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '800',
-    marginBottom: DesignSpacing.xs,
-  },
-  locationRow: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 4,
-    marginBottom: DesignSpacing.lg,
-  },
-  location: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily },
-  priceSection: { marginBottom: DesignSpacing.lg, gap: 2 },
-  priceNote: { ...DesignTypography.labelLg, color: DesignColors.onSurfaceVariant, fontFamily },
-  price: { fontSize: 32, fontWeight: '800', color: DesignColors.primaryBright, fontFamily, letterSpacing: -0.5 },
-  statsRow: {
-    flexDirection: 'row',
-    borderTopWidth: 1,
-    borderBottomWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    paddingVertical: DesignSpacing.md,
-    marginBottom: DesignSpacing.lg,
-  },
-  statItem: { flex: 1, alignItems: 'center', gap: 2 },
-  statValue: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily, fontWeight: '700' },
-  statLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  overviewSection: { marginBottom: DesignSpacing.xl },
-  sectionTitleRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, marginBottom: DesignSpacing.md },
-  sectionTitleBar: { width: 3, height: 14, borderRadius: 2, backgroundColor: DesignColors.primaryBright },
-  sectionTitle: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily, letterSpacing: 1.4 },
-  description: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, lineHeight: 24 },
-  reviewLimitCard: {
-    marginBottom: DesignSpacing.lg,
-    padding: DesignSpacing.md,
-    borderRadius: DesignRadius.md,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    gap: DesignSpacing.xs,
-  },
-  reviewLimitTitle: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  reviewLimitText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 22,
-  },
-  viewAllReviewsButton: {
-    marginBottom: DesignSpacing.xl,
-    flexDirection: 'row',
-    justifyContent: 'center',
-    alignItems: 'center',
-    gap: 6,
-    paddingVertical: DesignSpacing.md,
-    borderRadius: DesignRadius.md,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerLow,
-  },
-  viewAllReviewsText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.primary,
-    fontFamily,
-    fontWeight: '700',
-  },
-  reviewErrorCard: {
-    marginBottom: DesignSpacing.lg,
-    padding: DesignSpacing.md,
-    borderRadius: DesignRadius.md,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    backgroundColor: DesignColors.surfaceContainerLow,
-    gap: DesignSpacing.sm,
-  },
-  reviewErrorTitle: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '700',
-  },
-  reviewErrorText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurfaceVariant,
-    fontFamily,
-    lineHeight: 22,
-  },
-  reviewRetryButton: {
-    alignSelf: 'flex-start',
-    paddingHorizontal: DesignSpacing.md,
-    paddingVertical: DesignSpacing.sm,
-    borderRadius: DesignRadius.sm,
-    backgroundColor: DesignColors.primary,
-  },
-  reviewRetryText: {
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onPrimary,
-    fontFamily,
-    fontWeight: '700',
-  },
-});

@@ -1,4 +1,4 @@
-import { Platform, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -8,9 +8,11 @@ import { BackButton } from '@/components/ui/back-button';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { LandlordSearch } from '@/components/admin/landlord-search';
 import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
-import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors } from '@/constants/design';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useAppToast } from '@/components/ui/toast-card';
+
+import { styles } from './create-listing-core-specs-screen.styles';
 
 const layoutOptions: { key: 'self_contain' | 'single_room' | 'flat'; label: string; icon: keyof typeof Ionicons.glyphMap }[] = [
   { key: 'single_room', label: 'Single Room', icon: 'albums-outline' },
@@ -287,103 +289,3 @@ export function CreateListingCoreSpecsScreen() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
-  topBar: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: 20, paddingVertical: 8,
-  },
-  stepIndicator: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  scroll: { flex: 1 },
-  content: { paddingHorizontal: 24, gap: 24, paddingBottom: 24 },
-  hero: { paddingTop: 8 },
-  heroTitle: { fontSize: 28, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.5 },
-  heroSub: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, marginTop: 4 },
-  fieldGroup: { gap: 8 },
-  label: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
-  optional: { fontSize: 11, fontWeight: '400', color: DesignColors.divider, fontFamily },
-  glassInput: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
-    borderWidth: 1, borderColor: DesignColors.cardBorder,
-  },
-  inputRounded: { borderRadius: 20 },
-  glassBlur: { ...StyleSheet.absoluteFill, pointerEvents: 'none' },
-  textInput: {
-    flex: 1, paddingHorizontal: 16, paddingVertical: 14,
-    color: DesignColors.onSurface, fontSize: 16, fontFamily,
-  },
-  layoutRow: { flexDirection: 'row', gap: 12 },
-  layoutCard: {
-    flex: 1, borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
-    borderWidth: 1, borderColor: DesignColors.cardBorder,
-    padding: 16, alignItems: 'center', gap: 8,
-  },
-  layoutCardActive: {
-    borderColor: DesignColors.primary,
-    backgroundColor: DesignColors.primaryContainer,
-  },
-  layoutLabel: { ...DesignTypography.labelSm, color: DesignColors.onSurfaceVariant, fontFamily },
-  layoutLabelActive: { color: DesignColors.onSurface },
-  pricingRow: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  currencySign: { fontSize: 20, fontWeight: '700', color: DesignColors.primary, fontFamily, paddingLeft: 16 },
-  termBadge: {
-    borderRadius: 12,
-    backgroundColor: DesignColors.primaryContainer,
-    borderWidth: 1,
-    borderColor: DesignColors.primaryContainer,
-    paddingHorizontal: 16,
-    paddingVertical: 14,
-  },
-  termBadgeText: { fontSize: 16, fontWeight: '600', color: DesignColors.onPrimaryContainer, fontFamily },
-  unitCard: { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', padding: 16, gap: 12 },
-  unitLeft: { flex: 1, flexShrink: 1, gap: 2 },
-  unitDesc: { ...DesignTypography.bodyMd, color: DesignColors.onSurface, fontFamily },
-  stepper: { flexDirection: 'row', alignItems: 'center', gap: 8, flexShrink: 0 },
-  stepperBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    borderWidth: 1, borderColor: DesignColors.glassBorder,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  unitCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, minWidth: 32, textAlign: 'center' },
-  ctaRow: { flexDirection: 'row', justifyContent: 'flex-end', paddingHorizontal: 24, paddingTop: 16, paddingBottom: Platform.OS === 'ios' ? 34 : 24 },
-  ctaBtn: {
-    width: 56, height: 56, borderRadius: 28,
-    backgroundColor: DesignColors.primaryContainer, alignItems: 'center', justifyContent: 'center',
-    shadowColor: DesignColors.primaryContainer,
-    shadowOffset: { width: 0, height: 4 }, shadowOpacity: 0.3, shadowRadius: 16, elevation: 8,
-  },
-  ctaBtnDisabled: { opacity: 0.4 },
-
-  roomRow: { flexDirection: 'row', gap: 12 },
-  roomCard: {
-    borderRadius: 12, overflow: 'hidden', backgroundColor: DesignColors.glassBg,
-    borderWidth: 1, borderColor: DesignColors.cardBorder, padding: 16, gap: 12, alignItems: 'center',
-  },
-  roomCardBlur: { ...StyleSheet.absoluteFill, pointerEvents: 'none' },
-  roomLabel: { ...DesignTypography.labelSm, fontWeight: '600', color: DesignColors.onSurface, fontFamily },
-  roomStepper: { flexDirection: 'row', alignItems: 'center', gap: 12 },
-  roomBtn: {
-    width: 36, height: 36, borderRadius: 18,
-    borderWidth: 1, borderColor: DesignColors.glassBorder,
-    alignItems: 'center', justifyContent: 'center',
-  },
-  roomCount: { ...DesignTypography.headlineMd, color: DesignColors.primary, fontFamily, width: 28, textAlign: 'center' },
-
-  sizeRow: { flexDirection: 'row', gap: 12, alignItems: 'center' },
-  sizePills: {
-    flexDirection: 'row', borderRadius: 9999, overflow: 'hidden',
-    backgroundColor: DesignColors.glassBg, borderWidth: 1, borderColor: DesignColors.cardBorder,
-    padding: 4,
-  },
-  sizePill: { paddingHorizontal: 14, paddingVertical: 10, borderRadius: 9999 },
-  sizePillActive: { backgroundColor: DesignColors.primaryContainer },
-  sizePillText: { fontSize: 13, fontWeight: '600', color: DesignColors.onSurfaceVariant, fontFamily },
-  sizePillTextActive: { color: DesignColors.onSurface },
-  fieldHint: { fontSize: 11, color: DesignColors.onSurfaceVariant, fontFamily, paddingLeft: 4, opacity: 0.6 },
-
-  checkRow: { flexDirection: 'row', alignItems: 'center', gap: 12, paddingVertical: 4 },
-  checkbox: { width: 22, height: 22, borderRadius: 6, borderWidth: 2, borderColor: DesignColors.outline, alignItems: 'center', justifyContent: 'center' },
-  checkboxActive: { backgroundColor: DesignColors.primary, borderColor: DesignColors.primary },
-  checkLabel: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, fontFamily, flex: 1 },
-});

@@ -14,8 +14,9 @@ import { activeFilterCount, applyPlaceFilters } from '@/utils/place-filters';
 
 import { DiscoverHeader } from './discover-header';
 import { DiscoverSearchField } from './discover-search-field';
-import { FeedSegmented, type FeedMode } from './feed-segmented';
-import { PlaceFilterBar } from './place-filter-bar';
+import type { FeedMode } from './feed-segmented';
+import { PlaceFilterButton } from './place-filter-button';
+import { PlaceFiltersSheet } from './place-filters-sheet';
 import { PlacesFeed } from './places-feed';
 import { PeopleGrid } from './people-grid';
 
@@ -25,6 +26,7 @@ const PEOPLE_PLACEHOLDER = 'Search by name, level or interest…';
 export function DiscoverHomeScreen() {
   const router = useRouter();
   const [mode, setMode] = useState<FeedMode>('places');
+  const [filtersOpen, setFiltersOpen] = useState(false);
   const searchRef = useRef<SearchScreenRef>(null);
 
   const places = useDiscoverPlaces();
@@ -54,16 +56,26 @@ export function DiscoverHomeScreen() {
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>
-      <DiscoverHeader savedCount={savedIds.length} onOpenSaved={() => router.push('/saved')} />
-      <FeedSegmented mode={mode} onChange={setMode} />
+      <DiscoverHeader savedCount={savedIds.length} onOpenSaved={() => router.push('/saved')} mode={mode} onModeChange={setMode} />
 
       {mode === 'places' ? (
         <View style={styles.flex}>
-          {/* Pinned above the list so the filters never scroll out of reach. */}
+          {/* One compact row: search plus a filter button (filters live in a sheet). */}
           <View style={styles.pinned}>
-            <DiscoverSearchField placeholder={SEARCH_PLACEHOLDER} onPress={openSearch} />
-            <PlaceFilterBar filters={filters} onChange={update} onClear={clear} />
+            <DiscoverSearchField
+              placeholder={SEARCH_PLACEHOLDER}
+              onPress={openSearch}
+              trailing={<PlaceFilterButton count={filterCount} onPress={() => setFiltersOpen(true)} />}
+            />
           </View>
+          <PlaceFiltersSheet
+            visible={filtersOpen}
+            filters={filters}
+            resultCount={visible.length}
+            onChange={update}
+            onClear={clear}
+            onClose={() => setFiltersOpen(false)}
+          />
           <PlacesFeed
             listings={visible}
             likedIds={likedIds}
@@ -103,5 +115,5 @@ const styles = StyleSheet.create({
   safe: { flex: 1, backgroundColor: DesignColors.surfaceContainerLowest },
   flex: { flex: 1 },
   headerStack: { gap: DesignSpacing.md, paddingTop: DesignSpacing.md },
-  pinned: { gap: DesignSpacing.sm, paddingTop: DesignSpacing.md, paddingBottom: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest },
+  pinned: { paddingTop: DesignSpacing.xs, paddingBottom: DesignSpacing.sm, backgroundColor: DesignColors.surfaceContainerLowest },
 });

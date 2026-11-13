@@ -1,6 +1,6 @@
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 
-import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 
 export type FeedMode = 'places' | 'people';
 
@@ -36,10 +36,10 @@ export function FeedSegmented({ mode, onChange }: Props) {
 
 const styles = StyleSheet.create({
   track: {
-    flexDirection: 'row', marginHorizontal: DesignSpacing.marginMobile, padding: 4, borderRadius: 24,
+    flex: 1, flexDirection: 'row', padding: 3, borderRadius: 20,
     backgroundColor: DesignColors.surfaceContainerLow, borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
-  segment: { flex: 1, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center' },
+  segment: { flex: 1, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center' },
   segmentActive: { backgroundColor: DesignColors.primary },
   label: { ...DesignTypography.labelLg, color: DesignColors.onSurfaceVariant, fontFamily },
   labelActive: { color: DesignColors.onPrimary, fontWeight: '700' },

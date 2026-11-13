@@ -3,13 +3,16 @@ import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignSpacing, fontFamily } from '@/constants/design';
 
-type Props = { savedCount: number; onOpenSaved: () => void };
+import { FeedSegmented, type FeedMode } from './feed-segmented';
 
-/** Screen title plus the heart that opens the saved shortlist (saved is no longer a tab). */
-export function DiscoverHeader({ savedCount, onOpenSaved }: Props) {
+type Props = { savedCount: number; onOpenSaved: () => void; mode: FeedMode; onModeChange: (mode: FeedMode) => void };
+
+/** One row: title, Places/People switch, and the heart that opens the saved shortlist (saved is no longer a tab). */
+export function DiscoverHeader({ savedCount, onOpenSaved, mode, onModeChange }: Props) {
   return (
     <View style={styles.row}>
       <Text style={styles.title}>Discover</Text>
+      <FeedSegmented mode={mode} onChange={onModeChange} />
       <Pressable
         onPress={onOpenSaved}
         style={styles.heart}
@@ -30,12 +33,12 @@ export function DiscoverHeader({ savedCount, onOpenSaved }: Props) {
 
 const styles = StyleSheet.create({
   row: {
-    flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between',
-    paddingHorizontal: DesignSpacing.marginMobile, paddingTop: DesignSpacing.sm, paddingBottom: DesignSpacing.md,
+    flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm,
+    paddingHorizontal: DesignSpacing.marginMobile, paddingTop: DesignSpacing.sm, paddingBottom: DesignSpacing.sm,
   },
-  title: { fontSize: 30, lineHeight: 36, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.6 },
+  title: { fontSize: 24, lineHeight: 30, fontWeight: '800', color: DesignColors.onSurface, fontFamily, letterSpacing: -0.6 },
   heart: {
-    width: 44, height: 44, borderRadius: 22, alignItems: 'center', justifyContent: 'center',
+    width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center',
     backgroundColor: DesignColors.surfaceContainerLow, borderWidth: 1, borderColor: DesignColors.borderSoft,
   },
   badge: {

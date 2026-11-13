@@ -18,6 +18,7 @@
   ],
   "exclude": [
     "worker",
+    "worker-images",
     "supabase/functions"
   ]
 }

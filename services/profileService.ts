@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { resolveImageArrayBuffer } from '@/utils/image-buffer';
 import { compressImage, AVATAR_PRESET } from '@/utils/compress-image';
 import type { OnboardingData } from '@/types/onboarding';
+import { toCdnImageUrl } from '@/utils/image-cdn';
 
 export type ProfileRecord = {
   id: string;
@@ -103,7 +104,7 @@ export async function uploadAvatar(
     .from(AVATAR_BUCKET)
     .getPublicUrl(filePath);
 
-  const publicUrl = urlData.publicUrl;
+  const publicUrl = toCdnImageUrl(urlData.publicUrl);
 
   const { error: dbError } = await supabase
     .from('profiles')

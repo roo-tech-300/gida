@@ -2,6 +2,7 @@ import { supabase } from '@/lib/supabase';
 import { resolveImageArrayBuffer } from '@/utils/image-buffer';
 import { compressImage, LISTING_PHOTO_PRESET } from '@/utils/compress-image';
 import { mapDbToFeedListing, type DbListing, type FeedListing } from '@/types/feed-listing';
+import { toCdnImageUrl } from '@/utils/image-cdn';
 
 export async function fetchMyAdminListings(adminId: string): Promise<FeedListing[]> {
   const { data, error } = await supabase
@@ -138,7 +139,7 @@ export async function uploadListingImage(
     .from(STORAGE_BUCKET)
     .getPublicUrl(filePath);
 
-  return publicUrlData.publicUrl;
+  return toCdnImageUrl(publicUrlData.publicUrl);
 }
 
 export async function updateListingPrimaryImage(

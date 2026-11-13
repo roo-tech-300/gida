@@ -50,3 +50,16 @@ Already planned for video in `media-server/README.md`. Zero code: point a pull z
 1. Rewrite saved URLs once (listings.primary_image, listing_photos.image_url, profiles.avatar_url)
    with a SQL `replace()` on the host prefix, and use the CDN host for new uploads.
 2. Old app builds keep working because the Supabase URLs still resolve.
+
+## Status (deployed)
+- Worker: `worker-images/`, live at `https://gida-images.gidamedia.workers.dev`.
+  Redeploy: `cd worker-images && npx wrangler deploy --var SUPABASE_URL:https://<project>.supabase.co`
+  (needs `CLOUDFLARE_API_TOKEN` with the "Edit Cloudflare Workers" template).
+- Caching: new uploads have unique names and are cached a year. Legacy fixed names
+  (`avatar.jpg`, `hero.jpg`, `gallery/<n>.jpg`) are cached one hour because old app builds overwrite them.
+- App: `utils/image-cdn.ts` rewrites URLs of new uploads when `EXPO_PUBLIC_IMAGE_CDN_URL` is set
+  (add it as a GitHub secret named `EXPO_PUBLIC_IMAGE_CDN_URL`, value `https://gida-images.gidamedia.workers.dev`,
+  and to `.env` for local runs). Unset means Supabase URLs are used unchanged.
+- Existing rows: `supabase/migrations/20261117000000_image_cdn_urls.sql` rewrites saved URLs and backs the old
+  values up in `image_url_rewrite_backup`. Undo: `supabase/rollbacks/20261117000000_image_cdn_urls.down.sql`.
+- Not rewritten: image URLs snapshotted inside chat message attachments. They still resolve on Supabase.

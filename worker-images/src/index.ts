@@ -4,6 +4,16 @@ interface Env {
 
 const ALLOWED_PATH = /^\/(listing-images|place-photos|avatars)\/[^?#]+$/;
 const ONE_YEAR = 'public, max-age=31536000, immutable';
+const ONE_HOUR = 'public, max-age=3600';
+
+// Older app builds upload to fixed names and overwrite them in place, so those
+// must not be cached for a year. New uploads get unique names and are immutable.
+const OVERWRITABLE_NAME = /(\/avatar\.jpg|\/hero\.jpg|\/gallery\/\d+\.jpg)$/;
+
+/** Cache-Control for a path: short for names that can be overwritten, one year otherwise. */
+export function cacheControlFor(pathname: string): string {
+  return OVERWRITABLE_NAME.test(pathname) ? ONE_HOUR : ONE_YEAR;
+}
 
 /** Maps /<bucket>/<path> to the public Supabase Storage URL, or null for anything else. */
 export function toOriginUrl(supabaseUrl: string, pathname: string): string | null {
@@ -29,7 +39,7 @@ export default {
       if (!origin.ok) return new Response('Not found', { status: origin.status === 400 || origin.status === 404 ? 404 : 502 });
 
       const response = new Response(origin.body, origin);
-      response.headers.set('Cache-Control', ONE_YEAR);
+      response.headers.set('Cache-Control', cacheControlFor(new URL(request.url).pathname));
       response.headers.set('Access-Control-Allow-Origin', '*');
       ctx.waitUntil(cache.put(request, response.clone()));
       return response;

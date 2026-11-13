@@ -11,7 +11,7 @@ export const TOUR_ADMIN: TourAdmin = {
   initials: 'SJ',
   rating: 4.9,
   verified: true,
-  image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
+  image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
 };
 
 export const TIME_SLOTS = [

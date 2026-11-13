@@ -49,7 +49,7 @@ export function FeaturedListingCard({ listing }: Props) {
               source={
                 listing.primary_image
                   ? { uri: listing.primary_image }
-                  : require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png')
+                  : require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg')
               }
               style={styles.image}
             />

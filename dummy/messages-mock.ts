@@ -47,7 +47,7 @@ export const chatMessages: Record<string, MessageItem[]> = {
 };
 
 export const conversationTours: Partial<Record<string, TourInfo>> = {
-  'sarah-jenkins': { propertyName: 'Zenith Terraces', unit: 'Unit 4B', date: 'Tomorrow', time: '2:00 PM', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+  'sarah-jenkins': { propertyName: 'Zenith Terraces', unit: 'Unit 4B', date: 'Tomorrow', time: '2:00 PM', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
 };
 
 export const matches: Match[] = [
@@ -66,7 +66,7 @@ export const conversations: Conversation[] = [
     time: '2m',
     unreadCount: 1,
     initials: 'SJ',
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
     verified: true,
   },
   {
@@ -76,7 +76,7 @@ export const conversations: Conversation[] = [
     time: '15m',
     unreadCount: 0,
     initials: 'LW',
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg'),
     verified: false,
   },
   {
@@ -86,7 +86,7 @@ export const conversations: Conversation[] = [
     time: '1h',
     unreadCount: 0,
     initials: 'SK',
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg'),
     verified: true,
   },
   {
@@ -96,7 +96,7 @@ export const conversations: Conversation[] = [
     time: '3h',
     unreadCount: 0,
     initials: 'HL',
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg'),
     verified: false,
   },
   {
@@ -106,7 +106,7 @@ export const conversations: Conversation[] = [
     time: 'Yesterday',
     unreadCount: 0,
     initials: 'MT',
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg'),
     verified: false,
   },
 ];

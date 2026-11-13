@@ -7,12 +7,12 @@ import type { SlotCredit } from '@/types/liquidity';
 import type { ImageSourcePropType } from 'react-native';
 
 const HOUSE_IMAGES: Record<string, ImageSourcePropType> = {
-  'est-101': require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
-  'est-102': require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png'),
-  'est-103': require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png'),
-  'est-104': require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png'),
-  'est-105': require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png'),
-  'est-106': require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
+  'est-101': require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
+  'est-102': require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg'),
+  'est-103': require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg'),
+  'est-104': require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg'),
+  'est-105': require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg'),
+  'est-106': require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
 };
 
 type Props = {

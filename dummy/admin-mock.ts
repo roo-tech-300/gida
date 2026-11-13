@@ -106,12 +106,12 @@ export type InventoryProperty = {
 };
 
 export const INVENTORY: InventoryProperty[] = [
-  { id: 'inv-1', name: 'Apex Heights Plaza', location: 'Bosso Metro', region: 'Bosso', layout: '4-Bed Shared Layout', manager: 'Chidi Okafor', managerLabel: 'Field Admin', bedsFilled: 12, totalBeds: 16, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
-  { id: 'inv-2', name: 'Main Campus Lodge 2', location: 'GK Area', region: 'Minna', layout: 'Single Self-Contain', manager: 'Musa Ibrahim', managerLabel: 'Regional Admin', bedsFilled: 16, totalBeds: 16, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
-  { id: 'inv-3', name: 'Block B, Bosso Villa', location: 'Bosso Campus', region: 'Bosso', layout: 'Studio Rooms', manager: 'Unassigned', managerLabel: 'Under Inspection Queue', bedsFilled: 0, totalBeds: 8, status: 'inactive', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
-  { id: 'inv-4', name: 'Emerald Residence', location: 'Uptown', region: 'Lagos Island', layout: 'Luxury Studios', manager: 'Aisha Yusuf', managerLabel: 'Field Admin', bedsFilled: 4, totalBeds: 4, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
-  { id: 'inv-5', name: 'Heritage Lodge', location: 'Gidan Kwano', region: 'Minna', layout: '2-Bed Executive', manager: 'Fatima Bello', managerLabel: 'Regional Admin', bedsFilled: 3, totalBeds: 6, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
-  { id: 'inv-6', name: 'Silver Crest Hostel', location: 'Bosso Town', region: 'Bosso', layout: '3-Bed Standard', manager: 'Tunde Bakare', managerLabel: 'Field Admin', bedsFilled: 2, totalBeds: 10, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+  { id: 'inv-1', name: 'Apex Heights Plaza', location: 'Bosso Metro', region: 'Bosso', layout: '4-Bed Shared Layout', manager: 'Chidi Okafor', managerLabel: 'Field Admin', bedsFilled: 12, totalBeds: 16, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
+  { id: 'inv-2', name: 'Main Campus Lodge 2', location: 'GK Area', region: 'Minna', layout: 'Single Self-Contain', manager: 'Musa Ibrahim', managerLabel: 'Regional Admin', bedsFilled: 16, totalBeds: 16, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg') },
+  { id: 'inv-3', name: 'Block B, Bosso Villa', location: 'Bosso Campus', region: 'Bosso', layout: 'Studio Rooms', manager: 'Unassigned', managerLabel: 'Under Inspection Queue', bedsFilled: 0, totalBeds: 8, status: 'inactive', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg') },
+  { id: 'inv-4', name: 'Emerald Residence', location: 'Uptown', region: 'Lagos Island', layout: 'Luxury Studios', manager: 'Aisha Yusuf', managerLabel: 'Field Admin', bedsFilled: 4, totalBeds: 4, status: 'fully_booked', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg') },
+  { id: 'inv-5', name: 'Heritage Lodge', location: 'Gidan Kwano', region: 'Minna', layout: '2-Bed Executive', manager: 'Fatima Bello', managerLabel: 'Regional Admin', bedsFilled: 3, totalBeds: 6, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg') },
+  { id: 'inv-6', name: 'Silver Crest Hostel', location: 'Bosso Town', region: 'Bosso', layout: '3-Bed Standard', manager: 'Tunde Bakare', managerLabel: 'Field Admin', bedsFilled: 2, totalBeds: 10, status: 'active', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
 ];
 
 export type LandlordProperty = {
@@ -142,47 +142,47 @@ export const LANDLORDS: Landlord[] = [
     id: 'll-1', initials: 'AO', full_name: 'Alaric Oakheart', email: 'alaric.o@royalestates.co',
     properties_onboarded: 14, active_leases: 3, pending_review: 0,
     properties: [
-      { id: 'lp-ao-1', title: 'Royal Oak Manor', location: 'Victoria Island, Lagos', price: 'N65m/year', beds: '5 Beds', baths: '5 Baths', size: '4,500 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
-      { id: 'lp-ao-2', title: 'Oakheart Executive Suite', location: 'Ikoyi, Lagos', price: 'N38m/year', beds: '3 Beds', baths: '3.5 Baths', size: '2,800 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
-      { id: 'lp-ao-3', title: 'Alaric Garden Villa', location: 'Lekki Phase 1, Lagos', price: 'N22m/year', beds: '4 Beds', baths: '3 Baths', size: '3,100 sqft', status: 'Under Review', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
+      { id: 'lp-ao-1', title: 'Royal Oak Manor', location: 'Victoria Island, Lagos', price: 'N65m/year', beds: '5 Beds', baths: '5 Baths', size: '4,500 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
+      { id: 'lp-ao-2', title: 'Oakheart Executive Suite', location: 'Ikoyi, Lagos', price: 'N38m/year', beds: '3 Beds', baths: '3.5 Baths', size: '2,800 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg') },
+      { id: 'lp-ao-3', title: 'Alaric Garden Villa', location: 'Lekki Phase 1, Lagos', price: 'N22m/year', beds: '4 Beds', baths: '3 Baths', size: '3,100 sqft', status: 'Under Review', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg') },
     ],
   },
   {
     id: 'll-2', initials: 'VK', full_name: 'Valerie Knight', email: 'v.knight@vanguardholdings.com',
     properties_onboarded: 8, active_leases: 1, pending_review: 0,
     properties: [
-      { id: 'lp-vk-1', title: 'Knight’s Vanguard Tower', location: 'Marina, Lagos', price: 'N52m/year', beds: '4 Beds', baths: '4 Baths', size: '3,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
+      { id: 'lp-vk-1', title: 'Knight’s Vanguard Tower', location: 'Marina, Lagos', price: 'N52m/year', beds: '4 Beds', baths: '4 Baths', size: '3,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg') },
     ],
   },
   {
     id: 'll-3', initials: 'ES', full_name: 'Elias Sterling', email: 'e.sterling@metroliving.io',
     properties_onboarded: 32, active_leases: 0, pending_review: 5,
     properties: [
-      { id: 'lp-es-1', title: 'Sterling Metro Heights', location: 'Garki, Abuja', price: 'N41m/year', beds: '3 Beds', baths: '3 Baths', size: '2,400 sqft', status: 'Pending', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
-      { id: 'lp-es-2', title: 'Elias Luxury Condo', location: 'Maitama, Abuja', price: 'N78m/year', beds: '5 Beds', baths: '5.5 Baths', size: '5,200 sqft', status: 'Inspection', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+      { id: 'lp-es-1', title: 'Sterling Metro Heights', location: 'Garki, Abuja', price: 'N41m/year', beds: '3 Beds', baths: '3 Baths', size: '2,400 sqft', status: 'Pending', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg') },
+      { id: 'lp-es-2', title: 'Elias Luxury Condo', location: 'Maitama, Abuja', price: 'N78m/year', beds: '5 Beds', baths: '5.5 Baths', size: '5,200 sqft', status: 'Inspection', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
     ],
   },
   {
     id: 'll-4', initials: 'MC', full_name: 'Morgan Chen', email: 'mchen@pacificrentals.net',
     properties_onboarded: 21, active_leases: 12, pending_review: 0,
     properties: [
-      { id: 'lp-mc-1', title: 'Pacific Blue Residency', location: 'Port Harcourt, Rivers', price: 'N18m/year', beds: '2 Beds', baths: '2 Baths', size: '1,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png') },
-      { id: 'lp-mc-2', title: 'Chen’s Harbour Lodge', location: 'Bonny Island, Rivers', price: 'N25m/year', beds: '3 Beds', baths: '2.5 Baths', size: '2,100 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png') },
+      { id: 'lp-mc-1', title: 'Pacific Blue Residency', location: 'Port Harcourt, Rivers', price: 'N18m/year', beds: '2 Beds', baths: '2 Baths', size: '1,600 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg') },
+      { id: 'lp-mc-2', title: 'Chen’s Harbour Lodge', location: 'Bonny Island, Rivers', price: 'N25m/year', beds: '3 Beds', baths: '2.5 Baths', size: '2,100 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg') },
     ],
   },
   {
     id: 'll-5', initials: 'DN', full_name: 'Diana Nwachukwu', email: 'diana@greenleafproperty.com',
     properties_onboarded: 7, active_leases: 2, pending_review: 1,
     properties: [
-      { id: 'lp-dn-1', title: 'Greenleaf Cottage', location: 'Enugu, Enugu State', price: 'N9m/year', beds: '2 Beds', baths: '1.5 Baths', size: '1,200 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png') },
+      { id: 'lp-dn-1', title: 'Greenleaf Cottage', location: 'Enugu, Enugu State', price: 'N9m/year', beds: '2 Beds', baths: '1.5 Baths', size: '1,200 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg') },
     ],
   },
   {
     id: 'll-6', initials: 'RO', full_name: 'Rashid Ogunlade', email: 'rashid@primehomes.ng',
     properties_onboarded: 19, active_leases: 8, pending_review: 2,
     properties: [
-      { id: 'lp-ro-1', title: 'Prime Executive Duplex', location: 'Ibadan, Oyo State', price: 'N15m/year', beds: '4 Beds', baths: '3 Baths', size: '2,800 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png') },
-      { id: 'lp-ro-2', title: 'Ogunlade Smart Flat', location: 'Bodija, Ibadan', price: 'N7m/year', beds: '1 Bed', baths: '1 Bath', size: '850 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png') },
+      { id: 'lp-ro-1', title: 'Prime Executive Duplex', location: 'Ibadan, Oyo State', price: 'N15m/year', beds: '4 Beds', baths: '3 Baths', size: '2,800 sqft', status: 'Leased', image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg') },
+      { id: 'lp-ro-2', title: 'Ogunlade Smart Flat', location: 'Bodija, Ibadan', price: 'N7m/year', beds: '1 Bed', baths: '1 Bath', size: '850 sqft', status: 'Available', image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg') },
     ],
   },
 ];

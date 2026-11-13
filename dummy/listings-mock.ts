@@ -39,7 +39,7 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: true,
     category: 'Apartments',
     featured: true,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg'),
   },
   {
     id: 'aura-twin-lofts',
@@ -58,7 +58,7 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: false,
     category: 'Short Lets',
     featured: false,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_1wlh0m1wlh0m1wlh.jpg'),
   },
   {
     id: 'zenith-tri-terraces',
@@ -77,7 +77,7 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: true,
     category: 'Duplexes',
     featured: false,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_5d7v1i5d7v1i5d7v.jpg'),
   },
   {
     id: 'obsidian-penthouse',
@@ -96,7 +96,7 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: true,
     category: 'Apartments',
     featured: true,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
   },
   {
     id: 'emerald-quintet',
@@ -115,7 +115,7 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: true,
     category: 'Duplexes',
     featured: false,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_1miazv1miazv1mia.jpg'),
   },
   {
     id: 'royal-hexa-manor',
@@ -134,6 +134,6 @@ export const discoverListings: PropertyListing[] = [
     hasVirtualTour: true,
     category: 'Apartments',
     featured: true,
-    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.png'),
+    image: require('@/dummy/images/houses/Gemini_Generated_Image_6dzkv56dzkv56dzk.jpg'),
   },
 ];

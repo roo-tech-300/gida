@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Platform, Pressable, ScrollView, Text, TextInput, View } from 'react-native';
+import { Pressable, ScrollView, Text, TextInput, View } from 'react-native';
 import { WebBlurView } from '@/components/ui/web-blur-view';
 import { Ionicons } from '@expo/vector-icons';
 import { router } from 'expo-router';
@@ -15,6 +15,7 @@ import { ListingRegionSelect } from '@/components/admin/listing-region-select';
 import { AdminTransferSelect } from '@/components/admin/admin-transfer-select';
 import { TourEnablementToggle } from '@/components/admin/tour-enablement-toggle';
 import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
+import { useLockLocation } from '@/hooks/use-lock-location';
 import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { getSchoolsForCity, getCampusesForSchool } from '@/types/onboarding';
 
@@ -27,7 +28,7 @@ export function CreateListingLocationScreen() {
   const { showToast } = useAppToast();
   const alert = useCustomAlert();
   const exitWizard = useExitListingWizard();
-  const [lockLoading, setLockLoading] = useState(false);
+  const { lockLocation, lockLoading } = useLockLocation((coords) => setStep2({ coords }), alert.showAlert);
   const [operatingCity, setOperatingCity] = useState('');
   const [schoolOpen, setSchoolOpen] = useState(false);
 
@@ -49,40 +50,6 @@ export function CreateListingLocationScreen() {
 
   const schools = getSchoolsForCity(operatingCity);
   const campuses = step2.selectedSchool ? getCampusesForSchool(step2.selectedSchool) : [];
-
-  const lockLocation = async () => {
-    if (Platform.OS === 'web') {
-      alert.showAlert({
-        title: 'Not Available on Web',
-        message: 'GPS location locking is not available on the web version. You can manually enter coordinates or skip this step.',
-        buttons: [{ label: 'OK', style: 'primary' }],
-      });
-      return;
-    }
-    setLockLoading(true);
-    try {
-      const Location = await import('expo-location');
-      const { status } = await Location.requestForegroundPermissionsAsync();
-      if (status !== 'granted') {
-        alert.showAlert({
-          title: 'Permission Denied',
-          message: 'Location permission is required to lock your property coordinates.',
-          buttons: [{ label: 'OK', style: 'primary' }],
-        });
-        return;
-      }
-      const loc = await Location.getCurrentPositionAsync({ accuracy: Location.Accuracy.High });
-      setStep2({ coords: { latitude: loc.coords.latitude, longitude: loc.coords.longitude } });
-    } catch {
-      alert.showAlert({
-        title: 'Error',
-        message: 'Could not fetch your location. Make sure GPS is enabled.',
-        buttons: [{ label: 'OK', style: 'primary' }],
-      });
-    } finally {
-      setLockLoading(false);
-    }
-  };
 
   return (
     <SafeAreaView style={styles.safe} edges={['top']}>

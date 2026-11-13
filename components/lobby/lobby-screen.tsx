@@ -10,7 +10,8 @@ import { DesignColors } from '@/constants/design';
 import type { ManageGroupMember } from '@/types/group-member';
 import { useActivePods, usePhysicalRoom, useUserSlotCredits } from '@/hooks/use-liquidity';
 import { inviteRoommateToPod, removeMemberFromPod } from '@/services/liquidity-service';
-import { countRealMembers, findActivePodForCredit, isPodCreator, memberPaymentStatus } from '@/utils/liquidity-math';
+import { toGroupMembers } from '@/utils/group-members';
+import { countRealMembers, findActivePodForCredit, isPodCreator } from '@/utils/liquidity-math';
 import { Ionicons } from '@expo/vector-icons';
 import { InlineInviteSearch } from './inline-invite-search';
 import { LobbyMemberList } from './lobby-member-list';
@@ -62,17 +63,7 @@ export function LobbyScreen() {
   const estateName = credit?.estate?.name || 'Campus Residence';
   const estateImage = credit?.estate?.primary_image;
 
-  const groupMembers: ManageGroupMember[] = useMemo(() => (activePod?.members ?? []).map((member) => ({
-    id: member.user_id,
-    name: member.profile?.full_name || member.full_name || 'Roommate',
-    status: (member.user_id === credit?.user_id
-      ? 'you'
-      : member.slot_credit_id === 'invitation'
-        ? 'pending'
-        : memberPaymentStatus(member)) as ManageGroupMember['status'],
-    via: (member.slot_credit_id === 'invitation' ? 'code' : 'direct') as ManageGroupMember['via'],
-    avatar_url: member.profile?.avatar_url ?? member.avatar_url,
-  })), [activePod, credit?.user_id]);
+  const groupMembers = useMemo(() => toGroupMembers(activePod, credit?.user_id), [activePod, credit?.user_id]);
 
   const handleRefresh = async () => {
     setRefreshing(true);

@@ -1,0 +1,7 @@
+name = "gida-images"
+main = "src/index.ts"
+compatibility_date = "2024-07-01"
+
+# SUPABASE_URL is passed at deploy time so the project URL isn't committed:
+#   npx wrangler deploy --var SUPABASE_URL:https://<project>.supabase.co
+# Free plan: 100,000 requests/day. Cached hits never reach Supabase.

@@ -33,6 +33,12 @@ describe('resolveBarSummary', () => {
     expect(run('pay', { paymentDeadline: at(49 * HOUR) })).toEqual({ primary: '₦250,000 due', secondary: 'Hold ends in 2 days', tone: 'warn' });
   });
 
+  it('shows the amount actually locked into the reservation, kobo included, rather than the listing price', () => {
+    expect(run('pay', { amountDue: 333333.33, paymentDeadline: at(49 * HOUR) }).primary).toBe('₦333,333.33 due');
+    expect(run('booking', { amountDue: 333333.33 }).secondary).toBe('₦333,333.33 · receipt in Support');
+    expect(run('pay', { amountDue: 0, paymentDeadline: at(49 * HOUR) }).primary).toBe('₦250,000 due');
+  });
+
   it('describes a paid household and a paid booking', () => {
     expect(run('household', { targetOccupancy: 4 })).toMatchObject({ primary: 'Household of 4', tone: 'paid' });
     expect(run('booking')).toMatchObject({ primary: 'Paid', secondary: '₦250,000 · receipt in Support', tone: 'paid' });

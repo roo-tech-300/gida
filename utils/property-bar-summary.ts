@@ -9,6 +9,8 @@ export type BarSummary = { primary: string; secondary: string; tone: BarTone };
 type Input = {
   cta: Pick<PropertyCta, 'state' | 'action'>;
   pricePerPerson: number;
+  /** The share locked into the student's reservation; what they will actually be charged. Preferred over the listing price. */
+  amountDue?: number | null;
   /** Household size of the student's reservation, when they have one. */
   targetOccupancy?: number | null;
   /** ISO time the payment hold ends, when the student has a reservation. */
@@ -36,15 +38,16 @@ export function holdCountdown(deadline: string | null | undefined, now: Date = n
 }
 
 /** The two lines on the left of the property page's bottom bar, chosen by the student's situation. */
-export function resolveBarSummary({ cta, pricePerPerson, targetOccupancy, paymentDeadline, now }: Input): BarSummary {
+export function resolveBarSummary({ cta, pricePerPerson, amountDue, targetOccupancy, paymentDeadline, now }: Input): BarSummary {
   const price = formatNaira(pricePerPerson);
+  const reserved = formatNaira(amountDue && amountDue > 0 ? amountDue : pricePerPerson);
   switch (cta.state) {
     case 'pay':
-      return { primary: `${price} due`, secondary: holdCountdown(paymentDeadline, now), tone: 'warn' };
+      return { primary: `${reserved} due`, secondary: holdCountdown(paymentDeadline, now), tone: 'warn' };
     case 'household':
       return { primary: `Household of ${targetOccupancy ?? 'the group'}`, secondary: 'Your share is paid', tone: 'paid' };
     case 'booking':
-      return { primary: 'Paid', secondary: `${price} · receipt in Support`, tone: 'paid' };
+      return { primary: 'Paid', secondary: `${reserved} · receipt in Support`, tone: 'paid' };
     case 'rejected':
       return { primary: 'Not approved', secondary: 'You have not been charged', tone: 'neutral' };
     case 'invite':

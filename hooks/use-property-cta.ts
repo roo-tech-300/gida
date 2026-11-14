@@ -29,6 +29,7 @@ export function usePropertyCta(property: FeedListing, dbListing?: DbListing, spo
   const summary = resolveBarSummary({
     cta,
     pricePerPerson: property.pricePerPerson,
+    amountDue: credit?.amount_paid,
     targetOccupancy: credit?.target_occupancy,
     paymentDeadline: credit?.payment_deadline,
   });

@@ -1,10 +1,13 @@
-import { StyleSheet, Text, View } from 'react-native';
+import { useState } from 'react';
+import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 
 import { AuthButton } from '@/components/auth/auth-button';
+import { CancelReservationModal } from '@/components/reservation/cancel-reservation-modal';
 import { useSharePaymentLink } from '@/hooks/use-share-payment-link';
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { canCancelStatus } from '@/utils/credit-status';
 import { nextStepCopy, type NextStepCopy } from '@/utils/reservation-copy';
 import { formatHoldDeadline, type ReservationStage } from '@/utils/reservation-state';
 import type { SlotCredit } from '@/types/liquidity';
@@ -22,6 +25,7 @@ export function MyHomeNextStep({ credit, stage }: Props) {
   const router = useRouter();
   const copy = nextStepCopy(credit, stage);
   const { share, isSharing } = useSharePaymentLink();
+  const [cancelOpen, setCancelOpen] = useState(false);
 
   return (
     <View style={[styles.card, { borderColor: BORDER[copy.tone] }]} testID="my-home-next-step">
@@ -45,6 +49,12 @@ export function MyHomeNextStep({ credit, stage }: Props) {
           testID="my-home-send-to-parent"
         />
       ) : null}
+      {canCancelStatus(credit.status) ? (
+        <Pressable accessibilityRole="button" onPress={() => setCancelOpen(true)} style={styles.cancel} testID="my-home-cancel-request">
+          <Text style={styles.cancelText}>Cancel request</Text>
+        </Pressable>
+      ) : null}
+      <CancelReservationModal visible={cancelOpen} creditId={credit.id} placeTitle={credit.estate?.name} onClose={() => setCancelOpen(false)} />
     </View>
   );
 }
@@ -61,5 +71,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm, paddingHorizontal: DesignSpacing.md,
     paddingVertical: 10, borderRadius: DesignRadius.md, backgroundColor: DesignColors.warningContainer, marginBottom: DesignSpacing.xs,
   },
+  cancel: { alignSelf: 'center', paddingVertical: DesignSpacing.sm },
+  cancelText: { ...DesignTypography.labelLg, color: DesignColors.onSurfaceVariant, fontFamily, textDecorationLine: 'underline' },
   holdText: { ...DesignTypography.labelLg, color: DesignColors.warning, fontFamily, fontWeight: '600' },
 });

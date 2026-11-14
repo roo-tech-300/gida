@@ -7,6 +7,7 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { useListingVideos } from '@/hooks/use-listing-videos';
 import { isReadyVideo } from '@/types/listing-video';
 import { PropertyVideoPlayer } from './property-video-player';
+import { SectionLabel } from './details/section-label';
 
 /** Video tour section for students. Renders nothing for listings without videos. */
 export function PropertyVideos({ listingId }: { listingId: string }) {
@@ -27,7 +28,7 @@ export function PropertyVideos({ listingId }: { listingId: string }) {
 
   return (
     <View style={styles.section}>
-      <Text style={styles.title}>Video Tour{videos.length > 1 ? ` (${videos.length})` : ''}</Text>
+      <SectionLabel>{videos.length > 1 ? `VIDEO TOUR · ${videos.length}` : 'VIDEO TOUR'}</SectionLabel>
       <PropertyVideoPlayer key={selected.id} video={selected} />
       {videos.length > 1 ? (
         <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={styles.thumbs}>
@@ -49,7 +50,7 @@ export function PropertyVideos({ listingId }: { listingId: string }) {
 }
 
 const styles = StyleSheet.create({
-  section: { gap: DesignSpacing.sm, marginBottom: DesignSpacing.lg },
+  section: { gap: DesignSpacing.xs, marginBottom: DesignSpacing.lg },
   title: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontFamily },
   thumbs: { gap: DesignSpacing.sm },
   thumb: {

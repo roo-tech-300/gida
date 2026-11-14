@@ -23,6 +23,7 @@ function makeChain(): Chain {
   chain.select = jest.fn(() => chain);
   chain.eq = jest.fn(() => chain);
   chain.neq = jest.fn(() => chain);
+  chain.not = jest.fn(() => chain);
   chain.single = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.maybeSingle = jest.fn(async () => ({ data: null, error: { message: 'offline' } }));
   chain.insert = jest.fn(() => chain);

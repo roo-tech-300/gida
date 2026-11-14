@@ -2,6 +2,7 @@ import { StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
+import { SectionLabel } from './details/section-label';
 
 type Props = {
   rules: string[];
@@ -14,10 +15,7 @@ export function PropertyRulesCard({ rules }: Props) {
 
   return (
     <View style={styles.section}>
-      <View style={styles.headerRow}>
-        <View style={styles.headerBar} />
-        <Text style={styles.header}>HOUSE RULES</Text>
-      </View>
+      <SectionLabel>HOUSE RULES</SectionLabel>
       <View style={styles.card}>
         {rules.map((rule, index) => (
           <View key={index} style={[styles.ruleRow, index > 0 && styles.ruleBorder]}>

@@ -85,7 +85,7 @@ export function PropertyReviewsScreen({ listingId }: Props) {
           </View>
         ) : null}
 
-        {!isLoadingReviews && !isReviewsError ? <PropertyReviewsSection reviews={reviews} avgRating={summary?.averageRating ?? 0} /> : null}
+        {!isLoadingReviews && !isReviewsError ? <PropertyReviewsSection reviews={reviews} /> : null}
       </ScrollView>
     </SafeAreaView>
   );

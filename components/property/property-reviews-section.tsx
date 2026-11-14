@@ -7,24 +7,16 @@ import type { Review } from '@/types/reviews';
 
 type Props = {
   reviews: Review[];
-  avgRating: number;
 };
 
-export function PropertyReviewsSection({ reviews, avgRating }: Props) {
+/** The review cards only; the heading and rating summary live in the reviews block above them. */
+export function PropertyReviewsSection({ reviews }: Props) {
   if (!reviews || reviews.length === 0) {
     return null;
   }
 
   return (
     <View style={styles.section}>
-      <View style={styles.header}>
-        <Text style={styles.sectionTitle}>Reviews</Text>
-        <View style={styles.ratingBadge}>
-          <Ionicons name="star" size={14} color={DesignColors.rating} />
-          <Text style={styles.ratingText}>{avgRating.toFixed(1)}</Text>
-          <Text style={styles.reviewCount}>({reviews.length})</Text>
-        </View>
-      </View>
       {reviews.map((review) => (
         <View key={review.id} style={styles.card}>
           <View style={styles.reviewTop}>

@@ -1,3 +1,4 @@
+import { isEndedStatus } from '@/utils/credit-status';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { ActivityIndicator, ImageBackground, Pressable, Text, View } from 'react-native';
@@ -27,7 +28,7 @@ const PAID_STATUSES: SlotCredit['status'][] = ['paid_unmatched', 'matched', 'sub
 
 export function ReservedHousesSection({ reservations, hasError, isLoading }: Props) {
   const router = useRouter();
-  const reserved = reservations.filter((credit) => credit.status !== 'expired');
+  const reserved = reservations.filter((credit) => !isEndedStatus(credit.status));
 
   if (!isLoading && !hasError && reserved.length === 0) {
     return null;
@@ -120,6 +121,7 @@ export function ReservedHousesSection({ reservations, hasError, isLoading }: Pro
 
 function getStatusLabel(credit: SlotCredit) {
   if (credit.status === 'expired') return 'Expired';
+  if (credit.status === 'cancelled') return 'Cancelled';
   if (credit.pod_verification_status === 'pending_verification') return 'Under review';
   if (credit.pod_verification_status === 'rejected') return 'Not approved';
   if (credit.status === 'booked_pending_claim') return 'Pay now';

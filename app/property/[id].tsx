@@ -1,7 +1,7 @@
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 import { useLocalSearchParams } from 'expo-router';
 
-import { PropertyDetailsScreen } from '@/components/property/property-details-screen';
+import { PropertyDetailsScreen } from '@/components/property/details/property-details-screen';
 import { NetworkErrorScreen } from '@/components/ui/network-error-screen';
 import { useListing } from '@/hooks/use-listing';
 import { DesignColors } from '@/constants/design';

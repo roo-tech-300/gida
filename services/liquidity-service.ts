@@ -1,3 +1,4 @@
+import { ENDED_STATUS_FILTER, isEndedStatus } from '@/utils/credit-status';
 import { supabase } from '@/lib/supabase';
 import { ALREADY_RESERVED_MESSAGE, hasActiveBooking } from '@/services/booking-guard-service';
 import { derivePropertyTier, isValidTargetOccupancy } from '@/utils/liquidity-math';
@@ -31,7 +32,7 @@ export async function findUserCreditForProperty(userId: string | null, listingId
       .select('*')
       .eq('user_id', userId)
       .eq('listing_id', listingId)
-      .neq('status', 'expired')
+      .not('status', 'in', ENDED_STATUS_FILTER)
       .maybeSingle();
     if (!error && data) return data as SlotCredit;
   } catch (error) {
@@ -62,7 +63,7 @@ export async function purchaseSlotCredit(input: PurchaseSlotCreditInput): Promis
 
   const existing = await findUserCreditForProperty(userId, input.listing.id);
   console.log('[LiquidityService] Existing credit:', existing?.id ?? 'none', 'status:', existing?.status ?? 'n/a');
-  if (existing && existing.status !== 'expired') {
+  if (existing && !isEndedStatus(existing.status)) {
     throw new Error(ALREADY_RESERVED_MESSAGE);
   }
 

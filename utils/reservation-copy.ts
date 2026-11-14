@@ -65,6 +65,15 @@ export function nextStepCopy(credit: SlotCredit, stage: ReservationStage): NextS
         showHold: false,
         tone: 'problem',
       };
+    case 'cancelled':
+      return {
+        title: 'You cancelled this request',
+        body: 'You have not been charged. You can reserve it again whenever you like.',
+        ctaLabel: credit.listing_id ? 'Reserve again' : 'Find a place',
+        href: credit.listing_id ? { pathname: '/property/[id]', params: { id: credit.listing_id } } : '/(tabs)',
+        showHold: false,
+        tone: 'problem',
+      };
     case 'expired':
       return {
         title: 'This hold has ended',

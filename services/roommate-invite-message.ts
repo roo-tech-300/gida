@@ -1,3 +1,4 @@
+import { ENDED_STATUS_FILTER } from '@/utils/credit-status';
 import { supabase } from '@/lib/supabase';
 import { getOrCreateConversation, sendMessage } from '@/services/messageService';
 import { mapDbToFeedListing } from '@/types/feed-listing';
@@ -43,7 +44,7 @@ async function checkInviteeHasExistingSlot(inviteeUserId: string, listingId: str
       .select('id')
       .eq('user_id', inviteeUserId)
       .eq('listing_id', listingId)
-      .not('status', 'eq', 'expired')
+      .not('status', 'in', ENDED_STATUS_FILTER)
       .maybeSingle();
     if (error) {
       console.error('[RoommateInviteDm] Failed to check existing slot:', error);

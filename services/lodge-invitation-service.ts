@@ -1,3 +1,4 @@
+import { ENDED_STATUS_FILTER } from '@/utils/credit-status';
 import { supabase } from '@/lib/supabase';
 import type { PurchaseSlotCreditResult } from '@/services/liquidity-pod-service';
 import { currentUserId, joinPodByCode, SIGN_IN_REQUIRED_MESSAGE } from '@/services/liquidity-pod-service';
@@ -30,7 +31,7 @@ async function attachInviterInfo(rows: PendingLodgeInvitation[]): Promise<Pendin
         ? fetchProfilesInChunks(inviterIds)
         : { data: null, error: null } as const,
       inviteeIds.length > 0 && listingIds.length > 0
-        ? supabase.from('slot_credits').select('user_id, listing_id').in('user_id', inviteeIds).in('listing_id', listingIds).neq('status', 'expired')
+        ? supabase.from('slot_credits').select('user_id, listing_id').in('user_id', inviteeIds).in('listing_id', listingIds).not('status', 'in', ENDED_STATUS_FILTER)
         : Promise.resolve({ data: null, error: null } as const),
       listingIds.length > 0
         ? (async () => {
@@ -149,7 +150,7 @@ async function findActiveSlotCreditForListing(userId: string, listingId: string)
       .select('*')
       .eq('user_id', userId)
       .eq('listing_id', listingId)
-      .neq('status', 'expired')
+      .not('status', 'in', ENDED_STATUS_FILTER)
       .maybeSingle();
     if (error || !data) return null;
     return data as SlotCredit;

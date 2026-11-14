@@ -10,7 +10,7 @@ import { useExpiredLodges } from '@/components/profile/use-expired-lodges';
 import { ListState } from '@/components/ui/list-state';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { useUserSlotCredits } from '@/hooks/use-liquidity';
-import { pickPrimaryReservation, progressSteps, reservationStage } from '@/utils/reservation-state';
+import { isEndedStage, pickPrimaryReservation, progressSteps, reservationStage } from '@/utils/reservation-state';
 
 import { MyHomeHero } from './my-home-hero';
 import { MyHomeLinks, type MyHomeLink } from './my-home-links';
@@ -59,7 +59,7 @@ export function MyHomeScreen() {
         {primary && stage ? (
           <View style={[styles.stack, styles.pad]}>
             <MyHomeHero credit={primary} onPress={() => router.push(`/property/${primary.listing_id ?? ''}` as Href)} />
-            {stage !== 'expired' ? <MyHomeStepper steps={progressSteps(stage)} /> : null}
+            {!isEndedStage(stage) ? <MyHomeStepper steps={progressSteps(stage)} /> : null}
             <MyHomeNextStep credit={primary} stage={stage} />
           </View>
         ) : null}

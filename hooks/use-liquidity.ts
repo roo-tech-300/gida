@@ -9,6 +9,7 @@ import {
   purchaseSlotCredit,
 } from '@/services/liquidity-service';
 import type { Estate, PhysicalRoom, Pod, SlotCredit } from '@/types/liquidity';
+import { isEndedStatus } from '@/utils/credit-status';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 
 export function useEstates() {
@@ -27,12 +28,10 @@ export function useUserSlotCredits() {
   });
 }
 
-const EXPIRED_STATUSES = new Set(['expired']);
-
 export function useCreditForListing(listingId?: string) {
   const { data: credits, isLoading } = useUserSlotCredits();
   const matches = credits?.filter((c) => c.listing_id === listingId) ?? [];
-  const credit = matches.find((c) => !EXPIRED_STATUSES.has(c.status)) ?? matches[0];
+  const credit = matches.find((c) => !isEndedStatus(c.status)) ?? matches[0];
   return { data: credit, isLoading };
 }
 

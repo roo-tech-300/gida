@@ -1,6 +1,6 @@
 import type { SlotCredit } from '@/types/liquidity';
 import {
-  formatHoldDeadline, pickPrimaryReservation, progressSteps, reservationStage, spotLabel,
+  formatHoldDeadline, isEndedStage, pickPrimaryReservation, progressSteps, reservationStage, spotLabel,
 } from './reservation-state';
 
 function credit(overrides: Partial<SlotCredit>): SlotCredit {
@@ -24,6 +24,7 @@ describe('reservationStage', () => {
   it('flags rejected and expired reservations', () => {
     expect(reservationStage(credit({ pod_verification_status: 'rejected' }))).toBe('not_approved');
     expect(reservationStage(credit({ status: 'expired' }))).toBe('expired');
+    expect(reservationStage(credit({ status: 'cancelled' }))).toBe('cancelled');
   });
 });
 
@@ -59,5 +60,20 @@ describe('copy helpers', () => {
   });
   it('formats the hold deadline as a day and time', () => {
     expect(formatHoldDeadline('2026-11-14T17:00:00')).toMatch(/^\w{3} 14 Nov, 5:00 pm$/);
+  });
+});
+
+describe('ended reservations', () => {
+  it('counts both lapsed and cancelled reservations as ended', () => {
+    expect(isEndedStage('expired')).toBe(true);
+    expect(isEndedStage('cancelled')).toBe(true);
+    expect(isEndedStage('under_review')).toBe(false);
+  });
+
+  it('never features a cancelled reservation on My Home', () => {
+    const live = credit({ id: 'live', status: 'booked_pending_claim', pod_verification_status: 'approved' });
+    const cancelled = credit({ id: 'gone', status: 'cancelled', created_at: '2026-11-13T10:00:00.000Z' });
+    expect(pickPrimaryReservation([cancelled, live])?.id).toBe('live');
+    expect(pickPrimaryReservation([cancelled])).toBeNull();
   });
 });

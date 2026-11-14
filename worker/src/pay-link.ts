@@ -1,7 +1,8 @@
 import { z } from 'zod';
 
 import type { Env } from './env';
-import { createPaystackTransaction, json } from './paystack-helpers';
+import { json } from './paystack-helpers';
+import { startLodgePayment } from './lodge-payment';
 import { allowRequest } from './rate-limit';
 
 const DEFAULT_PAY_PAGE_ORIGIN = 'https://gida.apartments';
@@ -72,22 +73,15 @@ async function handleInitialize(request: Request, env: Env, token: string): Prom
   }
 
   const origin = (env.PAY_PAGE_ORIGIN ?? DEFAULT_PAY_PAGE_ORIGIN).replace(/\/$/, '');
-  const created = await createPaystackTransaction(env, {
+  const started = await startLodgePayment(env, {
+    creditId: record.credit_id,
+    userId: record.student_id,
+    listingId: record.listing_id,
     email: parsed.data.email,
-    amountKobo: Math.round(record.amount * 100),
-    reference: `GIDA-LODG-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
     callbackUrl: `${origin}/pay/${token}`,
-    // Same shape as a student-paid reservation, so the existing webhook confirms it unchanged.
-    metadata: {
-      kind: 'lodge',
-      userId: record.student_id,
-      listingId: record.listing_id,
-      slotCreditId: record.credit_id,
-      paidBy: 'parent',
-    },
+    paidBy: 'parent',
   });
-  if (!created.ok) return json({ error: created.message }, 502);
-  return json({ authorizationUrl: created.authorizationUrl, reference: created.reference });
+  return started.ok ? json({ authorizationUrl: started.authorizationUrl, reference: started.reference }) : json({ error: started.error }, started.status);
 }
 
 export async function handlePayLinkRequest(request: Request, env: Env): Promise<Response> {

@@ -108,6 +108,15 @@ Rules, all enforced in the database:
 
 Set `EXPO_PUBLIC_PAY_PAGE_ORIGIN` to the site's address so links shared from a phone point at the right place (on the web the page's own address is used). For production, **email confirmation must be off** in Supabase Auth for the account to be usable straight away; if it is on, the friend is told to confirm their email and open the link again.
 
+## Trying payments end to end
+
+Real payments are never made locally. To click through (or script) one against the real worker code:
+1. `npm run dev:worker` (port 8787, reads `worker/.dev.vars`; set `PAYSTACK_BASE_URL=http://127.0.0.1:4010`).
+2. `FAKE_PUBLIC_HOST=127.0.0.1 npm run dev:paystack` (port 4010). It has a checkout page, sends the signed webhook, and accepts refund requests (it logs `refund requested`).
+3. Start a payment with `POST /api/paystack/initialize` (`kind: lodge`, the reservation's `slotCreditId`) and finish it with `POST :4010/complete/<reference>`.
+
+Things to try: pay normally; start a payment, then reject the household (`update pods set verification_status='rejected' …`) and finish it, which refunds it; start a payment for a cancelled reservation, which is refused. While a payment is in progress (30 minutes) a student cannot cancel that reservation.
+
 ## Cancelling a reservation
 
 A student can cancel an **unpaid** reservation (under review, or approved but unpaid) from the property screen or My Home. It becomes `cancelled`, separate from `expired` (the hold lapsed), and frees the spot. Paid reservations cannot be cancelled in the app. Test: sign in as `sani@gida.test`, open Bosso Gate single rooms, tap "Cancel request".

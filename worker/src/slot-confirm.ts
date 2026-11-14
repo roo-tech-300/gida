@@ -1,9 +1,16 @@
 import type { Env } from './env';
+import { attemptStatusByReference, markAttemptByReference } from './payment-attempts';
 import { sendPaymentReceipt } from './payment-receipt';
+import { refundTransaction } from './paystack-helpers';
 
 export type SlotConfirmResult = {
   confirmed: boolean;
   locationUnlocked: boolean;
+  /**
+   * Set only when the reservation could not take the payment: true if the money is on its way back to the payer,
+   * false if the refund could not be started (needs a human). Absent for a normal confirmation.
+   */
+  refunded?: boolean;
 };
 
 export type SlotConfirmOptions = {
@@ -41,10 +48,27 @@ async function insertLocationUnlock(
   return true;
 }
 
+type Decision = 'paid' | 'already_paid' | 'refund';
+
+/** Asks the database what a payment that has arrived means for this reservation. Null when it could not be reached. */
+async function decide(baseUrl: string, headers: Record<string, string>, slotCreditId: string): Promise<Decision | null> {
+  const response = await fetch(`${baseUrl}/rest/v1/rpc/confirm_slot_payment`, {
+    method: 'POST',
+    headers,
+    body: JSON.stringify({ p_credit_id: slotCreditId }),
+  });
+  if (!response.ok) {
+    console.error(`[SlotConfirm] confirm_slot_payment failed for ${slotCreditId}: ${response.status} — ${await response.text()}`);
+    return null;
+  }
+  const value = await response.json();
+  return value === 'paid' || value === 'already_paid' || value === 'refund' ? value : null;
+}
+
 export async function confirmSlotPayment(
   env: Env,
   slotCreditId: string,
-  _reference: string,
+  reference: string,
   options: SlotConfirmOptions = {},
 ): Promise<SlotConfirmResult> {
   const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
@@ -54,35 +78,43 @@ export async function confirmSlotPayment(
     Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
   };
 
-  // Only an unpaid reservation moves to paid. A second confirmation (webhook + verify both fire) matches
-  // nothing, so it neither resets paid_at, nor reverts a matched credit, nor sends a second receipt.
-  const now = new Date().toISOString();
-  const updateResponse = await fetch(
-    `${baseUrl}/rest/v1/slot_credits?id=eq.${encodeURIComponent(slotCreditId)}&status=in.(booked,booked_pending_claim,expired)`,
-    {
-      method: 'PATCH',
-      headers: { ...headers, Prefer: 'return=representation' },
-      body: JSON.stringify({ status: 'paid_unmatched', paid_at: now }),
-    },
-  );
-  if (!updateResponse.ok) {
-    const text = await updateResponse.text();
-    console.error(`[SlotConfirm] Failed to update slot credit ${slotCreditId}: ${updateResponse.status} — ${text}`);
-    return { confirmed: false, locationUnlocked: false };
-  }
-  const changed = (await updateResponse.json().catch(() => [])) as { user_id?: string; listing_id?: string }[];
-  const firstConfirmation = changed.length > 0;
-
+  // Who the reservation belongs to: needed for the unlock, the receipt and the refund notice.
   const creditResponse = await fetch(`${baseUrl}/rest/v1/slot_credits?id=eq.${encodeURIComponent(slotCreditId)}&select=user_id,listing_id`, {
     method: 'GET',
     headers,
   });
   if (!creditResponse.ok) {
-    console.error(`[SlotConfirm] Failed to read slot credit ${slotCreditId} for location unlock.`);
-    return { confirmed: true, locationUnlocked: false };
+    console.error(`[SlotConfirm] Failed to read slot credit ${slotCreditId}.`);
+    return { confirmed: false, locationUnlocked: false };
   }
-  const rows = (await creditResponse.json()) as { user_id: string; listing_id: string }[];
-  const credit = rows[0];
+  const credit = ((await creditResponse.json()) as { user_id: string; listing_id: string }[])[0];
+
+  // The database decides: pay the reservation, it was already paid (webhook and verify both fire), or refund.
+  const decision = await decide(baseUrl, headers, slotCreditId);
+  if (decision === null) return { confirmed: false, locationUnlocked: false };
+
+  if (decision === 'refund') {
+    // Webhook and verify can both arrive; a payment already handed back must not be refunded twice.
+    if ((await attemptStatusByReference(env, slotCreditId, reference)) === 'refunded') {
+      return { confirmed: false, locationUnlocked: false, refunded: true };
+    }
+    const refunded = await refundTransaction(env, reference);
+    await markAttemptByReference(env, slotCreditId, reference, refunded ? 'refunded' : 'refund_failed');
+    if (refunded && credit) {
+      await sendPaymentReceipt(env, {
+        studentId: credit.user_id,
+        listingId: credit.listing_id,
+        amountKobo: options.amountKobo,
+        paidBy: options.paidBy ?? 'student',
+        outcome: 'refunded',
+      });
+    }
+    return { confirmed: false, locationUnlocked: false, refunded };
+  }
+
+  const firstConfirmation = decision === 'paid';
+  if (firstConfirmation) await markAttemptByReference(env, slotCreditId, reference, 'paid');
+
   if (!credit) {
     return { confirmed: true, locationUnlocked: false };
   }

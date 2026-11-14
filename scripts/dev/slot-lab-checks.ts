@@ -85,6 +85,11 @@ const clearUnpaid = (email: string): string =>
 /** A scratch table the probe's students can all read, to hand an invite token from one to the next. */
 const TOKEN_TABLE = `create temp table tk(t text); grant all on tk to authenticated, anon;`;
 
+/** Puts the Mixed-payments household in its seeded shape (three members holding spots) whatever the seed's age. */
+const FRESH_MIXED = `update slot_credits set status='booked_pending_claim', expired_at = null, payment_deadline = now() + interval '30 hours'
+  where listing_id = (select id from listings where title like 'Slot · Mixed%') and user_id in (select id from auth.users where email in ('slot.03@gida.test','slot.04@gida.test'));
+  update pods set current_total_intent = 3 where group_code = 'SLMIXD';`;
+
 const listingId = (title: string): string => `(select id from listings where title like '${title}%')`;
 /** Makes a student's unpaid hold on a listing run out, as the database owner, before the probe starts. */
 const lapse = (email: string, title: string): string =>
@@ -134,7 +139,7 @@ export const PROBES: Check[] = [
   {
     area: 'Holds', title: 'Spots left does not count holds that have run out',
     run: () => {
-      const left = spotsLeft('Slot · Mixed', lapse('slot.03@gida.test', 'Slot · Mixed'));
+      const left = spotsLeft('Slot · Mixed', FRESH_MIXED + lapse('slot.03@gida.test', 'Slot · Mixed'));
       return left === '2' ? [] : [`shows ${left} left; one of three reservations lapsed, so it should be 2`];
     },
   },
@@ -173,7 +178,7 @@ export const PROBES: Check[] = [
     area: 'Cancel', title: 'Cancelling frees the spot and shrinks the household',
     run: () => {
       const r = asStudent('slot.03@gida.test', `select public.cancel_reservation((select sc.id from slot_credits sc join listings l on l.id=sc.listing_id where sc.user_id=auth.uid() and l.title like 'Slot · Mixed%'));
-        select current_total_intent from pods where group_code='SLMIXD';`);
+        select current_total_intent from pods where group_code='SLMIXD';`, FRESH_MIXED);
       const intent = r.rows.at(-1)?.[0];
       return r.error || intent !== '2' ? [`household intent is ${intent ?? 'unknown'} after cancelling (expected 2) ${r.error ?? ''}`] : [];
     },
@@ -299,6 +304,70 @@ export const PROBES: Check[] = [
         select u.id, l.estate_id, l.id, 1, 1, 1, 'expired', now() - interval '2 hours' from auth.users u, listings l where u.email='slot.05@gida.test' and l.title in ('Lab · Bare minimum', 'Lab · No photos');`;
       const r = asStudent('slot.05@gida.test', `select public.join_pod('SLFORM');`, setup);
       return /ran out recently/i.test(r.error ?? '') ? [] : [`got: ${describe(r)}`];
+    },
+  },
+  {
+    area: 'Payment arrives', title: 'A payment that arrives is paid, ignored or refunded depending on the reservation',
+    run: () => {
+      const credit = (email: string, title: string) => `(select sc.id from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='${email}' and l.title like '${title}%')`;
+      const confirm = (email: string, title: string, setup = '') => {
+        // The reservation is looked up as the owner; the confirmation then runs as the service role, as the worker does.
+        const r = runSql(`begin; ${setup} create temp table cid as select ${credit(email, title)} as id; grant all on cid to service_role; set local role service_role; select public.confirm_slot_payment((select id from cid)); rollback;`);
+        return r.rows.map((x) => x[0]).find((x) => ['paid', 'already_paid', 'refund'].includes(x)) ?? `error: ${r.error}`;
+      };
+      const cases: [string, string, string, string, string][] = [
+        ['unpaid reservation', 'slot.03@gida.test', 'Slot · Mixed', '', 'paid'],
+        ['already paid', 'slot.02@gida.test', 'Slot · Mixed', '', 'already_paid'],
+        ['cancelled by the student', 'slot.12@gida.test', 'Slot · Cancelled and expired', '', 'refund'],
+        ['hold lapsed, seat still free', 'slot.13@gida.test', 'Slot · Cancelled and expired', '', 'paid'],
+        ['hold lapsed, household now full', 'slot.13@gida.test', 'Slot · Cancelled and expired', `update pods set target_occupancy = 2 where group_code='SLMEMB';`, 'refund'],
+        ['household rejected after they paid started', 'slot.03@gida.test', 'Slot · Mixed', `update slot_credits set status='rejected' where id=${credit('slot.03@gida.test', 'Slot · Mixed')};`, 'refund'],
+      ];
+      return cases.flatMap(([label, email, title, setup, expected]) => {
+        const got = confirm(email, title, setup);
+        return got === expected ? [] : [`${label}: ${got}, expected ${expected}`];
+      });
+    },
+  },
+  {
+    area: 'Payment arrives', title: 'A reservation cannot be cancelled or swept while a payment for it is going through',
+    run: () => {
+      const inProgress = `insert into payment_attempts (purchase_kind, purchase_id, user_id, listing_id, reference, status)
+        select 'lodge', sc.id, sc.user_id, sc.listing_id, 'PROBE-REF', 'pending' from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='slot.03@gida.test' and l.title like 'Slot · Mixed%';`;
+      const cancel = asStudent('slot.03@gida.test', `select public.cancel_reservation((select sc.id from slot_credits sc join listings l on l.id=sc.listing_id where sc.user_id=auth.uid() and l.title like 'Slot · Mixed%'));`, inProgress);
+      const sweep = runSql(`begin; ${inProgress} update slot_credits set payment_deadline = now() - interval '2 hours' where user_id=(select id from auth.users where email='slot.03@gida.test') and status='booked_pending_claim'; select public.expire_lapsed_holds(); select status from slot_credits where user_id=(select id from auth.users where email='slot.03@gida.test') and status in ('booked_pending_claim','expired') and listing_id=(select id from listings where title like 'Slot · Mixed%'); rollback;`);
+      const problems: string[] = [];
+      if (!/still processing/i.test(cancel.error ?? '')) problems.push(`cancelling during a payment gave: ${describe(cancel)}`);
+      const status = sweep.rows.map((x) => x[0]).filter((x) => /^(booked_pending_claim|expired)$/.test(x)).at(-1);
+      if (status !== 'booked_pending_claim') problems.push(`the sweep expired a reservation with a payment in progress (now ${status})`);
+      return problems;
+    },
+  },
+  {
+    area: 'Payment arrives', title: 'A checkout nobody finished is reused for 30 minutes, then replaced',
+    run: () => {
+      const stamp = (age: string) => `insert into payment_attempts (purchase_kind, purchase_id, user_id, listing_id, reference, status, authorization_url, created_at, updated_at)
+        select 'lodge', sc.id, sc.user_id, sc.listing_id, 'OLD-REF', 'pending', 'https://pay.test/x', now() - interval '${age}', now() - interval '${age}' from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='slot.03@gida.test' and l.title like 'Slot · Mixed%';`;
+      const claim = (age: string) => {
+        const r = runSql(`begin; ${stamp(age)} select decision, reference from public.claim_payment_attempt('lodge', (select sc.id from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='slot.03@gida.test' and l.title like 'Slot · Mixed%'), (select id from auth.users where email='slot.03@gida.test'), (select id from listings where title like 'Slot · Mixed%')); rollback;`);
+        return r.rows.find((x) => ['reuse', 'new', 'initializing', 'not_payable'].includes(x[0])) ?? [`error: ${r.error}`];
+      };
+      const fresh = claim('5 minutes'); const stale = claim('2 hours');
+      const problems: string[] = [];
+      if (fresh[0] !== 'reuse' || fresh[1] !== 'OLD-REF') problems.push(`a 5-minute-old checkout gave ${fresh.join(' / ')}, expected to be reused`);
+      if (stale[0] !== 'new' || stale[1] === 'OLD-REF') problems.push(`a 2-hour-old checkout gave ${stale.join(' / ')}, expected a fresh one`);
+      return problems;
+    },
+  },
+  {
+    area: 'Payment arrives', title: 'A cancelled, rejected or expired reservation cannot start a payment',
+    run: () => {
+      const claim = (email: string, title: string) => {
+        const r = runSql(`begin; select decision from public.claim_payment_attempt('lodge', (select sc.id from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='${email}' and l.title like '${title}%'), (select id from auth.users where email='${email}'), (select id from listings where title like '${title}%')); rollback;`);
+        return r.rows.map((x) => x[0]).find((x) => ['new', 'reuse', 'not_payable', 'already_paid', 'not_found'].includes(x)) ?? `error: ${r.error}`;
+      };
+      const got = claim('slot.12@gida.test', 'Slot · Cancelled and expired');
+      return got === 'not_payable' ? [] : [`a cancelled reservation got "${got}" when starting a payment`];
     },
   },
   {

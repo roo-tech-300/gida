@@ -5,13 +5,19 @@ export type ReceiptInput = {
   listingId: string;
   amountKobo?: number;
   paidBy: 'parent' | 'student';
+  /** 'refunded': the money arrived after the reservation had ended and is being given back. */
+  outcome?: 'paid' | 'refunded';
 };
 
 const naira = (kobo: number): string => `₦${Math.round(kobo / 100).toLocaleString('en-NG')}`;
 
-export function receiptBody(input: { placeTitle: string | null; amountKobo?: number; paidBy: 'parent' | 'student' }): string {
+export function receiptBody(input: { placeTitle: string | null; amountKobo?: number; paidBy: 'parent' | 'student'; outcome?: 'paid' | 'refunded' }): string {
   const place = input.placeTitle?.split(',')[0]?.trim() || 'your place';
   const amount = input.amountKobo ? `${naira(input.amountKobo)} ` : '';
+  if (input.outcome === 'refunded') {
+    const who = input.paidBy === 'parent' ? 'A payment from your parent' : 'Your payment';
+    return `${who} of ${amount || ''}for ${place} reached us after the reservation had ended, so we are refunding it in full. A refund can take a few days to reach the account it came from.`.replace('of for', 'for');
+  }
   return input.paidBy === 'parent'
     ? `Good news: your parent just paid ${amount}for ${place}. Your spot is secured.`
     : `Payment received${input.amountKobo ? `: ${naira(input.amountKobo)}` : ''} for ${place}. Your spot is secured.`;
@@ -57,7 +63,7 @@ export async function sendPaymentReceipt(env: Env, input: ReceiptInput): Promise
     if (!conversationId) return;
 
     const listings = await getJson<{ title: string | null }[]>(env, `listings?id=eq.${input.listingId}&select=title`);
-    const body = receiptBody({ placeTitle: listings?.[0]?.title ?? null, amountKobo: input.amountKobo, paidBy: input.paidBy });
+    const body = receiptBody({ placeTitle: listings?.[0]?.title ?? null, amountKobo: input.amountKobo, paidBy: input.paidBy, outcome: input.outcome });
     await getJson(env, 'messages', {
       method: 'POST',
       headers: { ...restHeaders(env), Prefer: 'return=minimal' },

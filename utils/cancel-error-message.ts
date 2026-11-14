@@ -7,6 +7,9 @@ export function cancelErrorMessage(error: unknown): string {
     return 'This reservation has already been paid, so it cannot be cancelled here. Message Gida Support and we will help.';
   }
   if (text.includes('RESERVATION_NOT_FOUND')) return 'We could not find that reservation.';
+  if (text.includes('still processing')) {
+    return 'A payment for this reservation is still going through. Wait a few minutes and try again if you did not pay.';
+  }
   if (text.includes('NOT_SIGNED_IN')) return 'Please sign in again to cancel your request.';
   return GENERIC;
 }

@@ -34,7 +34,7 @@ export function usePayConfirmation(token: string, reference: string | undefined)
     queryFn: async () => {
       const result = await verifyLodgePayment(reference ?? '');
       await queryClient.invalidateQueries({ queryKey: payLinkKey(token) });
-      return result.verified;
+      return result;
     },
   });
 }

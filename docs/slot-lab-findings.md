@@ -35,15 +35,26 @@ Friends are invited by link (migration `20261124000000`). A link holds a **ghost
 ### The "join an open group" list shows real seats
 The list counted every membership row, so a household with cancelled, lapsed or rejected members looked fuller than it was, and it knew nothing about seats held for invite links, so a join could be refused with "This group is already full". `get_pod_seat_counts` (migration `20261125000000`) now says who still holds a seat and how many seats links hold; the list, its cards and the detail view use it, and a household nobody holds a seat in is no longer listed. The list also respects the household's gender lock, so students are not offered a household they would be refused.
 
+### Money can no longer arrive for a reservation that cannot take it
+Before, if a student cancelled (or an admin rejected, or a hold lapsed) while a payment was in progress, Paystack still took the money, the worker's update matched nothing, and it *still* granted the location unlock: the student was charged, held no spot, and could see the address. Nothing recorded a payment in progress (`payment_attempts` was empty), and the worker would start a payment for any reservation that was not already paid.
+
+Three layers (migration `20261126000000`, worker changes):
+1. **Don't start what cannot finish.** Both the student checkout and the parent link now start payments through the existing `claim_payment_attempt`, which refuses cancelled, expired, rejected and not-yet-approved reservations, records the attempt, and reuses one live checkout per reservation. A checkout nobody finished within 30 minutes is treated as stale.
+2. **Don't end what is being paid.** While a checkout is under way (30 minutes), a student cannot cancel or release the reservation, and the lapsed-hold sweep skips it.
+3. **Refund what slips through.** `confirm_slot_payment` tells the worker what an arrived payment means: pay the reservation, already paid, or refund (cancelled, rejected, or lapsed with the seat taken or the household gone). On refund the worker asks Paystack to refund it, once, marks the attempt `refunded` (or `refund_failed`, which needs a person), tells the student in their Support chat, and never unlocks the location or sends a receipt. The parent's page says the payment is being refunded instead of "expired".
+
+Checked against the real worker and a fake Paystack: a normal payment, a payment completed after the admin rejected the household (refunded once even after a webhook retry), and a new payment for the rejected reservation (refused).
+
+**Merging note:** `origin/dev`, `builds`, `new-feat` and `feature/listing-video` carry a different worker (`paystack-initialize.ts`, `paystack-events.ts`, `paystack-router.ts`) built on the same `claim_payment_attempt`. This branch's worker is the older one. `worker/src/payment-attempts.ts` is copied from `dev` so the two stay compatible, but the worker files will conflict and need merging by hand.
+
+Not covered: tour and location-unlock payments have the same "paid after it ended" shape; they are untouched.
+
 ### Earlier fixes from the lab
 A cancelled or rejected reservation blocked reserving again (unique index); a student who left a household could not rejoin it; listings showed a price rounded differently from what checkout charges; seeded households recorded the wrong member count. See the git history.
 
 ## Open
 
-### 1. Paying after cancelling (low)
-If a student starts a Paystack payment, then cancels (or is rejected) before it completes, the worker's confirm step only accepts `booked`, `booked_pending_claim` and `expired` reservations, so the money arrives and nothing is marked paid. **Fix:** decide whether cancel should also void open payment attempts, or the worker should refund.
-
-### 2. Deployment
+### 1. Deployment
 The worker change (its job now calls `expire_lapsed_holds`) and all migrations are not deployed anywhere. Until then the old worker job keeps expiring requests that are waiting for admin review. pg_cron must be enabled on the hosted project for the five-minute schedule; the migration only warns if it is not.
 
 ## UX notes from the screens

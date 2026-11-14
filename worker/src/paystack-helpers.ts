@@ -57,6 +57,26 @@ export function paystackBase(env: Env): string {
   return (env.PAYSTACK_BASE_URL ?? DEFAULT_PAYSTACK_BASE).replace(/\/$/, '');
 }
 
+/** Asks Paystack to give a payment back. True when Paystack accepted the refund request. */
+export async function refundTransaction(env: Env, reference: string): Promise<boolean> {
+  try {
+    const response = await fetch(`${paystackBase(env)}/refund`, {
+      method: 'POST',
+      headers: paystackHeaders(env),
+      body: JSON.stringify({ transaction: reference }),
+    });
+    const result = (await response.json().catch(() => null)) as { status?: boolean; message?: string } | null;
+    if (!response.ok || !result?.status) {
+      console.error(`[Refund] Paystack refused to refund ${reference}: ${response.status} — ${result?.message ?? 'no message'}`);
+      return false;
+    }
+    return true;
+  } catch (error) {
+    console.error(`[Refund] Could not reach Paystack to refund ${reference}:`, error instanceof Error ? error.message : String(error));
+    return false;
+  }
+}
+
 export type PaystackInitInput = {
   email: string;
   amountKobo: number;

@@ -43,6 +43,13 @@ createServer(async (req, res) => {
     if (!tx) return send(res, 404, { status: false, message: 'Transaction not found' });
     return send(res, 200, { status: true, data: { status: 'success', reference: tx.reference, amount: tx.amount, channel: 'card', metadata: tx.metadata } });
   }
+  if (req.method === 'POST' && url.pathname === '/refund') {
+    const { transaction } = await readJson(req);
+    console.log(`[fake-paystack] refund requested for ${transaction}`);
+    return transactions.has(transaction)
+      ? send(res, 200, { status: true, message: 'Refund has been queued for processing', data: { status: 'pending', transaction: { reference: transaction } } })
+      : send(res, 400, { status: false, message: 'Transaction not found' });
+  }
   const checkout = url.pathname.match(/^\/checkout\/(.+)$/);
   if (req.method === 'GET' && checkout && transactions.has(checkout[1])) {
     return send(res, 200, checkoutPage(transactions.get(checkout[1])), "text/html; charset=utf-8");

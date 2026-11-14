@@ -4,6 +4,7 @@ import type { Env } from './env';
 import { confirmTourBooking } from './tour-confirm';
 import { confirmSlotPayment } from './slot-confirm';
 import { createPaystackTransaction, json, paystackBase, paystackHeaders, upsertPayment } from './paystack-helpers';
+import { startLodgePayment } from './lodge-payment';
 import { type PaymentMetadata, hmacSha512Hex, paymentAmountKobo, paymentRow, requireUuid } from './payment-meta';
 
 async function handleInitialize(request: Request, env: Env): Promise<Response> {
@@ -43,25 +44,11 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
   };
 
   if (kind === 'lodge') {
-    const creditResp = await fetch(`${baseUrl}/rest/v1/slot_credits?id=eq.${encodeURIComponent(slotCreditId!)}&select=amount_paid,status`, {
-      method: 'GET',
-      headers: svcHeaders,
-    });
-    if (!creditResp.ok) {
-      return json({ error: 'Could not look up slot credit.' }, 500);
-    }
-    const rows = (await creditResp.json()) as { amount_paid: number | null; status: string | null }[];
-    const creditRow = rows[0];
-    const creditStatus = creditRow?.status;
-    if (creditStatus === 'paid_unmatched' || creditStatus === 'matched' || creditStatus === 'subletting') {
-      return json({ error: 'This reservation has already been paid for.' }, 409);
-    }
-    const amountNgn = creditRow?.amount_paid;
-    if (!amountNgn || amountNgn <= 0) {
-      return json({ error: 'Slot credit has no payment amount set.' }, 400);
-    }
-    amountKobo = Math.round(amountNgn * 100);
-  } else if (kind === 'location') {
+    const started = await startLodgePayment(env, { creditId: slotCreditId!, userId, listingId, email, callbackUrl, paidBy: 'student' });
+    return started.ok ? json({ authorizationUrl: started.authorizationUrl, reference: started.reference }) : json({ error: started.error }, started.status);
+  }
+
+  if (kind === 'location') {
     const existingResp = await fetch(
       `${baseUrl}/rest/v1/location_access_payments?user_id=eq.${encodeURIComponent(userId)}&listing_id=eq.${encodeURIComponent(listingId)}&select=id`,
       { method: 'GET', headers: svcHeaders },
@@ -81,9 +68,6 @@ async function handleInitialize(request: Request, env: Env): Promise<Response> {
   const metadata: PaymentMetadata = { kind, userId, listingId };
   if (kind === 'tour') {
     metadata.tourBookingId = tourBookingId;
-  }
-  if (kind === 'lodge') {
-    metadata.slotCreditId = slotCreditId;
   }
   const created = await createPaystackTransaction(env, { email, amountKobo, reference, callbackUrl, metadata });
   if (!created.ok) {
@@ -119,6 +103,10 @@ async function handleVerify(request: Request, env: Env): Promise<Response> {
       paidBy: data.metadata.paidBy === 'parent' ? 'parent' : 'student',
       amountKobo: data.amount,
     });
+    if (result.refunded !== undefined) {
+      // The reservation had ended, so the money is going back rather than buying a spot.
+      return json({ unlocked: false, status: result.refunded ? 'refunded' : 'refund-failed' }, 200);
+    }
     if (!result.confirmed) {
       return json({ unlocked: false, status: 'confirm-failed' }, 500);
     }
@@ -173,7 +161,9 @@ async function handleWebhook(request: Request, env: Env): Promise<Response> {
       paidBy: data.metadata.paidBy === 'parent' ? 'parent' : 'student',
       amountKobo: data.amount,
     });
-    if (!result.confirmed) {
+    if (result.refunded === false) {
+      console.error(`[Webhook] A payment for an ended reservation could NOT be refunded: credit ${data.metadata.slotCreditId}, reference ${data.reference}`);
+    } else if (!result.confirmed && result.refunded === undefined) {
       console.error(`[Webhook] Lodge confirm failed for credit ${data.metadata.slotCreditId}`);
     }
     return json({ received: true });

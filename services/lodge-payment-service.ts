@@ -17,6 +17,10 @@ export type InitializeLodgePaymentResult = {
 
 export type VerifyLodgePaymentResult = {
   verified: boolean;
+  /** The reservation had already ended, so the payment is being given back. */
+  refunded?: boolean;
+  /** The payment arrived for an ended reservation and could not be refunded automatically: it needs a person. */
+  refundFailed?: boolean;
 };
 
 function buildLodgeCallbackUrl(listingId: string, creditId: string, targetOccupancy: number): string {
@@ -92,7 +96,9 @@ export async function verifyLodgePayment(reference: string): Promise<VerifyLodge
     if (!response.ok) {
       return { verified: false };
     }
-    const result = (await response.json()) as { unlocked?: boolean; kind?: string };
+    const result = (await response.json()) as { unlocked?: boolean; kind?: string; status?: string };
+    if (result.status === 'refunded') return { verified: false, refunded: true };
+    if (result.status === 'refund-failed') return { verified: false, refundFailed: true };
     return { verified: result.unlocked === true && result.kind === 'lodge' };
   } catch (error) {
     console.error('[LodgePayment] Failed to verify payment:', error);

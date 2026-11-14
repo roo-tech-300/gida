@@ -73,6 +73,10 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
       const verified = await verifyLodgePayment(reference);
       if (verified.verified) {
         setLocallyPaid(true);
+      } else if (verified.refunded) {
+        showToast({ message: 'This reservation had already ended, so your payment is being refunded in full. It can take a few days to reach your account.', type: 'info' });
+      } else if (verified.refundFailed) {
+        showToast({ message: 'This reservation had already ended and we could not refund your payment automatically. Please contact Gida Support.', type: 'error' });
       } else {
         showToast({ message: 'Payment is pending confirmation. Your spot is held — please check back shortly.', type: 'info' });
       }

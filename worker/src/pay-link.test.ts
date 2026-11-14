@@ -18,12 +18,17 @@ const openLink = {
 type FetchCall = { url: string; init?: RequestInit };
 let calls: FetchCall[] = [];
 
-function mockFetch(link: Record<string, unknown>, paystackOk = true) {
+const newAttempt = { decision: 'new', attempt_id: 'att-1', reference: 'GIDA-LODGE-abc', authorization_url: null, attempt_status: 'initializing', amount_ngn: 250000, is_new: true };
+
+/** `claim` is what claim_payment_attempt answers: whether this reservation can be paid at all. */
+function mockFetch(link: Record<string, unknown>, paystackOk = true, claim: Record<string, unknown> = newAttempt) {
   calls = [];
   global.fetch = jest.fn(async (input: RequestInfo | URL, init?: RequestInit) => {
     const url = String(input);
     calls.push({ url, init });
     if (url.includes('/rpc/get_payment_link')) return new Response(JSON.stringify(link), { status: 200 });
+    if (url.includes('/rpc/claim_payment_attempt')) return new Response(JSON.stringify([claim]), { status: 200 });
+    if (url.includes('/payment_attempts') && init?.method === 'PATCH') return new Response(null, { status: 204 });
     if (url.includes('/transaction/initialize')) {
       return paystackOk
         ? new Response(JSON.stringify({ status: true, data: { authorization_url: 'http://pay/checkout/r1', reference: 'r1' } }), { status: 200 })
@@ -74,7 +79,7 @@ describe('POST /api/pay/:token/initialize', () => {
     expect(await response.json()).toEqual({ authorizationUrl: 'http://pay/checkout/r1', reference: 'r1' });
     const sent = JSON.parse(String(calls.find((call) => call.url.includes('/transaction/initialize'))?.init?.body));
     expect(sent).toMatchObject({
-      email: 'mum@example.com', amount: 25000000, callback_url: `https://pay.example/pay/${TOKEN}`,
+      email: 'mum@example.com', amount: 25000000, reference: 'GIDA-LODGE-abc', callback_url: `https://pay.example/pay/${TOKEN}`,
       metadata: { kind: 'lodge', userId: 's1', listingId: 'l1', slotCreditId: 'c1', paidBy: 'parent' },
     });
   });
@@ -93,10 +98,33 @@ describe('POST /api/pay/:token/initialize', () => {
     expect(calls).toHaveLength(0);
   });
 
-  it('surfaces a Paystack failure as 502', async () => {
+  it('surfaces a Paystack failure as 502 and marks the attempt failed so a new one can start', async () => {
     mockFetch(openLink, false);
     const response = await handlePayLinkRequest(request(`/api/pay/${TOKEN}/initialize`, { method: 'POST', body: JSON.stringify({ email: 'mum@example.com' }) }), env);
     expect(response.status).toBe(502);
+    const patch = calls.find((call) => call.url.includes('/payment_attempts') && call.init?.method === 'PATCH');
+    expect(JSON.parse(String(patch?.init?.body)).status).toBe('failed');
+  });
+
+  it('records the attempt as pending with its checkout address once Paystack answers', async () => {
+    mockFetch(openLink);
+    await handlePayLinkRequest(request(`/api/pay/${TOKEN}/initialize`, { method: 'POST', body: JSON.stringify({ email: 'mum@example.com' }) }), env);
+    const patch = calls.find((call) => call.url.includes('/payment_attempts') && call.init?.method === 'PATCH');
+    expect(JSON.parse(String(patch?.init?.body))).toMatchObject({ status: 'pending', authorization_url: 'http://pay/checkout/r1' });
+  });
+
+  it.each(['not_payable', 'already_paid', 'not_found'])('never starts a payment the database says cannot land (%s)', async (decision) => {
+    mockFetch(openLink, true, { ...newAttempt, decision });
+    const response = await handlePayLinkRequest(request(`/api/pay/${TOKEN}/initialize`, { method: 'POST', body: JSON.stringify({ email: 'mum@example.com' }) }), env);
+    expect([404, 409]).toContain(response.status);
+    expect(calls.some((call) => call.url.includes('/transaction/initialize'))).toBe(false);
+  });
+
+  it('hands back the checkout already open instead of starting a second one', async () => {
+    mockFetch(openLink, true, { ...newAttempt, decision: 'reuse', authorization_url: 'http://pay/checkout/existing', reference: 'GIDA-LODGE-old' });
+    const response = await handlePayLinkRequest(request(`/api/pay/${TOKEN}/initialize`, { method: 'POST', body: JSON.stringify({ email: 'mum@example.com' }) }), env);
+    expect(await response.json()).toEqual({ authorizationUrl: 'http://pay/checkout/existing', reference: 'GIDA-LODGE-old' });
+    expect(calls.some((call) => call.url.includes('/transaction/initialize'))).toBe(false);
   });
 });
 

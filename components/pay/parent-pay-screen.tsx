@@ -15,7 +15,7 @@ type Props = { token: string; reference?: string };
 
 export function ParentPayScreen({ token, reference }: Props) {
   const confirmation = usePayConfirmation(token, reference);
-  const link = usePayLink(token, Boolean(reference) && confirmation.data !== false);
+  const link = usePayLink(token, Boolean(reference) && confirmation.data?.verified !== false);
   const [isPaying, setIsPaying] = useState(false);
   const [payError, setPayError] = useState<string | null>(null);
 
@@ -36,6 +36,13 @@ export function ParentPayScreen({ token, reference }: Props) {
   };
 
   const renderBody = () => {
+    // The student's reservation had ended by the time the payment arrived: say so before anything that looks like "expired".
+    if (confirmation.data?.refunded) {
+      return <PayMessageState tone="neutral" icon="arrow-undo-outline" title="Your payment is being refunded" body={`${name}'s reservation had already ended, so your payment is being returned in full. It can take a few days to reach the account it came from.`} testID="pay-refunded" />;
+    }
+    if (confirmation.data?.refundFailed) {
+      return <PayMessageState tone="danger" icon="alert-circle-outline" title="We need to look at your payment" body={`${name}'s reservation had already ended, so this payment cannot be used. We could not return it automatically. Please contact Gida Support and we will sort it out.`} testID="pay-refund-failed" />;
+    }
     if (link.isLoading) return <ActivityIndicator style={styles.loader} size="large" color={PayColors.gold} />;
     if (link.isError || !summary) {
       return <PayMessageState tone="danger" icon="cloud-offline-outline" title="We could not load this link" body="Check your connection and open the link again. If it keeps happening, ask the student to send it again." testID="pay-load-error" />;

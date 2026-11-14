@@ -32,7 +32,7 @@ export function computeClaimPlan(
 export function reservationSuccessMessage(isBuyout: boolean, matchedCount: number): string {
   if (isBuyout) return "Spot reserved! You're all set for solo living.";
   if (matchedCount > 0) {
-    return `Spot secured! Gida will find ${matchedCount} roommate${matchedCount === 1 ? '' : 's'} for you.`;
+    return `Spot secured! ${matchedCount} open seat${matchedCount === 1 ? ' is' : 's are'} now listed for students who want roommates.`;
   }
   return 'Spot secured! Invite your friends to keep the group together.';
 }

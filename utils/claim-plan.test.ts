@@ -20,8 +20,8 @@ describe('computeClaimPlan', () => {
 describe('reservationSuccessMessage', () => {
   it('describes each outcome', () => {
     expect(reservationSuccessMessage(true, 0)).toMatch(/solo/);
-    expect(reservationSuccessMessage(false, 1)).toMatch(/1 roommate for you/);
-    expect(reservationSuccessMessage(false, 2)).toMatch(/2 roommates for you/);
+    expect(reservationSuccessMessage(false, 1)).toMatch(/1 open seat is now listed/);
+    expect(reservationSuccessMessage(false, 2)).toMatch(/2 open seats are now listed/);
     expect(reservationSuccessMessage(false, 0)).toMatch(/Invite your friends/);
   });
 });

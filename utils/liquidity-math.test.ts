@@ -46,7 +46,7 @@ describe('Dynamic Target Occupancy Math', () => {
       expect(options[0].targetOccupancy).toBe(1);
 
       expect(options[1].label).toBe('Live with 1 Roommate (2 People Total)');
-      expect(options[1].description).toContain('sharing common areas with 1 matched roommate');
+      expect(options[1].description).toContain('sharing common areas with 1 other student who join your group');
 
       expect(options[3].label).toBe('Live with 3 Roommates (4 People Total)');
       expect(options[3].description).toContain('Most affordable.');

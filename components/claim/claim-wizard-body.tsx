@@ -112,7 +112,7 @@ export function ClaimWizardBody({
       return (
         <>
           <Text style={styles.title}>Do you already have these roommates?</Text>
-          <Text style={styles.subtitle}>Tell us how many roomates you already have, and we will fill whatever space is left</Text>
+          <Text style={styles.subtitle}>Tell us how many roommates you already have. Any seats left are listed for other students who want roommates.</Text>
           <ExistingFriendsSelector roommateCount={roommateCount} value={haveCount} onChange={onHaveCountChange} />
         </>
       );

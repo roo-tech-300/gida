@@ -46,7 +46,7 @@ export function ExistingFriendsSelector({ roommateCount, value, onChange }: Prop
       <Text style={styles.summary}>
         {matched === 0
           ? 'All your roommates are friends. Gida keeps the group to just you and them.'
-          : `Gida will go and look for ${matched} roommate${matched === 1 ? '' : 's'} for you.`}
+          : `${matched} open seat${matched === 1 ? ' is' : 's are'} listed for other students who want roommates.`}
       </Text>
     </View>
   );

@@ -66,9 +66,9 @@ export function getAvailableIntentOptions(inputTier: number, isFriendMode = fals
       label = isFriendMode ? '2 Slots (Me & 1 Classmate)' : '2 Slots (50% Occupancy)';
       description = isFriendMode
         ? 'Reserve 2 individual slots for you and a classmate under separate student invoices.'
-        : 'Reserve 50% occupancy (2 slots). Remaining 2 slots are paired with 1 or 2 compatible classmates in Roommate Matching.';
+        : 'Reserve 50% occupancy (2 slots). The other 2 slots are open to other students looking for roommates.';
     } else if (i === 1) {
-      description = `Reserve 1 slot. You will be paired with up to ${tier - 1} compatible classmate${tier - 1 > 1 ? 's' : ''} in Roommate Matching.`;
+      description = `Reserve 1 slot. The other ${tier - 1} slot${tier - 1 > 1 ? 's are' : ' is'} open to other students looking for roommates.`;
     } else if (isFriendMode && i > 1 && i < tier) {
       description = `Reserve ${i} individual slots for your classmate group under separate student invoices.`;
     }
@@ -161,8 +161,8 @@ export function getTargetOccupancyOptions(maxRoommates: number): TargetOccupancy
       const roommateCount = i - 1;
       label = `Live with ${roommateCount} Roommate${roommateCount > 1 ? 's' : ''} (${i} People Total)`;
       description = i === max
-        ? `Most affordable. Share the house with ${roommateCount} matched roommate${roommateCount > 1 ? 's' : ''}.`
-        : `You get a private room, sharing common areas with ${roommateCount} matched roommate${roommateCount > 1 ? 's' : ''}.`;
+        ? `Most affordable. Share the house with ${roommateCount} other student${roommateCount > 1 ? 's' : ''} who join your group.`
+        : `You get a private room, sharing common areas with ${roommateCount} other student${roommateCount > 1 ? 's' : ''} who join your group.`;
     }
 
     options.push({

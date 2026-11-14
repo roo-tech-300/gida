@@ -189,7 +189,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
                   removeClippedSubviews={false}
                 >
                   <Text style={styles.title}>Would you like to have roommates?</Text>
-                  <Text style={styles.subtitle}>You can live alone, with friends, with matched roommates — or a mix.</Text>
+                  <Text style={styles.subtitle}>You can live alone, with friends, with other students who join your group, or a mix.</Text>
                   <RoommatePrompt value={wantsRoommates} onChange={handleRoommateChoice} />
                   <JoinInviteCard onPress={() => setJoinMode(true)} />
                 </ScrollView>

@@ -20,7 +20,7 @@ const OPTIONS: Option[] = [
     key: 'yes',
     icon: 'people-outline',
     title: 'Yes, I want roommates',
-    description: 'Pick friends, get matched, or a mix of both.',
+    description: 'Bring friends, open seats to other students, or a mix of both.',
   },
   {
     key: 'no',

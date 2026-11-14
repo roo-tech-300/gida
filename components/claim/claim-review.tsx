@@ -64,7 +64,7 @@ export function ClaimReview({
           <View style={styles.noteRow}>
             <Ionicons name="sparkles-outline" size={16} color={DesignColors.primaryBright} />
             <Text style={styles.noteText}>
-              Gida will go and look for {matchedCount} roommate{matchedCount === 1 ? '' : 's'} for you.
+              {matchedCount} open seat{matchedCount === 1 ? ' is' : 's are'} listed for other students who want roommates.
             </Text>
           </View>
         )}

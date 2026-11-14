@@ -7,7 +7,7 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { DesignColors, fontFamily } from '@/constants/design';
 import { AdminHeader } from '@/components/admin/admin-header';
 import { MetricCard } from '@/components/admin/super-admin-helpers';
-import { useAdminStats, useRecentAdminActivity } from '@/hooks/use-admin-profiles';
+import { useAdminStats, useAppUserCount, useRecentAdminActivity } from '@/hooks/use-admin-profiles';
 import { useRealtimeTourAlerts } from '@/hooks/use-tour-realtime';
 import { useRealtimeLodgeAlerts } from '@/hooks/use-lodge-realtime';
 import type { AdminActivity } from '@/services/super-admin-service';
@@ -49,6 +49,7 @@ const ACTION_COLOR_MAP: Record<string, string> = {
 export function SuperAdminDashboardScreen() {
   const { profile } = useAuth();
   const { data: stats } = useAdminStats();
+  const { data: userCount } = useAppUserCount();
   const { data: activity, isError: activityError } = useRecentAdminActivity();
   const { unread, clearUnread } = useRealtimeTourAlerts();
   const { unread: lodgeUnread, clearUnread: clearLodgeUnread } = useRealtimeLodgeAlerts();
@@ -90,6 +91,9 @@ export function SuperAdminDashboardScreen() {
             <MetricCard label="Total Regions" value={String(stats?.totalRegions ?? '—')} />
             <MetricCard label="Regional Admins" value={String(stats?.regionalAdmins ?? '—')} />
             <MetricCard label="Field Admins" value={String(stats?.fieldAdmins ?? '—')} />
+          </View>
+          <View style={styles.metricsRow}>
+            <MetricCard label="Total Users" value={userCount === undefined ? '—' : userCount.toLocaleString()} />
           </View>
 
           <View style={styles.actionGrid}>

@@ -66,6 +66,18 @@ function timeAgo(timestamp: string): string {
   return `${days} day${days === 1 ? '' : 's'} ago`;
 }
 
+/** Every account on the app, students and staff alike. Only the super-admin dashboard shows it. */
+export async function fetchAppUserCount(): Promise<number> {
+  try {
+    const { count, error } = await supabase.from('profiles').select('id', { count: 'exact', head: true });
+    if (error) throw error;
+    return count ?? 0;
+  } catch (error) {
+    console.error('[SuperAdminService] Failed to fetch user count:', error);
+    throw error;
+  }
+}
+
 export async function fetchRecentAdminActivity(limit = 5): Promise<AdminActivity[]> {
   const [adminsResult, listingsResult] = await Promise.all([
     supabase

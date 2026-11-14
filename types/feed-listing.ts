@@ -109,8 +109,8 @@ export function mapDbToFeedListing(item: DbListing): FeedListing {
     priceAmount,
     // Same kobo-precise split the household is charged, so the listing never shows a different figure than checkout.
     pricePerPerson: calculateEqualShare(priceAmount, Math.max(1, tier)),
-    beds: item.number_of_bedrooms > 0 ? `${item.number_of_bedrooms} ${item.number_of_bedrooms === 1 ? 'Bed' : 'Beds'}` : '',
-    baths: item.number_of_bathrooms > 0 ? `${item.number_of_bathrooms} ${item.number_of_bathrooms === 1 ? 'Bath' : 'Baths'}` : '',
+    beds: item.number_of_bedrooms > 0 ? `${item.number_of_bedrooms} ${item.number_of_bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}` : '',
+    baths: item.number_of_bathrooms > 0 ? `${item.number_of_bathrooms} ${item.number_of_bathrooms === 1 ? 'Bathroom' : 'Bathrooms'}` : '',
     size: item.size_sqft ? `${item.size_sqft.toLocaleString('en-US')} sqft` : '',
     floor: item.total_floors ? `${item.total_floors} Floors` : 'Ground',
     status: item.status || 'Available',

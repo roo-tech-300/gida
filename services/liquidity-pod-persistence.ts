@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { ALREADY_RESERVED_MESSAGE, isAlreadyReservedError } from '@/services/booking-guard-service';
+import { ALREADY_RESERVED_MESSAGE, FULLY_BOOKED_MESSAGE, isAlreadyReservedError, isFullyBookedError } from '@/services/booking-guard-service';
 import type { SlotCredit, Pod } from '@/types/liquidity';
 
 export async function insertCredit(credit: SlotCredit, userId: string): Promise<string | undefined> {
@@ -53,6 +53,11 @@ export async function persistFounderCredit(credit: SlotCredit, podId: string, us
   });
   if (memberError) {
     console.warn('[LiquidityService] Founder pod_members insert skipped:', memberError.message);
+    // Don't leave a reservation behind that belongs to no household: it would block them from trying again.
+    const { error: cancelError } = await supabase.rpc('cancel_reservation', { p_credit_id: creditId });
+    if (cancelError) console.error('[LiquidityService] Could not cancel the orphan reservation:', cancelError.message);
+    // Two students can start a household at the same moment; the loser is told the place is taken.
+    if (isFullyBookedError(memberError.message)) throw new Error(FULLY_BOOKED_MESSAGE);
     return false;
   }
   if (creditId !== credit.id) {
@@ -82,6 +87,7 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
       .maybeSingle();
     if (error || !data) {
       console.error('[Persistence] Pod insert FAILED:', error?.message ?? 'no data', error?.code);
+      if (isFullyBookedError(error?.message)) throw new Error(FULLY_BOOKED_MESSAGE);
       return null;
     }
     console.log('[Persistence] Pod inserted — id:', data.id);
@@ -91,7 +97,7 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
     } catch (creditError) {
       // Active-booking rejection: remove the pod we just created so no orphan
       // row is left behind, then surface the friendly message to the UI.
-      if (creditError instanceof Error && creditError.message === ALREADY_RESERVED_MESSAGE) {
+      if (creditError instanceof Error && (creditError.message === ALREADY_RESERVED_MESSAGE || creditError.message === FULLY_BOOKED_MESSAGE)) {
         console.warn('[Persistence] Booking rejected by backend — rolling back orphan pod:', data.id);
         try {
           const { error: rollbackError } = await supabase.from('pods').delete().eq('id', data.id);

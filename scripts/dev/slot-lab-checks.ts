@@ -28,11 +28,10 @@ export const DATA_RULES: Check[] = [
       .map(([code, target, got]) => `${code}: ${got} members for ${target} places`),
   },
   {
-    area: 'Capacity', title: 'No listing has more live reservations than spots',
-    run: () => rows(`select l.title, coalesce(l.abstract_slots_available, l.units_available*greatest(1,coalesce(l.property_tier,l.max_roommates,1))) as spots, count(*)
-      from listings l join slot_credits sc on sc.listing_id=l.id where ${ACTIVE} group by l.id
-      having count(*) > coalesce(l.abstract_slots_available, l.units_available*greatest(1,coalesce(l.property_tier,l.max_roommates,1)))`)
-      .map(([title, spots, held]) => `${title}: ${held} reservations for ${spots} spot(s)`),
+    area: 'Capacity', title: 'No listing has more households than units',
+    run: () => rows(`select l.title, l.units_available, public.households_in_use(l.id) from listings l
+      where public.households_in_use(l.id) > coalesce(l.units_available, 1) order by 1`)
+      .map(([title, units, households]) => `${title}: ${households} households for ${units} unit(s)`),
   },
   {
     area: 'Holds', title: 'Every unpaid hold that has run out has been released',
@@ -83,6 +82,11 @@ const listingId = (title: string): string => `(select id from listings where tit
 /** Makes a student's unpaid hold on a listing run out, as the database owner, before the probe starts. */
 const lapse = (email: string, title: string): string =>
   `update slot_credits set payment_deadline = now() - interval '2 hours' where user_id = (select id from auth.users where email='${email}') and listing_id = ${listingId(title)} and status = 'booked_pending_claim';`;
+
+/** What the app does to start a household: insert a pod for the listing. */
+const startHousehold = (title: string): string =>
+  `insert into pods (estate_id, listing_id, property_tier, matched_gender, target_occupancy, group_code, current_total_intent)
+   select estate_id, id, coalesce(max_roommates, property_tier, 1), 'ANY', 1, 'PROBE' || substr(md5(random()::text), 1, 6), 1 from listings where title like '${title}%' returning id;`;
 
 export const PROBES: Check[] = [
   {
@@ -142,6 +146,21 @@ export const PROBES: Check[] = [
       if (!out.some((x) => /Admin queue.*booked_pending_claim/.test(x))) problems.push(`a request still waiting for review was expired: ${out.join('; ')}`);
       return problems;
     },
+  },
+  {
+    area: 'Capacity', title: 'A second household cannot be started on a place whose units are all taken',
+    run: () => {
+      const r = asStudent('slot.02@gida.test', startHousehold('Slot · Full and paid'));
+      return /fully booked/i.test(r.error ?? '') ? [] : [`got: ${describe(r)}`];
+    },
+  },
+  {
+    area: 'Capacity', title: 'A household can still be started on a place with a free unit',
+    run: () => { const r = asStudent('slot.02@gida.test', startHousehold('Lab · Two photos')); return r.error ? [`refused: ${r.error}`] : []; },
+  },
+  {
+    area: 'Capacity', title: 'A solo buyout of a shared flat takes the whole flat',
+    run: () => { const left = spotsLeft('Slot · Solo buyout'); return left === '0' ? [] : [`shows ${left} spot(s) left on a flat one person has bought outright`]; },
   },
   {
     area: 'Cancel', title: 'Cancelling frees the spot and shrinks the household',

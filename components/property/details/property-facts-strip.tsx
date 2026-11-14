@@ -3,11 +3,16 @@ import { StyleSheet, Text, View } from 'react-native';
 import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
 
+function leadingNumber(value: string): string {
+  return /^\d+/.exec(value)?.[0] ?? value;
+}
+
 /** Bedrooms, bathrooms, size and floor in one strip. Facts the listing doesn't have are left out. */
 export function PropertyFactsStrip({ property }: { property: FeedListing }) {
   const facts = [
-    { label: 'BEDROOMS', value: property.beds },
-    { label: 'BATHROOMS', value: property.baths },
+    // The label already says what is being counted, and these places are rented as they are: show just the number.
+    { label: 'BEDROOMS', value: leadingNumber(property.beds) },
+    { label: 'BATHROOMS', value: leadingNumber(property.baths) },
     { label: 'INTERIOR', value: property.size },
     { label: 'FLOOR', value: property.floor },
   ].filter((fact) => Boolean(fact.value));

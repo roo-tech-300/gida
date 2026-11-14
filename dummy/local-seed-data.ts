@@ -300,11 +300,11 @@ export const SEED_LISTINGS: SeedListing[] = [
   },
   {
     key: 'gktwin', title: 'GK Twin Rooms', landlord: 'mrsokoro', admin: 'regional', layout: 'flat',
-    description: 'One-bedroom flat shared by two, five minutes from the GK campus shuttle. Furnished sitting room and a kitchen.',
+    description: 'One-bedroom flat shared by two, five minutes from the GK campus shuttle. Tiled sitting room and a kitchen.',
     priceTotal: 500000, bedrooms: 1, bathrooms: 1, maxRoommates: 2, landmark: 'Near GK shuttle park', campus: GK_CAMPUS,
     region: 'gk', lat: 9.5381, lng: 6.4561,
     amenities: { borehole: true, fencedGate: true, burglary: true, wardrobe: true },
-    features: ['Furnished sitting room', 'Shuttle nearby'],
+    features: ['Tiled sitting room', 'Shuttle nearby'],
     rules: ['Share cleaning duties weekly'],
     photos: ['lodges/sitting-room.jpg', 'lodges/shared-two-bed.jpg', 'houses/Gemini_Generated_Image_5j0rak5j0rak5j0r.jpg'],
   },

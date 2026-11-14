@@ -44,7 +44,7 @@ export function LandlordPropertyCard({ property }: { property: LandlordListing }
         <View style={styles.metaRow}>
           <MetaPill
             icon="bed-outline"
-            label={property.number_of_bedrooms > 0 ? `${property.number_of_bedrooms} Beds` : 'Studio'}
+            label={property.number_of_bedrooms > 0 ? `${property.number_of_bedrooms} ${property.number_of_bedrooms === 1 ? 'Bedroom' : 'Bedrooms'}` : 'Studio'}
           />
           <MetaPill
             icon="water-outline"

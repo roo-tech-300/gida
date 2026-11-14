@@ -79,6 +79,7 @@ The state lab above is about what a screen looks like. The slot lab is about the
 | Invitations | Pending, declined and accepted invites |
 | Admin queue ages | Four pending requests waiting 0.2h, 5h, 30h and 70h (sign in as `field@gida.test`, Today) |
 | Parent pay links | Open, expired, revoked and paid links |
+| Solo buyout of a 3-person flat | One person paid the whole rent: the place shows no spots left |
 
 Run `npm run db:slot-report` to read it all back. It checks the data against the rules (household counts, capacity, lapsed holds, rent splits, rooms, invites) and runs behaviour probes as real lab students (joining full or locked households, re-reserving after cancelling, self-marking as paid, pay-link states). The probes run inside transactions that are always rolled back, so nothing changes. Current results and recommended fixes are in `docs/slot-lab-findings.md`.
 
@@ -87,6 +88,7 @@ Run `npm run db:slot-report` to read it all back. It checks the data against the
 - **Rent rounding:** rent is rounded up so every household size from 1 to the room limit pays whole naira (a multiple of 12 for 4 people). Entering ₦1,000,000 for a 4-person place saves ₦1,000,008.
 - **Student writes:** a student cannot mark a reservation paid, change its amount or hold, or approve a household. Use an admin account or the worker for those.
 - **Lapsed holds:** an approved, unpaid hold expires by itself (pg_cron every 5 minutes, also locally). To sweep now: `select public.expire_lapsed_holds();`.
+- **Capacity:** every household takes one whole unit of a listing, so a place with one unit can only ever have one household. Starting another is refused with "This place is fully booked."
 - **Gender lock:** a household locked to men or women only admits that gender.
 
 ## Cancelling a reservation

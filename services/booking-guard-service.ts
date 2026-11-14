@@ -6,6 +6,13 @@ import { supabase } from '@/lib/supabase';
 
 export const ALREADY_RESERVED_MESSAGE = 'You already have an active reservation for this property.';
 
+export const FULLY_BOOKED_MESSAGE = 'This place is fully booked.';
+
+/** The database refuses to start a household when every unit of the place already has one. */
+export function isFullyBookedError(message: string | undefined): boolean {
+  return !!message && message.toLowerCase().includes(FULLY_BOOKED_MESSAGE.toLowerCase());
+}
+
 /** Maps insert failures that mean "an active booking already exists". */
 export function isAlreadyReservedError(message: string, code?: string): boolean {
   const lower = message.toLowerCase();

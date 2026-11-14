@@ -30,6 +30,9 @@ export function ClaimReview({
   roster,
   price,
 }: Props) {
+  // A solo reservation has no group to show.
+  const isSolo = friendsCount + codeSeats + matchedCount === 0 && roster.length === 0;
+
   return (
     <>
       <View style={styles.listingMini}>
@@ -43,6 +46,7 @@ export function ClaimReview({
         </View>
       </View>
 
+      {isSolo ? null : (
       <View style={styles.groupCard}>
         <Text style={styles.sectionLabel}>YOUR GROUP</Text>
         <SlotDiagram friendsCount={friendsCount} codeCount={codeSeats} matchedCount={matchedCount} />
@@ -67,14 +71,15 @@ export function ClaimReview({
           </View>
         )}
       </View>
+      )}
 
       <ClaimSplitSummary price={price} />
 
       <View style={styles.deadlineCard}>
         <Ionicons name="time-outline" size={18} color={DesignColors.warning} />
         <Text style={styles.deadlineText}>
-          Once Gida approves, you have <Text style={styles.deadlineStrong}>3 days</Text> to pay and keep your spot —
-          every member of your group shares the same deadline.
+          Once Gida approves, you have <Text style={styles.deadlineStrong}>3 days</Text> to pay and keep your spot
+          {isSolo ? '.' : ' — every member of your group shares the same deadline.'}
         </Text>
       </View>
     </>

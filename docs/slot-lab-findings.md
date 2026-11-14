@@ -23,18 +23,21 @@ I first wrote that nothing expires holds on the server. That was wrong: the work
 - Between runs, `get_spots_left` already ignores such holds, and `has_active_booking`, `join_pod` and creating a reservation first release the student's own lapsed hold, so nobody is blocked by a stale row. The property screen also releases a student's own lapsed hold as soon as they look at it.
 - Approval now always starts a fresh 3-day hold. Before, a request that waited longer than 3 days for review was already lapsed when approved.
 
+### A place can no longer be over-booked, and a solo buyout takes the whole place (was: medium)
+A listing has `units_available` identical units and **every household occupies one whole unit**: a "just me" reservation of a 3-person flat pays the full rent and takes the flat. Capacity was counted per reservation, so a second household could be started on a one-unit listing (Bosso Gate had two), and a solo buyout still showed "2 spots left".
+- **Now** (migration `20261123000000`): starting a household needs a free unit. It is checked when the household is created and again when its first member is added, under a lock per listing, so two students starting one at the same moment cannot both win. Spots left = seats still open inside existing households + the full capacity of each free unit.
+- **Checked with a real race:** two students starting a household on the same one-unit listing at once, three times. Exactly one got the place each time; the other was told "This place is fully booked." and their orphan reservation was cancelled. The app now shows that message and cleans up.
+- Existing over-booked data is not touched: Bosso Gate still has two households on one unit, and the report lists it.
+
 ### Earlier fixes from the lab
 A cancelled or rejected reservation blocked reserving again (unique index); a student who left a household could not rejoin it; listings showed a price rounded differently from what checkout charges; seeded households recorded the wrong member count. See the git history.
 
 ## Open
 
-### 1. A one-unit listing can be reserved twice (medium)
-Nothing checks capacity when a household is founded. `Bosso Gate single rooms` has two live reservations for one room. The property screen disables "Reserve" when spots are 0, but a second device or a race gets through. **Fix:** check spots left inside the reservation function, under a lock on the listing.
-
-### 2. Paying after cancelling (low)
+### 1. Paying after cancelling (low)
 If a student starts a Paystack payment, then cancels (or is rejected) before it completes, the worker's confirm step only accepts `booked`, `booked_pending_claim` and `expired` reservations, so the money arrives and nothing is marked paid. **Fix:** decide whether cancel should also void open payment attempts, or the worker should refund.
 
-### 3. Deployment
+### 2. Deployment
 The worker change (its job now calls `expire_lapsed_holds`) and all migrations are not deployed anywhere. Until then the old worker job keeps expiring requests that are waiting for admin review. pg_cron must be enabled on the hosted project for the five-minute schedule; the migration only warns if it is not.
 
 ## UX notes from the screens

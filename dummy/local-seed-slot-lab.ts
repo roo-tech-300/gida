@@ -45,6 +45,8 @@ export const SLOT_LISTINGS: SeedListing[] = [
   flat('sinvites', 'Invitations', 3, 900000),
   flat('squeue', 'Admin queue ages', 1, 100000, { units: 4, layout: 'single_room', bedrooms: 0 }),
   flat('slinks', 'Parent pay links', 2, 640000, { units: 2 }),
+  // A "just me" reservation pays the whole rent and takes the whole flat, so no spots are left.
+  flat('sbuyout', 'Solo buyout of a 3-person flat', 3, 720000),
 ];
 
 const m = (user: string, status: SeedHouseholdMember['status'], createdHoursAgo: number, extra: Partial<SeedHouseholdMember> = {}): SeedHouseholdMember =>
@@ -89,6 +91,7 @@ export const SLOT_HOUSEHOLDS: SeedHousehold[] = [
     `s-queue-${i + 1}`, 'squeue', 1, `SLQUE${i + 1}`, [m(user as string, 'booked_pending_claim', wait as number, { holdEndsInHours: 72 - (wait as number) })],
     { verification: 'pending_verification', gender: i === 3 ? 'MALE' : 'FEMALE' },
   )),
+  house('s-buyout', 'sbuyout', 1, 'SLBUYO', [m('slot.05', 'paid_unmatched', 50)], { finalized: true, holdEndsInHours: 0 }),
   house('s-links-a', 'slinks', 2, 'SLLNKA', [
     m('slot.12', 'booked_pending_claim', 30, { holdEndsInHours: 30, link: 'open' }), m('slot.13', 'booked_pending_claim', 28, { holdEndsInHours: 30, link: 'expired' }),
   ]),

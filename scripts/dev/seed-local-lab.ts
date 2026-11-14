@@ -16,9 +16,11 @@ export async function labAlreadySeeded(db: SupabaseClient): Promise<boolean> {
   return rows.length > 0;
 }
 
-export async function slotLabAlreadySeeded(db: SupabaseClient): Promise<boolean> {
-  const rows = must('slot lab lookup', await db.from('listings').select('id').like('title', 'Slot · %').limit(1));
-  return rows.length > 0;
+/** Keys of slot-lab listings that are not in the database yet, so a lab that has grown can be topped up without a reset. */
+export async function missingSlotLabKeys(db: SupabaseClient): Promise<Set<string>> {
+  const rows = must('slot lab lookup', await db.from('listings').select('title').like('title', 'Slot · %'));
+  const have = new Set(rows.map((r) => r.title as string));
+  return new Set(SLOT_LISTINGS.filter((l) => !have.has(l.title)).map((l) => l.key));
 }
 
 export async function seedStateLab(
@@ -41,16 +43,18 @@ export async function seedStateLab(
 /** Household data shaped to stress the slot economy; read it back with `npm run db:slot-report`. */
 export async function seedSlotLab(
   db: SupabaseClient, stack: LocalStack, users: Map<string, string>, regions: Map<SeedRegionKey, string>,
+  only?: ReadonlySet<string>,
 ): Promise<void> {
   const slotUsers = await seedPeople(db, stack, SLOT_USERS);
   const allUsers = new Map([...users, ...slotUsers]);
-  const listings = await seedListings(db, stack, allUsers, regions, SLOT_LISTINGS);
+  const wanted = (key: string): boolean => !only || only.has(key);
+  const listings = await seedListings(db, stack, allUsers, regions, SLOT_LISTINGS.filter((l) => wanted(l.key)));
 
   const catalog: Catalog = {
     users: allUsers,
     userNames: new Map([...SEED_USERS, ...SLOT_USERS].map((u) => [u.key, u.fullName])),
     listings,
   };
-  const households = await seedHouseholds(db, catalog, SLOT_HOUSEHOLDS);
+  const households = await seedHouseholds(db, catalog, SLOT_HOUSEHOLDS.filter((h) => wanted(h.listing)));
   console.log(`[Seed] Slot lab: ${listings.size} listings, ${slotUsers.size} accounts, ${households.size} households`);
 }

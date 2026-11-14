@@ -8,6 +8,7 @@ import { useCreateListingForm } from '@/context/create-listing-context';
 import { useCreateListing } from '@/hooks/use-create-listing';
 import { supabase } from '@/lib/supabase';
 import {
+  deleteListing,
   insertListingPhotos,
   updateListing,
   updateListingPrimaryImage,
@@ -46,9 +47,7 @@ export function useSaveListing() {
   const buildInput = (): CreateListingInput =>
     buildListingInput(data, { adminId: profile?.id ?? '', city: profile?.city || 'Minna' });
 
-  const createListing = async () => {
-    const { id } = await createMutate(buildInput());
-
+  const uploadNewListingPhotos = async (id: string) => {
     if (step5.heroImage) {
       const primaryUrl = await uploadListingImage(id, step5.heroImage, 'hero.jpg');
       await updateListingPrimaryImage(id, primaryUrl);
@@ -60,6 +59,22 @@ export function useSaveListing() {
       await insertListingPhotos(toPhotoRows(id, urls));
       // Gallery-only listings have no hero, so the first photo becomes the cover.
       if (!step5.heroImage) await updateListingPrimaryImage(id, urls[0]);
+    }
+  };
+
+  const createListing = async () => {
+    const { id } = await createMutate(buildInput());
+
+    try {
+      await uploadNewListingPhotos(id);
+    } catch (error: unknown) {
+      // Never leave a published listing with no photos: undo the insert so the admin can retry cleanly.
+      console.error('[CreateListing] Photo upload failed, rolling back listing:', id, error);
+      await deleteListing(id).catch((rollbackError: unknown) =>
+        console.error('[CreateListing] Rollback failed, listing', id, 'is photoless and needs manual cleanup:', rollbackError),
+      );
+      queryClient.invalidateQueries({ queryKey: ['listings'] });
+      throw new Error('Photos failed to upload, so the listing was not published. Check your connection and try again.');
     }
 
     showToast({ message: 'Listing published successfully!', type: 'success' });

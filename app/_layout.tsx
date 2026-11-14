@@ -3,6 +3,7 @@ import { Platform } from 'react-native';
 import { Stack, usePathname, useRouter, useSegments } from 'expo-router';
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClient } from '@/lib/query-clients';
+import { takePendingRedirect } from '@/lib/pending-redirect';
 import { AppConfigProvider } from '@/context/app-context';
 import { AuthProvider, useAuth } from '@/context/auth-context';
 import { OnboardingProvider } from '@/context/onboarding-context';
@@ -91,7 +92,9 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     )) {
       const requestedProperty = pendingPropertyPath.current;
       pendingPropertyPath.current = null;
-      router.replace(requestedProperty ? (requestedProperty as never) : '/(tabs)');
+      // Someone who left an invite link to sign in (or to finish onboarding) goes back to it.
+      const returnTo = inAuthGroup || inOnboardingGroup ? takePendingRedirect() : null;
+      router.replace((requestedProperty ?? returnTo ?? '/(tabs)') as never);
     }
   }, [isLoading, isAuthenticated, hasSession, profile, segments, pathname, router]);
 

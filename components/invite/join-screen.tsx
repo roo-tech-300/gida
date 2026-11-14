@@ -15,7 +15,7 @@ function Centered({ children }: { children: React.ReactNode }) {
 /** The page behind an invite link. Public: no account needed to look, a few details to join. */
 export function JoinScreen({ token }: { token: string }) {
   const router = useRouter();
-  const { page, stage, problem, errors, formError, start, submitDetails, backToLanding, runAction } = useJoinFlow(token);
+  const { page, stage, problem, errors, formError, emailTaken, isSignedIn, signIn, start, submitDetails, backToLanding, runAction } = useJoinFlow(token);
 
   let body: React.ReactNode;
   if (page.isLoading) {
@@ -34,13 +34,14 @@ export function JoinScreen({ token }: { token: string }) {
   } else if (problem) {
     body = <InviteProblemCard problem={problem} onAction={() => runAction(problem.action)} />;
   } else if (stage === 'details') {
-    body = <QuickDetailsForm busy={false} errors={errors} formError={formError} onSubmit={(d) => void submitDetails(d)} onBack={backToLanding} />;
+    body = <QuickDetailsForm busy={false} errors={errors} formError={formError} emailTaken={emailTaken} onSignIn={signIn} onSubmit={(d) => void submitDetails(d)} onBack={backToLanding} />;
   } else {
     body = (
       <InviteLanding
         page={page.data}
         busy={false}
         onJoin={start}
+        onSignIn={isSignedIn ? undefined : signIn}
         onViewPlace={page.data.listingId ? () => router.push({ pathname: '/property/[id]', params: { id: page.data.listingId as string } }) : undefined}
       />
     );

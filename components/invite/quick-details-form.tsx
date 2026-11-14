@@ -6,7 +6,7 @@ import { SafeKeyboardView } from '@/components/ui/safe-keyboard-view';
 import { DesignColors, DesignRadius, DesignSpacing, fontFamily } from '@/constants/design';
 import type { GuestDetails, GuestErrors } from '@/utils/guest-details';
 
-type Props = { busy: boolean; errors: GuestErrors; formError: string | null; onSubmit: (details: GuestDetails) => void; onBack: () => void };
+type Props = { busy: boolean; errors: GuestErrors; formError: string | null; emailTaken?: boolean; onSignIn?: () => void; onSubmit: (details: GuestDetails) => void; onBack: () => void };
 
 function Field({ label, error, children }: { label: string; error?: string; children: React.ReactNode }) {
   return (
@@ -19,7 +19,7 @@ function Field({ label, error, children }: { label: string; error?: string; chil
 }
 
 /** The only things asked before paying: name, email, gender (the household lock needs it) and school. */
-export function QuickDetailsForm({ busy, errors, formError, onSubmit, onBack }: Props) {
+export function QuickDetailsForm({ busy, errors, formError, emailTaken = false, onSignIn, onSubmit, onBack }: Props) {
   const [details, setDetails] = useState<GuestDetails>({ name: '', email: '', gender: null, school: '' });
   // A field's message goes away as soon as the student edits it; a new submit brings back whatever is still wrong.
   // The edits belong to one set of errors, so they are discarded when a new set arrives (no effect needed).
@@ -64,6 +64,11 @@ export function QuickDetailsForm({ busy, errors, formError, onSubmit, onBack }: 
         </Field>
 
         {formError ? <Text style={styles.formError} accessibilityRole="alert">{formError}</Text> : null}
+        {emailTaken && onSignIn ? (
+          <Pressable accessibilityRole="button" onPress={onSignIn} style={styles.signIn}>
+            <Text style={styles.signInText}>Sign in</Text>
+          </Pressable>
+        ) : null}
         <Pressable accessibilityRole="button" onPress={() => onSubmit(details)} disabled={busy} style={[styles.cta, busy && styles.ctaBusy]}>
           {busy ? <ActivityIndicator color={DesignColors.onPrimary} /> : <Text style={styles.ctaText}>Continue to payment</Text>}
         </Pressable>
@@ -94,4 +99,6 @@ const styles = StyleSheet.create({
   ctaBusy: { opacity: 0.7 },
   ctaText: { fontFamily, fontSize: 16, fontWeight: '700', color: DesignColors.onPrimary },
   note: { fontFamily, fontSize: 12, textAlign: 'center', color: DesignColors.outline },
+  signIn: { height: 46, borderRadius: DesignRadius.full, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: DesignColors.primaryBright },
+  signInText: { fontFamily, fontSize: 14, fontWeight: '700', color: DesignColors.primaryFixed },
 });

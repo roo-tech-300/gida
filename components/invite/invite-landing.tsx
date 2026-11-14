@@ -7,7 +7,7 @@ import { formatNaira } from '@/utils/format-naira';
 import { toCdnImageUrl } from '@/utils/image-cdn';
 import type { InvitePage } from '@/utils/invite-parse';
 
-type Props = { page: InvitePage; busy: boolean; onJoin: () => void; onViewPlace?: () => void };
+type Props = { page: InvitePage; busy: boolean; onJoin: () => void; onViewPlace?: () => void; onSignIn?: () => void };
 
 function Avatars({ initials, target }: { initials: string[]; target: number }) {
   const open = Math.max(0, target - initials.length);
@@ -22,7 +22,7 @@ function Avatars({ initials, target }: { initials: string[]; target: number }) {
 }
 
 /** What a friend sees first: the place, their share, who is in, and one button. */
-export function InviteLanding({ page, busy, onJoin, onViewPlace }: Props) {
+export function InviteLanding({ page, busy, onJoin, onViewPlace, onSignIn }: Props) {
   const lock = page.gender === 'FEMALE' ? 'Women-only household' : page.gender === 'MALE' ? 'Men-only household' : null;
   return (
     <ScrollView contentContainerStyle={styles.scroll} showsVerticalScrollIndicator={false}>
@@ -61,6 +61,11 @@ export function InviteLanding({ page, busy, onJoin, onViewPlace }: Props) {
         <Pressable accessibilityRole="button" onPress={onJoin} disabled={busy} style={[styles.cta, busy && styles.ctaBusy]}>
           {busy ? <ActivityIndicator color={DesignColors.onPrimary} /> : <Text style={styles.ctaText}>Join and pay {formatNaira(page.share)}</Text>}
         </Pressable>
+        {onSignIn ? (
+          <Pressable accessibilityRole="button" onPress={onSignIn} hitSlop={8} style={styles.linkWrap}>
+            <Text style={styles.signInText}>Already on Gida? <Text style={styles.link}>Sign in</Text></Text>
+          </Pressable>
+        ) : null}
         {onViewPlace ? (
           <Pressable accessibilityRole="link" onPress={onViewPlace} hitSlop={8} style={styles.linkWrap}>
             <Text style={styles.link}>See the place first</Text>
@@ -100,4 +105,5 @@ const styles = StyleSheet.create({
   ctaText: { fontFamily, fontSize: 16, fontWeight: '700', color: DesignColors.onPrimary },
   linkWrap: { alignSelf: 'center' },
   link: { fontFamily, fontSize: 13, fontWeight: '700', color: DesignColors.primaryFixed },
+  signInText: { fontFamily, fontSize: 13, color: DesignColors.onSurfaceVariant },
 });

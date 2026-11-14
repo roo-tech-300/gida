@@ -3,6 +3,7 @@ import { Linking } from 'react-native';
 import { useRouter } from 'expo-router';
 
 import { useAuth } from '@/context/auth-context';
+import { setPendingRedirect } from '@/lib/pending-redirect';
 import { useInvitePage, useJoinInvite } from '@/hooks/use-household-invite';
 import { createGuestAccount } from '@/services/guest-account-service';
 import { validateGuestDetails, type GuestDetails, type GuestErrors } from '@/utils/guest-details';
@@ -21,6 +22,7 @@ export function useJoinFlow(token: string | undefined) {
   const [failure, setFailure] = useState<InviteProblem | null>(null);
   const [errors, setErrors] = useState<GuestErrors>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [emailTaken, setEmailTaken] = useState(false);
   const triedClaimed = useRef(false);
 
   const canJoinDirectly = isAuthenticated && !!profile?.onboarded;
@@ -46,22 +48,38 @@ export function useJoinFlow(token: string | undefined) {
     }
   }, [page.data?.status, canJoinDirectly, joinNow]);
 
+  /** Sign in first, then come straight back to this link. */
+  const signIn = useCallback(() => {
+    if (!token) return;
+    setPendingRedirect(`/join/${token}`);
+    router.push('/(auth)/login');
+  }, [token, router]);
+
   const start = useCallback(() => {
     setFailure(null);
-    if (canJoinDirectly) void joinNow();
-    else setStage('details');
-  }, [canJoinDirectly, joinNow]);
+    if (canJoinDirectly) {
+      void joinNow();
+    } else if (isAuthenticated && token) {
+      // Signed in but never finished onboarding: finish it, and the gate brings them back here.
+      setPendingRedirect(`/join/${token}`);
+      router.replace('/(onboarding)');
+    } else {
+      setStage('details');
+    }
+  }, [canJoinDirectly, isAuthenticated, token, joinNow, router]);
 
   const submitDetails = useCallback(async (details: GuestDetails) => {
     const found = validateGuestDetails(details);
     setErrors(found);
     setFormError(null);
+    setEmailTaken(false);
     if (Object.keys(found).length > 0) return;
     setStage('working');
     try {
       const result = await createGuestAccount(details);
       if (result.status === 'email_taken') {
-        setFormError('This email already has a Gida account. Sign in, then open this link again.');
+        setFormError('This email already has a Gida account. Sign in and we will bring you straight back to this invite.');
+        setEmailTaken(true);
         setStage('details');
         return;
       }
@@ -102,5 +120,5 @@ export function useJoinFlow(token: string | undefined) {
     }
   }, [page.data?.inviter, router, isAuthenticated]);
 
-  return { page, stage, problem, errors, formError, start, submitDetails, backToLanding: () => setStage('landing'), runAction };
+  return { page, stage, problem, errors, formError, emailTaken, isSignedIn: isAuthenticated, signIn, start, submitDetails, backToLanding: () => setStage('landing'), runAction };
 }

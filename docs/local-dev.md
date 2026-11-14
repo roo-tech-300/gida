@@ -97,6 +97,7 @@ A founder invites each friend with a link, not a code. Try it:
 1. Sign in as `slot.01@gida.test` (founder of Slot · Forming, 1 of 4) and open `/property/invite?podId=<pod id>&creditId=<credit id>`, or the household screen's "Invite friends with a link" button. Tap "Invite a friend": a link is made and the share sheet opens (in a desktop browser the link is shown in a message instead).
 2. Open the link signed out (a private window). The page shows the place, the friend's share and who has joined. "Join and pay" asks for name, email, gender and school, creates the account, takes the seat and opens the payment screen.
 3. The new student's My Home shows a "Choose a password" card until they set one.
+4. A friend who already has an account taps "Sign in" on the invite page and returns to it afterwards. Try it with `slot.06@gida.test`. Only invite links are remembered for the return trip (`lib/pending-redirect.ts`), so the sign-in screen cannot be used to send anyone elsewhere.
 
 Rules, all enforced in the database:
 - A link holds a seat for **2 hours** (a "ghost seat"), then the seat opens again; the link keeps working for **48 hours** until used. One link, one seat.

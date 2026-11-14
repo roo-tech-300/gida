@@ -1,6 +1,7 @@
 import { loginUserAccount, registerUserAccount, UserProfileInput } from "@/services/authService";
 import { useAppToast } from "@/components/ui/toast-card";
 import { useAuth } from "@/context/auth-context";
+import { takePendingRedirect } from "@/lib/pending-redirect";
 import { useRouter } from "expo-router";
 import { useState } from "react";
 
@@ -41,7 +42,10 @@ export function useAuthForm() {
     try {
       await loginUserAccount(email, password);
       await refreshProfile();
-      router.replace('/(tabs)');
+      // Back to the invite link they left to sign in, if any; the invite page handles an unfinished onboarding.
+      const returnTo = takePendingRedirect();
+      if (returnTo) router.dismissTo(returnTo as never);
+      else router.replace('/(tabs)');
     } catch (err) {
       setLoading(false);
       const message = err instanceof Error ? err.message : 'An error occurred during login. Please try again.';

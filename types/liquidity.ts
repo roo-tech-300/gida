@@ -5,7 +5,8 @@ export type SlotCreditStatus =
   | 'matched'
   | 'subletting'
   | 'expired'
-  | 'cancelled';
+  | 'cancelled'
+  | 'rejected';
 
 export type PodStatus = 'forming' | 'finalized' | 'swept_latecomer';
 
@@ -38,6 +39,7 @@ export interface SlotCredit {
   created_at: string;
   payment_deadline: string;
   cancelled_at?: string | null;
+  rejected_at?: string | null;
   expired_at?: string | null;
   estate?: Estate;
   listing_id?: string;

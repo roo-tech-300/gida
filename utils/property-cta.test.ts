@@ -41,6 +41,10 @@ describe('resolvePropertyCta', () => {
     });
   });
 
+  it('lets a student reserve again once an admin has rejected the request and released the spot', () => {
+    expect(resolvePropertyCta({ ...base, credit: credit({ status: 'rejected', pod_verification_status: 'rejected' }) }).state).toBe('reserve');
+  });
+
   it('lets a student reserve again after an expired or rejected reservation', () => {
     expect(resolvePropertyCta({ ...base, credit: credit({ status: 'expired' }) }).label).toBe('Reserve a spot');
     expect(resolvePropertyCta({ ...base, credit: credit({ status: 'cancelled' }) }).label).toBe('Reserve a spot');

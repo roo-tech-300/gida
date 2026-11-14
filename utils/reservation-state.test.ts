@@ -25,6 +25,7 @@ describe('reservationStage', () => {
     expect(reservationStage(credit({ pod_verification_status: 'rejected' }))).toBe('not_approved');
     expect(reservationStage(credit({ status: 'expired' }))).toBe('expired');
     expect(reservationStage(credit({ status: 'cancelled' }))).toBe('cancelled');
+    expect(reservationStage(credit({ status: 'rejected' }))).toBe('not_approved');
   });
 });
 
@@ -75,5 +76,12 @@ describe('ended reservations', () => {
     const cancelled = credit({ id: 'gone', status: 'cancelled', created_at: '2026-11-13T10:00:00.000Z' });
     expect(pickPrimaryReservation([cancelled, live])?.id).toBe('live');
     expect(pickPrimaryReservation([cancelled])).toBeNull();
+  });
+
+  it('still shows a rejected request so the student learns why, but ranks it below live ones', () => {
+    const live = credit({ id: 'live', pod_verification_status: 'approved' });
+    const rejected = credit({ id: 'no', status: 'rejected', pod_verification_status: 'rejected' });
+    expect(pickPrimaryReservation([rejected])?.id).toBe('no');
+    expect(pickPrimaryReservation([rejected, live])?.id).toBe('live');
   });
 });

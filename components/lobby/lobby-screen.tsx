@@ -1,4 +1,4 @@
-import { isEndedStatus } from '@/utils/credit-status';
+import { isLapsedStatus } from '@/utils/credit-status';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { useCallback, useMemo, useState } from 'react';
 import { ActivityIndicator, Pressable, RefreshControl, ScrollView, Text, View } from 'react-native';
@@ -54,7 +54,7 @@ export function LobbyScreen() {
   const currentTotalIntent = activePod ? countRealMembers(activePod) : credit?.intent_size ?? 1;
   const remainingSlots = Math.max(0, targetTier - currentTotalIntent);
   const isPendingPayment = credit?.status === 'booked_pending_claim';
-  const isExpiredCredit = isEndedStatus(credit?.status);
+  const isExpiredCredit = isLapsedStatus(credit?.status);
   const isPaid = credit?.status === 'paid_unmatched' || credit?.status === 'matched';
   const isCreator = isPodCreator(activePod, credit?.user_id);
 

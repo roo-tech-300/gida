@@ -1,9 +1,10 @@
-import { canCancelStatus, ENDED_STATUS_FILTER, isEndedStatus } from './credit-status';
+import { canCancelStatus, ENDED_STATUS_FILTER, isEndedStatus, isLapsedStatus } from './credit-status';
 
 describe('credit status helpers', () => {
   it('treats expired and cancelled as ended, and everything else as live', () => {
     expect(isEndedStatus('expired')).toBe(true);
     expect(isEndedStatus('cancelled')).toBe(true);
+    expect(isEndedStatus('rejected')).toBe(true);
     expect(isEndedStatus('booked_pending_claim')).toBe(false);
     expect(isEndedStatus('paid_unmatched')).toBe(false);
     expect(isEndedStatus(undefined)).toBe(false);
@@ -12,12 +13,18 @@ describe('credit status helpers', () => {
   it('lets only unpaid reservations be cancelled', () => {
     expect(canCancelStatus('booked')).toBe(true);
     expect(canCancelStatus('booked_pending_claim')).toBe(true);
-    for (const paid of ['paid_unmatched', 'matched', 'subletting', 'expired', 'cancelled'] as const) {
+    for (const paid of ['paid_unmatched', 'matched', 'subletting', 'expired', 'cancelled', 'rejected'] as const) {
       expect(canCancelStatus(paid)).toBe(false);
     }
   });
 
   it('builds the postgrest filter list', () => {
-    expect(ENDED_STATUS_FILTER).toBe('(expired,cancelled)');
+    expect(ENDED_STATUS_FILTER).toBe('(expired,cancelled,rejected)');
+  });
+
+  it('keeps rejected requests visible to the student while expired and cancelled ones disappear', () => {
+    expect(isLapsedStatus('expired')).toBe(true);
+    expect(isLapsedStatus('cancelled')).toBe(true);
+    expect(isLapsedStatus('rejected')).toBe(false);
   });
 });

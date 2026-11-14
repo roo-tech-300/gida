@@ -82,7 +82,7 @@ export interface SeedListing {
   photos: string[];
 }
 
-export type SeedCreditStatus = 'booked_pending_claim' | 'paid_unmatched' | 'expired' | 'cancelled';
+export type SeedCreditStatus = 'booked_pending_claim' | 'paid_unmatched' | 'expired' | 'cancelled' | 'rejected';
 
 export interface SeedHouseholdMember {
   user: string;

@@ -1,5 +1,5 @@
 import type { SlotCredit } from '@/types/liquidity';
-import { isEndedStatus } from '@/utils/credit-status';
+import { isLapsedStatus } from '@/utils/credit-status';
 
 export type ReservationStage = 'under_review' | 'awaiting_payment' | 'paid' | 'not_approved' | 'expired' | 'cancelled';
 export type StepState = 'done' | 'current' | 'todo';
@@ -25,6 +25,7 @@ const STAGE_PRIORITY: Record<ReservationStage, number> = {
 export function reservationStage(credit: SlotCredit): ReservationStage {
   if (credit.status === 'expired') return 'expired';
   if (credit.status === 'cancelled') return 'cancelled';
+  if (credit.status === 'rejected') return 'not_approved';
   if (PAID_STATUSES.includes(credit.status)) return 'paid';
   if (credit.pod_verification_status === 'rejected') return 'not_approved';
   if (credit.pod_verification_status === 'pending_verification') return 'under_review';
@@ -61,7 +62,7 @@ export function progressSteps(stage: ReservationStage): ProgressStep[] {
 }
 
 export function pickPrimaryReservation(credits: SlotCredit[] | undefined): SlotCredit | null {
-  const live = (credits ?? []).filter((credit) => !isEndedStatus(credit.status));
+  const live = (credits ?? []).filter((credit) => !isLapsedStatus(credit.status));
   if (live.length === 0) return null;
   return [...live].sort((a, b) => {
     const byStage = STAGE_PRIORITY[reservationStage(a)] - STAGE_PRIORITY[reservationStage(b)];

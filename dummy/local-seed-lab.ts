@@ -98,7 +98,7 @@ export const LAB_HOUSEHOLDS: SeedHousehold[] = [
   },
   {
     key: 'lab-rejected', listing: 'labrej', targetOccupancy: 1, gender: 'MALE', verification: 'rejected', groupCode: 'LABREJ', holdEndsInHours: 40,
-    members: [member('labrej', 'booked_pending_claim', 30)],
+    members: [member('labrej', 'rejected', 30)],
   },
   {
     key: 'lab-cancelled', listing: 'labcan', targetOccupancy: 1, gender: 'FEMALE', verification: 'approved', groupCode: 'LABCAN', holdEndsInHours: 36,

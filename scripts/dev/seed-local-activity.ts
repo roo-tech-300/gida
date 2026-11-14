@@ -59,6 +59,7 @@ export async function seedHouseholds(
         paid_at: paid ? hoursFromNow(-m.createdHoursAgo + 2) : null,
         expired_at: m.status === 'expired' ? hoursFromNow(h.holdEndsInHours) : null,
         cancelled_at: m.status === 'cancelled' ? hoursFromNow(-m.createdHoursAgo / 2) : null,
+        rejected_at: m.status === 'rejected' ? hoursFromNow(-m.createdHoursAgo / 2) : null,
       }).select('id').single());
       creditByUser.set(m.user, credit.id as string);
       must(`member ${h.key}/${m.user}`, await db.from('pod_members').insert({

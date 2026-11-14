@@ -1,4 +1,4 @@
-import { isEndedStatus } from '@/utils/credit-status';
+import { isLapsedStatus } from '@/utils/credit-status';
 import { useState, useCallback } from 'react';
 import { ActivityIndicator, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -34,7 +34,7 @@ export function PaymentCheckoutScreen({ creditId }: { creditId: string }) {
 
   const credit = credits?.find((c) => c.id === creditId);
   const isPaid = credit?.status === 'paid_unmatched' || locallyPaid;
-  const isExpired = isEndedStatus(credit?.status) || locallyExpired;
+  const isExpired = isLapsedStatus(credit?.status) || locallyExpired;
   const isPendingVerification = credit?.pod_verification_status === 'pending_verification';
   const isRejected = credit?.pod_verification_status === 'rejected';
   const amount = credit?.amount_paid ?? 0;

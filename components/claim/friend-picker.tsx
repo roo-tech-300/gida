@@ -6,7 +6,7 @@ import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily
 import { useSearchProfiles } from '@/hooks/use-profile-search';
 import { Avatar } from '@/components/ui/avatar';
 import { SlotDiagram } from '@/components/claim/slot-diagram';
-import { InviteCodeModal } from '@/components/claim/invite-code-modal';
+import { FriendLinkModal } from '@/components/claim/friend-link-modal';
 
 export type SelectedFriend = {
   id: string;
@@ -16,14 +16,13 @@ export type SelectedFriend = {
 type Props = {
   allowed: number;
   selected: SelectedFriend[];
-  code: string;
   codeSeats: number;
   matchedCount: number;
   onAdd: (friend: SelectedFriend) => void;
   onRemove: (id: string) => void;
 };
 
-export function FriendPicker({ allowed, selected, code, codeSeats, matchedCount, onAdd, onRemove }: Props) {
+export function FriendPicker({ allowed, selected, codeSeats, matchedCount, onAdd, onRemove }: Props) {
   const [query, setQuery] = useState('');
   const [debouncedQuery, setDebouncedQuery] = useState('');
   const [codeModalVisible, setCodeModalVisible] = useState(false);
@@ -129,7 +128,7 @@ export function FriendPicker({ allowed, selected, code, codeSeats, matchedCount,
           ))}
         </View>
       )}
-      <InviteCodeModal visible={codeModalVisible} code={code} onClose={() => setCodeModalVisible(false)} />
+      <FriendLinkModal visible={codeModalVisible} onClose={() => setCodeModalVisible(false)} />
     </View>
   );
 }

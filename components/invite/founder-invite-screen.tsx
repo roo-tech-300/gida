@@ -1,5 +1,6 @@
 import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
+import { router } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 
 import { SeatRow } from '@/components/invite/seat-row';
@@ -95,6 +96,10 @@ export function FounderInviteScreen({ podId, placeTitle, share }: Props) {
           </View>
         ) : null}
 
+        <Pressable accessibilityRole="button" onPress={() => router.replace('/(tabs)/my-home')} style={styles.done}>
+          <Text style={styles.doneText}>Done, go to My Home</Text>
+        </Pressable>
+
         <View style={styles.note}>
           <Ionicons name="time-outline" size={18} color={DesignColors.warning} />
           <Text style={styles.noteText}>{NOTE}</Text>
@@ -118,6 +123,8 @@ const styles = StyleSheet.create({
   list: { gap: DesignSpacing.sm },
   label: { fontFamily, fontSize: 11, fontWeight: '700', letterSpacing: 1.4, color: DesignColors.outline, marginTop: DesignSpacing.sm },
   error: { fontFamily, fontSize: 13, color: DesignColors.danger },
+  done: { height: 46, borderRadius: DesignRadius.full, alignItems: 'center', justifyContent: 'center', borderWidth: 1.5, borderColor: DesignColors.primaryBright },
+  doneText: { fontFamily, fontSize: 14, fontWeight: '700', color: DesignColors.primaryFixed },
   note: { flexDirection: 'row', gap: DesignSpacing.sm, padding: DesignSpacing.md, borderRadius: DesignRadius.lg, backgroundColor: DesignColors.surfaceContainerLow },
   noteText: { flex: 1, fontFamily, fontSize: 12, lineHeight: 17, color: DesignColors.onSurfaceVariant },
 });

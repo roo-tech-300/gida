@@ -94,7 +94,6 @@ export function ClaimWizardBody({
           friendsCount={friends.length}
           codeSeats={codeSeats}
           matchedCount={matchedCount}
-          code={inviteCode}
           roster={friends}
           price={price}
         />
@@ -121,11 +120,10 @@ export function ClaimWizardBody({
     return (
       <>
         <Text style={styles.title}>Add your roommates</Text>
-        <Text style={styles.subtitle}>Search Gida for your friends — the rest join by code.</Text>
+        <Text style={styles.subtitle}>Search Gida for your friends. The rest get a link to join once you reserve.</Text>
         <FriendPicker
           allowed={haveCount}
           selected={friends}
-          code={inviteCode}
           codeSeats={codeSeats}
           matchedCount={matchedCount}
           onAdd={onFriendAdd}

@@ -3,25 +3,23 @@ import { Modal, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
-import { useAppToast } from '@/components/ui/toast-card';
-import { copyTextToClipboard } from '@/utils/clipboard';
 
 type Props = {
   visible: boolean;
-  code: string;
   onClose: () => void;
 };
 
 const STEPS = [
-  'Share this code with your friend.',
-  'Your friend creates a Gida account.',
-  'On the Profile tab, they tap "Have an invite code?"',
-  'They enter the code and join your group.',
+  'Reserve your spot.',
+  'Tap "Invite a friend". You get a link for each friend, and their seat is held for 2 hours.',
+  'Send the link on WhatsApp or any app. They open it, give four details and pay, with no code and no account first.',
+  'Once they join, they have 24 hours to pay their share.',
 ];
 
-export function InviteCodeModal({ visible, code, onClose }: Props) {
-  const { showToast } = useAppToast();
-
+/** Explains how a friend who is not on Gida joins: by a link made after the reservation, not a code. */
+export function FriendLinkModal({ visible, onClose }: Props) {
+  // Escape closes this note first. The listener runs in the capture phase so it sees the key before the
+  // reservation sheet underneath, whose own Escape handler would otherwise close the whole sheet.
   useEffect(() => {
     if (!visible) return;
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -31,19 +29,14 @@ export function InviteCodeModal({ visible, code, onClose }: Props) {
       }
     };
     if (typeof window !== 'undefined' && typeof window.addEventListener === 'function') {
-      window.addEventListener('keydown', handleKeyDown);
-      return () => window.removeEventListener('keydown', handleKeyDown);
+      window.addEventListener('keydown', handleKeyDown, true);
+      return () => window.removeEventListener('keydown', handleKeyDown, true);
     }
   }, [visible, onClose]);
 
-  const handleCopy = async () => {
-    const copied = await copyTextToClipboard(code);
-    showToast({ message: copied ? `Code copied: ${code}` : `Share this code: ${code}`, type: 'success' });
-  };
-
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose}>
-      <Pressable style={styles.backdrop} onPress={onClose} testID="invite-code-backdrop">
+      <Pressable style={styles.backdrop} onPress={onClose} testID="friend-link-backdrop">
         <Pressable style={styles.dialog} onPress={(e) => e.stopPropagation()}>
           <View style={styles.header}>
             <Text style={styles.title}>Friend not on Gida?</Text>
@@ -52,16 +45,7 @@ export function InviteCodeModal({ visible, code, onClose }: Props) {
             </Pressable>
           </View>
 
-          <Text style={styles.subtitle}>They can join your group with this code — no Gida account needed to claim the spot.</Text>
-
-          <View style={styles.codeCard}>
-            <Text style={styles.codeLabel}>GROUP CODE</Text>
-            <Pressable style={styles.codeBadge} onPress={handleCopy} accessibilityRole="button" testID="copy-code">
-              <Ionicons name="link-outline" size={18} color={DesignColors.primaryBright} />
-              <Text style={styles.codeValue}>{code}</Text>
-              <Ionicons name="copy-outline" size={18} color={DesignColors.onSurfaceVariant} />
-            </Pressable>
-          </View>
+          <Text style={styles.subtitle}>No problem. They do not need an account to join. After you reserve, you send each friend a link.</Text>
 
           <View style={styles.steps}>
             {STEPS.map((step, index) => (
@@ -94,36 +78,8 @@ const styles = StyleSheet.create({
   header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' },
   title: { ...DesignTypography.headlineMd, color: DesignColors.onSurface, fontWeight: '800', fontFamily },
   subtitle: { ...DesignTypography.bodyMd, color: DesignColors.onSurfaceVariant, lineHeight: 20 },
-  codeCard: {
-    backgroundColor: DesignColors.surfaceContainerLow,
-    borderRadius: DesignRadius.md,
-    borderWidth: 1,
-    borderColor: DesignColors.primaryTintBorder,
-    padding: DesignSpacing.md,
-    gap: DesignSpacing.sm,
-  },
-  codeLabel: { ...DesignTypography.labelCaps, color: DesignColors.onSurfaceVariant, fontFamily },
-  codeBadge: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: DesignSpacing.sm,
-    backgroundColor: DesignColors.surfaceContainerLowest,
-    borderRadius: DesignRadius.sm,
-    borderWidth: 1,
-    borderColor: DesignColors.cardBorder,
-    paddingHorizontal: DesignSpacing.sm + 2,
-    paddingVertical: DesignSpacing.sm + 2,
-  },
-  codeValue: {
-    flex: 1,
-    ...DesignTypography.bodyMd,
-    color: DesignColors.onSurface,
-    fontFamily,
-    fontWeight: '800',
-    letterSpacing: 0.8,
-  },
   steps: { gap: DesignSpacing.sm + 2 },
-  stepRow: { flexDirection: 'row', alignItems: 'center', gap: DesignSpacing.sm },
+  stepRow: { flexDirection: 'row', alignItems: 'flex-start', gap: DesignSpacing.sm },
   stepNumber: {
     width: 22,
     height: 22,

@@ -1,4 +1,3 @@
-import { countRealMembers } from '@/utils/liquidity-math';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -8,7 +7,7 @@ import { ClaimSplitSummary } from '@/components/claim/claim-split-summary';
 import { WizardFooter } from '@/components/claim/wizard-footer';
 import type { Pod, PodMember } from '@/types/liquidity';
 import type { DbListing } from '@/types/feed-listing';
-import { calculateEqualShare, derivePropertyTier } from '@/utils/liquidity-math';
+import { calculateEqualShare, countRealMembers, derivePropertyTier } from '@/utils/liquidity-math';
 import { getInitials } from '@/utils/initials';
 
 const FALLBACK_PRICE = 1200000;

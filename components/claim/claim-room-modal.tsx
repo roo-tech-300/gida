@@ -122,12 +122,14 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
         console.error('[ClaimModal] 5. Admin notification FAILED:', notifyErr);
       }
       onClose();
-      router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
+      // Friends who are not on Gida join by link: send the founder to make them, then they can pay from My Home.
+      if (codeSeats > 0) router.push({ pathname: '/property/invite', params: { podId, creditId: credit.id } });
+      else router.push({ pathname: '/property/pay-slot', params: { id: credit.id } });
     } catch (error) {
       const message = error instanceof Error ? error.message : 'Failed to reserve spot.';
       showToast({ message, type: 'error' });
     }
-  }, [dbListing, isBuyout, matchedCount, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.gender]);
+  }, [dbListing, isBuyout, matchedCount, codeSeats, peopleTotal, purchaseSlot, showToast, onClose, inviteCode, friends, profile?.gender]);
 
   const handleJoinOpenPod = useJoinOpenPod(dbListing, purchaseSlot, onClose);
 

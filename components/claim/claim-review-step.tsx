@@ -12,7 +12,6 @@ type Props = {
   friendsCount: number;
   codeSeats: number;
   matchedCount: number;
-  code: string;
   roster: SelectedFriend[];
   price: number;
 };
@@ -25,7 +24,6 @@ export function ClaimReviewStep({
   friendsCount,
   codeSeats,
   matchedCount,
-  code,
   roster,
   price,
 }: Props) {
@@ -42,7 +40,6 @@ export function ClaimReviewStep({
         friendsCount={friendsCount}
         codeSeats={codeSeats}
         matchedCount={matchedCount}
-        code={code}
         roster={roster}
         price={price}
       />

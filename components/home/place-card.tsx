@@ -5,8 +5,12 @@ import { Image } from 'expo-image';
 
 import { DesignColors, DesignRadius, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import { formatNaira } from '@/utils/format-naira';
+import { FEED_PREVIEW_DWELL_MS } from '@/constants/listing-video';
+import { useDwell } from '@/hooks/use-dwell';
 import { spotsLeftLabel } from '@/utils/spots-left';
 import type { FeedListing } from '@/types/feed-listing';
+
+import { FeedVideoBadge, FeedVideoPreview } from './feed-video-preview';
 
 const IMAGE_HEIGHT = 196;
 const MAX_CHIPS = 3;
@@ -16,6 +20,8 @@ type Props = {
   liked: boolean;
   /** Spots still open; the card only mentions it when scarce. */
   spotsLeft?: number;
+  /** True for the one card mostly in view; only it may play its video preview. */
+  isActive?: boolean;
   onToggleLike: (id: string) => void;
   onPress: (id: string) => void;
 };
@@ -30,7 +36,9 @@ function chipsFor(listing: FeedListing): string[] {
   return [share, ...listing.amenities].slice(0, MAX_CHIPS);
 }
 
-function PlaceCardBase({ listing, liked, spotsLeft, onToggleLike, onPress }: Props) {
+function PlaceCardBase({ listing, liked, spotsLeft, isActive = false, onToggleLike, onPress }: Props) {
+  // Wait briefly so fast scrolling never starts a download for every card passed.
+  const showPreview = useDwell(isActive && !!listing.videoPreviewUrl, FEED_PREVIEW_DWELL_MS);
   const chips = chipsFor(listing);
   const scarcity = spotsLeftLabel(spotsLeft);
   return (
@@ -44,6 +52,8 @@ function PlaceCardBase({ listing, liked, spotsLeft, onToggleLike, onPress }: Pro
       >
         <View style={styles.imageWrap}>
           <Image source={{ uri: listing.image }} style={StyleSheet.absoluteFill} contentFit="cover" cachePolicy="memory-disk" transition={250} />
+          {showPreview && listing.videoPreviewUrl ? <FeedVideoPreview uri={listing.videoPreviewUrl} /> : null}
+          {listing.videoPreviewUrl ? <View style={styles.videoBadge}><FeedVideoBadge /></View> : null}
           <View style={styles.status}>
             <View style={[styles.statusDot, scarcity === 'Full' && styles.statusDotFull]} />
             <Text style={styles.statusText} testID={`place-status-${listing.id}`}>{scarcity ?? capitalise(listing.status)}</Text>
@@ -95,6 +105,7 @@ const styles = StyleSheet.create({
     position: 'absolute', top: 12, left: 12, flexDirection: 'row', alignItems: 'center', gap: 6,
     paddingHorizontal: 10, height: 26, borderRadius: 13, backgroundColor: DesignColors.scrimHeavy,
   },
+  videoBadge: { position: 'absolute', left: 12, bottom: 12, height: 26, justifyContent: 'center' },
   statusDot: { width: 8, height: 8, borderRadius: 4, backgroundColor: DesignColors.success },
   statusDotFull: { backgroundColor: DesignColors.error },
   statusText: { ...DesignTypography.labelSm, color: DesignColors.textPrimary, fontFamily, fontWeight: '700' },

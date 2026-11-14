@@ -4,6 +4,7 @@ import { FlatList, RefreshControl, StyleSheet, Text, View } from 'react-native';
 import { AuthButton } from '@/components/auth/auth-button';
 import { LoadingFooter } from '@/components/ui/loading-footer';
 import { ListState } from '@/components/ui/list-state';
+import { useActiveFeedItem } from '@/hooks/use-active-feed-item';
 import { useSpotsLeft } from '@/hooks/use-spots-left';
 import { DesignColors, DesignSpacing, DesignTypography, fontFamily } from '@/constants/design';
 import type { FeedListing } from '@/types/feed-listing';
@@ -36,11 +37,12 @@ export function PlacesFeed({
   onToggleLike, onOpen, onRefresh, onEndReached, onClearFilters,
 }: Props) {
   const spotsLeft = useSpotsLeft(listings.map((listing) => listing.id));
+  const { activeId, viewabilityConfig, onViewableItemsChanged } = useActiveFeedItem<FeedListing>();
   const renderItem = useCallback(
     ({ item }: { item: FeedListing }) => (
-      <PlaceCard listing={item} liked={likedIds.has(item.id)} spotsLeft={spotsLeft[item.id]} onToggleLike={onToggleLike} onPress={onOpen} />
+      <PlaceCard listing={item} isActive={item.id === activeId} liked={likedIds.has(item.id)} spotsLeft={spotsLeft[item.id]} onToggleLike={onToggleLike} onPress={onOpen} />
     ),
-    [likedIds, spotsLeft, onToggleLike, onOpen],
+    [likedIds, spotsLeft, activeId, onToggleLike, onOpen],
   );
 
   return (
@@ -48,6 +50,8 @@ export function PlacesFeed({
       data={listings}
       keyExtractor={(item) => item.id}
       renderItem={renderItem}
+      viewabilityConfig={viewabilityConfig}
+      onViewableItemsChanged={onViewableItemsChanged}
       ListHeaderComponent={
         <View style={styles.header}>
           {!isLoading ? (

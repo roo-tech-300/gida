@@ -26,6 +26,16 @@ export function isGenderCompatible(podGender: PodGender, myGender?: 'MALE' | 'FE
   return podGender === myGender;
 }
 
+export type LockedPod = GenderAwarePod & { matched_gender?: 'MALE' | 'FEMALE' | 'ANY' | null };
+
+/** Whether this student can be offered the household: the members' genders fit, and so does the household's own lock. */
+export function canJoinPod(pod: LockedPod, myGender?: 'MALE' | 'FEMALE' | null): boolean {
+  if (!isGenderCompatible(podEffectiveGender(pod), myGender)) return false;
+  const lock = pod.matched_gender;
+  if (lock !== 'MALE' && lock !== 'FEMALE') return true;
+  return myGender === lock;
+}
+
 export type OpenSlotStatus = {
   open: boolean;
   occupied: number;
@@ -34,7 +44,7 @@ export type OpenSlotStatus = {
 };
 
 export type SlotAwareMember = { slot_credit_id?: string | null };
-export type SlotAwarePod = { members?: SlotAwareMember[]; target_occupancy?: number };
+export type SlotAwarePod = { members?: SlotAwareMember[]; target_occupancy?: number; held_seats?: number };
 
 export function countRealMembers(pod: SlotAwarePod | undefined): number {
   return (pod?.members ?? []).filter((m) => m.slot_credit_id !== 'invitation').length;
@@ -44,7 +54,8 @@ export function podOpenSlotStatus(pod: SlotAwarePod): OpenSlotStatus {
   const realMembers = countRealMembers(pod);
   const reservedInvites = (pod.members ?? []).filter((m) => m.slot_credit_id === 'invitation').length;
   const target = pod.target_occupancy ?? 0;
-  const occupied = realMembers + reservedInvites;
+  // Seats held for a friend's invite link are taken for now, just like seats reserved for an invited user.
+  const occupied = realMembers + reservedInvites + (pod.held_seats ?? 0);
   const available = Math.max(0, target - occupied);
   return { open: available > 0, occupied, available, target };
 }

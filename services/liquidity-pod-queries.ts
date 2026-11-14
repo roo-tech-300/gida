@@ -59,7 +59,7 @@ export async function fetchOpenPodsForListing(listingId: string): Promise<Pod[]>
       return [];
     }
 
-    const pods = await enrichPods(data as Pod[]);
+    const pods = await withLiveSeats(await enrichPods(data as Pod[]));
     return pods.filter(
       (pod) =>
         podOpenSlotStatus(pod).open &&
@@ -69,6 +69,31 @@ export async function fetchOpenPodsForListing(listingId: string): Promise<Pod[]>
     console.error('[LiquidityService] Failed to fetch open pods:', error);
     return [];
   }
+}
+
+type SeatCounts = { pod_id: string; live_user_ids: string[]; held: number };
+
+/**
+ * Keeps only the people who still hold a seat (a cancelled, lapsed or rejected member does not) and records the
+ * seats held for invite links, so "how many seats are open" matches what joining will actually allow.
+ * A household nobody holds a seat in any more is dropped.
+ */
+export async function withLiveSeats(pods: Pod[]): Promise<Pod[]> {
+  if (pods.length === 0) return pods;
+  const { data, error } = await supabase.rpc('get_pod_seat_counts', { p_pod_ids: pods.map((p) => p.id) });
+  if (error || !data) {
+    console.error('[LiquidityService] Could not read live seat counts; showing raw membership:', error?.message);
+    return pods;
+  }
+  const counts = new Map((data as SeatCounts[]).map((c) => [c.pod_id, c]));
+  return pods.flatMap((pod) => {
+    const seat = counts.get(pod.id);
+    if (!seat) return [pod];
+    if (seat.live_user_ids.length === 0) return [];
+    const live = new Set(seat.live_user_ids);
+    const members = pod.members.filter((m) => m.slot_credit_id === 'invitation' || live.has(m.user_id));
+    return [{ ...pod, members, held_seats: seat.held }];
+  });
 }
 
 export async function enrichPods(pods: Pod[]): Promise<Pod[]> {

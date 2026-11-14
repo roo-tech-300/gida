@@ -1,3 +1,4 @@
+import { countRealMembers } from '@/utils/liquidity-math';
 import { Pressable, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -79,7 +80,7 @@ export function OpenPodDetail({ pod, listing, onOpenProfile, onJoin, joining }: 
       >
         <Text style={styles.title}>This group looks good</Text>
         <Text style={styles.subtitle}>
-          {pod.current_total_intent} of {pod.target_occupancy} people are already in. See who&apos;s joining and take the next seat.
+          {countRealMembers(pod)} of {pod.target_occupancy} people are already in. See who&apos;s joining and take the next seat.
         </Text>
 
         <View style={styles.memberCard}>

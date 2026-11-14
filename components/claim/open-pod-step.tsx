@@ -10,7 +10,7 @@ import { OpenPodDetail } from '@/components/claim/open-pod-detail';
 import { WizardHeader } from '@/components/claim/wizard-header';
 import type { DbListing } from '@/types/feed-listing';
 import type { Pod } from '@/types/liquidity';
-import { isGenderCompatible, podEffectiveGender } from '@/utils/liquidity-math';
+import { canJoinPod } from '@/utils/liquidity-math';
 
 type Props = {
   listing: DbListing;
@@ -27,7 +27,7 @@ export function OpenPodStep({ listing, myGender, joining, onJoin, onDecline, onC
   const [selected, setSelected] = useState<Pod | null>(null);
   const { data, isLoading } = useOpenPodsForListing(listing.id);
 
-  const compatible = (data ?? []).filter((pod) => isGenderCompatible(podEffectiveGender(pod), myGender));
+  const compatible = (data ?? []).filter((pod) => canJoinPod(pod, myGender));
 
   useEffect(() => {
     if (!isLoading && compatible.length === 0) {

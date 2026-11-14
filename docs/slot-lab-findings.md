@@ -30,7 +30,10 @@ A listing has `units_available` identical units and **every household occupies o
 - Existing over-booked data is not touched: Bosso Gate still has two households on one unit, and the report lists it.
 
 ### Invites, seat clocks and the two limits
-Friends are invited by link (migration `20261124000000`). A link holds a **ghost seat** for 2 hours, counted against capacity and spots left; a friend who joins has **24 hours** to pay; a student can hold **one unpaid spot at a time**, and two lapsed holds in a day pause reserving. Links are revoked when the founder cancels or lapses, or the household is rejected. The slot report probes each of these. Known limits: a friend whose email already has an account must sign in and reopen the link; open households listed in the app's "join an open group" step do not show seats held by links, so a join there can be refused with "This group is already full".
+Friends are invited by link (migration `20261124000000`). A link holds a **ghost seat** for 2 hours, counted against capacity and spots left; a friend who joins has **24 hours** to pay; a student can hold **one unpaid spot at a time**, and two lapsed holds in a day pause reserving. Links are revoked when the founder cancels or lapses, or the household is rejected. The slot report probes each of these. Known limit: a friend whose email already has an account must sign in and reopen the link.
+
+### The "join an open group" list shows real seats
+The list counted every membership row, so a household with cancelled, lapsed or rejected members looked fuller than it was, and it knew nothing about seats held for invite links, so a join could be refused with "This group is already full". `get_pod_seat_counts` (migration `20261125000000`) now says who still holds a seat and how many seats links hold; the list, its cards and the detail view use it, and a household nobody holds a seat in is no longer listed. The list also respects the household's gender lock, so students are not offered a household they would be refused.
 
 ### Earlier fixes from the lab
 A cancelled or rejected reservation blocked reserving again (unique index); a student who left a household could not rejoin it; listings showed a price rounded differently from what checkout charges; seeded households recorded the wrong member count. See the git history.

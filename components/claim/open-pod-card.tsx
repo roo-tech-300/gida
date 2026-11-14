@@ -1,3 +1,4 @@
+import { podOpenSlotStatus } from '@/utils/liquidity-math';
 import { Pressable, StyleSheet, Text, View } from 'react-native';
 import { Image } from 'expo-image';
 import { Ionicons } from '@expo/vector-icons';
@@ -30,8 +31,10 @@ type Props = {
 
 export function OpenPodCard({ pod, onPress }: Props) {
   const realMembers = pod.members.filter((m) => m.slot_credit_id !== 'invitation');
-  const filled = pod.current_total_intent;
+  // People who still hold a seat, and seats really open (held-for-a-link and invited seats are not).
+  const filled = realMembers.length;
   const total = pod.target_occupancy;
+  const { available } = podOpenSlotStatus(pod);
 
   return (
     <Pressable style={({ pressed }) => [styles.card, pressed && styles.cardPressed]} onPress={onPress} testID={`open-pod-${pod.id}`}>
@@ -61,7 +64,7 @@ export function OpenPodCard({ pod, onPress }: Props) {
         <Text style={styles.seats}>
           <Text style={styles.seatsStrong}>{filled}</Text>/{total} people already in
         </Text>
-        <Text style={styles.hint}>{total - filled === 1 ? '1 seat open' : `${total - filled} seats open`} — tap to see who&apos;s in</Text>
+        <Text style={styles.hint}>{available === 1 ? '1 seat open' : `${available} seats open`} — tap to see who&apos;s in</Text>
       </View>
       <Ionicons name="chevron-forward" size={18} color={DesignColors.onSurfaceVariant} />
     </Pressable>

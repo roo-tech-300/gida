@@ -83,6 +83,8 @@ export interface Pod {
   verification_status: PodVerificationStatus;
   rejection_reason?: string | null;
   verified_at?: string | null;
+  /** Seats held for friends who were sent an invite link and have not joined yet. Set on the open-groups list. */
+  held_seats?: number;
 }
 
 export interface PodInvitation {

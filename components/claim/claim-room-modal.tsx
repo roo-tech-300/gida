@@ -17,7 +17,7 @@ import { useAuth } from '@/context/auth-context';
 import { useRoommateVisibility } from '@/hooks/useRoommateVisibility';
 import { RoommateOnboardingSheet } from '@/components/roommate/roommate-onboarding-sheet';
 import { notifyAdminOfReservation } from '@/services/lodge-reservation-notify';
-import { isGenderCompatible, podEffectiveGender, derivePropertyTier } from '@/utils/liquidity-math';
+import { canJoinPod, derivePropertyTier } from '@/utils/liquidity-math';
 
 import { generateInviteCode } from '@/services/liquidity-pod-service';
 import { useDraggableSheet } from './use-draggable-sheet';
@@ -57,7 +57,7 @@ export function ClaimRoomModal({ visible, listingId, onClose }: Props) {
   const propertyTier: number = derivePropertyTier(dbListing?.property_tier, dbListing?.max_roommates);
 
   const { data: openPods, isLoading: openPodsLoading } = useOpenPodsForListing(dbListing?.id, visible && wantsRoommates === true && !showOpenPods);
-  const compatibleOpenPods = (openPods ?? []).filter((pod) => isGenderCompatible(podEffectiveGender(pod), profile?.gender));
+  const compatibleOpenPods = (openPods ?? []).filter((pod) => canJoinPod(pod, profile?.gender));
   const hasOpenPods = compatibleOpenPods.length > 0;
 
   useEffect(() => {

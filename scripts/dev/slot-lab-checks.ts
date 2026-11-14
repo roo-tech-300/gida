@@ -266,6 +266,25 @@ export const PROBES: Check[] = [
     },
   },
   {
+    area: 'Open groups', title: 'The open-groups list counts only people who still hold a seat, and seats held for links',
+    run: () => {
+      const forming = `(select id from pods where group_code='SLFORM')`;
+      const members = `(select id from pods where group_code='SLMEMB')`;
+      const counts = (id: string) => `select coalesce(array_length(live_user_ids, 1), 0) || ',' || held from public.get_pod_seat_counts(array[${id}]);`;
+      const r = runSteps([
+        { as: 'slot.03@gida.test', sql: counts(members) },
+        { as: 'slot.03@gida.test', sql: counts(forming) },
+        { as: 'slot.01@gida.test', sql: `select public.create_household_invite(${forming}) is not null;` },
+        { as: 'slot.03@gida.test', sql: counts(forming) },
+      ]);
+      const seen = r.rows.map((x) => x[0]).filter((x) => /^\d+,\d+$/.test(x));
+      const problems: string[] = [];
+      if (seen[0] !== '2,0') problems.push(`a household with 4 membership rows (2 ended) reports ${seen[0]} (live,held), expected 2,0`);
+      if (seen[2] !== '1,1') problems.push(`after a link is sent the household reports ${seen[2]}, expected 1,1`);
+      return problems;
+    },
+  },
+  {
     area: 'Limits', title: 'A student holds one unpaid spot at a time',
     run: () => {
       // slot.03 holds an unpaid spot at Mixed payments; joining another household must be refused.

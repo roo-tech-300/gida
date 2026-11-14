@@ -1,5 +1,5 @@
 import type { Pod } from '@/types/liquidity';
-export { podEffectiveGender, isGenderCompatible, countRealMembers, podOpenSlotStatus, findActivePodForCredit, memberPaymentStatus } from '@/utils/liquidity-pod-status';
+export { podEffectiveGender, isGenderCompatible, canJoinPod, countRealMembers, podOpenSlotStatus, findActivePodForCredit, memberPaymentStatus } from '@/utils/liquidity-pod-status';
 export type { PodGender, OpenSlotStatus, MemberPaymentStatus } from '@/utils/liquidity-pod-status';
 
 export type IntentOption = {

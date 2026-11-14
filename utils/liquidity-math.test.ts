@@ -17,6 +17,7 @@ import {
   verifyPodCompleteness,
   podEffectiveGender,
   isGenderCompatible,
+  canJoinPod,
   podOpenSlotStatus,
   countRealMembers,
 } from './liquidity-math';
@@ -315,6 +316,11 @@ describe('Open Slot Status (empty slot a user can fill)', () => {
     });
   });
 
+  it('counts seats held for invite links as taken, so the list never offers a seat the join will refuse', () => {
+    expect(podOpenSlotStatus({ target_occupancy: 4, members: [real('a')], held_seats: 2 })).toEqual({ open: true, occupied: 3, available: 1, target: 4 });
+    expect(podOpenSlotStatus({ target_occupancy: 2, members: [real('a')], held_seats: 1 }).open).toBe(false);
+  });
+
   it('exposes one remaining seat when a friend invite leaves a single slot', () => {
     expect(podOpenSlotStatus({ target_occupancy: 3, members: [real('a'), invited('9')] })).toEqual({
       open: true,
@@ -345,5 +351,26 @@ describe('countRealMembers (real member count, ignores pending invites)', () => 
   it('returns 0 for an empty or absent member list', () => {
     expect(countRealMembers({ members: [] })).toBe(0);
     expect(countRealMembers(undefined)).toBe(0);
+  });
+});
+
+describe('canJoinPod (who is offered a household)', () => {
+  const memberOf = (gender: 'MALE' | 'FEMALE') => ({ user_id: 'u', profile: { gender } });
+
+  it('honours the household lock as well as the members it already has', () => {
+    expect(canJoinPod({ members: [], matched_gender: 'FEMALE' }, 'FEMALE')).toBe(true);
+    expect(canJoinPod({ members: [], matched_gender: 'FEMALE' }, 'MALE')).toBe(false);
+    expect(canJoinPod({ members: [], matched_gender: 'MALE' }, 'MALE')).toBe(true);
+  });
+
+  it('does not offer a locked household to someone with no gender on their profile', () => {
+    expect(canJoinPod({ members: [], matched_gender: 'FEMALE' }, null)).toBe(false);
+  });
+
+  it('keeps the old rules for an open household and for mixed members', () => {
+    expect(canJoinPod({ members: [], matched_gender: 'ANY' }, 'MALE')).toBe(true);
+    expect(canJoinPod({ members: [], matched_gender: null }, null)).toBe(true);
+    expect(canJoinPod({ members: [memberOf('FEMALE'), memberOf('MALE')], matched_gender: 'ANY' }, 'FEMALE')).toBe(false);
+    expect(canJoinPod({ members: [memberOf('FEMALE')], matched_gender: 'ANY' }, 'MALE')).toBe(false);
   });
 });

@@ -1,5 +1,6 @@
 import type { CreateListingData } from '@/context/create-listing-context';
 import type { CreateListingInput } from '@/services/listing-service';
+import { roundUpRent } from '@/utils/round-up-rent';
 
 const SQM_TO_SQFT = 10.7639;
 
@@ -25,7 +26,8 @@ export function buildListingInput(data: CreateListingData, owner: Owner): Create
     landlord_id: step1.landlordId,
     category: 'student_housing',
     layout_type: step1.layoutType!,
-    price_amount: parseFloat(step1.price.replace(/,/g, '')),
+    // Rounded up so every household size pays whole naira; the database enforces the same rule.
+    price_amount: roundUpRent(parseFloat(step1.price.replace(/,/g, '')), step4.maxRoommates),
     lease_term: 'per_annum',
     units_available: step1.units,
     number_of_bedrooms: isFlat ? step1.bedrooms : 0,

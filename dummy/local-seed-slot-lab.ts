@@ -34,12 +34,13 @@ const flat = (key: string, title: string, tier: number, price: number, extra: Pa
 
 export const SLOT_LISTINGS: SeedListing[] = [
   flat('sforming', 'Forming, 1 of 4', 4, 1200000),
-  flat('smixed', 'Mixed payments, 3 of 4', 4, 1600000),
+  flat('smixed', 'Mixed payments, 3 of 4', 4, 1680000),
   flat('sfull', 'Full and paid, room assigned', 4, 1200000),
   flat('szombie', 'Lapsed hold still counted', 2, 600000),
   flat('smembers', 'Cancelled and expired members', 4, 1200000),
   flat('stwo', 'Two households, two units', 2, 700000, { units: 2 }),
-  flat('sodd', 'Odd split, fractional share', 3, 1000000),
+  // Entered as ₦1,000,000; the rent is rounded up to ₦1,000,002 so three people pay ₦333,334 each.
+  flat('sodd', 'Odd split, rent rounded up', 3, 1000000),
   flat('sgender', 'Gender-locked household', 2, 800000),
   flat('sinvites', 'Invitations', 3, 900000),
   flat('squeue', 'Admin queue ages', 1, 100000, { units: 4, layout: 'single_room', bedrooms: 0 }),

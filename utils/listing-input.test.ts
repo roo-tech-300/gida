@@ -37,10 +37,16 @@ describe('buildListingInput', () => {
   it('maps the form to a listing payload', () => {
     const input = buildListingInput(makeData(), owner);
     expect(input).toMatchObject({
-      admin_id: 'admin-1', title: 'Sunrise Lodge', price_amount: 350000, number_of_bedrooms: 3,
+      admin_id: 'admin-1', title: 'Sunrise Lodge', price_amount: 350004, number_of_bedrooms: 3,
       number_of_bathrooms: 2, has_borehole: true, has_generator: false, total_floors: 4,
       location_landmark: 'Gidan Kwano', campus: 'FUT Minna', region_path: null, size_sqft: 1076,
     });
+  });
+
+  it('raises the rent so every household size up to the room limit pays whole naira', () => {
+    // 3 students share, so the rent must divide by 1, 2 and 3 (a multiple of 6): ₦350,000 becomes ₦350,004.
+    expect(buildListingInput(makeData({ price: '350,000' }), owner).price_amount).toBe(350004);
+    expect(buildListingInput(makeData({ price: '360,000' }), owner).price_amount).toBe(360000);
   });
 
   it('uses fixed bedroom/bathroom counts for non-flat layouts', () => {

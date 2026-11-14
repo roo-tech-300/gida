@@ -10,6 +10,7 @@ import { DesignColors, DesignTypography, fontFamily } from '@/constants/design';
 import { BackButton } from '@/components/ui/back-button';
 import { useCreateListingForm } from '@/context/create-listing-context';
 import { useExitListingWizard } from '@/hooks/use-exit-listing-wizard';
+import { RentRoundingNotice } from '@/components/admin/rent-rounding-notice';
 
 const ROOMMATE_OPTIONS = [1, 2, 3, 4];
 
@@ -111,6 +112,7 @@ export function CreateListingRulesScreen() {
               </View>
             </View>
             <Text style={styles.fieldHint}>How many students can share this place.</Text>
+            <RentRoundingNotice price={data.step1.price} maxRoommates={step4.maxRoommates} />
           </View>
         </ScrollView>
 

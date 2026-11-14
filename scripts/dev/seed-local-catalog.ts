@@ -9,6 +9,7 @@ import {
   LOCAL_SEED_PASSWORD, SEED_LANDLORDS, SEED_LISTINGS, SEED_REGIONS, SEED_USERS,
   type SeedListing, type SeedRegionKey, type SeedUser,
 } from '../../dummy/local-seed-data.ts';
+import { roundUpRent } from '../../utils/round-up-rent.ts';
 import { ensureUser, must, uploadImage, type LocalStack } from './seed-local-helpers.ts';
 
 export interface SeededListing {
@@ -133,17 +134,19 @@ export async function seedListings(
     for (const p of l.photos) photoUrls.push(await uploadImage(db, stack, 'listing-images', p));
     const tier = l.maxRoommates;
     const units = l.units ?? 1;
+    // The database rounds rent up the same way; do it here so the seeded households are charged the saved figure.
+    const rent = roundUpRent(l.priceTotal, tier);
     const cover = photoUrls[0] ?? null;
 
     const estate = must(`estate ${l.title}`, await db.from('estates').insert({
       name: l.title, description: l.description, campus: l.campus, property_tier: tier,
-      price_per_annum: l.priceTotal, physical_rooms_inventory: units, abstract_slots_available: tier * units,
+      price_per_annum: rent, physical_rooms_inventory: units, abstract_slots_available: tier * units,
       primary_image: cover, rules: l.rules, amenities: l.features,
     }).select('id').single());
 
     const listing = must(`listing ${l.title}`, await db.from('listings').insert({
       title: l.title, description: l.description, category: 'student_housing', status: 'available',
-      featured: !!l.featured, price_amount: l.priceTotal, slashed_price: l.slashedPrice ?? null,
+      featured: !!l.featured, price_amount: rent, slashed_price: l.slashedPrice ?? null,
       lease_term: 'per_annum', layout_type: l.layout, units_available: units,
       size_sqft: l.sizeSqft ?? null, total_floors: l.totalFloors ?? null,
       number_of_bedrooms: l.bedrooms, number_of_bathrooms: l.bathrooms, max_roommates: l.maxRoommates,
@@ -161,7 +164,7 @@ export async function seedListings(
 
     listings.set(l.key, {
       id: listing.id as string, estateId: estate.id as string, title: l.title, image: cover ?? '',
-      location: `${l.landmark}, Minna`, priceTotal: l.priceTotal, propertyTier: tier,
+      location: `${l.landmark}, Minna`, priceTotal: rent, propertyTier: tier,
     });
   }
 

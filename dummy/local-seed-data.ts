@@ -241,7 +241,7 @@ export const SEED_LISTINGS: SeedListing[] = [
   {
     key: 'royal', title: 'Royal Lodge, 2-bed shared flat', landlord: 'alhaji', admin: 'field', layout: 'flat',
     description: 'Newly built flat five minutes from the Bosso main gate. Two bedrooms shared by four students, a sitting room, a shared kitchen with gas cooker and a tiled bathroom. Borehole water all day and a prepaid meter per flat.',
-    priceTotal: 1000000, bedrooms: 2, bathrooms: 1, maxRoommates: 4, landmark: 'Opposite Bosso main gate', campus: BOSSO_CAMPUS,
+    priceTotal: 1200000, bedrooms: 2, bathrooms: 1, maxRoommates: 4, landmark: 'Opposite Bosso main gate', campus: BOSSO_CAMPUS,
     region: 'bosso', lat: 9.6528, lng: 6.5246, featured: true,
     amenities: { borehole: true, fencedGate: true, burglary: true, wardrobe: true, sharedKitchen: true },
     features: ['Prepaid meter', '24/7 water', '6 min walk to gate'],

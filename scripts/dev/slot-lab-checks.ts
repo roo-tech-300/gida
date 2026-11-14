@@ -1,5 +1,5 @@
 /** The rules the slot lab is checked against: data rules read back from the database, and behaviour probes. */
-import { asService, asStudent, runSql, type SqlResult } from './slot-lab-db.ts';
+import { asService, asStudent, runSql, runSteps, type SqlResult } from './slot-lab-db.ts';
 
 export interface Check {
   area: string;
@@ -78,6 +78,13 @@ export const DATA_RULES: Check[] = [
 const spotsLeft = (title: string, setup = ''): string =>
   runSql(`begin; ${setup} select (get_spots_left(array[id]))->>id::text from listings where title like '${title}%'; rollback;`).rows[0]?.[0] ?? '?';
 
+/** Starts a probe with the student holding no other unpaid spot, so the one-unpaid-spot rule does not hide what is being tested. */
+const clearUnpaid = (email: string): string =>
+  `update slot_credits set status = 'cancelled' where user_id = (select id from auth.users where email = '${email}') and status in ('booked', 'booked_pending_claim');`;
+
+/** A scratch table the probe's students can all read, to hand an invite token from one to the next. */
+const TOKEN_TABLE = `create temp table tk(t text); grant all on tk to authenticated, anon;`;
+
 const listingId = (title: string): string => `(select id from listings where title like '${title}%')`;
 /** Makes a student's unpaid hold on a listing run out, as the database owner, before the probe starts. */
 const lapse = (email: string, title: string): string =>
@@ -99,7 +106,7 @@ export const PROBES: Check[] = [
   },
   {
     area: 'Joining', title: 'A student who cancelled can join the household again',
-    run: () => { const r = asStudent('slot.12@gida.test', `select public.join_pod('SLMEMB');`); return r.error ? [`refused: ${r.error}`] : []; },
+    run: () => { const r = asStudent('slot.12@gida.test', `select public.join_pod('SLMEMB');`, clearUnpaid('slot.12@gida.test')); return r.error ? [`refused: ${r.error}`] : []; },
   },
   {
     area: 'Gender lock', title: 'A household locked to men refuses a woman who joins with its code',
@@ -176,7 +183,7 @@ export const PROBES: Check[] = [
     run: () => {
       const r = asStudent('slot.12@gida.test', `insert into slot_credits (user_id, estate_id, listing_id, property_tier, intent_size, target_occupancy, status)
         select auth.uid(), estate_id, listing_id, property_tier, 1, target_occupancy, 'booked_pending_claim' from slot_credits
-        where user_id = auth.uid() and status = 'cancelled' limit 1 returning id;`);
+        where user_id = auth.uid() and status = 'cancelled' limit 1 returning id;`, clearUnpaid('slot.12@gida.test'));
       return r.error ? [`refused: ${r.error}`] : [];
     },
   },
@@ -200,7 +207,7 @@ export const PROBES: Check[] = [
     run: () => {
       const r = asStudent('slot.12@gida.test', `insert into slot_credits (user_id, estate_id, listing_id, property_tier, intent_size, target_occupancy, status, amount_paid, payment_deadline)
         select auth.uid(), estate_id, listing_id, property_tier, 1, target_occupancy, 'booked_pending_claim', 1, now() + interval '3 years' from slot_credits where user_id = auth.uid() and status='cancelled' limit 1
-        returning amount_paid, extract(epoch from (payment_deadline - now()))/86400;`);
+        returning amount_paid, extract(epoch from (payment_deadline - now()))/86400;`, clearUnpaid('slot.12@gida.test'));
       const [amount, days] = r.rows[0] ?? [];
       const problems: string[] = [];
       if (!amount) return [`insert refused: ${r.error}`];
@@ -214,6 +221,65 @@ export const PROBES: Check[] = [
     run: () => {
       const r = asStudent('slot.01@gida.test', `update pods set verification_status='approved' where group_code='SLQUE1' returning id;`);
       return r.rows.length > 0 ? ['a student approved a household that was waiting for an admin'] : (/admin can change/i.test(r.error ?? '') ? [] : [`unexpected: ${describe(r)}`]);
+    },
+  },
+  {
+    area: 'Invites', title: 'An invite link holds a seat for two hours, then lets it go',
+    run: () => {
+      const forming = `(select id from listings where title like 'Slot · Forming%')`;
+      const left = `select (get_spots_left(array[${forming}]))->>${forming}::text;`;
+      const make = `select public.create_household_invite((select id from pods where group_code='SLFORM'));`;
+      const r = runSteps([
+        { as: 'owner', sql: left }, { as: 'slot.01@gida.test', sql: make }, { as: 'owner', sql: left },
+        { as: 'owner', sql: `update household_invites set seat_held_until = now() - interval '1 minute';` }, { as: 'owner', sql: left },
+      ]);
+      const counts = r.rows.filter((x) => /^\d+$/.test(x[0])).map((x) => x[0]);
+      return counts.join(',') === '3,2,3' ? [] : [`spots left went ${counts.join(' → ')} (expected 3 → 2 → 3)`];
+    },
+  },
+  {
+    area: 'Invites', title: 'A friend who joins by link has 24 hours to pay, and the link cannot be used twice',
+    run: () => {
+      const token = `(select t from tk)`;
+      const r = runSteps([
+        { as: 'slot.01@gida.test', sql: `insert into tk select public.create_household_invite((select id from pods where group_code='SLFORM'))->>'token';` },
+        { as: 'slot.05@gida.test', sql: `select public.join_household_invite(${token}) is not null;` },
+        { as: 'owner', sql: `select round(extract(epoch from (sc.payment_deadline - now()))/3600) from slot_credits sc join auth.users u on u.id=sc.user_id join listings l on l.id=sc.listing_id where u.email='slot.05@gida.test' and l.title like 'Slot · Forming%';` },
+        { as: 'slot.02@gida.test', sql: `select public.join_household_invite(${token});` },
+      ], TOKEN_TABLE + clearUnpaid('slot.05@gida.test') + clearUnpaid('slot.02@gida.test'));
+      const hours = r.rows.map((x) => x[0]).find((x) => /^\d+$/.test(x));
+      const problems: string[] = [];
+      if (hours !== '24') problems.push(`the friend's pay clock is ${hours ?? 'unknown'}h, expected 24h`);
+      if (!/already been used/i.test(r.error ?? '')) problems.push(`using the link a second time gave: ${r.error ?? 'no error'}`);
+      return problems;
+    },
+  },
+  {
+    area: 'Invites', title: 'A link stops working when the founder cancels their reservation',
+    run: () => {
+      const r = runSteps([
+        { as: 'slot.01@gida.test', sql: `insert into tk select public.create_household_invite((select id from pods where group_code='SLFORM'))->>'token';` },
+        { as: 'slot.01@gida.test', sql: `select public.cancel_reservation((select sc.id from slot_credits sc join listings l on l.id=sc.listing_id where sc.user_id=auth.uid() and l.title like 'Slot · Forming%'));` },
+        { as: 'anon', sql: `select public.get_household_invite((select t from tk))->>'status';` },
+      ], TOKEN_TABLE);
+      return r.rows.at(-1)?.[0] === 'revoked' ? [] : [`the link shows "${r.rows.at(-1)?.[0]}" after the founder cancelled`];
+    },
+  },
+  {
+    area: 'Limits', title: 'A student holds one unpaid spot at a time',
+    run: () => {
+      // slot.03 holds an unpaid spot at Mixed payments; joining another household must be refused.
+      const r = asStudent('slot.03@gida.test', `select public.join_pod('SLFORM');`);
+      return /unpaid spot/i.test(r.error ?? '') ? [] : [`got: ${describe(r)}`];
+    },
+  },
+  {
+    area: 'Limits', title: 'Two holds that ran out in the last day pause new reservations',
+    run: () => {
+      const setup = clearUnpaid('slot.05@gida.test') + `insert into slot_credits (user_id, estate_id, listing_id, property_tier, intent_size, target_occupancy, status, expired_at)
+        select u.id, l.estate_id, l.id, 1, 1, 1, 'expired', now() - interval '2 hours' from auth.users u, listings l where u.email='slot.05@gida.test' and l.title in ('Lab · Bare minimum', 'Lab · No photos');`;
+      const r = asStudent('slot.05@gida.test', `select public.join_pod('SLFORM');`, setup);
+      return /ran out recently/i.test(r.error ?? '') ? [] : [`got: ${describe(r)}`];
     },
   },
   {

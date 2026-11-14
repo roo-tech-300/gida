@@ -35,3 +35,20 @@ export function asStudent(email: string, statements: string, setup = ''): SqlRes
 export function asService(statements: string): SqlResult {
   return runSql(`begin; set local role service_role; ${statements} rollback;`);
 }
+
+export interface AsStep {
+  /** A student's email, or 'owner' / 'anon' to switch role. */
+  as: string;
+  sql: string;
+}
+
+/** Runs several steps in one rolled-back transaction, each as a different signed-in student, the owner, or a signed-out visitor. */
+export function runSteps(steps: AsStep[], setup = ''): SqlResult {
+  const body = steps.map((step) => {
+    if (step.as === 'owner') return `reset role; ${step.sql}`;
+    if (step.as === 'anon') return `reset role; set local role anon; ${step.sql}`;
+    const claims = JSON.stringify({ sub: userId(step.as), role: 'authenticated' });
+    return `reset role; set local role authenticated; select set_config('request.jwt.claims', '${claims}', true); ${step.sql}`;
+  });
+  return runSql(`begin; ${setup} ${body.join(' ')} rollback;`);
+}

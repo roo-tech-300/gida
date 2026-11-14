@@ -1,5 +1,5 @@
 import { supabase } from '@/lib/supabase';
-import { ALREADY_RESERVED_MESSAGE, FULLY_BOOKED_MESSAGE, isAlreadyReservedError, isFullyBookedError } from '@/services/booking-guard-service';
+import { ALREADY_RESERVED_MESSAGE, FULLY_BOOKED_MESSAGE, isAlreadyReservedError, isBookingRuleError, isFullyBookedError } from '@/services/booking-guard-service';
 import type { SlotCredit, Pod } from '@/types/liquidity';
 
 export async function insertCredit(credit: SlotCredit, userId: string): Promise<string | undefined> {
@@ -28,12 +28,16 @@ export async function insertCredit(credit: SlotCredit, userId: string): Promise<
       if (error && isAlreadyReservedError(error.message, error.code)) {
         throw new Error(ALREADY_RESERVED_MESSAGE);
       }
+      // One unpaid spot at a time, the pause after lapses, and similar rules: tell the student exactly why.
+      if (error && isBookingRuleError(error.message)) {
+        throw new Error(error.message);
+      }
       return undefined;
     }
     console.log('[Persistence] Slot credit inserted — id:', data.id);
     return data.id;
   } catch (error) {
-    if (error instanceof Error && error.message === ALREADY_RESERVED_MESSAGE) {
+    if (error instanceof Error && (error.message === ALREADY_RESERVED_MESSAGE || isBookingRuleError(error.message))) {
       throw error;
     }
     console.error('[Persistence] Exception during slot credit insert:', error);
@@ -87,7 +91,7 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
       .maybeSingle();
     if (error || !data) {
       console.error('[Persistence] Pod insert FAILED:', error?.message ?? 'no data', error?.code);
-      if (isFullyBookedError(error?.message)) throw new Error(FULLY_BOOKED_MESSAGE);
+      if (isBookingRuleError(error?.message)) throw new Error(error?.message);
       return null;
     }
     console.log('[Persistence] Pod inserted — id:', data.id);
@@ -97,7 +101,7 @@ export async function persistFounderPod(pod: Pod, credit: SlotCredit, userId: st
     } catch (creditError) {
       // Active-booking rejection: remove the pod we just created so no orphan
       // row is left behind, then surface the friendly message to the UI.
-      if (creditError instanceof Error && (creditError.message === ALREADY_RESERVED_MESSAGE || creditError.message === FULLY_BOOKED_MESSAGE)) {
+      if (creditError instanceof Error && (creditError.message === ALREADY_RESERVED_MESSAGE || creditError.message === FULLY_BOOKED_MESSAGE || isBookingRuleError(creditError.message))) {
         console.warn('[Persistence] Booking rejected by backend — rolling back orphan pod:', data.id);
         try {
           const { error: rollbackError } = await supabase.from('pods').delete().eq('id', data.id);

@@ -15,6 +15,7 @@ import { toGroupMembers } from '@/utils/group-members';
 import { countRealMembers, findActivePodForCredit, isPodCreator } from '@/utils/liquidity-math';
 import { Ionicons } from '@expo/vector-icons';
 import { InlineInviteSearch } from './inline-invite-search';
+import { InviteLinkButton } from '@/components/invite/invite-link-button';
 import { LobbyMemberList } from './lobby-member-list';
 import { styles } from './lobby-screen.styles';
 import { ManageGroupModal } from './manage-group-modal';
@@ -215,6 +216,7 @@ export function LobbyScreen() {
           </Pressable>
         )}
 
+        {!isSolo && isCreator && remainingSlots > 0 && activePod && <InviteLinkButton podId={activePod.id} creditId={credit?.id} />}
         {!isSolo && isCreator && remainingSlots > 0 && (
           <InlineInviteSearch remainingSlots={remainingSlots} onSelect={handleInvite} />
         )}

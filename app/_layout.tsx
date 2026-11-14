@@ -44,12 +44,14 @@ function AuthGate({ children }: { children: React.ReactNode }) {
     const isPublicWebContent = isWeb && PUBLIC_WEB_CONTENT_PATHS.includes(pathname);
     const isPublicWebProperty = isWeb && /^\/property\/[^/]+\/?$/.test(pathname);
     const isPublicWebPay = isWeb && /^\/pay\/[0-9a-f]{32}\/?$/.test(pathname);
+    // A friend's invite link works signed out, in the app and on the web, so they can join before any onboarding.
+    const isPublicJoin = /^\/join\/[0-9a-f]{32}\/?$/.test(pathname);
     const inAuthGroup = segments[0] === '(auth)';
     const inLandingGroup = segments[0] === '(landing)';
     const inOnboardingGroup = segments[0] === '(onboarding)';
     const inTabsGroup = segments[0] === '(tabs)';
 
-    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty || isPublicWebPay) return;
+    if (isPublicWebHome || isPublicWebContent || isPublicWebProperty || isPublicWebPay || isPublicJoin) return;
 
     if (!isAuthenticated) {
       // Valid session but the profile row hasn't loaded yet (e.g. offline on

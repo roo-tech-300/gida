@@ -91,6 +91,22 @@ Run `npm run db:slot-report` to read it all back. It checks the data against the
 - **Capacity:** every household takes one whole unit of a listing, so a place with one unit can only ever have one household. Starting another is refused with "This place is fully booked."
 - **Gender lock:** a household locked to men or women only admits that gender.
 
+## Invite links
+
+A founder invites each friend with a link, not a code. Try it:
+1. Sign in as `slot.01@gida.test` (founder of Slot · Forming, 1 of 4) and open `/property/invite?podId=<pod id>&creditId=<credit id>`, or the household screen's "Invite friends with a link" button. Tap "Invite a friend": a link is made and the share sheet opens (in a desktop browser the link is shown in a message instead).
+2. Open the link signed out (a private window). The page shows the place, the friend's share and who has joined. "Join and pay" asks for name, email, gender and school, creates the account, takes the seat and opens the payment screen.
+3. The new student's My Home shows a "Choose a password" card until they set one.
+
+Rules, all enforced in the database:
+- A link holds a seat for **2 hours** (a "ghost seat"), then the seat opens again; the link keeps working for **48 hours** until used. One link, one seat.
+- A friend who joins (by link or by code) has **24 hours** to pay.
+- A student holds **one unpaid spot at a time**, and two holds that ran out in a day pause new reservations for a day.
+- Links stop working when their founder cancels or lapses, or the household is rejected.
+- A founder can create at most about twice the number of open seats in links per day.
+
+Set `EXPO_PUBLIC_PAY_PAGE_ORIGIN` to the site's address so links shared from a phone point at the right place (on the web the page's own address is used). For production, **email confirmation must be off** in Supabase Auth for the account to be usable straight away; if it is on, the friend is told to confirm their email and open the link again.
+
 ## Cancelling a reservation
 
 A student can cancel an **unpaid** reservation (under review, or approved but unpaid) from the property screen or My Home. It becomes `cancelled`, separate from `expired` (the hold lapsed), and frees the spot. Paid reservations cannot be cancelled in the app. Test: sign in as `sani@gida.test`, open Bosso Gate single rooms, tap "Cancel request".

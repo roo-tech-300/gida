@@ -1,3 +1,4 @@
+import { SetPasswordCard } from '@/components/my-home/set-password-card';
 import { useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, Text, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -52,6 +53,8 @@ export function MyHomeScreen() {
           <Text style={styles.title}>My Home</Text>
           <Text style={styles.subtitle}>Everything about your next place, in one spot.</Text>
         </View>
+
+        <View style={styles.pad}><SetPasswordCard /></View>
 
         {isPending ? <ListState kind="loading" message="Loading your home…" /> : null}
         {isError ? <ListState kind="error" message="We could not load your reservations. Pull down or try again." onRetry={() => { void refetch(); }} /> : null}

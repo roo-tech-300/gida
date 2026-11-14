@@ -29,6 +29,9 @@ A listing has `units_available` identical units and **every household occupies o
 - **Checked with a real race:** two students starting a household on the same one-unit listing at once, three times. Exactly one got the place each time; the other was told "This place is fully booked." and their orphan reservation was cancelled. The app now shows that message and cleans up.
 - Existing over-booked data is not touched: Bosso Gate still has two households on one unit, and the report lists it.
 
+### Invites, seat clocks and the two limits
+Friends are invited by link (migration `20261124000000`). A link holds a **ghost seat** for 2 hours, counted against capacity and spots left; a friend who joins has **24 hours** to pay; a student can hold **one unpaid spot at a time**, and two lapsed holds in a day pause reserving. Links are revoked when the founder cancels or lapses, or the household is rejected. The slot report probes each of these. Known limits: a friend whose email already has an account must sign in and reopen the link; open households listed in the app's "join an open group" step do not show seats held by links, so a join there can be refused with "This group is already full".
+
 ### Earlier fixes from the lab
 A cancelled or rejected reservation blocked reserving again (unique index); a student who left a household could not rejoin it; listings showed a price rounded differently from what checkout charges; seeded households recorded the wrong member count. See the git history.
 

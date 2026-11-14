@@ -8,6 +8,14 @@ export const ALREADY_RESERVED_MESSAGE = 'You already have an active reservation 
 
 export const FULLY_BOOKED_MESSAGE = 'This place is fully booked.';
 
+/** The database's own wording for the rules that stop a new reservation; shown to the student as it is. */
+const BOOKING_RULE_MESSAGES = ['fully booked', 'unpaid spot', 'ran out recently', 'for women only', 'for men only', 'already full'];
+
+export function isBookingRuleError(message: string | undefined): boolean {
+  const lower = (message ?? '').toLowerCase();
+  return BOOKING_RULE_MESSAGES.some((rule) => lower.includes(rule));
+}
+
 /** The database refuses to start a household when every unit of the place already has one. */
 export function isFullyBookedError(message: string | undefined): boolean {
   return !!message && message.toLowerCase().includes(FULLY_BOOKED_MESSAGE.toLowerCase());

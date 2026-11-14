@@ -6,7 +6,7 @@ export interface SqlResult {
   error: string | null;
 }
 
-const NOISE = /^(BEGIN|SET|ROLLBACK|COMMIT|\{"sub")/;
+const NOISE = /^(BEGIN|SET|ROLLBACK|COMMIT|\{"sub"|(INSERT|UPDATE|DELETE) \d)/;
 
 export function runSql(sql: string): SqlResult {
   const run = spawnSync('docker', ['exec', '-i', 'supabase_db_gida', 'psql', '-U', 'postgres', '-tA', '-F', '|'], { input: sql, encoding: 'utf8' });
@@ -22,10 +22,13 @@ export function userId(email: string): string {
   return id;
 }
 
-/** Runs the statements as that student (row-level security applies) and always rolls back. */
-export function asStudent(email: string, statements: string): SqlResult {
+/**
+ * Runs the statements as that student (row-level security and the write guards apply) and always rolls back.
+ * `setup` runs first as the database owner, to put the data in the state the probe needs.
+ */
+export function asStudent(email: string, statements: string, setup = ''): SqlResult {
   const claims = JSON.stringify({ sub: userId(email), role: 'authenticated' });
-  return runSql(`begin; set local role authenticated; select set_config('request.jwt.claims', '${claims}', true); ${statements} rollback;`);
+  return runSql(`begin; ${setup} set local role authenticated; select set_config('request.jwt.claims', '${claims}', true); ${statements} rollback;`);
 }
 
 /** Runs as the service role, which is how the Cloudflare worker calls the pay-link function. */

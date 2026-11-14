@@ -28,7 +28,7 @@ Every account uses the password `GidaDev!2026`.
 
 | Email | Who | State to test |
 |---|---|---|
-| `ada@gida.test` | Ada, student | In an approved 4-person household at Royal Lodge, her ₦250,000 share unpaid, hold ends in about 2 days |
+| `ada@gida.test` | Ada, student | In an approved 4-person household at Royal Lodge, her share unpaid (₦300,000 on a fresh seed), hold ends in about 2 days |
 | `amina@gida.test` | Amina, student | Same household, already paid |
 | `zainab@gida.test` | Zainab, student | Solo request at Gidan Kwano Haven waiting for admin review |
 | `fatima@gida.test` | Fatima, student | Invited into Ada's household; tour booked for tomorrow |
@@ -81,6 +81,13 @@ The state lab above is about what a screen looks like. The slot lab is about the
 | Parent pay links | Open, expired, revoked and paid links |
 
 Run `npm run db:slot-report` to read it all back. It checks the data against the rules (household counts, capacity, lapsed holds, rent splits, rooms, invites) and runs behaviour probes as real lab students (joining full or locked households, re-reserving after cancelling, self-marking as paid, pay-link states). The probes run inside transactions that are always rolled back, so nothing changes. Current results and recommended fixes are in `docs/slot-lab-findings.md`.
+
+## Rules the database now enforces
+
+- **Rent rounding:** rent is rounded up so every household size from 1 to the room limit pays whole naira (a multiple of 12 for 4 people). Entering ₦1,000,000 for a 4-person place saves ₦1,000,008.
+- **Student writes:** a student cannot mark a reservation paid, change its amount or hold, or approve a household. Use an admin account or the worker for those.
+- **Lapsed holds:** an approved, unpaid hold expires by itself (pg_cron every 5 minutes, also locally). To sweep now: `select public.expire_lapsed_holds();`.
+- **Gender lock:** a household locked to men or women only admits that gender.
 
 ## Cancelling a reservation
 

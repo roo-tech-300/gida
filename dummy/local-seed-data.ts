@@ -89,6 +89,17 @@ export interface SeedHouseholdMember {
   status: SeedCreditStatus;
   /** Hours from now: negative = in the past. */
   createdHoursAgo: number;
+  /** Overrides the household's hold deadline for this member (hours from now; negative = already past). */
+  holdEndsInHours?: number;
+  /** Gives this member's credit a parent pay link in this state. */
+  link?: 'open' | 'expired' | 'revoked';
+}
+
+export interface SeedInvite {
+  invitee: string;
+  inviter: string;
+  /** Defaults to pending. */
+  status?: 'pending' | 'accepted' | 'declined';
 }
 
 export interface SeedHousehold {
@@ -102,6 +113,12 @@ export interface SeedHousehold {
   holdEndsInHours: number;
   members: SeedHouseholdMember[];
   invite?: { invitee: string; inviter: string };
+  /** More than one invitation, with their outcomes. */
+  invites?: SeedInvite[];
+  /** The household is full and closed to new members. */
+  finalized?: boolean;
+  /** A physical room (door number) is assigned to the household. */
+  room?: string;
 }
 
 export interface SeedMessage {

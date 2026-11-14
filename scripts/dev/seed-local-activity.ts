@@ -10,6 +10,8 @@ import {
 } from '../../dummy/local-seed-data.ts';
 import type { MessageAttachment } from '../../types/messages.ts';
 import type { Catalog, SeededListing } from './seed-local-catalog.ts';
+import { randomBytes } from 'node:crypto';
+
 import { hoursFromNow, localDate, must, naira } from './seed-local-helpers.ts';
 
 interface SeededHousehold {
@@ -19,6 +21,7 @@ interface SeededHousehold {
 }
 
 const UNREAD_WITHIN_MINUTES = 300;
+const ENDED = new Set(['expired', 'cancelled', 'rejected']);
 
 function listingOf(catalog: Catalog, key: string): SeededListing {
   const l = catalog.listings.get(key);
@@ -38,26 +41,38 @@ export async function seedHouseholds(
   const out = new Map<string, SeededHousehold>();
   for (const h of list) {
     const listing = listingOf(catalog, h.listing);
-    const share = Math.round(listing.priceTotal / h.targetOccupancy);
+    // Two decimals, like the app: a price that does not divide evenly leaves a share with kobo.
+    const share = Math.round((listing.priceTotal / h.targetOccupancy) * 100) / 100;
     const oldest = Math.max(...h.members.map((m) => m.createdHoursAgo));
+    const active = h.members.filter((m) => !ENDED.has(m.status));
     const pod = must(`pod ${h.key}`, await db.from('pods').insert({
       estate_id: listing.estateId, listing_id: listing.id, property_tier: listing.propertyTier,
-      matched_gender: h.gender, current_total_intent: h.members.length, target_occupancy: h.targetOccupancy,
+      matched_gender: h.gender, current_total_intent: active.length, target_occupancy: h.targetOccupancy,
+      is_finalized: h.finalized ?? false,
       group_code: h.groupCode, founder_user_id: userOf(catalog, h.members[0].user),
       verification_status: h.verification, created_at: hoursFromNow(-oldest),
       verified_at: h.verification === 'approved' ? hoursFromNow(-oldest + 0.5) : null,
     }).select('id').single());
 
+    if (h.room) {
+      const room = must(`room ${h.key}`, await db.from('physical_rooms').insert({
+        estate_id: listing.estateId, property_tier: listing.propertyTier, physical_door_number: h.room,
+        gender_lock: h.gender, assigned_pod_id: pod.id,
+      }).select('id').single());
+      must(`room link ${h.key}`, await db.from('pods').update({ physical_room_id: room.id }).eq('id', pod.id).select('id'));
+    }
+
     const creditByUser = new Map<string, string>();
     for (const [i, m] of h.members.entries()) {
+      const holdEnds = m.holdEndsInHours ?? h.holdEndsInHours;
       const paid = m.status === 'paid_unmatched';
       const credit = must(`credit ${h.key}/${m.user}`, await db.from('slot_credits').insert({
         user_id: userOf(catalog, m.user), estate_id: listing.estateId, listing_id: listing.id,
         property_tier: listing.propertyTier, intent_size: 1, target_occupancy: h.targetOccupancy,
         status: m.status, invite_code: `${h.groupCode}${i + 1}`, amount_paid: share,
-        created_at: hoursFromNow(-m.createdHoursAgo), payment_deadline: hoursFromNow(h.holdEndsInHours),
+        created_at: hoursFromNow(-m.createdHoursAgo), payment_deadline: hoursFromNow(holdEnds),
         paid_at: paid ? hoursFromNow(-m.createdHoursAgo + 2) : null,
-        expired_at: m.status === 'expired' ? hoursFromNow(h.holdEndsInHours) : null,
+        expired_at: m.status === 'expired' ? hoursFromNow(holdEnds) : null,
         cancelled_at: m.status === 'cancelled' ? hoursFromNow(-m.createdHoursAgo / 2) : null,
         rejected_at: m.status === 'rejected' ? hoursFromNow(-m.createdHoursAgo / 2) : null,
       }).select('id').single());
@@ -68,11 +83,19 @@ export async function seedHouseholds(
       }).select('id'));
     }
 
-    if (h.invite) {
-      const invitee = inviteeName(catalog, h.invite.invitee);
+    for (const invite of [...(h.invite ? [h.invite] : []), ...(h.invites ?? [])]) {
       must(`invite ${h.key}`, await db.from('pod_invitations').insert({
-        pod_id: pod.id, inviter_user_id: userOf(catalog, h.invite.inviter),
-        invitee_user_id: userOf(catalog, h.invite.invitee), invitee_name: invitee, status: 'pending',
+        pod_id: pod.id, inviter_user_id: userOf(catalog, invite.inviter), invitee_user_id: userOf(catalog, invite.invitee),
+        invitee_name: inviteeName(catalog, invite.invitee), status: 'status' in invite && invite.status ? invite.status : 'pending',
+      }).select('id'));
+    }
+
+    for (const m of h.members) {
+      if (!m.link) continue;
+      const creditId = creditByUser.get(m.user);
+      must(`pay link ${h.key}/${m.user}`, await db.from('payment_links').insert({
+        credit_id: creditId, token: randomBytes(16).toString('hex'), created_by: userOf(catalog, m.user),
+        expires_at: hoursFromNow(m.link === 'expired' ? -2 : 48), revoked_at: m.link === 'revoked' ? hoursFromNow(-1) : null,
       }).select('id'));
     }
     out.set(h.key, { podId: pod.id as string, listingKey: h.listing, creditByUser });

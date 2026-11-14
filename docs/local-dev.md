@@ -62,6 +62,26 @@ Existing demo accounts cover the rest: under review with a cancel button (`sani@
 
 Not covered locally: video tours. They need `EXPO_PUBLIC_MEDIA_CDN_URL` and encoded video files, which the local stack does not have.
 
+## Slot lab
+
+The state lab above is about what a screen looks like. The slot lab is about the **household and reservation data underneath**: 11 `Slot · …` listings, 16 `slot.*@gida.test` accounts and 16 households, shaped to stress the rules the app relies on. `npm run db:seed:lab` adds it (a full `db:reset` includes it).
+
+| Listing | What the data holds |
+|---|---|
+| Forming, 1 of 4 | One founder, three places open, one pending invite |
+| Mixed payments, 3 of 4 | One paid, two unpaid with holds at 30h and 5h |
+| Full and paid, room assigned | Four paid members, finalized, door B4 |
+| Lapsed hold still counted | One paid, one unpaid whose hold ended 6h ago |
+| Cancelled and expired members | Paid, cancelled, expired and unpaid members in one household |
+| Two households, two units | One full and paid, one half-formed, on the same listing |
+| Odd split, fractional share | ₦1,000,000 over 3 people = ₦333,333.33 each |
+| Gender-locked household | A household locked to men |
+| Invitations | Pending, declined and accepted invites |
+| Admin queue ages | Four pending requests waiting 0.2h, 5h, 30h and 70h (sign in as `field@gida.test`, Today) |
+| Parent pay links | Open, expired, revoked and paid links |
+
+Run `npm run db:slot-report` to read it all back. It checks the data against the rules (household counts, capacity, lapsed holds, rent splits, rooms, invites) and runs behaviour probes as real lab students (joining full or locked households, re-reserving after cancelling, self-marking as paid, pay-link states). The probes run inside transactions that are always rolled back, so nothing changes. Current results and recommended fixes are in `docs/slot-lab-findings.md`.
+
 ## Cancelling a reservation
 
 A student can cancel an **unpaid** reservation (under review, or approved but unpaid) from the property screen or My Home. It becomes `cancelled`, separate from `expired` (the hold lapsed), and frees the spot. Paid reservations cannot be cancelled in the app. Test: sign in as `sani@gida.test`, open Bosso Gate single rooms, tap "Cancel request".

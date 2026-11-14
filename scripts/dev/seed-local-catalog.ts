@@ -7,7 +7,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import {
   LOCAL_SEED_PASSWORD, SEED_LANDLORDS, SEED_LISTINGS, SEED_REGIONS, SEED_USERS,
-  type SeedListing, type SeedRegionKey,
+  type SeedListing, type SeedRegionKey, type SeedUser,
 } from '../../dummy/local-seed-data.ts';
 import { ensureUser, must, uploadImage, type LocalStack } from './seed-local-helpers.ts';
 
@@ -29,9 +29,9 @@ export interface Catalog {
 
 const ENTRY_YEAR_NOW = 2026;
 
-export async function seedPeople(db: SupabaseClient, stack: LocalStack): Promise<Map<string, string>> {
+export async function seedPeople(db: SupabaseClient, stack: LocalStack, people: readonly SeedUser[] = SEED_USERS): Promise<Map<string, string>> {
   const users = new Map<string, string>();
-  for (const u of SEED_USERS) {
+  for (const u of people) {
     const id = await ensureUser(db, u, LOCAL_SEED_PASSWORD);
     users.set(u.key, id);
     const avatarUrl = u.avatar ? await uploadImage(db, stack, 'avatars', u.avatar) : null;
@@ -95,46 +95,72 @@ function amenityColumns(l: SeedListing): Record<string, boolean> {
   };
 }
 
-export async function seedListings(
-  db: SupabaseClient, stack: LocalStack, users: Map<string, string>, regions: Map<SeedRegionKey, string>,
-): Promise<Map<string, SeededListing>> {
+/** Existing accounts and regions, for adding data to a database that is already seeded. */
+export async function lookupExisting(db: SupabaseClient): Promise<{ users: Map<string, string>; regions: Map<SeedRegionKey, string> }> {
+  const users = new Map<string, string>();
+  for (const u of SEED_USERS) users.set(u.key, await ensureUser(db, u, LOCAL_SEED_PASSWORD));
+  const regions = new Map<SeedRegionKey, string>();
+  const rows = must('regions', await db.from('regions').select('id, name'));
+  for (const r of SEED_REGIONS) {
+    const row = rows.find((x) => x.name === r.name);
+    if (!row) throw new Error(`[Seed] region "${r.name}" not found. Run the full seed first.`);
+    regions.set(r.key, row.id as string);
+  }
+  return { users, regions };
+}
+
+async function landlordIds(db: SupabaseClient): Promise<Map<string, string>> {
   const landlords = new Map<string, string>();
   for (const ll of SEED_LANDLORDS) {
-    const row = must(`landlord ${ll.fullName}`, await db.from('landlords').insert({
+    const found = must(`landlord lookup ${ll.email}`, await db.from('landlords').select('id').eq('email', ll.email));
+    const id = found[0]?.id ?? must(`landlord ${ll.fullName}`, await db.from('landlords').insert({
       full_name: ll.fullName, phone_number: ll.phone, email: ll.email,
-    }).select('id').single());
-    landlords.set(ll.key, row.id as string);
+    }).select('id').single()).id;
+    landlords.set(ll.key, id as string);
   }
+  return landlords;
+}
+
+export async function seedListings(
+  db: SupabaseClient, stack: LocalStack, users: Map<string, string>, regions: Map<SeedRegionKey, string>,
+  list: readonly SeedListing[] = SEED_LISTINGS,
+): Promise<Map<string, SeededListing>> {
+  const landlords = await landlordIds(db);
 
   const listings = new Map<string, SeededListing>();
-  for (const l of SEED_LISTINGS) {
+  for (const l of list) {
     const photoUrls: string[] = [];
     for (const p of l.photos) photoUrls.push(await uploadImage(db, stack, 'listing-images', p));
     const tier = l.maxRoommates;
+    const units = l.units ?? 1;
+    const cover = photoUrls[0] ?? null;
 
     const estate = must(`estate ${l.title}`, await db.from('estates').insert({
       name: l.title, description: l.description, campus: l.campus, property_tier: tier,
-      price_per_annum: l.priceTotal, physical_rooms_inventory: 1, abstract_slots_available: tier,
-      primary_image: photoUrls[0], rules: l.rules, amenities: l.features,
+      price_per_annum: l.priceTotal, physical_rooms_inventory: units, abstract_slots_available: tier * units,
+      primary_image: cover, rules: l.rules, amenities: l.features,
     }).select('id').single());
 
     const listing = must(`listing ${l.title}`, await db.from('listings').insert({
       title: l.title, description: l.description, category: 'student_housing', status: 'available',
       featured: !!l.featured, price_amount: l.priceTotal, slashed_price: l.slashedPrice ?? null,
-      lease_term: 'per_annum', layout_type: l.layout, units_available: 1,
+      lease_term: 'per_annum', layout_type: l.layout, units_available: units,
+      size_sqft: l.sizeSqft ?? null, total_floors: l.totalFloors ?? null,
       number_of_bedrooms: l.bedrooms, number_of_bathrooms: l.bathrooms, max_roommates: l.maxRoommates,
-      property_tier: tier, abstract_slots_available: tier, location_landmark: l.landmark, city: 'Minna',
-      campus: l.campus, latitude: l.lat, longitude: l.lng, custom_features: l.features, rules: l.rules,
-      primary_image: photoUrls[0], admin_id: users.get(l.admin), landlord_id: landlords.get(l.landlord),
+      property_tier: tier, abstract_slots_available: tier * units, location_landmark: l.landmark, city: 'Minna',
+      campus: l.campus, latitude: l.lat ?? null, longitude: l.lng ?? null, custom_features: l.features, rules: l.rules,
+      primary_image: cover, admin_id: users.get(l.admin), landlord_id: landlords.get(l.landlord),
       estate_id: estate.id, region_path: [regions.get(l.region)], ...amenityColumns(l),
     }).select('id').single());
 
-    must(`photos ${l.title}`, await db.from('listing_photos').insert(
-      photoUrls.map((url, i) => ({ listing_id: listing.id, image_url: url, display_order: i })),
-    ).select('id'));
+    if (photoUrls.length > 0) {
+      must(`photos ${l.title}`, await db.from('listing_photos').insert(
+        photoUrls.map((url, i) => ({ listing_id: listing.id, image_url: url, display_order: i })),
+      ).select('id'));
+    }
 
     listings.set(l.key, {
-      id: listing.id as string, estateId: estate.id as string, title: l.title, image: photoUrls[0],
+      id: listing.id as string, estateId: estate.id as string, title: l.title, image: cover ?? '',
       location: `${l.landmark}, Minna`, priceTotal: l.priceTotal, propertyTier: tier,
     });
   }

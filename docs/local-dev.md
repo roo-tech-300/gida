@@ -9,6 +9,7 @@ A full copy of the production database **schema** (no production data) runs in D
 | `npm run db:start` | Start the local Supabase stack (Postgres, Auth, Storage, Realtime, Studio) |
 | `npm run db:reset` | Rebuild the database from `supabase/migrations/` and re-seed it |
 | `npm run db:seed` | Seed only (expects an empty, freshly reset database) |
+| `npm run db:seed:lab` | Add the state lab (below) to the current database without a reset, keeping your own test data |
 | `npm run db:status` | Show local URLs and keys |
 | `npm run db:stop` | Stop the stack (data is kept until the next reset) |
 | `npx expo start` | Run the app; it reads `.env.local` and talks to the local stack |
@@ -39,6 +40,31 @@ Every account uses the password `GidaDev!2026`.
 | `super@gida.test` | Ngozi, super admin | |
 
 Seed data lives in `dummy/local-seed-data.ts`; the runner is `scripts/dev/seed-local.ts`. Images come from `dummy/images/`.
+
+## State lab
+
+Ten extra listings named `Lab · …`, each built to exercise one data case the property screen has to handle, plus nine accounts (`lab.pay@gida.test`, …) that only ever hold lab reservations. Run `npm run db:seed:lab` to add it to an existing database; a full `db:reset` includes it.
+
+| Listing | Sign in as | What it checks |
+|---|---|---|
+| Bare minimum | `ada@gida.test` | No description, rules, amenities or map location (tour card hidden), one photo, one fact |
+| Fully loaded… (very long name) | `ada@gida.test` | 6 photos, all 9 amenities, long text and address, 5 rules, four facts, 4 reviews (cap of 2 + "View all"), plenty of spots, whole-place price |
+| No photos | `ada@gida.test` | Hero empty state, no photo grid |
+| Two photos | `ada@gida.test` | Photo grid with two tiles |
+| One spot left | `ada@gida.test` | "1 spot left" chip on a shared flat |
+| Pay: hold running | `lab.pay@gida.test` | "Pay my share", hold countdown in hours, cancel link |
+| Pay: solo, hold ending | `lab.solo@gida.test` | "Pay now", "Hold ends within the hour" |
+| Pay: hold ended | `lab.late@gida.test` | "Hold has ended" |
+| Request not approved | `lab.rej@gida.test` | Rejected request: "Find another place" |
+| Cancelled request | `lab.can@gida.test` | A cancelled reservation can be reserved again |
+
+Existing demo accounts cover the rest: under review with a cancel button (`sani@` at Bosso Gate, `halima@` at GK Twin Rooms), paid household (`amina@` at Royal Lodge; `ada@` too once her share is paid), paid solo (`tobi@`), invited (`fatima@`), expired (`chidi@`), and a full listing (Gidan Kwano Haven).
+
+Not covered locally: video tours. They need `EXPO_PUBLIC_MEDIA_CDN_URL` and encoded video files, which the local stack does not have.
+
+## Cancelling a reservation
+
+A student can cancel an **unpaid** reservation (under review, or approved but unpaid) from the property screen or My Home. It becomes `cancelled`, separate from `expired` (the hold lapsed), and frees the spot. Paid reservations cannot be cancelled in the app. Test: sign in as `sani@gida.test`, open Bosso Gate single rooms, tap "Cancel request".
 
 ## Where the schema came from
 

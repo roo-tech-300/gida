@@ -6,7 +6,7 @@ import type { SupabaseClient } from '@supabase/supabase-js';
 
 import {
   SEED_CONVERSATIONS, SEED_HOUSEHOLDS, SEED_REVIEWS, SEED_SAVED, SEED_TOURS,
-  type SeedMessage,
+  type SeedHousehold, type SeedMessage, type SeedReview, type SeedTour,
 } from '../../dummy/local-seed-data.ts';
 import type { MessageAttachment } from '../../types/messages.ts';
 import type { Catalog, SeededListing } from './seed-local-catalog.ts';
@@ -32,9 +32,11 @@ function userOf(catalog: Catalog, key: string): string {
   return id;
 }
 
-export async function seedHouseholds(db: SupabaseClient, catalog: Catalog): Promise<Map<string, SeededHousehold>> {
+export async function seedHouseholds(
+  db: SupabaseClient, catalog: Catalog, list: readonly SeedHousehold[] = SEED_HOUSEHOLDS,
+): Promise<Map<string, SeededHousehold>> {
   const out = new Map<string, SeededHousehold>();
-  for (const h of SEED_HOUSEHOLDS) {
+  for (const h of list) {
     const listing = listingOf(catalog, h.listing);
     const share = Math.round(listing.priceTotal / h.targetOccupancy);
     const oldest = Math.max(...h.members.map((m) => m.createdHoursAgo));
@@ -56,6 +58,7 @@ export async function seedHouseholds(db: SupabaseClient, catalog: Catalog): Prom
         created_at: hoursFromNow(-m.createdHoursAgo), payment_deadline: hoursFromNow(h.holdEndsInHours),
         paid_at: paid ? hoursFromNow(-m.createdHoursAgo + 2) : null,
         expired_at: m.status === 'expired' ? hoursFromNow(h.holdEndsInHours) : null,
+        cancelled_at: m.status === 'cancelled' ? hoursFromNow(-m.createdHoursAgo / 2) : null,
       }).select('id').single());
       creditByUser.set(m.user, credit.id as string);
       must(`member ${h.key}/${m.user}`, await db.from('pod_members').insert({
@@ -128,22 +131,33 @@ export async function seedConversations(db: SupabaseClient, catalog: Catalog, ho
   }
 }
 
-export async function seedExtras(db: SupabaseClient, catalog: Catalog, households: Map<string, SeededHousehold>): Promise<void> {
-  for (const t of SEED_TOURS) {
+export interface SeedExtras {
+  tours: readonly SeedTour[];
+  reviews: readonly SeedReview[];
+  saved: readonly { user: string; listing: string }[];
+}
+
+const BASE_EXTRAS: SeedExtras = { tours: SEED_TOURS, reviews: SEED_REVIEWS, saved: SEED_SAVED };
+
+export async function seedExtras(
+  db: SupabaseClient, catalog: Catalog, households: Map<string, SeededHousehold>, extras: SeedExtras = BASE_EXTRAS,
+): Promise<void> {
+  for (const t of extras.tours) {
     must(`tour ${t.user}/${t.listing}`, await db.from('tour_bookings').insert({
       user_id: userOf(catalog, t.user), listing_id: listingOf(catalog, t.listing).id, admin_id: userOf(catalog, t.admin),
       scheduled_date: localDate(t.dayOffset), scheduled_time: t.time, status: t.status,
     }).select('id'));
   }
-  for (const r of SEED_REVIEWS) {
+  for (const r of extras.reviews) {
     const slot = [...households.values()].find((h) => h.listingKey === r.listing)?.creditByUser.get(r.user) ?? null;
     const { error } = await db.from('reviews').insert({
       listing_id: listingOf(catalog, r.listing).id, user_id: userOf(catalog, r.user), slot_id: slot,
-      rating: r.rating, text: r.text, anonymous: false, review_number: 1,
+      rating: r.rating, text: r.text, anonymous: r.anonymous ?? false,
     });
     if (error) console.error(`[Seed] review ${r.user}/${r.listing} skipped:`, error.message);
   }
+  if (extras.saved.length === 0) return;
   must('saved listings', await db.from('saved_listings').insert(
-    SEED_SAVED.map((s) => ({ user_id: userOf(catalog, s.user), listing_id: listingOf(catalog, s.listing).id, type: 'lodge' })),
+    extras.saved.map((s) => ({ user_id: userOf(catalog, s.user), listing_id: listingOf(catalog, s.listing).id, type: 'lodge' })),
   ).select('id'));
 }

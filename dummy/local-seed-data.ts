@@ -54,7 +54,8 @@ export interface SeedLandlord {
 export interface SeedListing {
   key: string;
   title: string;
-  description: string;
+  /** Null leaves the listing without a description. */
+  description: string | null;
   landlord: string;
   admin: string;
   layout: 'self_contain' | 'single_room' | 'flat';
@@ -66,17 +67,22 @@ export interface SeedListing {
   landmark: string;
   campus: string;
   region: SeedRegionKey;
-  lat: number;
-  lng: number;
+  /** Leave out to seed a listing with no map location (tours are then unavailable). */
+  lat?: number;
+  lng?: number;
   featured?: boolean;
+  sizeSqft?: number;
+  totalFloors?: number;
+  /** Number of identical units; spots = tier × units. Defaults to 1. */
+  units?: number;
   amenities: Partial<Record<'borehole' | 'generator' | 'fencedGate' | 'internet' | 'burglary' | 'cabinet' | 'wardrobe' | 'sharedKitchen' | 'sharedBathroom', boolean>>;
   features: string[];
   rules: string[];
-  /** Paths under dummy/images, first one becomes primary_image. */
+  /** Paths under dummy/images, first one becomes primary_image. An empty list seeds a listing with no photos. */
   photos: string[];
 }
 
-export type SeedCreditStatus = 'booked_pending_claim' | 'paid_unmatched' | 'expired';
+export type SeedCreditStatus = 'booked_pending_claim' | 'paid_unmatched' | 'expired' | 'cancelled';
 
 export interface SeedHouseholdMember {
   user: string;
@@ -126,6 +132,8 @@ export interface SeedReview {
   listing: string;
   rating: number;
   text: string;
+  /** Defaults to false (name shown). */
+  anonymous?: boolean;
 }
 
 export const SEED_REGIONS: SeedRegion[] = [

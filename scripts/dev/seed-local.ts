@@ -10,6 +10,7 @@
 import { LOCAL_SEED_PASSWORD, SEED_USERS } from '../../dummy/local-seed-data.ts';
 import { seedConversations, seedExtras, seedHouseholds } from './seed-local-activity.ts';
 import { seedListings, seedPeople, seedRegionsAndAdmins, type Catalog } from './seed-local-catalog.ts';
+import { seedStateLab } from './seed-local-lab.ts';
 import { adminClient, readLocalStack } from './seed-local-helpers.ts';
 
 async function main(): Promise<void> {
@@ -38,6 +39,7 @@ async function main(): Promise<void> {
   await seedConversations(db, catalog, households);
   await seedExtras(db, catalog, households);
   console.log(`[Seed] ${households.size} households, chats, tours, reviews, saved listings`);
+  await seedStateLab(db, stack, users, regions);
 
   console.log(`\nDone. Every account's password: ${LOCAL_SEED_PASSWORD}`);
   for (const u of SEED_USERS) {

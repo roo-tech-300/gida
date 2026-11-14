@@ -10,10 +10,6 @@ interface ExpireResult {
   ids: string[];
 }
 
-interface SlotCreditExpireResult extends ExpireResult {
-  podsReconciled: number;
-}
-
 async function patchExpired(baseUrl: string, key: string, table: string, filter: string): Promise<ExpireResult> {
   const url = `${baseUrl}/rest/v1/${table}`;
   const response = await fetch(`${url}?${filter}`, {
@@ -36,62 +32,27 @@ async function patchExpired(baseUrl: string, key: string, table: string, filter:
   return { expired: updated.length, ids: updated.map((r) => r.id) };
 }
 
-async function reconcileExpiredPods(baseUrl: string, key: string, expiredCreditIds: string[]): Promise<number> {
-  if (expiredCreditIds.length === 0) {
-    return 0;
-  }
-  const headers = {
-    'Content-Type': 'application/json',
-    apikey: key,
-    Authorization: `Bearer ${key}`,
-  };
-  let reconciled = 0;
-  for (const creditId of expiredCreditIds) {
-    try {
-      const response = await fetch(`${baseUrl}/rest/v1/rpc/reconcile_pod_after_credit_expiry`, {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ p_slot_credit_id: creditId }),
-      });
-      if (!response.ok) {
-        console.error(`[Expiration] Pod reconcile RPC failed for ${creditId}: ${response.status} — ${await response.text()}`);
-        continue;
-      }
-      const podId = (await response.json()) as string | null;
-      if (podId) {
-        reconciled += 1;
-      }
-    } catch (error) {
-      const message = error instanceof Error ? error.message : String(error);
-      console.error(`[Expiration] Pod reconcile exception for ${creditId}: ${message}`);
-    }
-  }
-  return reconciled;
-}
-
-async function expireStaleSlotCredits(env: Env): Promise<SlotCreditExpireResult> {
-  const now = new Date().toISOString();
+/**
+ * The rule for which holds have run out lives in the database (public.expire_lapsed_holds): it leaves
+ * requests still waiting for an admin alone, since their hold starts at approval, and it updates each
+ * household's member count itself.
+ */
+async function expireStaleSlotCredits(env: Env): Promise<ExpireResult> {
   const baseUrl = env.SUPABASE_URL.replace(/\/$/, '');
-
-  let totalExpired = 0;
-  let totalIds: string[] = [];
-
-  const expiredBooked = await patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'slot_credits', new URLSearchParams({
-    status: 'eq.booked_pending_claim',
-    payment_deadline: `lt.${now}`,
-  }).toString());
-  totalExpired += expiredBooked.expired;
-  totalIds = totalIds.concat(expiredBooked.ids);
-
-  const expiredPending = await patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'slot_credits', new URLSearchParams({
-    status: 'eq.pending_verification',
-    payment_deadline: `lt.${now}`,
-  }).toString());
-  totalExpired += expiredPending.expired;
-  totalIds = totalIds.concat(expiredPending.ids);
-
-  const podsReconciled = await reconcileExpiredPods(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, totalIds);
-  return { expired: totalExpired, ids: totalIds, podsReconciled };
+  const response = await fetch(`${baseUrl}/rest/v1/rpc/expire_lapsed_holds`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      apikey: env.SUPABASE_SERVICE_ROLE_KEY,
+      Authorization: `Bearer ${env.SUPABASE_SERVICE_ROLE_KEY}`,
+    },
+    body: '{}',
+  });
+  if (!response.ok) {
+    throw new Error(`expire_lapsed_holds failed: ${response.status} — ${await response.text()}`);
+  }
+  const expired = Number(await response.json());
+  return { expired: Number.isFinite(expired) ? expired : 0, ids: [] };
 }
 
 async function expireStaleTourBookings(env: Env): Promise<ExpireResult> {
@@ -104,12 +65,8 @@ async function expireStaleTourBookings(env: Env): Promise<ExpireResult> {
   return patchExpired(baseUrl, env.SUPABASE_SERVICE_ROLE_KEY, 'tour_bookings', params.toString());
 }
 
-function summarize(result: ExpireResult | SlotCreditExpireResult, label: string): void {
-  let message = `[Expiration] Expired ${result.expired} ${label}: ${result.ids.join(', ')}`;
-  if ('podsReconciled' in result) {
-    message += `; reconciled ${result.podsReconciled} pods`;
-  }
-  console.log(message);
+function summarize(result: ExpireResult, label: string): void {
+  console.log(`[Expiration] Expired ${result.expired} ${label}${result.ids.length ? `: ${result.ids.join(', ')}` : ''}`);
 }
 
 export default {

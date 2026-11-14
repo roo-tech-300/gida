@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { router } from 'expo-router';
 
-import { useCreditForListing } from '@/hooks/use-liquidity';
+import { useCreditForListing, useExpireSlotCredit } from '@/hooks/use-liquidity';
 import { usePendingInvitationForListing } from '@/hooks/use-lodge-invitations';
 import type { DbListing, FeedListing } from '@/types/feed-listing';
 import { resolveBarSummary } from '@/utils/property-bar-summary';
@@ -33,6 +33,17 @@ export function usePropertyCta(property: FeedListing, dbListing?: DbListing, spo
     targetOccupancy: credit?.target_occupancy,
     paymentDeadline: credit?.payment_deadline,
   });
+
+  // A hold that has run out is released as soon as the student looks at the place, the same call the pay
+  // screen makes. The server also sweeps these on a schedule, so this only makes their own view instant.
+  const { mutate: releaseHold } = useExpireSlotCredit();
+  const releasedRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (cta.state !== 'pay' || !credit || releasedRef.current === credit.id) return;
+    if (new Date(credit.payment_deadline).getTime() >= Date.now()) return;
+    releasedRef.current = credit.id;
+    releaseHold(credit.id);
+  }, [cta.state, credit, releaseHold]);
 
   const onPress = () => {
     const { action } = cta;
